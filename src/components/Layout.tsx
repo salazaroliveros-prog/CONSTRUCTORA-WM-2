@@ -102,13 +102,38 @@ interface LayoutProps {
   setActiveTab: (tab: string) => void;
 }
 
+const NOTIFICATION_STORAGE_KEY = 'wm_read_notifications';
+
+const staticNotifications = [
+  { id: 'n1', text: 'Nivel crítico de Cemento en Almacén Central', type: 'error', time: 'hace 5m', module: 'inventory' },
+  { id: 'n2', text: 'Nueva cotización recibida de Proveedor', type: 'info', time: 'hace 1h', module: 'suppliers' },
+  { id: 'n3', text: 'Hito de Obra completado satisfactoriamente', type: 'success', time: 'hace 3h', module: 'execution' },
+];
+
 export default function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [readIds, setReadIds] = useState<string[]>(() => {
+    try { return JSON.parse(localStorage.getItem(NOTIFICATION_STORAGE_KEY) || '[]'); } catch { return []; }
+  });
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
   const { theme, toggleTheme } = useTheme();
+
+  const unreadCount = staticNotifications.filter(n => !readIds.includes(n.id)).length;
+
+  const handleOpenNotifications = () => {
+    const allIds = staticNotifications.map(n => n.id);
+    setReadIds(allIds);
+    localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(allIds));
+    setShowNotifications(!showNotifications);
+  };
+
+  const handleNotificationClick = (module: string) => {
+    setActiveTab(module);
+    setShowNotifications(false);
+  };
 
   const toggleFullScreen = () => {
     if (!document.fullscreenElement) {
@@ -138,12 +163,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'analytics', label: 'Analistics', icon: <BarChart3 size={20} /> },
     { id: 'staff', label: 'Recursos Humanos', icon: <HardHat size={20} /> },
     { id: 'settings', label: 'Ajustes Visuales', icon: <Settings size={20} /> },
-  ];
-
-  const notifications = [
-    { id: 1, text: 'Nivel crítico de Cemento en Almacén Central', type: 'error', time: 'hace 5m' },
-    { id: 2, text: 'Nueva cotización recibida de Proveedor', type: 'info', time: 'hace 1h' },
-    { id: 3, text: 'Hito de Obra completado satisfactoriamente', type: 'success', time: 'hace 3h' },
   ];
 
   return (
@@ -278,11 +297,13 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
             <div className="relative">
                <button 
-                onClick={() => setShowNotifications(!showNotifications)}
+                onClick={handleOpenNotifications}
                 className="relative p-2.5 bg-slate-50 text-slate-500 hover:text-primary rounded-xl border border-slate-100 transition-all group"
                >
                  <Bell size={18} className="group-hover:rotate-12 transition-transform" />
-                 <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary border-2 border-white rounded-full ring-4 ring-secondary/10 animate-pulse" />
+                 {unreadCount > 0 && (
+                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-secondary border-2 border-white rounded-full ring-4 ring-secondary/10 animate-pulse" />
+                 )}
                </button>
 
                <AnimatePresence>
@@ -295,11 +316,15 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                    >
                      <div className="flex justify-between items-center mb-4">
                         <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Notificaciones</span>
-                        <span className="text-[8px] font-bold text-secondary cursor-pointer hover:underline uppercase">Marcar todo</span>
+                        <span className="text-[8px] font-bold text-slate-300 uppercase">Todo leído</span>
                      </div>
                      <div className="space-y-4">
-                        {notifications.map(n => (
-                          <div key={n.id} className="flex gap-3 group cursor-pointer p-1.5 -m-1.5 rounded-xl hover:bg-slate-50 transition-colors">
+                        {staticNotifications.map(n => (
+                          <div 
+                            key={n.id} 
+                            onClick={() => handleNotificationClick(n.module)}
+                            className="flex gap-3 group cursor-pointer p-1.5 -m-1.5 rounded-xl hover:bg-slate-50 transition-colors"
+                          >
                              <div className={cn(
                                "w-1 h-auto rounded-full shrink-0",
                                n.type === 'error' ? "bg-red-500" : n.type === 'info' ? "bg-blue-500" : "bg-green-500"
@@ -311,9 +336,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                           </div>
                         ))}
                      </div>
-                     <button className="w-full mt-4 py-2.5 bg-primary text-[9px] font-black text-white rounded-xl uppercase tracking-widest hover:bg-slate-800 transition-all shadow-lg shadow-primary/20">
-                       Ver Todas
-                     </button>
                    </motion.div>
                  )}
                </AnimatePresence>
