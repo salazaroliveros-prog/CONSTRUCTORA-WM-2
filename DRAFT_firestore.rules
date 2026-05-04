@@ -1,0 +1,127 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(data) {
+      return isSignedIn() && data.ownerId == request.auth.uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Entity Validations ---
+    function isValidProject(data) {
+      return data.keys().hasAll(['name', 'typology', 'status', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidInventory(data) {
+      return data.keys().hasAll(['name', 'stock', 'minStock', 'ownerId']) &&
+             data.name is string && data.name.size() > 0 &&
+             data.stock is number &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidClient(data) {
+      return data.keys().hasAll(['name', 'ownerId']) &&
+             data.name is string &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidStaff(data) {
+      return data.keys().hasAll(['name', 'ownerId']) &&
+             data.name is string &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidSupplier(data) {
+      return data.keys().hasAll(['name', 'ownerId']) &&
+             data.name is string &&
+             data.ownerId == request.auth.uid;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['amount', 'type', 'category', 'date', 'ownerId']) &&
+             data.amount is number &&
+             data.type in ['INGRESO', 'GASTO'] &&
+             data.category is string &&
+             data.ownerId == request.auth.uid;
+    }
+
+    // --- Collection Routes ---
+    match /projects/{projectId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(projectId) && isValidProject(incoming()) && 
+                    incoming().createdAt == request.time;
+      allow update: if isOwner(existing()) && isValidProject(incoming()) &&
+                    incoming().ownerId == existing().ownerId &&
+                    incoming().updatedAt == request.time;
+      allow delete: if isOwner(existing());
+    }
+
+    match /inventory/{itemId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(itemId) && isValidInventory(incoming());
+      allow update: if isOwner(existing()) && isValidInventory(incoming()) &&
+                    incoming().ownerId == existing().ownerId;
+      allow delete: if isOwner(existing());
+    }
+
+    match /clients/{clientId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(clientId) && isValidClient(incoming());
+      allow update: if isOwner(existing()) && isValidClient(incoming()) &&
+                    incoming().ownerId == existing().ownerId;
+      allow delete: if isOwner(existing());
+    }
+
+    match /staff/{staffId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(staffId) && isValidStaff(incoming());
+      allow update: if isOwner(existing()) && isValidStaff(incoming()) &&
+                    incoming().ownerId == existing().ownerId;
+      allow delete: if isOwner(existing());
+    }
+
+    match /suppliers/{supplierId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(supplierId) && isValidSupplier(incoming());
+      allow update: if isOwner(existing()) && isValidSupplier(incoming()) &&
+                    incoming().ownerId == existing().ownerId;
+      allow delete: if isOwner(existing());
+    }
+
+    match /transactions/{transactionId} {
+      allow get: if isOwner(existing());
+      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
+      allow create: if isSignedIn() && isValidId(transactionId) && isValidTransaction(incoming());
+      allow update: if isOwner(existing()) && isValidTransaction(incoming()) &&
+                    incoming().ownerId == existing().ownerId;
+      allow delete: if isOwner(existing());
+    }
+  }
+}
