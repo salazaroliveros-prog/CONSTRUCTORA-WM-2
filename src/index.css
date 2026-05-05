@@ -237,27 +237,6 @@
   box-shadow: var(--glass-shadow) !important;
   transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
 }
-/* Reflejo superior (borde luminoso) */
-.bg-white.border::before,
-.bg-white.rounded-2xl::before,
-.bg-white.rounded-xl::before,
-.bento-card::before,
-.glass-card::before,
-.action-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.08) 40%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-.bg-white.border,
-.bg-white.rounded-2xl,
-.bg-white.rounded-xl,
-.bento-card,
-.glass-card,
-.action-card { position: relative; }
 
 .bg-white.border:hover,
 .bg-white.rounded-2xl:hover,
