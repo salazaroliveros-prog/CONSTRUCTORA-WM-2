@@ -433,7 +433,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
     });
   })();
 
-  const COLORS = [settings.secondaryColor, settings.primaryColor, '#64748B', '#94A3B8', '#CBD5E1', '#E2E8F0', '#F1F5F9'];
+  const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4', '#fb923c', '#a3e635'];
 
   const getCardStyle = () => {
     switch (settings.cardStyle) {
@@ -651,7 +651,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                           <stop offset="100%" stopColor={settings.primaryColor} stopOpacity={0.6} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
                       <YAxis fontSize={10} axisLine={false} tickLine={false} />
                       <Tooltip cursor={{fill: 'rgba(248,250,252,0.05)'}} content={<CustomTooltip />} />
@@ -662,7 +662,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                     </ComposedChart>
                   ) : settings.graphType === 'line' ? (
                     <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
                       <YAxis fontSize={10} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
@@ -681,7 +681,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                           <stop offset="95%" stopColor={settings.primaryColor} stopOpacity={0} />
                         </linearGradient>
                       </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
                       <YAxis fontSize={10} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
