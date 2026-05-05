@@ -289,13 +289,13 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
   const handleSave = async () => {
     setLoading(true);
     try {
+      const { id, ...projectData } = project;
       const dataToSave = {
-        ...project,
+        ...projectData,
         budget: totalBudget,
         executed: 0,
         progress: 0,
         directCosts: totalDirect,
-        id: undefined // Don't save temp id
       };
       await addDocument('projects', dataToSave);
       toast.success("Proyecto creado exitosamente");

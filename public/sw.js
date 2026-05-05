@@ -1,4 +1,4 @@
-const CACHE_NAME = 'wm-ms-cache-v3';
+const CACHE_NAME = 'wm-ms-cache-v4';
 const STATIC_ASSETS = ['/logo.png', '/manifest.json'];
 
 self.addEventListener('install', (event) => {
@@ -19,29 +19,45 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // index.html y navegación: SIEMPRE desde la red, nunca caché
-  if (url.pathname === '/' || url.pathname === '/index.html' || event.request.mode === 'navigate') {
+  // index.html y navegación: siempre desde la red
+  if (event.request.mode === 'navigate') {
     event.respondWith(
       fetch(event.request).catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // Assets JS/CSS/imágenes: cache-first (ya tienen hash en el nombre)
-  if (url.pathname.match(/\.(js|css|png|jpg|svg|woff2?)$/)) {
+  // Assets con hash (JS/CSS): cache-first
+  if (url.pathname.match(/\/assets\/.+\.(js|css)$/)) {
     event.respondWith(
-      caches.match(event.request).then(cached =>
-        cached || fetch(event.request).then(res => {
-          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(res => {
+          // Clonar ANTES de usar la respuesta
+          const toCache = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, toCache));
           return res;
-        })
-      )
+        });
+      })
     );
     return;
   }
 
-  // Todo lo demás: network-first
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+  // Imágenes y fuentes: cache-first
+  if (url.pathname.match(/\.(png|jpg|svg|woff2?)$/)) {
+    event.respondWith(
+      caches.match(event.request).then(cached => {
+        if (cached) return cached;
+        return fetch(event.request).then(res => {
+          const toCache = res.clone();
+          caches.open(CACHE_NAME).then(c => c.put(event.request, toCache));
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  // Todo lo demás (Firebase, APIs): solo red, sin caché
+  event.respondWith(fetch(event.request));
 });
