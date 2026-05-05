@@ -69,7 +69,7 @@ function AppContent() {
         <div className="max-w-md w-full bg-white rounded-3xl p-10 shadow-2xl flex flex-col items-center text-center space-y-10 animate-in fade-in zoom-in duration-500">
           <Logo />
           <div>
-            <h1 className="text-2xl font-black text-primary uppercase tracking-tighter leading-tight italic">Technical Management<br/>System</h1>
+            <h1 className="text-2xl font-black text-primary uppercase tracking-tighter leading-tight italic">Sistema de Gestión<br/>Constructora</h1>
             <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-4">Sistema de Gestión de Obra Profesional</p>
           </div>
           

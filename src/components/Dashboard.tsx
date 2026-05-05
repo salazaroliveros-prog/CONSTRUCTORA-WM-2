@@ -336,7 +336,7 @@ export default function Dashboard() {
         {/* KPI Ribbon */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: 'Proyectos Active', value: executingProjects.length, icon: <Zap size={14} />, color: 'bg-blue-500' },
+            { label: 'Proyectos Activos', value: executingProjects.length, icon: <Zap size={14} />, color: 'bg-blue-500' },
             { label: 'Efectivo Neto', value: `Q${(netCash / 1000).toFixed(1)}k`, icon: <DollarSign size={14} />, color: 'bg-emerald-500' },
             { label: 'Presp. Ejecución', value: `Q${(executingBudget/1000).toFixed(0)}k`, icon: <TrendingUp size={14} />, color: 'bg-secondary' },
             { label: 'Presp. Fin/Pausa', value: `Q${(finishedPausedBudget/1000).toFixed(0)}k`, icon: <CheckCircle2 size={14} />, color: 'bg-slate-400' },

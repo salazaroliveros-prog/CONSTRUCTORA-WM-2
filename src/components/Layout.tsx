@@ -160,7 +160,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'execution', label: 'Seguimiento y Bitácora', icon: <ClipboardList size={20} /> },
     { id: 'suppliers', label: 'Proveedores', icon: <Truck size={20} /> },
     { id: 'inventory', label: 'Stock o Bodega', icon: <Package size={20} /> },
-    { id: 'analytics', label: 'Analistics', icon: <BarChart3 size={20} /> },
+    { id: 'analytics', label: 'Analíticas', icon: <BarChart3 size={20} /> },
     { id: 'staff', label: 'Recursos Humanos', icon: <HardHat size={20} /> },
     { id: 'settings', label: 'Ajustes Visuales', icon: <Settings size={20} /> },
   ];
@@ -194,7 +194,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                 {user?.photoURL ? (
                   <img 
                     src={user.photoURL} 
-                    alt="User Avatar" 
+                    alt="Avatar de usuario" 
                     className="w-full h-full rounded-xl object-cover shadow-lg border-2 border-slate-900 p-0.5 bg-white"
                     referrerPolicy="no-referrer"
                   />
@@ -344,7 +344,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             <div className="flex items-center gap-3 pl-4 border-l border-slate-100 h-8">
                <div className="text-right hidden sm:block">
                   <p className="text-[10px] font-black text-primary uppercase leading-none truncate max-w-[100px]">{user?.displayName || 'Usuario'}</p>
-                  <p className="text-[8px] font-bold text-slate-400 mt-1 tracking-widest uppercase truncate max-w-[100px]">Admin</p>
+                  <p className="text-[8px] font-bold text-slate-400 mt-1 tracking-widest uppercase truncate max-w-[100px]">Administrador</p>
                </div>
                <div className="w-9 h-9 rounded-xl shadow-xl shadow-primary/10 border-2 border-white ring-1 ring-slate-200 flex items-center justify-center font-bold text-[10px] text-white overflow-hidden cursor-pointer active:scale-95 transition-transform bg-slate-900">
                   {user?.photoURL ? (
@@ -366,11 +366,11 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         <footer className="h-8 bg-white text-slate-400 text-[8px] font-bold flex items-center justify-between px-6 border-t border-slate-100 uppercase tracking-widest shrink-0">
            <div className="flex gap-4">
               <span>© 2024 WM/M&S CONSTRUCTORA</span>
-              <span className="hidden sm:inline">Engine: V 2.4.1 PRO</span>
+              <span className="hidden sm:inline">Motor: V 2.4.1 PRO</span>
            </div>
            <div className="flex gap-3">
-              <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" /> Operativo</span>
-              <span className="hidden sm:inline">Latency: 24ms</span>
+              <span className="flex items-center gap-1.5"><div className="w-1 h-1 rounded-full bg-green-500 animate-pulse" /> En línea</span>
+              <span className="hidden sm:inline">Latencia: 24ms</span>
            </div>
         </footer>
       </main>

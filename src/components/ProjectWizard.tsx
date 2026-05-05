@@ -944,7 +944,7 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                          <div className="p-3 bg-slate-50 rounded-xl text-center">
-                            <p className="text-[7px] font-black text-slate-400 uppercase mb-1">Admin</p>
+                            <p className="text-[7px] font-black text-slate-400 uppercase mb-1">Administrador</p>
                             <p className="text-xs font-black text-primary">{project.administrativeCosts}%</p>
                          </div>
                          <div className="p-3 bg-slate-50 rounded-xl text-center">
