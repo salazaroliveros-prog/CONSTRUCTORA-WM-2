@@ -225,13 +225,13 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-all duration-200",
                           activeTab === item.id
-                            ? "bg-slate-900/90 text-white shadow-lg backdrop-blur-sm scale-[1.02]"
-                            : "text-slate-500 hover:bg-secondary/15 hover:text-slate-900 hover:scale-[1.03] hover:text-[11px] hover:font-black hover:shadow-sm"
+                            ? "bg-secondary text-primary shadow-lg scale-[1.02] font-black"
+                            : "text-slate-500 hover:bg-secondary/20 hover:text-slate-900 hover:scale-[1.03] hover:text-[11px] hover:font-black hover:shadow-sm"
                         )}
                       >
-                        <span className={cn("shrink-0", activeTab === item.id ? "text-secondary" : "")}>{item.icon}</span>
+                        <span className={cn("shrink-0", activeTab === item.id ? "text-primary" : "")}>{item.icon}</span>
                         {item.label}
-                        {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-secondary" />}
+                        {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary" />}
                       </motion.button>
                     ))}
                   </nav>

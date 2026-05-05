@@ -3,7 +3,9 @@
   "short_name": "Constructora",
   "description": "Sistema de Gestión de Obra y Presupuestos WM/M&S",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#F8FAFC",
   "theme_color": "#0F172A",
   "icons": [

@@ -119,8 +119,8 @@ function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
         <div className="text-right mr-1">
           <p className="text-[9px] font-black text-slate-600">Q {totalPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</p>
         </div>
-        <button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} className="p-1 text-slate-200 hover:text-blue-500 transition-colors opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
-        <button onClick={onDelete} className="p-1 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
+        <button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} className="btn-edit opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
+        <button onClick={onDelete} className="btn-delete opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
       </div>
     </div>
   );
@@ -954,8 +954,8 @@ export default function ProjectsModule() {
                               {expandedItems.includes(item.id) ? <ChevronUp size={14} className="text-slate-400 shrink-0" /> : <ChevronDown size={14} className="text-slate-400 shrink-0" />}
                             </button>
                             <div className="flex gap-1 shrink-0 ml-2">
-                              <button onClick={() => { setEditingItem(item.id); setItemEditForm({ code: item.code, description: item.description, projectQuantity: item.projectQuantity, unit: item.unit }); }} className="p-1 text-slate-300 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
-                              <button onClick={() => deleteItem(item.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                              <button onClick={() => { setEditingItem(item.id); setItemEditForm({ code: item.code, description: item.description, projectQuantity: item.projectQuantity, unit: item.unit }); }} className="btn-edit"><Pencil size={12} /></button>
+                              <button onClick={() => deleteItem(item.id)} className="btn-delete"><Trash2 size={12} /></button>
                             </div>
                           </div>
 

@@ -167,7 +167,7 @@ export default function SuppliersModule() {
                         fill={star <= Number(s.rating || 5) ? 'currentColor' : 'none'} />
                     ))}
                   </div>
-                  <button onClick={() => handleDelete(s.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                  <button onClick={() => handleDelete(s.id)} className="btn-delete opacity-0 group-hover:opacity-100">
                     <Trash2 size={11} />
                   </button>
                 </div>
@@ -225,7 +225,7 @@ export default function SuppliersModule() {
                         </div>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <button onClick={() => handleDelete(s.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
+                        <button onClick={() => handleDelete(s.id)} className="btn-delete">
                           <Trash2 size={12} />
                         </button>
                       </td>

@@ -142,9 +142,10 @@ export default function ClientsModule() {
                     <div className="w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center font-black text-slate-400 text-[9px]">
                       {client.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
                     </div>
-                    <button onClick={() => handleDelete(client.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
-                      <Trash2 size={11} />
-                    </button>
+                    <div className="flex gap-1">
+                      <button onClick={() => { setEditClient(client); setEditForm({ name: client.name, email: client.email || '', phone: client.phone || '', address: client.address || '' }); }} className="btn-edit"><Pencil size={11} /></button>
+                      <button onClick={() => handleDelete(client.id)} className="btn-delete"><Trash2 size={11} /></button>
+                    </div>
                   </div>
                   <h3 className="text-[10px] font-black text-primary tracking-tight uppercase group-hover:text-secondary transition-colors truncate">{client.name}</h3>
                   <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest truncate mt-0.5">{client.email || 'Sin correo'}</p>
@@ -195,7 +196,7 @@ export default function ClientsModule() {
                         <span className="text-[9px] font-black text-primary">{client.projects?.length || 0}</span>
                       </td>
                       <td className="px-4 py-2.5 text-right">
-                        <button onClick={() => handleDelete(client.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
+                        <button onClick={() => handleDelete(client.id)} className="btn-delete">
                           <Trash2 size={12} />
                         </button>
                       </td>

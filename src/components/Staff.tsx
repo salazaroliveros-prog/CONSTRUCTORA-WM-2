@@ -175,8 +175,8 @@ export default function StaffModule() {
                       </div>
                     </div>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100">
-                      <button onClick={() => { setEditMember(m); setEditForm({ name: m.name, role: m.role, salary: String(m.salary), documentId: m.documentId, status: m.status || 'Activo' }); }} className="p-1 text-slate-300 hover:text-blue-500 transition-all"><Pencil size={11} /></button>
-                      <button onClick={() => handleDelete(m.id)} className="p-1 text-slate-300 hover:text-red-500 transition-all"><Trash2 size={11} /></button>
+                      <button onClick={() => { setEditMember(m); setEditForm({ name: m.name, role: m.role, salary: String(m.salary), documentId: m.documentId, status: m.status || 'Activo' }); }} className="btn-edit"><Pencil size={11} /></button>
+                      <button onClick={() => handleDelete(m.id)} className="btn-delete"><Trash2 size={11} /></button>
                     </div>
                   </div>
                   <div className="mt-2.5 pt-2.5 border-t border-slate-50 flex items-center justify-between">
@@ -243,8 +243,8 @@ export default function StaffModule() {
                         </td>
                         <td className="px-4 py-2.5 text-right">
                           <div className="flex gap-1 justify-end">
-                            <button onClick={() => { setEditMember(m); setEditForm({ name: m.name, role: m.role, salary: String(m.salary), documentId: m.documentId, status: m.status || 'Activo' }); }} className="p-1 text-slate-300 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
-                            <button onClick={() => handleDelete(m.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                            <button onClick={() => { setEditMember(m); setEditForm({ name: m.name, role: m.role, salary: String(m.salary), documentId: m.documentId, status: m.status || 'Activo' }); }} className="btn-edit"><Pencil size={12} /></button>
+                            <button onClick={() => handleDelete(m.id)} className="btn-delete"><Trash2 size={12} /></button>
                           </div>
                         </td>
                       </motion.tr>

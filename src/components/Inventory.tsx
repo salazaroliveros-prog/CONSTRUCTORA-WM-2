@@ -724,7 +724,7 @@ export default function InventoryModule() {
                     <div className="flex items-center justify-end gap-2">
                       <button 
                         onClick={(e) => handleDelete(e, item.id)}
-                        className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        className="btn-delete hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 size={14} />
                       </button>

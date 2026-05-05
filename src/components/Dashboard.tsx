@@ -845,8 +845,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                     </td>
                     <td className='px-3 py-2 text-right'>
                       <div className='flex gap-1 justify-end'>
-                        <button onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className='p-1 text-slate-300 hover:text-blue-500 transition-colors'><Pencil size={11} /></button>
-                        <button onClick={() => handleDeleteTx(t.id)} className='p-1 text-slate-300 hover:text-red-500 transition-colors'><Trash2 size={11} /></button>
+                        <button onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className='btn-edit'><Pencil size={11} /></button>
+                        <button onClick={() => handleDeleteTx(t.id)} className='btn-delete'><Trash2 size={11} /></button>
                       </div>
                     </td>
                   </tr>
