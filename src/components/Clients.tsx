@@ -1,13 +1,13 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Plus, ExternalLink, Trash2, LayoutGrid, List } from 'lucide-react';
+import { Users, Search, Plus, Trash2, LayoutGrid, List, Pencil } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Client } from '../constants';
-import { subscribeToCollection, addDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
@@ -22,6 +22,8 @@ export default function ClientsModule() {
   const [newClient, setNewClient] = useState({ name: '', email: '', phone: '', address: '' });
   const [saving, setSaving] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [editClient, setEditClient] = useState<Client | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', email: '', phone: '', address: '' });
 
   // Auto page size: card ~160px, table row ~44px, reserved ~220px
   const cardPageSize = useAutoPageSize(160, 260, 4);
@@ -52,6 +54,24 @@ export default function ClientsModule() {
         try { await addDocument('clients', { ...newClient, projects: [] }); setIsModalOpen(false); setNewClient({ name: '', email: '', phone: '', address: '' }); toast.success('Cliente registrado'); }
         catch (error) { toast.error('Error al registrar', { description: parseError(error) }); }
         finally { setSaving(false); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+
+
+  const handleEdit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editClient) return;
+    toast('Guardar cambios?', {
+      description: editForm.name,
+      action: { label: 'Confirmar', onClick: async () => {
+        try {
+          await updateDocument('clients', editClient.id, editForm);
+          setEditClient(null);
+          toast.success('Cliente actualizado');
+        } catch (err) { toast.error('Error', { description: parseError(err) }); }
       }},
       cancel: { label: 'Cancelar', onClick: () => {} }
     });
@@ -230,6 +250,18 @@ export default function ClientsModule() {
             className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all disabled:opacity-50">
             {saving ? 'PROCESANDO...' : 'GUARDAR CLIENTE'}
           </button>
+        </form>
+      </Modal>
+      {/* Edit Modal */}
+      <Modal isOpen={!!editClient} onClose={() => setEditClient(null)} title="Editar Cliente">
+        <form onSubmit={handleEdit} className="space-y-5 text-left">
+          <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre</label><input type="text" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correo</label><input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label><input type="text" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          </div>
+          <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Dirección</label><input type="text" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          <button type="submit" className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
         </form>
       </Modal>
     </div>

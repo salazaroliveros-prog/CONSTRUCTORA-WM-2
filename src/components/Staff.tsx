@@ -1,14 +1,14 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, Search, Trash2, LayoutGrid, List, Briefcase, HardHat } from 'lucide-react';
+import { Users, Plus, Search, Trash2, LayoutGrid, List, Briefcase, HardHat, Pencil } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { subscribeToCollection, addDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
@@ -47,6 +47,8 @@ export default function StaffModule() {
   const [member, setMember] = useState({ name: '', role: '', salary: '', documentId: '' });
   const [saving, setSaving] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [editMember, setEditMember] = useState<StaffMember | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', role: '', salary: '', documentId: '', status: 'Activo' });
 
   const cardPageSize = useAutoPageSize(140, 280, 4);
   const tablePageSize = useAutoPageSize(44, 220, 6);
@@ -75,6 +77,24 @@ export default function StaffModule() {
         try { await addDocument('staff', { ...member, status: 'Activo' }); setIsModalOpen(false); setMember({ name: '', role: '', salary: '', documentId: '' }); toast.success('Colaborador registrado'); }
         catch (error) { toast.error('Error al registrar', { description: parseError(error) }); }
         finally { setSaving(false); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+
+
+  const handleEditStaff = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editMember) return;
+    toast('Guardar cambios?', {
+      description: editForm.name,
+      action: { label: 'Confirmar', onClick: async () => {
+        try {
+          await updateDocument('staff', editMember.id, editForm);
+          setEditMember(null);
+          toast.success('Colaborador actualizado');
+        } catch (err) { toast.error('Error', { description: parseError(err) }); }
       }},
       cancel: { label: 'Cancelar', onClick: () => {} }
     });
@@ -154,10 +174,10 @@ export default function StaffModule() {
                         <span className={`text-[7px] font-black uppercase px-1 py-0.5 rounded ${rc.bg} ${rc.text}`}>{m.role || 'Sin cargo'}</span>
                       </div>
                     </div>
-                    <button onClick={() => handleDelete(m.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1 text-slate-300 hover:text-red-500 transition-all">
-                      <Trash2 size={11} />
-                    </button>
+                    <div className="flex gap-1 opacity-0 group-hover:opacity-100">
+                      <button onClick={() => { setEditMember(m); setEditForm({ name: m.name, role: m.role, salary: String(m.salary), documentId: m.documentId, status: m.status || 'Activo' }); }} className="p-1 text-slate-300 hover:text-blue-500 transition-all"><Pencil size={11} /></button>
+                      <button onClick={() => handleDelete(m.id)} className="p-1 text-slate-300 hover:text-red-500 transition-all"><Trash2 size={11} /></button>
+                    </div>
                   </div>
                   <div className="mt-2.5 pt-2.5 border-t border-slate-50 flex items-center justify-between">
                     <div>
@@ -222,9 +242,10 @@ export default function StaffModule() {
                           </span>
                         </td>
                         <td className="px-4 py-2.5 text-right">
-                          <button onClick={() => handleDelete(m.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors">
-                            <Trash2 size={12} />
-                          </button>
+                          <div className="flex gap-1 justify-end">
+                            <button onClick={() => { setEditMember(m); setEditForm({ name: m.name, role: m.role, salary: String(m.salary), documentId: m.documentId, status: m.status || 'Activo' }); }} className="p-1 text-slate-300 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
+                            <button onClick={() => handleDelete(m.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                          </div>
                         </td>
                       </motion.tr>
                     );
@@ -298,6 +319,20 @@ export default function StaffModule() {
             className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all disabled:opacity-50">
             {saving ? 'PROCESANDO...' : 'GUARDAR COLABORADOR'}
           </button>
+        </form>
+      </Modal>
+      <Modal isOpen={!!editMember} onClose={() => setEditMember(null)} title="Editar Colaborador">
+        <form onSubmit={handleEditStaff} className="space-y-5 text-left">
+          <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre</label><input type="text" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Cargo</label><select value={editForm.role} onChange={e => setEditForm({ ...editForm, role: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"><option value="">SELECCIONAR...</option><option>MAESTRO DE OBRA</option><option>ALBAÑIL</option><option>AYUDANTE</option><option>RESIDENTE</option><option>PLANIFICADOR</option><option>ELECTRICISTA</option><option>PLOMERO</option><option>SUPERVISOR</option></select></div>
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">DPI</label><input type="text" value={editForm.documentId} onChange={e => setEditForm({ ...editForm, documentId: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Salario (Q)</label><input type="number" value={editForm.salary} onChange={e => setEditForm({ ...editForm, salary: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label><select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"><option>Activo</option><option>Inactivo</option></select></div>
+          </div>
+          <button type="submit" className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
         </form>
       </Modal>
     </div>

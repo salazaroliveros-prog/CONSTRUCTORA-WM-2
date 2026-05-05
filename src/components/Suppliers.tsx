@@ -1,14 +1,14 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
 
 import React, { useState, useEffect } from 'react';
-import { Truck, Plus, Search, Star, Phone, Mail, Trash2, LayoutGrid, List } from 'lucide-react';
+import { Truck, Plus, Search, Star, Phone, Mail, Trash2, LayoutGrid, List, Pencil } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { subscribeToCollection, addDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
@@ -35,6 +35,8 @@ export default function SuppliersModule() {
   const [form, setForm] = useState({ name: '', category: '', contact: '', email: '', rating: '5.0', status: 'Activo' });
   const [saving, setSaving] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
+  const [editSupplier, setEditSupplier] = useState<Supplier | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', category: '', contact: '', email: '', rating: '5.0', status: 'Activo' });
 
   const cardPageSize = useAutoPageSize(160, 260, 4);
   const tablePageSize = useAutoPageSize(44, 220, 6);
@@ -64,6 +66,24 @@ export default function SuppliersModule() {
         try { await addDocument('suppliers', form); setIsModalOpen(false); setForm({ name: '', category: '', contact: '', email: '', rating: '5.0', status: 'Activo' }); toast.success('Proveedor registrado'); }
         catch (error) { toast.error('Error al registrar', { description: parseError(error) }); }
         finally { setSaving(false); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+
+
+  const handleEditSupplier = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editSupplier) return;
+    toast('Guardar cambios?', {
+      description: editForm.name,
+      action: { label: 'Confirmar', onClick: async () => {
+        try {
+          await updateDocument('suppliers', editSupplier.id, editForm);
+          setEditSupplier(null);
+          toast.success('Proveedor actualizado');
+        } catch (err) { toast.error('Error', { description: parseError(err) }); }
       }},
       cancel: { label: 'Cancelar', onClick: () => {} }
     });
@@ -260,6 +280,20 @@ export default function SuppliersModule() {
             className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all disabled:opacity-50">
             {saving ? 'PROCESANDO...' : 'REGISTRAR PROVEEDOR'}
           </button>
+        </form>
+      </Modal>
+      <Modal isOpen={!!editSupplier} onClose={() => setEditSupplier(null)} title="Editar Proveedor">
+        <form onSubmit={handleEditSupplier} className="space-y-5 text-left">
+          <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre</label><input type="text" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoria</label><input type="text" value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Telefono</label><input type="text" value={editForm.contact} onChange={e => setEditForm({ ...editForm, contact: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Correo</label><input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" /></div>
+            <div className="space-y-1.5"><label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label><select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} className="w-full bg-slate-50 border border-slate-100 rounded-xl px-4 py-3 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"><option>Activo</option><option>Inactivo</option></select></div>
+          </div>
+          <button type="submit" className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
         </form>
       </Modal>
     </div>

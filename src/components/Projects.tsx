@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -29,7 +29,9 @@ import {
   Calendar,
   Hammer,
   Box,
-  Layers
+  Layers,
+  Pencil,
+  PlusCircle
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
@@ -43,7 +45,7 @@ import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import { toast } from 'sonner';
-import { generatePDF, generateCSV, exportToExcel, generateProjectPDF, generateProjectCSV, PDF_TEMPLATES, CSV_TEMPLATES, ExportStyle } from '../lib/exportUtils';
+import { generatePDF, generateCSV, exportToExcel, generateProjectPDF, generateProjectCSV, calcProjectDuration, PDF_TEMPLATES, CSV_TEMPLATES, ExportStyle } from '../lib/exportUtils';
 import Pagination from './ui/Pagination';
 import { Users, MapPin, CalendarDays } from 'lucide-react';
 
@@ -66,6 +68,63 @@ function CustomTooltip({ active, payload, label }: any) {
   );
 }
 
+
+// ── Editable sub-row for materials and labor ─────────────────────────────────
+interface SubRowField { key: string; label: string; value: any; type: 'text' | 'number'; small?: boolean; }
+function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
+  fields: SubRowField[];
+  totalQty: number;
+  totalPrice: number;
+  onSave: (data: Record<string, any>) => void;
+  onDelete: () => void;
+}) {
+  const [editing, setEditing] = React.useState(false);
+  const [form, setForm] = React.useState<Record<string, any>>(() =>
+    Object.fromEntries(fields.map(f => [f.key, f.value]))
+  );
+  const handleSave = () => {
+    toast('Guardar cambios?', {
+      description: String(form[fields[0].key] || ''),
+      action: { label: 'Confirmar', onClick: () => { onSave(form); setEditing(false); } },
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+  if (editing) {
+    return (
+      <div className="bg-amber-50 border border-amber-200 rounded-xl p-2 space-y-1.5">
+        <div className="grid grid-cols-2 gap-1.5">
+          {fields.map(f => (
+            <div key={f.key} className={f.small ? '' : 'col-span-2'}>
+              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">{f.label}</label>
+              <input type={f.type} value={form[f.key]} step={f.type === 'number' ? '0.01' : undefined}
+                onChange={e => setForm({ ...form, [f.key]: f.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value })}
+                className="w-full bg-white border border-amber-200 rounded-lg px-2 py-1 text-[9px] font-black uppercase focus:outline-none focus:border-amber-400" />
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-1.5">
+          <button onClick={() => setEditing(false)} className="flex-1 py-1 bg-white border border-slate-200 rounded-lg text-[7px] font-black uppercase text-slate-500">Cancelar</button>
+          <button onClick={handleSave} className="flex-1 py-1 bg-amber-500 text-white rounded-lg text-[7px] font-black uppercase">Guardar</button>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-100 shadow-sm group/sub">
+      <div className="min-w-0 flex-1">
+        <p className="text-[9px] font-black text-primary uppercase truncate">{fields[0].value}</p>
+        <p className="text-[7px] font-bold text-slate-400 uppercase">{totalQty.toLocaleString(undefined, {maximumFractionDigits:2})} {fields[1]?.value} · Q {fields[2]?.value}/u</p>
+      </div>
+      <div className="flex items-center gap-1 shrink-0">
+        <div className="text-right mr-1">
+          <p className="text-[9px] font-black text-slate-600">Q {totalPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</p>
+        </div>
+        <button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} className="p-1 text-slate-200 hover:text-blue-500 transition-colors opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
+        <button onClick={onDelete} className="p-1 text-slate-200 hover:text-red-500 transition-colors opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
+      </div>
+    </div>
+  );
+}
 export default function ProjectsModule() {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'kanban'>('grid');
@@ -78,6 +137,8 @@ export default function ProjectsModule() {
   const [updatingProgress, setUpdatingProgress] = useState(false);
   const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [editingItem, setEditingItem] = useState<string | null>(null); // item.id being edited
+  const [itemEditForm, setItemEditForm] = useState<any>({});
   const [isEditing, setIsEditing] = useState(false);
   const [exportPdfTemplate, setExportPdfTemplate] = useState('modern');
   const [exportCsvTemplate, setExportCsvTemplate] = useState('completo');
@@ -150,6 +211,121 @@ export default function ProjectsModule() {
     } finally {
       setUpdatingProgress(false);
     }
+  };
+
+
+
+  const saveItemEdit = () => {
+    if (!selectedProject || !editingItem) return;
+    const updatedItems = selectedProject.items.map(it =>
+      it.id === editingItem ? { ...it, ...itemEditForm } : it
+    );
+    toast('Guardar cambios del renglon?', {
+      description: itemEditForm.description || 'Renglon de presupuesto',
+      action: { label: 'Confirmar', onClick: async () => {
+        try {
+          await updateDocument('projects', selectedProject.id, { items: updatedItems });
+          setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+          setEditingItem(null); setItemEditForm({});
+          toast.success('Renglon actualizado');
+        } catch (err) { toast.error('Error', { description: parseError(err) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+    const deleteItem = (itemId: string) => {
+    if (!selectedProject) return;
+    toast('Eliminar renglon?', {
+      description: 'Esta accion no se puede deshacer.',
+      action: { label: 'Eliminar', onClick: async () => {
+        const updatedItems = selectedProject.items.filter(it => it.id !== itemId);
+        try {
+          await updateDocument('projects', selectedProject.id, { items: updatedItems });
+          setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+          toast.success('Renglon eliminado');
+        } catch (err) { toast.error('Error', { description: parseError(err) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const saveMaterialEdit = async (itemId: string, matIdx: number, matData: any) => {
+    if (!selectedProject) return;
+    const updatedItems = selectedProject.items.map(it => {
+      if (it.id !== itemId) return it;
+      const mats = [...(it.materials || [])];
+      mats[matIdx] = { ...mats[matIdx], ...matData };
+      return { ...it, materials: mats };
+    });
+    await updateDocument('projects', selectedProject.id, { items: updatedItems });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+  };
+
+  const deleteMaterial = (itemId: string, matIdx: number) => {
+    if (!selectedProject) return;
+    toast('Eliminar material?', {
+      description: 'Esta accion no se puede deshacer.',
+      action: { label: 'Eliminar', onClick: async () => {
+        const updatedItems = selectedProject.items.map(it => {
+          if (it.id !== itemId) return it;
+          return { ...it, materials: (it.materials || []).filter((_: any, i: number) => i !== matIdx) };
+        });
+        await updateDocument('projects', selectedProject.id, { items: updatedItems });
+        setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+        toast.success('Material eliminado');
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const addMaterial = async (itemId: string) => {
+    if (!selectedProject) return;
+    const newMat = { name: 'Nuevo Material', unit: 'U', quantity: 1, price: 0 };
+    const updatedItems = selectedProject.items.map(it =>
+      it.id === itemId ? { ...it, materials: [...(it.materials || []), newMat] } : it
+    );
+    await updateDocument('projects', selectedProject.id, { items: updatedItems });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+  };
+
+  const saveLaborEdit = async (itemId: string, labIdx: number, labData: any) => {
+    if (!selectedProject) return;
+    const updatedItems = selectedProject.items.map(it => {
+      if (it.id !== itemId) return it;
+      const labs = [...(it.labor || [])];
+      labs[labIdx] = { ...labs[labIdx], ...labData };
+      return { ...it, labor: labs };
+    });
+    await updateDocument('projects', selectedProject.id, { items: updatedItems });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+  };
+
+  const deleteLabor = (itemId: string, labIdx: number) => {
+    if (!selectedProject) return;
+    toast('Eliminar mano de obra?', {
+      description: 'Esta accion no se puede deshacer.',
+      action: { label: 'Eliminar', onClick: async () => {
+        const updatedItems = selectedProject.items.map(it => {
+          if (it.id !== itemId) return it;
+          return { ...it, labor: (it.labor || []).filter((_: any, i: number) => i !== labIdx) };
+        });
+        await updateDocument('projects', selectedProject.id, { items: updatedItems });
+        setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+        toast.success('Mano de obra eliminada');
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const addLabor = async (itemId: string) => {
+    if (!selectedProject) return;
+    const newLab = { role: 'Nuevo Rol', unit: 'dia', quantity: 1, price: 0 };
+    const updatedItems = selectedProject.items.map(it =>
+      it.id === itemId ? { ...it, labor: [...(it.labor || []), newLab] } : it
+    );
+    await updateDocument('projects', selectedProject.id, { items: updatedItems });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
   };
 
   useEffect(() => {
@@ -591,7 +767,7 @@ export default function ProjectsModule() {
             className="space-y-8 text-left"
           >
             <div className="border-b border-slate-100 pb-6 space-y-3">
-              {/* Fila 1: icono + t�tulo + bot�n editar */}
+              {/* Fila 1: icono + t�tulo + bot�n editar */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20">
                   <Building2 size={24} />
@@ -611,7 +787,7 @@ export default function ProjectsModule() {
                   </button>
                 )}
               </div>
-              {/* Fila 2: controles de exportaci�n */}
+              {/* Fila 2: controles de exportaci�n */}
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                   <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>
@@ -619,7 +795,7 @@ export default function ProjectsModule() {
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
-                <button onClick={() => generateProjectPDF(selectedProject, exportPdfTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
+                <button onClick={() => { setTimeout(async () => { await generateProjectPDF(selectedProject, exportPdfTemplate); }, 50); }} className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
                   <Download size={12} /> PDF
                 </button>
                 <div className="flex flex-col gap-1">
@@ -767,89 +943,93 @@ export default function ProjectsModule() {
                     {selectedProject.items && selectedProject.items.length > 0 ? (
                       selectedProject.items.map((item) => (
                         <div key={item.id} className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">
-                          <button 
-                            onClick={() => toggleItemExpansion(item.id)}
-                            className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors text-left"
-                          >
-                            <div className="flex items-center gap-4 min-w-0">
-                              <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-500 shrink-0">
-                                {item.code}
-                              </div>
+                          {/* Item header */}
+                          <div className="flex items-center justify-between p-3 hover:bg-slate-50 transition-colors">
+                            <button onClick={() => toggleItemExpansion(item.id)} className="flex items-center gap-3 min-w-0 flex-1 text-left">
+                              <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-[8px] font-black text-slate-500 shrink-0">{item.code}</div>
                               <div className="min-w-0">
                                 <p className="text-[10px] font-black text-primary uppercase line-clamp-1">{item.description}</p>
-                                <div className="flex items-center gap-2 mt-0.5">
-                                  <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{item.projectQuantity} {item.unit}</span>
-                                  <span className="text-[8px] font-black text-secondary">Q {((item.projectQuantity || 0) * (item.durationDays || 0) * 100).toLocaleString()}</span>
-                                </div>
+                                <span className="text-[8px] font-bold text-slate-400 uppercase">{item.projectQuantity} {item.unit}</span>
+                              </div>
+                              {expandedItems.includes(item.id) ? <ChevronUp size={14} className="text-slate-400 shrink-0" /> : <ChevronDown size={14} className="text-slate-400 shrink-0" />}
+                            </button>
+                            <div className="flex gap-1 shrink-0 ml-2">
+                              <button onClick={() => { setEditingItem(item.id); setItemEditForm({ code: item.code, description: item.description, projectQuantity: item.projectQuantity, unit: item.unit }); }} className="p-1 text-slate-300 hover:text-blue-500 transition-colors"><Pencil size={12} /></button>
+                              <button onClick={() => deleteItem(item.id)} className="p-1 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={12} /></button>
+                            </div>
+                          </div>
+
+                          {/* Inline edit form for item header */}
+                          {editingItem === item.id && (
+                            <div className="px-4 pb-3 bg-blue-50 border-t border-blue-100 space-y-2">
+                              <p className="text-[8px] font-black text-blue-600 uppercase tracking-widest pt-2">Editar Renglon</p>
+                              <div className="grid grid-cols-2 gap-2">
+                                <input value={itemEditForm.code || ''} onChange={e => setItemEditForm({...itemEditForm, code: e.target.value})} placeholder="Codigo" className="bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-blue-400" />
+                                <input type="number" value={itemEditForm.projectQuantity || 0} onChange={e => setItemEditForm({...itemEditForm, projectQuantity: parseFloat(e.target.value)||0})} placeholder="Cantidad" className="bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-blue-400" />
+                              </div>
+                              <input value={itemEditForm.description || ''} onChange={e => setItemEditForm({...itemEditForm, description: e.target.value})} placeholder="Descripcion" className="w-full bg-white border border-blue-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-blue-400" />
+                              <div className="flex gap-2">
+                                <button onClick={() => setEditingItem(null)} className="flex-1 py-1.5 bg-white border border-slate-200 rounded-lg text-[8px] font-black uppercase text-slate-500">Cancelar</button>
+                                <button onClick={saveItemEdit} className="flex-1 py-1.5 bg-blue-600 text-white rounded-lg text-[8px] font-black uppercase">Guardar</button>
                               </div>
                             </div>
-                            {expandedItems.includes(item.id) ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
-                          </button>
+                          )}
 
                           <AnimatePresence>
                             {expandedItems.includes(item.id) && (
-                              <motion.div 
-                                initial={{ height: 0, opacity: 0 }}
-                                animate={{ height: 'auto', opacity: 1 }}
-                                exit={{ height: 0, opacity: 0 }}
-                                className="border-t border-slate-50 bg-slate-50/50"
-                              >
+                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-slate-50 bg-slate-50/50">
                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                  <div className="space-y-3">
-                                    <div className="flex items-center gap-2 text-slate-900 border-b border-slate-100 pb-1">
-                                      <Box size={12} className="text-secondary" />
-                                      <span className="text-[9px] font-black uppercase tracking-widest">Materiales</span>
+
+                                  {/* Materials */}
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                      <div className="flex items-center gap-2"><Box size={12} className="text-secondary" /><span className="text-[9px] font-black uppercase tracking-widest">Materiales</span></div>
+                                      <button onClick={() => addMaterial(item.id)} className="flex items-center gap-1 text-[7px] font-black text-emerald-600 hover:text-emerald-700 uppercase"><PlusCircle size={11} /> Agregar</button>
                                     </div>
                                     <div className="space-y-1.5">
-                                      {item.materials?.map((m, idx) => {
-                                        const totalQty = m.quantity * (item.projectQuantity || 1);
-                                        const totalMatPrice = m.price * totalQty;
-                                        return (
-                                          <div key={idx} className="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
-                                            <div className="min-w-0">
-                                              <p className="text-[9px] font-black text-primary uppercase truncate">{m.name}</p>
-                                              <p className="text-[7px] font-bold text-slate-400 uppercase">{totalQty.toLocaleString(undefined, {maximumFractionDigits: 2})} {m.unit} (Total)</p>
-                                            </div>
-                                            <div className="text-right">
-                                              <p className="text-[9px] font-black text-slate-600">Q {totalMatPrice.toLocaleString(undefined, {maximumFractionDigits: 2})}</p>
-                                              <p className="text-[7px] font-bold text-slate-400">Unit: Q {m.price}</p>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                      {(!item.materials || item.materials.length === 0) && (
-                                        <p className="text-[8px] font-bold text-slate-400 uppercase italic pl-2 opacity-50">S/M</p>
-                                      )}
+                                      {(item.materials || []).map((m: any, idx: number) => (
+                                        <EditableSubRow key={idx}
+                                          fields={[
+                                            { key: 'name', label: 'Material', value: m.name, type: 'text' },
+                                            { key: 'unit', label: 'Unidad', value: m.unit, type: 'text', small: true },
+                                            { key: 'quantity', label: 'Cant.', value: m.quantity, type: 'number', small: true },
+                                            { key: 'price', label: 'P.Unit Q', value: m.price, type: 'number', small: true },
+                                          ]}
+                                          totalQty={m.quantity * (item.projectQuantity || 1)}
+                                          totalPrice={m.price * m.quantity * (item.projectQuantity || 1)}
+                                          onSave={(data) => saveMaterialEdit(item.id, idx, data)}
+                                          onDelete={() => deleteMaterial(item.id, idx)}
+                                        />
+                                      ))}
+                                      {(!item.materials || item.materials.length === 0) && <p className="text-[8px] font-bold text-slate-400 uppercase italic pl-2 opacity-50">Sin materiales</p>}
                                     </div>
                                   </div>
 
-                                  <div className="space-y-3">
-                                    <div className="flex items-center gap-2 text-slate-900 border-b border-slate-100 pb-1">
-                                      <Hammer size={12} className="text-secondary" />
-                                      <span className="text-[9px] font-black uppercase tracking-widest">Mano de Obra</span>
+                                  {/* Labor */}
+                                  <div className="space-y-2">
+                                    <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                                      <div className="flex items-center gap-2"><Hammer size={12} className="text-secondary" /><span className="text-[9px] font-black uppercase tracking-widest">Mano de Obra</span></div>
+                                      <button onClick={() => addLabor(item.id)} className="flex items-center gap-1 text-[7px] font-black text-emerald-600 hover:text-emerald-700 uppercase"><PlusCircle size={11} /> Agregar</button>
                                     </div>
                                     <div className="space-y-1.5">
-                                      {item.labor?.map((l, idx) => {
-                                        const totalLabQty = l.quantity * (item.projectQuantity || 1);
-                                        const totalLabPrice = l.price * totalLabQty;
-                                        return (
-                                          <div key={idx} className="flex justify-between items-center bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
-                                            <div className="min-w-0">
-                                              <p className="text-[9px] font-black text-primary uppercase truncate">{l.role}</p>
-                                              <p className="text-[7px] font-bold text-slate-400 uppercase">{totalLabQty.toLocaleString(undefined, {maximumFractionDigits: 2})} {l.unit} (Total)</p>
-                                            </div>
-                                            <div className="text-right">
-                                              <p className="text-[9px] font-black text-slate-600">Q {totalLabPrice.toLocaleString(undefined, {maximumFractionDigits: 2})}</p>
-                                              <p className="text-[7px] font-bold text-slate-400">Unit: Q {l.price}</p>
-                                            </div>
-                                          </div>
-                                        );
-                                      })}
-                                      {(!item.labor || item.labor.length === 0) && (
-                                        <p className="text-[8px] font-bold text-slate-400 uppercase italic pl-2 opacity-50">S/MO</p>
-                                      )}
+                                      {(item.labor || []).map((l: any, idx: number) => (
+                                        <EditableSubRow key={idx}
+                                          fields={[
+                                            { key: 'role', label: 'Rol', value: l.role, type: 'text' },
+                                            { key: 'unit', label: 'Unidad', value: l.unit, type: 'text', small: true },
+                                            { key: 'quantity', label: 'Cant.', value: l.quantity, type: 'number', small: true },
+                                            { key: 'price', label: 'P.Unit Q', value: l.price, type: 'number', small: true },
+                                          ]}
+                                          totalQty={l.quantity * (item.projectQuantity || 1)}
+                                          totalPrice={l.price * l.quantity * (item.projectQuantity || 1)}
+                                          onSave={(data) => saveLaborEdit(item.id, idx, data)}
+                                          onDelete={() => deleteLabor(item.id, idx)}
+                                        />
+                                      ))}
+                                      {(!item.labor || item.labor.length === 0) && <p className="text-[8px] font-bold text-slate-400 uppercase italic pl-2 opacity-50">Sin mano de obra</p>}
                                     </div>
                                   </div>
+
                                 </div>
                               </motion.div>
                             )}
@@ -858,7 +1038,7 @@ export default function ProjectsModule() {
                       ))
                     ) : (
                       <div className="text-center py-6 bg-slate-50 border border-dashed border-slate-200 rounded-3xl opacity-50">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest uppercase">Sin renglones definidos</p>
+                        <p className="text-[9px] font-bold text-slate-400 uppercase italic tracking-widest">Sin renglones definidos</p>
                       </div>
                     )}
                   </div>
@@ -869,9 +1049,9 @@ export default function ProjectsModule() {
                 <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
                   <TrendingUp size={14} className="text-secondary" /> Estado y Avance
                 </h4>
-                <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-900/40">
+                <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-900/40 overflow-hidden">
                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Presupuesto Ejecutable</p>
-                   <p className="text-3xl font-black text-secondary tracking-tighter mb-6 italic">Q {(selectedProject.budget || 0).toLocaleString()}</p>
+                   <p className="text-xl font-black text-secondary tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">Q {(selectedProject.budget || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                    
                    <div className="space-y-8">
                      <div>
@@ -915,6 +1095,10 @@ export default function ProjectsModule() {
                        <div className="flex justify-between items-center">
                          <span className="text-[8px] font-black text-slate-500 uppercase">Tipo Cobro</span>
                          <span className="text-[9px] font-black uppercase tracking-widest">Suma Alzada</span>
+                       </div>
+                       <div className="flex justify-between items-center">
+                         <span className="text-[8px] font-black text-slate-500 uppercase">Duración Estimada</span>
+                         <span className="text-[9px] font-black text-secondary uppercase tracking-widest text-right max-w-[55%] truncate">{calcProjectDuration(selectedProject).label}</span>
                        </div>
                      </div>
                    </div>

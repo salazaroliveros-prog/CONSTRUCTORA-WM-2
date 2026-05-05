@@ -66,7 +66,28 @@ function calcProjectTotalCost(project: Project): number {
   return direct * factor;
 }
 
-// ─── PDF generation ───────────────────────────────────────────────────────────
+// ─── Duration calculator ──────────────────────────────────────────────────────
+
+/**
+ * Calcula la duración estimada del proyecto en días calendario.
+ * Asume que los renglones se ejecutan en secuencia (suma de días × cantidad).
+ * durationDays en cada WorkItem representa días por unidad con 1 cuadrilla estándar.
+ */
+export function calcProjectDuration(project: Project): { days: number; weeks: number; months: number; label: string } {
+  const totalDays = (project.items || []).reduce((sum, item) => {
+    return sum + (item.durationDays || 0) * (item.projectQuantity || 1);
+  }, 0);
+  const weeks  = Math.ceil(totalDays / 6);   // 6 días laborales/semana
+  const months = Math.ceil(totalDays / 26);  // 26 días laborales/mes
+  let label: string;
+  if (totalDays <= 0)       label = 'Sin datos de rendimiento';
+  else if (totalDays < 7)   label = `${Math.ceil(totalDays)} días`;
+  else if (totalDays < 60)  label = `${weeks} semana${weeks !== 1 ? 's' : ''} (${Math.ceil(totalDays)} días)`;
+  else                      label = `${months} mes${months !== 1 ? 'es' : ''} (${weeks} semanas)`;
+  return { days: Math.ceil(totalDays), weeks, months, label };
+}
+
+
 
 function addPdfHeader(doc: jsPDF, project: Project, title: string, accentColor: number[]) {
   const [r, g, b] = accentColor;
@@ -89,7 +110,7 @@ function addPdfFooter(doc: jsPDF) {
   doc.setFontSize(7);
   doc.setTextColor(120, 120, 120);
   doc.text(FOOTER_SLOGAN, 105, h - 14, { align: 'center' });
-  doc.text(`📍 ${FOOTER_ADDRESS}  |  📱 ${FOOTER_PHONES}  |  ✉️ ${FOOTER_EMAILS}`, 105, h - 9, { align: 'center' });
+  doc.text(`Dir: ${FOOTER_ADDRESS}  |  Tel: ${FOOTER_PHONES}  |  Email: ${FOOTER_EMAILS}`, 105, h - 9, { align: 'center' });
   doc.setTextColor(0, 0, 0);
 }
 
@@ -115,7 +136,7 @@ function getTemplateColors(templateId: string): { accent: number[]; header: numb
   }
 }
 
-export function generateProjectPDF(project: Project, templateId: string = 'modern') {
+export async function generateProjectPDF(project: Project, templateId: string = 'modern') {
   const doc = new jsPDF();
   const colors = getTemplateColors(templateId);
   const items = project.items || [];
@@ -127,6 +148,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
   const totalCost   = directCost + indirectAmt + adminAmt + personalAmt;
   const utilidad    = (project.budget || 0) - totalCost;
   const margen      = project.budget > 0 ? (utilidad / project.budget) * 100 : 0;
+  const duration    = calcProjectDuration(project);
 
   const templateLabel = PDF_TEMPLATES.find(t => t.id === templateId)?.label || templateId;
   addPdfHeader(doc, project, `Informe de Proyecto — Plantilla: ${templateLabel}`, colors.accent);
@@ -186,6 +208,9 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
   if (templateId !== 'ejecutivo' && items.length > 0) {
     for (const item of items) {
       if ((item.materials || []).length === 0 && (item.labor || []).length === 0) continue;
+
+      // Yield to browser between items to prevent UI freeze
+      await new Promise(r => setTimeout(r, 0));
 
       // Check if we need a new page
       if (y > 240) { doc.addPage(); y = 14; }
@@ -263,6 +288,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
       ['COSTO TOTAL', fmtQ(totalCost)],
       ['PRESUPUESTO OFERTADO', fmtQ(project.budget || 0)],
       [`UTILIDAD ESTIMADA (${margen.toFixed(1)}%)`, fmtQ(utilidad)],
+      ['DURACIÓN ESTIMADA DE OBRA', duration.label],
     ],
     headStyles: { fillColor: colors.accent, textColor: [255, 255, 255], fontSize: 8, fontStyle: 'bold' },
     bodyStyles: { fontSize: 8 },
@@ -284,7 +310,13 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
   });
 
   addPdfFooter(doc);
-  doc.save(`${project.name}_informe_${templateId}.pdf`);
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${project.name}_informe_${templateId}.pdf`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
 // ─── CSV generation ───────────────────────────────────────────────────────────
@@ -485,8 +517,14 @@ export const generatePDF = (data: ExportData, style: ExportStyle = 'Modern') => 
   const pageHeight = doc.internal.pageSize.height;
   doc.setFontSize(8);
   doc.text(FOOTER_SLOGAN, 105, pageHeight - 20, { align: 'center' });
-  doc.text(`📍 ${FOOTER_ADDRESS} | 📱 (W) ${FOOTER_PHONES} | ✉️ ${FOOTER_EMAILS}`, 105, pageHeight - 15, { align: 'center' });
-  doc.save(`${data.projectName}_${data.title}.pdf`);
+  doc.text(`Dir: ${FOOTER_ADDRESS} | Tel: (W) ${FOOTER_PHONES} | Email: ${FOOTER_EMAILS}`, 105, pageHeight - 15, { align: 'center' });
+  const blob = doc.output('blob');
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${data.projectName}_${data.title}.pdf`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
 };
 
 export const generateCSV = (data: ExportData) => {

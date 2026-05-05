@@ -354,9 +354,11 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             </div>
             <div className="w-8 h-8 rounded-xl shadow-lg border-2 border-white ring-1 ring-slate-200 overflow-hidden bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer active:scale-95 transition-transform">
               {user?.photoURL
-                ? <img src={user.photoURL} alt="Foto de perfil" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                : <span className="uppercase">{user?.displayName?.charAt(0) || 'U'}</span>
-              }
+                ? <img src={user.photoURL} alt="Foto de perfil" className="w-full h-full object-cover" referrerPolicy="no-referrer"
+                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).nextElementSibling?.removeAttribute('hidden'); }}
+                  />
+                : null}
+              <span className="uppercase" hidden={!!user?.photoURL}>{user?.displayName?.charAt(0) || 'U'}</span>
             </div>
           </div>
         </div>

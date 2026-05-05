@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -19,13 +19,15 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   RotateCcw,
-  AlertTriangle
+  AlertTriangle,
+  Pencil,
+  Trash2
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
-import { subscribeToCollection, addDocument, getDocumentsForCollection, deleteDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, addDocument, updateDocument, getDocumentsForCollection, deleteDocument, parseError } from '../services/firestoreService';
 import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { useCountUp } from '../hooks/useCountUp';
@@ -223,6 +225,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
   const [loaded, setLoaded] = useState({ projects: false, inventory: false, transactions: false });
   const [resetting, setResetting] = useState(false);
   const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
+  const [editTx, setEditTx] = useState<any | null>(null);
+  const [editTxForm, setEditTxForm] = useState({ description: '', amount: 0, type: 'GASTO', category: '', date: '' });
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [resetData, setResetData] = useState<Record<string, {items: any[], selected: string[]}>>({});
   const [resetLoading, setResetLoading] = useState(false);
@@ -448,6 +452,30 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
   const cardClass = getCardStyle();
 
+
+  const handleDeleteTx = (id: string) => {
+    toast('Eliminar movimiento?', {
+      description: 'Esta accion no se puede deshacer.',
+      action: { label: 'Eliminar', onClick: async () => { try { await deleteDocument('transactions', id); toast.success('Movimiento eliminado'); } catch (e) { toast.error('Error', { description: parseError(e) }); } } },
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const handleEditTxSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editTx) return;
+    toast('Guardar cambios?', {
+      description: editTxForm.description || 'Movimiento financiero',
+      action: { label: 'Confirmar', onClick: async () => {
+        try {
+          await updateDocument('transactions', editTx.id, editTxForm);
+          setEditTx(null);
+          toast.success('Movimiento actualizado');
+        } catch (err) { toast.error('Error', { description: parseError(err) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
   const loading = !loaded.projects || !loaded.inventory || !loaded.transactions || resetting;
 
   return loading ? (
@@ -788,6 +816,48 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             )}
           </div>
         </div>
+
+        {/* Transactions Table */}
+        <div className={cn(cardClass, 'rounded-2xl p-5 text-left mt-4')}>
+          <div className='flex items-center justify-between mb-3'>
+            <h4 className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Movimientos Financieros</h4>
+            <span className='text-[8px] font-bold text-slate-400'>{filteredTransactions.length} registros</span>
+          </div>
+          <div className='overflow-auto max-h-64'>
+            <table className='w-full text-left'>
+              <thead className='sticky top-0 bg-slate-50 z-10'>
+                <tr className='border-b border-slate-100'>
+                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Fecha</th>
+                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Descripcion</th>
+                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Categoria</th>
+                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Monto (Q)</th>
+                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Accion</th>
+                </tr>
+              </thead>
+              <tbody className='divide-y divide-slate-50'>
+                {filteredTransactions.slice(0, 50).map((t, i) => (
+                  <tr key={t.id || i} className='hover:bg-slate-50/50 transition-colors group'>
+                    <td className='px-3 py-2 text-[8px] font-bold text-slate-500 whitespace-nowrap'>{t.date || '--'}</td>
+                    <td className='px-3 py-2 text-[8px] font-black text-primary uppercase truncate max-w-[160px]'>{t.description || '--'}</td>
+                    <td className='px-3 py-2 text-[8px] font-bold text-slate-400 uppercase'>{t.category || '--'}</td>
+                    <td className={cn('px-3 py-2 text-[9px] font-black text-right', t.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-500')}>
+                      {t.type === 'INGRESO' ? '+' : '-'} Q {(t.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                    </td>
+                    <td className='px-3 py-2 text-right'>
+                      <div className='flex gap-1 justify-end'>
+                        <button onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className='p-1 text-slate-300 hover:text-blue-500 transition-colors'><Pencil size={11} /></button>
+                        <button onClick={() => handleDeleteTx(t.id)} className='p-1 text-slate-300 hover:text-red-500 transition-colors'><Trash2 size={11} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredTransactions.length === 0 && (
+                  <tr><td colSpan={5} className='py-8 text-center text-[8px] font-black text-slate-300 uppercase tracking-widest'>Sin movimientos registrados</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       {/* Side Actions / Live Feed */}
@@ -862,12 +932,30 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
          </div>
       </aside>
 
+      {/* Edit Transaction Modal */}
+      {editTx && (
+        <div className='fixed inset-0 z-[200] flex items-center justify-center p-4'>
+          <div className='absolute inset-0 bg-slate-900/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
+          <div className='relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 border border-slate-200'>
+            <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
+            <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
+              <div className='grid grid-cols-2 gap-3'>
+                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Tipo</label><select value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
+                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Fecha</label><input type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+              </div>
+              <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Descripcion</label><input type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+              <div className='grid grid-cols-2 gap-3'>
+                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Categoria</label><input type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Monto (Q)</label><input type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+              </div>
+              <div className='flex gap-2 pt-2'>
+                <button type='button' onClick={() => setEditTx(null)} className='flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase'>Cancelar</button>
+                <button type='submit' className='flex-1 py-2.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase hover:bg-secondary hover:text-primary transition-all'>Guardar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-
-
-
-
-

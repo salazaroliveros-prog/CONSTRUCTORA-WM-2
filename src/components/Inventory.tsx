@@ -1,4 +1,4 @@
-/**
+ï»¿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -259,7 +259,8 @@ export default function InventoryModule() {
     cost: 0,
     description: '',
     category: '',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    projectId: ''
   });
 
   const entryCategories = ['Aporte Cliente', 'Anteproyecto', 'Estudios', 'Agrimensura', 'CuantificaciÃ³n', 'Otros'];
@@ -273,7 +274,8 @@ export default function InventoryModule() {
       cost: 0,
       description: '',
       category: type === 'Entrada' ? entryCategories[0] : exitCategories[0],
-      date: new Date().toISOString().split('T')[0]
+      date: new Date().toISOString().split('T')[0],
+      projectId: ''
     });
     setIsModalOpen(true);
   };
@@ -339,7 +341,8 @@ export default function InventoryModule() {
         category: movementForm.category,
         date: movementForm.date,
         createdAt: new Date().toISOString(),
-        itemId: movementForm.itemId || null
+        itemId: movementForm.itemId || null,
+        projectId: movementForm.projectId || null
       });
       setIsModalOpen(false);
       toast.success("Movimiento registrado", { description: "Su inventario se ha actualizado." });
@@ -835,6 +838,20 @@ export default function InventoryModule() {
                 </div>
 
                 <div>
+                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (Opcional)</label>
+                  <select
+                    value={movementForm.projectId}
+                    onChange={(e) => setMovementForm({ ...movementForm, projectId: e.target.value })}
+                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+                  >
+                    <option value="">Sin proyecto</option>
+                    {projects.filter(p => p.status === 'EJECUCION').map(p => (
+                      <option key={p.id} value={p.id}>{p.name}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">CategorÃ­a</label>
                   <select 
                     value={movementForm.category}
@@ -902,7 +919,7 @@ export default function InventoryModule() {
           {purchaseOrders.length === 0 ? (
             <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center">
               <ShoppingCart size={32} className="mx-auto text-slate-300 mb-3" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin órdenes de compra</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin ï¿½rdenes de compra</p>
               <p className="text-[9px] text-slate-300 mt-1">Crea una nueva OC para solicitar materiales a proveedores</p>
             </div>
           ) : purchaseOrders.map(order => (
@@ -930,7 +947,7 @@ export default function InventoryModule() {
               <div className="space-y-1">
                 {order.items.map((oi, i) => (
                   <div key={i} className="flex justify-between items-center text-[9px] py-1 border-b border-slate-50 last:border-0">
-                    <span className="font-bold text-slate-700">{oi.materialName} — {oi.qty} {oi.unit}</span>
+                    <span className="font-bold text-slate-700">{oi.materialName} ï¿½ {oi.qty} {oi.unit}</span>
                     <span className="font-black text-primary">Q {oi.total.toLocaleString()}</span>
                   </div>
                 ))}

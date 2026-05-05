@@ -65,16 +65,13 @@ export default function Seguimiento() {
 
   // Aggregate data
   const projectsData = active.map(p => {
-    const totalCost = (p.items || []).reduce((s: number, it: any) => {
-      const mat = (it.materials || []).reduce((a: number, m: any) => a + (m.unitCost || 0) * (m.quantity || 0) * (it.projectQuantity || 1), 0);
-      const lab = (it.labor || []).reduce((a: number, l: any) => a + (l.unitCost || 0) * (l.quantity || 0) * (it.projectQuantity || 1), 0);
-      return s + mat + lab;
-    }, 0);
-    const budget = p.budget || 1;
-    const financiero = pct((totalCost / budget) * 100);
-    const fisico = pct(p.progress || 0);
-    const txIncome = transactions.filter(t => t.projectId === p.id && t.type === 'INGRESO').reduce((a: number, t: any) => a + (t.amount || 0), 0);
+    // Use real transaction expenses for financiero, fallback to budget items cost
     const txExpense = transactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((a: number, t: any) => a + (t.amount || 0), 0);
+    const txIncome  = transactions.filter(t => t.projectId === p.id && t.type === 'INGRESO').reduce((a: number, t: any) => a + (t.amount || 0), 0);
+    const totalCost  = txExpense;
+    const budget     = p.budget || 1;
+    const financiero = pct((totalCost / budget) * 100);
+    const fisico     = pct(p.progress || 0);
     return { ...p, totalCost, financiero, fisico, txIncome, txExpense };
   });
 
@@ -168,28 +165,60 @@ export default function Seguimiento() {
         {/* Ring charts per project */}
         <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Avance por Proyecto</p>
-          <div className="space-y-4 overflow-auto max-h-64">
-            {displayProjects.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 opacity-40">
-                <Building2 size={24} className="text-slate-300 mb-2" />
-                <p className="text-[8px] font-black uppercase tracking-widest">Sin proyectos en ejecución</p>
+
+          {displayProjects.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 opacity-40">
+              <Building2 size={24} className="text-slate-300 mb-2" />
+              <p className="text-[8px] font-black uppercase tracking-widest">Sin proyectos en ejecución</p>
+            </div>
+
+          ) : selected ? (
+            /* Single project: two big rings centered */
+            <div className="flex flex-col items-center gap-4">
+              <p className="text-[10px] font-black text-slate-700 uppercase truncate text-center">{selected.name}</p>
+              <div className="flex justify-center gap-8">
+                <RingChart value={displayProjects[0]?.fisico ?? 0} color="#f59e0b" label="Físico" size={100} />
+                <RingChart value={displayProjects[0]?.financiero ?? 0} color="#3b82f6" label="Financiero" size={100} />
               </div>
-            ) : displayProjects.map((p, i) => (
-              <div key={p.id} className="flex items-center gap-4 p-2 rounded-xl hover:bg-slate-50 transition-colors">
-                <RingChart value={p.fisico} color="#f59e0b" label="Físico" size={64} />
-                <RingChart value={p.financiero} color="#3b82f6" label="Financiero" size={64} />
-                <div className="flex-1 min-w-0">
-                  <p className="text-[9px] font-black text-slate-700 uppercase truncate">{p.name}</p>
-                  <p className="text-[8px] text-slate-400 font-bold">{p.clientName || 'S/N'}</p>
-                  <div className={cn("mt-1 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full inline-block",
-                    p.fisico >= p.financiero ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
-                  )}>
-                    {p.fisico >= p.financiero ? '▲ En control' : '▼ Desfase'}
-                  </div>
+              <div className="w-full grid grid-cols-2 gap-2 mt-2">
+                <div className="bg-amber-50 rounded-xl p-2 text-center">
+                  <p className="text-[7px] font-black text-amber-600 uppercase tracking-widest">Presupuesto</p>
+                  <p className="text-[11px] font-black text-slate-800">{fmtQ(displayProjects[0]?.budget || 0)}</p>
+                </div>
+                <div className="bg-blue-50 rounded-xl p-2 text-center">
+                  <p className="text-[7px] font-black text-blue-600 uppercase tracking-widest">Ejecutado</p>
+                  <p className="text-[11px] font-black text-slate-800">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
-            ))}
-          </div>
+              <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
+                (displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0)
+                  ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+              )}>
+                {(displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0) ? '▲ En control' : '▼ Desfase financiero'}
+              </div>
+            </div>
+
+          ) : (
+            /* All projects: list with small rings */
+            <div className="space-y-3 overflow-auto max-h-64">
+              {displayProjects.map(p => (
+                <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+                  onClick={() => setSelectedId(p.id)}>
+                  <RingChart value={p.fisico} color="#f59e0b" label="Fís." size={56} />
+                  <RingChart value={p.financiero} color="#3b82f6" label="Fin." size={56} />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[9px] font-black text-slate-700 uppercase truncate">{p.name}</p>
+                    <p className="text-[8px] text-slate-400 font-bold">{p.clientName || 'S/N'}</p>
+                    <div className={cn("mt-1 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full inline-block",
+                      p.fisico >= p.financiero ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+                    )}>
+                      {p.fisico >= p.financiero ? '▲ En control' : '▼ Desfase'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Comparison bar chart */}
