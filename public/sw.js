@@ -20,16 +20,7 @@ self.addEventListener('fetch', (event) => {
 
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(clients => {
-        // Si hay una ventana ya abierta con esta app, enfocarla
-        const existing = clients.find(c => c.url.startsWith(self.location.origin));
-        if (existing && 'focus' in existing) {
-          existing.focus();
-          existing.navigate(url.href);
-        }
-        // Siempre responder con la página (network-first, fallback index.html)
-        return fetch(event.request).catch(() => caches.match('/index.html'));
-      })
+      fetch(event.request).catch(() => caches.match('/index.html'))
     );
     return;
   }
