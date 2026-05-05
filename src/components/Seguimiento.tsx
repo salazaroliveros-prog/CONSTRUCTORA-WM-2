@@ -108,6 +108,11 @@ export default function Seguimiento() {
   projects.forEach(p => { statusMap[p.status] = (statusMap[p.status] || 0) + 1; });
   const pieData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
+  const avgFisico = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.fisico, 0) / displayProjects.length) : 0;
+  const avgFinanciero = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.financiero, 0) / displayProjects.length) : 0;
+  const totalBudget = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
+  const totalCostAll = displayProjects.reduce((a, p) => a + (p.totalCost || 0), 0);
+
   // Materials: budgeted vs used per project
   const materialData = (() => {
     const projectsToShow = selectedId === 'ALL' ? projects.filter(p => p.status === 'EJECUCION') : projects.filter(p => p.id === selectedId);
@@ -119,9 +124,6 @@ export default function Seguimiento() {
       return { name: p.name?.slice(0, 14) || 'Proyecto', Presupuestado: budgeted, Ejecutado: used, 'En Bodega': received };
     }).filter(d => d.Presupuestado > 0 || d.Ejecutado > 0);
   })();
-  const avgFinanciero = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.financiero, 0) / displayProjects.length) : 0;
-  const totalBudget = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
-  const totalCostAll = displayProjects.reduce((a, p) => a + (p.totalCost || 0), 0);
 
   return (
     <div className="flex flex-col h-full p-4 gap-4 overflow-auto">
