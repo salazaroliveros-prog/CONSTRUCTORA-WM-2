@@ -38,7 +38,7 @@ import ProjectWizard from './ProjectWizard';
 import Modal from './ui/Modal';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { subscribeToCollection, deleteDocument, updateDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock } from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
@@ -119,7 +119,7 @@ export default function ProjectsModule() {
     toast('¿Guardar cambios del proyecto?', {
       description: selectedProject.name,
       action: { label: 'Guardar', onClick: async () => {
-        try { await updateDocument('projects', selectedProject.id, editForm); setSelectedProject(prev => prev ? { ...prev, ...editForm } : null); setIsEditing(false); setEditForm({}); toast.success('Proyecto actualizado', { description: 'Cambios guardados' }); }
+        try { await updateDocument('projects', selectedProject.id, editForm); const updated = { ...selectedProject, ...editForm }; setSelectedProject(updated); setIsEditing(false); setEditForm({}); if (editForm.status === 'EJECUCION' && selectedProject.status !== 'EJECUCION') { const created = await generateProjectStock(updated); if (created > 0) toast.info(created + ' materiales agregados al inventario'); } toast.success('Proyecto actualizado', { description: 'Cambios guardados' }); }
         catch (error) { toast.error('Error al guardar', { description: parseError(error) }); }
       }},
       cancel: { label: 'Cancelar', onClick: () => {} }

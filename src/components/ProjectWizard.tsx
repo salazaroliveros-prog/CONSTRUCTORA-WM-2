@@ -36,7 +36,7 @@ import {
   WorkItem,
   StaffMember
 } from '../constants';
-import { addDocument, subscribeToCollection, parseError } from '../services/firestoreService';
+import { addDocument, subscribeToCollection, parseError, generateProjectStock } from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -313,6 +313,11 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
       });
 
       await addDocument('projects', dataToSave);
+      // Auto-generate inventory stock when project is in EJECUCION
+      if (dataToSave.status === 'EJECUCION') {
+        const created = await generateProjectStock({ ...dataToSave, id: '' });
+        if (created > 0) toast.info(`${created} materiales agregados al inventario automáticamente`);
+      }
       toast.success("Proyecto creado exitosamente");
       onComplete();
     } catch (error) {

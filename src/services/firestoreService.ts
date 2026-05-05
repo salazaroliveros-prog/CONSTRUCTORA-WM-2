@@ -142,3 +142,58 @@ export const deleteDocument = async (collectionName: string, id: string) => {
     handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`);
   }
 };
+
+
+/**
+ * Generates inventory items from a project's budget materials.
+ * Called automatically when a project transitions to EJECUCION status.
+ * Skips materials already created for this project.
+ */
+export const generateProjectStock = async (project: any): Promise<number> => {
+  if (!auth.currentUser || !project.id) return 0;
+
+  // Aggregate materials across all project items
+  const materialsMap = new Map<string, { unit: string; qty: number; cost: number }>();
+  for (const item of project.items || []) {
+    for (const m of item.materials || []) {
+      const key = `${m.name}__${m.unit || 'U'}`;
+      const qty = (m.quantity || 0) * (item.projectQuantity || 1);
+      if (materialsMap.has(key)) {
+        materialsMap.get(key)!.qty += qty;
+      } else {
+        materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.price || 0 });
+      }
+    }
+  }
+  if (materialsMap.size === 0) return 0;
+
+  // Fetch existing inventory for this project to avoid duplicates
+  const existing = await getDocs(
+    query(collection(db, 'inventory'), where('ownerId', '==', auth.currentUser.uid), where('projectId', '==', project.id))
+  );
+  const existingNames = new Set(existing.docs.map(d => `${d.data().name}__${d.data().unit}`));
+
+  let created = 0;
+  const today = new Date().toISOString().split('T')[0];
+  for (const [key, mat] of materialsMap) {
+    if (existingNames.has(key)) continue;
+    const [name] = key.split('__');
+    await addDocument('inventory', {
+      name,
+      cat: 'Materiales',
+      stock: 0,
+      unit: mat.unit,
+      location: 'Almacén Central',
+      minStock: Math.max(1, Math.ceil(mat.qty * 0.1)),
+      lastEntry: today,
+      history: [],
+      projectId: project.id,
+      projectName: project.name,
+      budgetedQty: Math.round(mat.qty * 100) / 100,
+      budgetedCost: mat.cost,
+      usedQty: 0,
+    });
+    created++;
+  }
+  return created;
+};
