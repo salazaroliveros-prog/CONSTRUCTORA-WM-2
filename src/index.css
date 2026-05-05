@@ -32,18 +32,61 @@
 
 .glass-card {
   @apply bg-white rounded-xl shadow-sm border border-slate-200 p-4;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.glass-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -4px rgba(15,23,42,0.08);
 }
 
 .action-card {
   @apply bg-white border border-slate-200 shadow-sm rounded-xl transition-all hover:shadow-md hover:border-secondary/30;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.action-card:hover {
+  transform: translateY(-1px);
 }
 
 .bento-card {
-  @apply bg-white rounded-xl border border-slate-200 shadow-sm p-5 h-full transition-all;
+  @apply bg-white rounded-xl border border-slate-200 shadow-sm p-5 h-full;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+.bento-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px -4px rgba(15,23,42,0.08);
 }
 
 .dark-bento-card {
   @apply bg-primary text-white rounded-xl shadow-lg p-5 h-full;
+}
+
+/* Transiciones globales ligeras para botones e interactivos */
+button, a, [role="button"] {
+  transition: opacity 0.15s ease, transform 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+}
+button:active:not(:disabled), [role="button"]:active {
+  transform: scale(0.97);
+}
+
+/* Entrada suave para tarjetas y secciones */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fadeSlideIn 0.25s ease forwards;
+}
+
+/* Shimmer para estados de carga */
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s infinite linear;
+  border-radius: 8px;
 }
 
 /* Custom Scrollbar */
