@@ -126,15 +126,10 @@ function AppContent() {
           
           <button 
             onClick={() => login()}
-            disabled={loading}
-            className="w-full flex items-center justify-center gap-4 bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all group active:scale-95 shadow-xl shadow-slate-900/10 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full flex items-center justify-center gap-4 bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all group active:scale-95 shadow-xl shadow-slate-900/10"
           >
-            {loading ? (
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
-            )}
-            {loading ? 'Iniciando sesión...' : 'Acceder con Google'}
+            <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
+            Acceder con Google
           </button>
           
           <div className="pt-4 border-t border-slate-100 w-full">

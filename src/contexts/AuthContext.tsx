@@ -12,29 +12,29 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
+  // Starts true until Firebase resolves the initial auth state
   const [loading, setLoading] = useState(true);
-  const [loginLoading, setLoginLoading] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      setUser(firebaseUser);
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
   const login = async () => {
-    if (loginLoading) return;
-    setLoginLoading(true);
     try {
+      // Keep loading=true while the popup is open so the app doesn't flicker
+      setLoading(true);
       await signInWithGoogle();
+      // onAuthStateChanged will fire next and set user + loading=false
     } catch (error: any) {
-      // Ignore cancelled popup request errors as they are usually benign in this environment
       if (error?.code !== 'auth/cancelled-popup-request' && error?.code !== 'auth/popup-closed-by-user') {
         console.error('Login error:', error);
       }
-    } finally {
-      setLoginLoading(false);
+      // Only reset loading on error; on success onAuthStateChanged handles it
+      setLoading(false);
     }
   };
 
@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading: loading || loginLoading, login, signOut }}>
+    <AuthContext.Provider value={{ user, loading, login, signOut }}>
       {!loading && children}
     </AuthContext.Provider>
   );
