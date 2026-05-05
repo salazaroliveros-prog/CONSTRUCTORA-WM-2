@@ -223,10 +223,10 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                         transition={{ delay: i * 0.03, duration: 0.18 }}
                         onClick={() => handleNav(item.id)}
                         className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                          "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-all duration-200",
                           activeTab === item.id
-                            ? "bg-slate-900/90 text-white shadow-lg backdrop-blur-sm"
-                            : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
+                            ? "bg-slate-900/90 text-white shadow-lg backdrop-blur-sm scale-[1.02]"
+                            : "text-slate-500 hover:bg-secondary/15 hover:text-slate-900 hover:scale-[1.03] hover:text-[11px] hover:font-black hover:shadow-sm"
                         )}
                       >
                         <span className={cn("shrink-0", activeTab === item.id ? "text-secondary" : "")}>{item.icon}</span>
