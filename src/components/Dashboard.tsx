@@ -234,10 +234,11 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
     cost: 0,
     description: '',
     category: 'Materiales',
-    date: new Date().toISOString().split('T')[0]
+    date: new Date().toISOString().split('T')[0],
+    projectId: ''
   });
 
-  const entryCategories = ['Aporte Cliente', 'Anteproyecto', 'Estudios', 'Agrimensura', 'Cuantificación', 'Otros'];
+  const entryCategories = ['Aporte Cliente', 'Anticipo de Obra', 'Pago por Avance', 'Pago Final', 'Anteproyecto', 'Estudios y Diseno', 'Agrimensura', 'Cuantificacion', 'Venta de Material', 'Devolucion de Proveedor', 'Subvencion / Subsidio', 'Prestamo / Financiamiento', 'Otros Ingresos'];
   const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'Sub-contratos', 'Administrativo', 'Personales', 'Hogar'];
 
   useEffect(() => {
@@ -267,9 +268,9 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       description: accountingForm.description || 'Registro Contable Directo',
       action: { label: 'Confirmar', onClick: async () => {
         try {
-          await addDocument('transactions', { description: accountingForm.description || 'Registro Contable Directo', amount: accountingForm.cost * accountingForm.quantity, qty: accountingForm.quantity, unitCost: accountingForm.cost, type: accountingForm.type === 'Entrada' ? 'INGRESO' : 'GASTO', category: accountingForm.category, date: accountingForm.date, createdAt: new Date().toISOString() });
+          await addDocument('transactions', { description: accountingForm.description || 'Registro Contable Directo', amount: accountingForm.cost * accountingForm.quantity, qty: accountingForm.quantity, unitCost: accountingForm.cost, type: accountingForm.type === 'Entrada' ? 'INGRESO' : 'GASTO', category: accountingForm.category, date: accountingForm.date, projectId: accountingForm.projectId || null, createdAt: new Date().toISOString() });
           setIsAccountingModalOpen(false);
-          setAccountingForm({ type: 'Salida', quantity: 1, cost: 0, description: '', category: exitCategories[0], date: new Date().toISOString().split('T')[0] });
+          setAccountingForm({ type: 'Salida', quantity: 1, cost: 0, description: '', category: exitCategories[0], date: new Date().toISOString().split('T')[0], projectId: '' });
           toast.success('Registro contable guardado');
         } catch (e) { toast.error('Error al registrar contabilidad', { description: parseError(e) }); }
       }},
@@ -506,6 +507,17 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
               {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
               ))}
+            </select>
+          </div>
+          <div>
+            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
+            <select
+              value={accountingForm.projectId}
+              onChange={(e) => setAccountingForm({ ...accountingForm, projectId: e.target.value })}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+            >
+              <option value="">Sin proyecto especifico</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
 
@@ -792,10 +804,10 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                </button>
                {[
                  { label: 'Nueva Cotización', icon: <Plus size={14} />, color: 'bg-slate-100 text-primary' },
-                 { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-slate-100 text-primary' },
-                 { label: 'Reporte de Obra', icon: <Truck size={14} />, color: 'bg-slate-100 text-primary' },
+                 { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-slate-100 text-primary', tab: 'inventory' },
+                 { label: 'Reporte de Obra', icon: <Truck size={14} />, color: 'bg-slate-100 text-primary', tab: 'seguimiento' },
                ].map((action, i) => (
-                 <button key={i} className={cn(
+                 <button key={i} onClick={() => setActiveTab?.(action.tab as string)} className={cn(
                    "w-full flex items-center gap-3 p-3.5 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all hover:scale-[1.02] active:scale-95",
                    action.color
                  )}>
