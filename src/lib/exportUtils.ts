@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf';
-import 'jspdf-autotable';
+import autoTable from 'jspdf-autotable';
 import Papa from 'papaparse';
 import { Project } from '../constants';
 
@@ -135,7 +135,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
 
   // ── Resumen General ──────────────────────────────────────────────────────────
   y = addSectionTitle(doc, 'Resumen General', y, colors.header);
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Campo', 'Valor']],
     body: [
@@ -158,7 +158,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
   // ── Resumen de Renglones ─────────────────────────────────────────────────────
   if (items.length > 0) {
     y = addSectionTitle(doc, 'Resumen de Renglones', y, colors.header);
-    (doc as any).autoTable({
+    autoTable(doc, {
       startY: y,
       head: [['Cód', 'Descripción', 'Unidad', 'Cant.', 'Materiales (Q)', 'Mano Obra (Q)', 'Total (Q)']],
       body: items.map(item => [
@@ -198,7 +198,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
         doc.text('Materiales:', 14, y + 3);
         doc.setFont('helvetica', 'normal');
         y += 5;
-        (doc as any).autoTable({
+        autoTable(doc, {
           startY: y,
           head: [['Material', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'P. Unit. (Q)', 'Subtotal (Q)']],
           body: (item.materials || []).map((m: any) => [
@@ -226,7 +226,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
         doc.text('Mano de Obra:', 14, y + 3);
         doc.setFont('helvetica', 'normal');
         y += 5;
-        (doc as any).autoTable({
+        autoTable(doc, {
           startY: y,
           head: [['Rol', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'P. Unit. (Q)', 'Subtotal (Q)']],
           body: (item.labor || []).map((l: any) => [
@@ -252,7 +252,7 @@ export function generateProjectPDF(project: Project, templateId: string = 'moder
   // ── Totales de la Construcción ───────────────────────────────────────────────
   if (y > 230) { doc.addPage(); y = 14; }
   y = addSectionTitle(doc, 'Totales de la Construcción', y, colors.accent);
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY: y,
     head: [['Concepto', 'Monto (Q)']],
     body: [
@@ -475,7 +475,7 @@ export const generatePDF = (data: ExportData, style: ExportStyle = 'Modern') => 
   doc.text(data.title, 105, 22, { align: 'center' });
   doc.setFontSize(10);
   doc.text(`Proyecto: ${data.projectName} | Cliente: ${data.clientName}`, 14, 30);
-  (doc as any).autoTable({
+  autoTable(doc, {
     head: [data.headers],
     body: data.rows,
     startY: 35,
