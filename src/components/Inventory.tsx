@@ -50,6 +50,19 @@ export default function InventoryModule() {
   const [newItem, setNewItem] = useState({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', unitPrice: 0, location: 'Almacén Central', iconUrl: '' });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
+  const [editingCell, setEditingCell] = useState<{id:string, field:string, value:string} | null>(null);
+
+  const saveInlineEdit = async () => {
+    if (!editingCell) return;
+    const { id, field, value } = editingCell;
+    try {
+      await updateDocument('inventory', id, { [field]: field === 'stock' || field === 'minStock' ? parseFloat(value) || 0 : value });
+      toast.success('Actualizado');
+    } catch (e) {
+      toast.error('Error al guardar', { description: parseError(e) });
+    }
+    setEditingCell(null);
+  };
 
   useEffect(() => {
     const unsub = subscribeToCollection('inventory', (data) => {
@@ -484,7 +497,23 @@ export default function InventoryModule() {
                           </div>
                       )}
                       <div className="min-w-0 text-left">
-                        <p className="text-[11px] font-black text-primary uppercase truncate group-hover:text-secondary transition-colors">{item.name}</p>
+                        {editingCell?.id === item.id && editingCell.field === 'name' ? (
+                          <input
+                            autoFocus
+                            value={editingCell.value}
+                            onChange={e => setEditingCell({...editingCell, value: e.target.value})}
+                            onBlur={saveInlineEdit}
+                            onKeyDown={e => { if (e.key === 'Enter') saveInlineEdit(); if (e.key === 'Escape') setEditingCell(null); }}
+                            className="text-[11px] font-black uppercase w-full border-b-2 border-secondary bg-transparent focus:outline-none"
+                            onClick={e => e.stopPropagation()}
+                          />
+                        ) : (
+                          <p
+                            className="text-[11px] font-black text-primary uppercase truncate group-hover:text-secondary transition-colors cursor-text"
+                            onDoubleClick={e => { e.stopPropagation(); setEditingCell({id: item.id, field: 'name', value: item.name}); }}
+                            title="Doble click para editar"
+                          >{item.name}</p>
+                        )}
                         <p className="text-[7px] text-slate-400 font-bold uppercase tracking-widest truncate">{item.id.slice(-4)}</p>
                       </div>
                     </div>
@@ -494,16 +523,43 @@ export default function InventoryModule() {
                   </td>
                   <td className="px-4 py-2.5">
                     <div className="flex flex-col text-left">
-                      <span className={cn(
-                        "text-[11px] font-black tabular-nums",
-                        item.stock < item.minStock ? "text-red-500" : "text-primary"
-                      )}>
-                        {item.stock} {item.unit}
-                      </span>
+                      {editingCell?.id === item.id && editingCell.field === 'stock' ? (
+                        <input
+                          autoFocus type="number"
+                          value={editingCell.value}
+                          onChange={e => setEditingCell({...editingCell, value: e.target.value})}
+                          onBlur={saveInlineEdit}
+                          onKeyDown={e => { if (e.key === 'Enter') saveInlineEdit(); if (e.key === 'Escape') setEditingCell(null); }}
+                          className="text-[11px] font-black w-16 border-b-2 border-secondary bg-transparent focus:outline-none"
+                          onClick={e => e.stopPropagation()}
+                        />
+                      ) : (
+                        <span
+                          className={cn("text-[11px] font-black tabular-nums cursor-text", item.stock < item.minStock ? "text-red-500" : "text-primary")}
+                          onDoubleClick={e => { e.stopPropagation(); setEditingCell({id: item.id, field: 'stock', value: String(item.stock)}); }}
+                          title="Doble click para editar"
+                        >{item.stock} {item.unit}</span>
+                      )}
                     </div>
                   </td>
                   <td className="hidden lg:table-cell px-4 py-2.5">
-                    <span className="text-[8px] font-bold uppercase text-slate-500 truncate max-w-[100px]">{item.location}</span>
+                    {editingCell?.id === item.id && editingCell.field === 'location' ? (
+                      <input
+                        autoFocus
+                        value={editingCell.value}
+                        onChange={e => setEditingCell({...editingCell, value: e.target.value})}
+                        onBlur={saveInlineEdit}
+                        onKeyDown={e => { if (e.key === 'Enter') saveInlineEdit(); if (e.key === 'Escape') setEditingCell(null); }}
+                        className="text-[8px] font-bold uppercase w-full border-b-2 border-secondary bg-transparent focus:outline-none"
+                        onClick={e => e.stopPropagation()}
+                      />
+                    ) : (
+                      <span
+                        className="text-[8px] font-bold uppercase text-slate-500 truncate max-w-[100px] cursor-text"
+                        onDoubleClick={e => { e.stopPropagation(); setEditingCell({id: item.id, field: 'location', value: item.location || ''}); }}
+                        title="Doble click para editar"
+                      >{item.location}</span>
+                    )}
                   </td>
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
