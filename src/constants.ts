@@ -108,8 +108,35 @@ export interface WarehouseItem {
   minStock: number;
   lastEntry: string;
   history: WarehouseMovement[];
-  coordinates?: { x: number; y: number }; // Visual location
+  coordinates?: { x: number; y: number };
   iconUrl?: string;
+  // Project-linked fields
+  projectId?: string;
+  projectName?: string;
+  budgetedQty?: number;
+  budgetedCost?: number;
+  usedQty?: number;
+}
+
+export interface PurchaseOrderItem {
+  materialName: string;
+  unit: string;
+  qty: number;
+  unitPrice: number;
+  total: number;
+}
+
+export interface PurchaseOrder {
+  id: string;
+  projectId: string;
+  projectName: string;
+  supplierId: string;
+  supplierName: string;
+  status: 'PENDIENTE' | 'APROBADA' | 'RECIBIDA' | 'CANCELADA';
+  items: PurchaseOrderItem[];
+  total: number;
+  createdAt: string;
+  notes?: string;
 }
 
 export const WAREHOUSE_DATA: WarehouseItem[] = [];

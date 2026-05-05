@@ -50,12 +50,14 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
 export default function Seguimiento() {
   const [projects, setProjects] = useState<any[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string>('ALL');
 
   useEffect(() => {
     const u1 = subscribeToCollection('projects', setProjects);
     const u2 = subscribeToCollection('transactions', setTransactions);
-    return () => { u1(); u2(); };
+    const u3 = subscribeToCollection('inventory', setInventory);
+    return () => { u1(); u2(); u3(); };
   }, []);
 
   const active = projects.filter(p => p.status === 'EJECUCION');
@@ -106,7 +108,17 @@ export default function Seguimiento() {
   projects.forEach(p => { statusMap[p.status] = (statusMap[p.status] || 0) + 1; });
   const pieData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
-  const avgFisico = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.fisico, 0) / displayProjects.length) : 0;
+  // Materials: budgeted vs used per project
+  const materialData = (() => {
+    const projectsToShow = selectedId === 'ALL' ? projects.filter(p => p.status === 'EJECUCION') : projects.filter(p => p.id === selectedId);
+    return projectsToShow.map(p => {
+      const projItems = inventory.filter((i: any) => i.projectId === p.id && i.budgetedQty != null);
+      const budgeted = projItems.reduce((a: number, i: any) => a + ((i.budgetedQty || 0) * (i.budgetedCost || 0)), 0);
+      const used = projItems.reduce((a: number, i: any) => a + ((i.usedQty || 0) * (i.budgetedCost || 0)), 0);
+      const received = projItems.reduce((a: number, i: any) => a + ((i.stock || 0) * (i.budgetedCost || 0)), 0);
+      return { name: p.name?.slice(0, 14) || 'Proyecto', Presupuestado: budgeted, Ejecutado: used, 'En Bodega': received };
+    }).filter(d => d.Presupuestado > 0 || d.Ejecutado > 0);
+  })();
   const avgFinanciero = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.financiero, 0) / displayProjects.length) : 0;
   const totalBudget = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
   const totalCostAll = displayProjects.reduce((a, p) => a + (p.totalCost || 0), 0);
@@ -241,6 +253,35 @@ export default function Seguimiento() {
               <Tooltip contentStyle={{ fontSize: 10, borderRadius: 8 }} />
             </PieChart>
           </ResponsiveContainer>
+        </div>
+
+        {/* Materials: Budgeted vs Executed vs In Stock */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2 xl:col-span-3">
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Materiales: Presupuestado vs Ejecutado</p>
+              <p className="text-[8px] text-slate-300 mt-0.5">Costo de materiales presupuestados, consumidos y en bodega por proyecto</p>
+            </div>
+          </div>
+          {materialData.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 opacity-40">
+              <TrendingUp size={24} className="text-slate-300 mb-2" />
+              <p className="text-[9px] font-black text-slate-400 uppercase">Genera stock desde presupuesto en el módulo de Bodega</p>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={220} minHeight={160}>
+              <BarChart data={materialData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
+                <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                <Tooltip formatter={(v: any) => fmtQ(v)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
+                <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
+                <Bar dataKey="Presupuestado" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="Ejecutado" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="En Bodega" fill="#10b981" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
         </div>
 
       </div>

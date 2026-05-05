@@ -20,10 +20,14 @@ import {
   Info,
   DollarSign,
   Trash2,
-  ArrowUpRight
+  ArrowUpRight,
+  ShoppingCart,
+  ClipboardList,
+  CheckCircle2,
+  Building2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { WarehouseItem } from '../constants';
+import { WarehouseItem, PurchaseOrder, PurchaseOrderItem } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
@@ -51,6 +55,133 @@ export default function InventoryModule() {
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingCell, setEditingCell] = useState<{id:string, field:string, value:string} | null>(null);
+
+  // Project stock & purchase orders
+  const [projects, setProjects] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [activeTab, setActiveTab] = useState<'stock' | 'orders'>('stock');
+  const [isOCModalOpen, setIsOCModalOpen] = useState(false);
+  const [isGenModalOpen, setIsGenModalOpen] = useState(false);
+  const [selectedProjectForGen, setSelectedProjectForGen] = useState('');
+  const [generatingStock, setGeneratingStock] = useState(false);
+  const [ocForm, setOcForm] = useState<{ projectId: string; supplierId: string; notes: string; items: PurchaseOrderItem[] }>({
+    projectId: '', supplierId: '', notes: '', items: []
+  });
+
+  useEffect(() => {
+    const u1 = subscribeToCollection('projects', setProjects);
+    const u2 = subscribeToCollection('suppliers', setSuppliers);
+    const u3 = subscribeToCollection('purchaseOrders', (data: any[]) => setPurchaseOrders(data));
+    return () => { u1(); u2(); u3(); };
+  }, []);
+
+  const generateStockFromProject = async () => {
+    const project = projects.find(p => p.id === selectedProjectForGen);
+    if (!project) return;
+    setGeneratingStock(true);
+    try {
+      const materials: { name: string; unit: string; qty: number; cost: number }[] = [];
+      (project.items || []).forEach((item: any) => {
+        (item.materials || []).forEach((m: any) => {
+          const qty = (m.quantity || 0) * (item.projectQuantity || 1);
+          const existing = materials.find(x => x.name === m.name && x.unit === (m.unit || 'U'));
+          if (existing) { existing.qty += qty; }
+          else { materials.push({ name: m.name, unit: m.unit || 'U', qty, cost: m.price || 0 }); }
+        });
+      });
+      let created = 0;
+      for (const mat of materials) {
+        // Skip if already exists for this project
+        const exists = items.find(i => i.name === mat.name && i.projectId === project.id);
+        if (exists) continue;
+        await addDocument('inventory', {
+          name: mat.name,
+          cat: 'Materiales' as const,
+          stock: 0,
+          unit: mat.unit,
+          location: 'AlmacÃ©n Central',
+          minStock: Math.ceil(mat.qty * 0.1),
+          lastEntry: new Date().toISOString().split('T')[0],
+          history: [],
+          projectId: project.id,
+          projectName: project.name,
+          budgetedQty: mat.qty,
+          budgetedCost: mat.cost,
+          usedQty: 0,
+        });
+        created++;
+      }
+      toast.success(`${created} materiales generados desde presupuesto`, { description: project.name });
+      setIsGenModalOpen(false);
+      setSelectedProjectForGen('');
+    } catch (e) {
+      toast.error('Error al generar stock', { description: parseError(e) });
+    } finally {
+      setGeneratingStock(false);
+    }
+  };
+
+  const createPurchaseOrder = async () => {
+    const project = projects.find(p => p.id === ocForm.projectId);
+    const supplier = suppliers.find(s => s.id === ocForm.supplierId);
+    if (!project || !supplier || ocForm.items.length === 0) {
+      toast.error('Completa todos los campos y agrega al menos un material');
+      return;
+    }
+    try {
+      const total = ocForm.items.reduce((a, i) => a + i.total, 0);
+      await addDocument('purchaseOrders', {
+        projectId: project.id,
+        projectName: project.name,
+        supplierId: supplier.id,
+        supplierName: supplier.name,
+        status: 'PENDIENTE',
+        items: ocForm.items,
+        total,
+        createdAt: new Date().toISOString().split('T')[0],
+        notes: ocForm.notes,
+      });
+      toast.success('Orden de compra creada');
+      setIsOCModalOpen(false);
+      setOcForm({ projectId: '', supplierId: '', notes: '', items: [] });
+    } catch (e) {
+      toast.error('Error al crear OC', { description: parseError(e) });
+    }
+  };
+
+  const receiveOrder = async (order: PurchaseOrder) => {
+    try {
+      // Update each inventory item stock
+      for (const oi of order.items) {
+        const inv = items.find(i => i.name === oi.materialName && i.projectId === order.projectId);
+        if (inv) {
+          await updateDocument('inventory', inv.id, {
+            stock: (inv.stock || 0) + oi.qty,
+            lastEntry: new Date().toISOString().split('T')[0],
+          });
+        }
+      }
+      await updateDocument('purchaseOrders', order.id, { status: 'RECIBIDA' });
+      toast.success('Orden recibida â€” stock actualizado');
+    } catch (e) {
+      toast.error('Error', { description: parseError(e) });
+    }
+  };
+
+  const consumeMaterial = async (item: WarehouseItem, qty: number) => {
+    if (qty <= 0 || qty > item.stock) { toast.error('Cantidad invÃ¡lida'); return; }
+    try {
+      await updateDocument('inventory', item.id, {
+        stock: item.stock - qty,
+        usedQty: (item.usedQty || 0) + qty,
+        lastEntry: new Date().toISOString().split('T')[0],
+      });
+      toast.success(`${qty} ${item.unit} descontados de ${item.name}`);
+    } catch (e) {
+      toast.error('Error', { description: parseError(e) });
+    }
+  };
 
   const saveInlineEdit = async () => {
     if (!editingCell) return;
@@ -274,7 +405,29 @@ export default function InventoryModule() {
         </div>
       </div>
 
+      {/* Tabs: Stock / Ordenes de Compra */}
+      <div className="flex flex-wrap gap-2 items-center">
+        {[{ id: 'stock', label: 'Stock / Bodega', icon: <Package size={13}/> }, { id: 'orders', label: 'Ordenes de Compra', icon: <ShoppingCart size={13}/> }].map(t => (
+          <button key={t.id} onClick={() => setActiveTab(t.id as any)}
+            className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
+              activeTab === t.id ? 'bg-slate-900 text-white shadow' : 'bg-white border border-slate-200 text-slate-500 hover:border-secondary')}>
+            {t.icon}{t.label}
+          </button>
+        ))}
+        <button onClick={() => setIsGenModalOpen(true)}
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow">
+          <Building2 size={13}/> Generar desde Presupuesto
+        </button>
+        {activeTab === 'orders' && (
+          <button onClick={() => setIsOCModalOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 transition-all shadow">
+            <Plus size={13}/> Nueva OC
+          </button>
+        )}
+      </div>
+
       <Modal 
+
         isOpen={isCreateModalOpen} 
         onClose={() => setIsCreateModalOpen(false)}
         title="Registrar Nuevo Suministro"
@@ -742,6 +895,141 @@ export default function InventoryModule() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* -- Purchase Orders View ------------------------------- */}
+      {activeTab === 'orders' && (
+        <div className="space-y-4">
+          {purchaseOrders.length === 0 ? (
+            <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center">
+              <ShoppingCart size={32} className="mx-auto text-slate-300 mb-3" />
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin órdenes de compra</p>
+              <p className="text-[9px] text-slate-300 mt-1">Crea una nueva OC para solicitar materiales a proveedores</p>
+            </div>
+          ) : purchaseOrders.map(order => (
+            <div key={order.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <div>
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{order.projectName}</p>
+                  <p className="text-sm font-black text-primary">{order.supplierName}</p>
+                  <p className="text-[8px] text-slate-400 mt-0.5">{order.createdAt}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className={cn('px-2 py-1 rounded-lg text-[8px] font-black uppercase',
+                    order.status === 'RECIBIDA' ? 'bg-emerald-100 text-emerald-700' :
+                    order.status === 'APROBADA' ? 'bg-blue-100 text-blue-700' :
+                    order.status === 'CANCELADA' ? 'bg-red-100 text-red-700' :
+                    'bg-amber-100 text-amber-700')}>{order.status}</span>
+                  {order.status === 'PENDIENTE' && (
+                    <button onClick={() => receiveOrder(order)}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[8px] font-black uppercase hover:bg-emerald-700 transition-all">
+                      <CheckCircle2 size={11}/> Recibir
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-1">
+                {order.items.map((oi, i) => (
+                  <div key={i} className="flex justify-between items-center text-[9px] py-1 border-b border-slate-50 last:border-0">
+                    <span className="font-bold text-slate-700">{oi.materialName} — {oi.qty} {oi.unit}</span>
+                    <span className="font-black text-primary">Q {oi.total.toLocaleString()}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="flex justify-end mt-2">
+                <span className="text-[10px] font-black text-primary">Total: Q {order.total.toLocaleString()}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* -- Modal: Generar stock desde presupuesto -------------- */}
+      <Modal isOpen={isGenModalOpen} onClose={() => setIsGenModalOpen(false)} title="Generar Stock desde Presupuesto">
+        <div className="space-y-4 text-left">
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest">Selecciona un proyecto para extraer sus materiales presupuestados y crearlos en inventario con cantidad 0 (pendiente de compra).</p>
+          <div>
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
+            <select value={selectedProjectForGen} onChange={e => setSelectedProjectForGen(e.target.value)}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary">
+              <option value="">Seleccionar proyecto...</option>
+              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          <button onClick={generateStockFromProject} disabled={!selectedProjectForGen || generatingStock}
+            className="w-full bg-emerald-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
+            {generatingStock ? 'Generando...' : 'Generar Materiales'}
+          </button>
+        </div>
+      </Modal>
+
+      {/* -- Modal: Nueva Orden de Compra ------------------------ */}
+      <Modal isOpen={isOCModalOpen} onClose={() => setIsOCModalOpen(false)} title="Nueva Orden de Compra">
+        <div className="space-y-4 text-left">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
+              <select value={ocForm.projectId} onChange={e => setOcForm(f => ({ ...f, projectId: e.target.value }))}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
+                <option value="">Seleccionar...</option>
+                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proveedor</label>
+              <select value={ocForm.supplierId} onChange={e => setOcForm(f => ({ ...f, supplierId: e.target.value }))}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
+                <option value="">Seleccionar...</option>
+                {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {/* Items de la OC */}
+          <div>
+            <div className="flex justify-between items-center mb-2">
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Materiales</label>
+              <button type="button" onClick={() => setOcForm(f => ({ ...f, items: [...f.items, { materialName: '', unit: 'U', qty: 1, unitPrice: 0, total: 0 }] }))}
+                className="flex items-center gap-1 text-[8px] font-black text-blue-600 hover:text-blue-800 uppercase">
+                <Plus size={10}/> Agregar
+              </button>
+            </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {ocForm.items.map((oi, i) => (
+                <div key={i} className="grid grid-cols-12 gap-1 items-center">
+                  <input className="col-span-4 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                    placeholder="Material" value={oi.materialName}
+                    onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], materialName: e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
+                  <input className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                    placeholder="Unidad" value={oi.unit}
+                    onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unit: e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
+                  <input type="number" className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                    placeholder="Cant." value={oi.qty || ''}
+                    onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], qty: +e.target.value, total: +e.target.value * it[i].unitPrice }; setOcForm(f => ({ ...f, items: it })); }} />
+                  <input type="number" className="col-span-3 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                    placeholder="P.Unit Q" value={oi.unitPrice || ''}
+                    onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unitPrice: +e.target.value, total: it[i].qty * +e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
+                  <button type="button" onClick={() => setOcForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
+                    className="col-span-1 text-red-400 hover:text-red-600 flex justify-center"><X size={12}/></button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
+            <textarea value={ocForm.notes} onChange={e => setOcForm(f => ({ ...f, notes: e.target.value }))}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none resize-none" rows={2} />
+          </div>
+
+          <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+            <span className="text-[10px] font-black text-primary">Total: Q {ocForm.items.reduce((a, i) => a + i.total, 0).toLocaleString()}</span>
+            <button onClick={createPurchaseOrder}
+              className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
+              Crear Orden
+            </button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }
