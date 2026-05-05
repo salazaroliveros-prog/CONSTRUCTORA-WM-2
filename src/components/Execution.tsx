@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -285,6 +285,49 @@ export default function ExecutionModule() {
               </div>
            </div>
         </div>
+      </div>
+
+      {/* Diagrama Gantt */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="mb-4">
+          <h3 className="text-sm font-black text-primary uppercase tracking-tight">Cronograma Gantt</h3>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Avance de proyectos en ejecucion</p>
+        </div>
+        {projects.filter(p => p.status === 'EJECUCION').length === 0 ? (
+          <div className="py-10 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos en ejecucion</div>
+        ) : (
+          <div className="space-y-3 overflow-x-auto">
+            {/* Cabecera de meses */}
+            <div className="flex gap-2 pl-32 mb-1">
+              {['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'].map(m => (
+                <div key={m} className="flex-1 text-center text-[7px] font-black text-slate-400 uppercase">{m}</div>
+              ))}
+            </div>
+            {projects.filter(p => p.status === 'EJECUCION').map(p => {
+              const start = p.startDate ? new Date(p.startDate).getMonth() : 0;
+              const end = p.endDate ? new Date(p.endDate).getMonth() : start + 2;
+              const duration = Math.max(1, end - start + 1);
+              const progress = p.progress || 0;
+              return (
+                <div key={p.id} className="flex items-center gap-2">
+                  <div className="w-28 shrink-0">
+                    <p className="text-[8px] font-black text-primary uppercase truncate">{p.name}</p>
+                    <p className="text-[7px] text-slate-400">{progress}%</p>
+                  </div>
+                  <div className="flex-1 flex gap-0.5 h-6">
+                    {Array.from({length: 12}, (_, i) => {
+                      const inRange = i >= start && i <= end;
+                      const done = inRange && ((i - start) / duration * 100) <= progress;
+                      return (
+                        <div key={i} className={`flex-1 rounded-sm transition-all ${inRange ? (done ? 'bg-slate-900' : 'bg-slate-200') : 'bg-slate-50'}`} />
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

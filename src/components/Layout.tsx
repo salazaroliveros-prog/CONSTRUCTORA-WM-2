@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Building2, 
   Calculator, 
@@ -104,12 +104,6 @@ interface LayoutProps {
 
 const NOTIFICATION_STORAGE_KEY = 'wm_read_notifications';
 
-const staticNotifications = [
-  { id: 'n1', text: 'Nivel crítico de Cemento en Almacén Central', type: 'error', time: 'hace 5m', module: 'inventory' },
-  { id: 'n2', text: 'Nueva cotización recibida de Proveedor', type: 'info', time: 'hace 1h', module: 'suppliers' },
-  { id: 'n3', text: 'Hito de Obra completado satisfactoriamente', type: 'success', time: 'hace 3h', module: 'execution' },
-];
-
 export default function Layout({ children, activeTab, setActiveTab }: LayoutProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -117,14 +111,62 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   const [readIds, setReadIds] = useState<string[]>(() => {
     try { return JSON.parse(localStorage.getItem(NOTIFICATION_STORAGE_KEY) || '[]'); } catch { return []; }
   });
+  const [liveNotifications, setLiveNotifications] = useState<{id:string,text:string,type:string,module:string}[]>([]);
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
   const { theme, toggleTheme } = useTheme();
 
-  const unreadCount = staticNotifications.filter(n => !readIds.includes(n.id)).length;
+  // Generar notificaciones reales desde Firestore
+  useEffect(() => {
+    if (!user) return;
+    const unsubInv = (window as any).__notifUnsubInv;
+    const unsubProj = (window as any).__notifUnsubProj;
+    if (unsubInv) unsubInv();
+    if (unsubProj) unsubProj();
+
+    const { subscribeToCollection: sub } = require('../services/firestoreService');
+
+    const u1 = sub('inventory', (items: any[]) => {
+      const critical = items.filter(i => (i.stock || 0) <= (i.minStock || 0));
+      setLiveNotifications(prev => {
+        const filtered = prev.filter(n => !n.id.startsWith('inv-'));
+        const newOnes = critical.slice(0, 3).map(i => ({
+          id: `inv-${i.id}`,
+          text: `Stock critico: ${i.name} (${i.stock} ${i.unit || 'un'})`,
+          type: 'error',
+          module: 'inventory'
+        }));
+        return [...newOnes, ...filtered].slice(0, 8);
+      });
+    });
+
+    const u2 = sub('projects', (projects: any[]) => {
+      const today = new Date();
+      const delayed = projects.filter(p => {
+        if (p.status !== 'EJECUCION' || !p.endDate) return false;
+        return new Date(p.endDate) < today && (p.progress || 0) < 100;
+      });
+      setLiveNotifications(prev => {
+        const filtered = prev.filter(n => !n.id.startsWith('proj-'));
+        const newOnes = delayed.slice(0, 3).map(p => ({
+          id: `proj-${p.id}`,
+          text: `Proyecto atrasado: ${p.name}`,
+          type: 'warning',
+          module: 'projects'
+        }));
+        return [...filtered, ...newOnes].slice(0, 8);
+      });
+    });
+
+    (window as any).__notifUnsubInv = u1;
+    (window as any).__notifUnsubProj = u2;
+    return () => { u1(); u2(); };
+  }, [user]);
+
+  const unreadCount = liveNotifications.filter(n => !readIds.includes(n.id)).length;
 
   const handleOpenNotifications = () => {
-    const allIds = staticNotifications.map(n => n.id);
+    const allIds = liveNotifications.map(n => n.id);
     setReadIds(allIds);
     localStorage.setItem(NOTIFICATION_STORAGE_KEY, JSON.stringify(allIds));
     setShowNotifications(!showNotifications);
@@ -323,7 +365,9 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                         <span className="text-[8px] font-bold text-slate-300 uppercase">Todo leído</span>
                      </div>
                      <div className="space-y-4">
-                        {staticNotifications.map(n => (
+                        {liveNotifications.length === 0 ? (
+                          <p className="text-[9px] text-slate-400 uppercase tracking-widest text-center py-4">Sin alertas activas</p>
+                        ) : liveNotifications.map(n => (
                           <div 
                             key={n.id} 
                             onClick={() => handleNotificationClick(n.module)}
@@ -331,11 +375,11 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                           >
                              <div className={cn(
                                "w-1 h-auto rounded-full shrink-0",
-                               n.type === 'error' ? "bg-red-500" : n.type === 'info' ? "bg-blue-500" : "bg-green-500"
+                               n.type === 'error' ? "bg-red-500" : n.type === 'warning' ? "bg-amber-500" : n.type === 'info' ? "bg-blue-500" : "bg-green-500"
                              )} />
                              <div className="min-w-0">
                                 <p className="text-[10px] font-black text-primary leading-tight group-hover:text-secondary transition-colors line-clamp-2">{n.text}</p>
-                                <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">{n.time}</p>
+                                <p className="text-[8px] text-slate-400 font-bold uppercase mt-1 tracking-widest">Toca para ir al modulo</p>
                              </div>
                           </div>
                         ))}
