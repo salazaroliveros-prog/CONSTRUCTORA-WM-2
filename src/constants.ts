@@ -47,7 +47,7 @@ export interface Project {
   name: string;
   clientName: string;
   typology: Typology;
-  status: 'COTIZACION' | 'EJECUCION' | 'FINALIZADO';
+  status: 'COTIZACION' | 'EJECUCION' | 'FINALIZADO' | 'PAUSADO';
   startDate: string;
   endDate?: string;
   location?: string;

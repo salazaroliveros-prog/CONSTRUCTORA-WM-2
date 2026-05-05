@@ -23,7 +23,7 @@ interface AppSettings {
   activeModules: string[];
 }
 
-const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','suppliers','inventory','analytics','staff','settings'];
+const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','seguimiento','suppliers','inventory','analytics','staff','settings'];
 
 const defaultSettings: AppSettings = {
   primaryColor: '#0F172A',
@@ -59,7 +59,27 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   useEffect(() => {
     localStorage.setItem('app-visual-settings', JSON.stringify(settings));
-    
+
+    // Inject dynamic CSS variables — only secondary (primary is handled by dark mode CSS)
+    const root = document.documentElement;
+    root.style.setProperty('--secondary', settings.secondaryColor);
+    // Store user's brand primary for light mode only
+    root.style.setProperty('--brand-primary', settings.primaryColor);
+
+    // Apply themeMode class
+    root.classList.remove('theme-modern', 'theme-classic', 'theme-brutalist', 'theme-minimal');
+    root.classList.add(`theme-${settings.themeMode}`);
+
+    // Apply compact mode
+    if (settings.compactMode) {
+      root.classList.add('compact-mode');
+    } else {
+      root.classList.remove('compact-mode');
+    }
+
+    // Apply card style as data attribute for CSS targeting
+    root.setAttribute('data-card', settings.cardStyle);
+
     // Apply font to body
     const body = document.body;
     body.classList.remove('font-inter', 'font-space', 'font-mono');
@@ -87,4 +107,15 @@ export const useSettings = () => {
   const context = useContext(SettingsContext);
   if (!context) throw new Error('useSettings must be used within a SettingsProvider');
   return context;
+};
+
+export const useCardClass = () => {
+  const { settings } = useSettings();
+  switch (settings.cardStyle) {
+    case 'flat':     return 'bg-slate-50 border border-slate-100 shadow-none';
+    case 'glass':    return 'bg-white/55 backdrop-blur-md border border-white/35 shadow-xl';
+    case 'bordered': return 'bg-white border-2 border-slate-900 shadow-none';
+    case 'elevated':
+    default:         return 'bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow';
+  }
 };

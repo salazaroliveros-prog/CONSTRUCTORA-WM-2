@@ -173,7 +173,9 @@ export default function Settings() {
              <div>
                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-4">Velocidad de Animación</label>
                <div className="flex bg-slate-100 p-1 rounded-2xl gap-1">
-                 {['none', 'fast', 'normal', 'slow'].map((speed) => (
+                 {(['none', 'fast', 'normal', 'slow'] as const).map((speed) => {
+                   const labels: Record<string, string> = { none: 'Sin', fast: 'Rápida', normal: 'Normal', slow: 'Lenta' };
+                   return (
                     <button
                       key={speed}
                       onClick={() => updateSettings({ transitionSpeed: speed as TransitionSpeed })}
@@ -182,9 +184,10 @@ export default function Settings() {
                         settings.transitionSpeed === speed ? "bg-white text-primary shadow-sm" : "text-slate-400"
                       )}
                     >
-                      {speed}
+                      {labels[speed]}
                     </button>
-                 ))}
+                   );
+                 })}
                </div>
              </div>
           </div>
@@ -340,7 +343,7 @@ export default function Settings() {
           <Monitor size={16} />
           <Smartphone size={16} />
           <div className="h-4 w-[1px] bg-slate-200 mx-2" />
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Build 1.0.4 - Pro Edition</span>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Versión 1.0.4 - Edición Pro</span>
         </div>
       </div>
 

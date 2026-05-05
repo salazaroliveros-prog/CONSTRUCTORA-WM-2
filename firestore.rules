@@ -8,15 +8,11 @@ service cloud.firestore {
 
     // --- Helpers ---
     function isSignedIn() {
-      return request.auth != null && request.auth.token.email_verified == true;
+      return request.auth != null;
     }
 
     function isOwner(data) {
       return isSignedIn() && data.ownerId == request.auth.uid;
-    }
-
-    function isValidId(id) {
-      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
     }
 
     function incoming() {
@@ -30,7 +26,7 @@ service cloud.firestore {
     // --- Entity Validations ---
     function isValidProject(data) {
       return data.keys().hasAll(['name', 'typology', 'status', 'ownerId']) &&
-             data.name is string && data.name.size() > 0 && data.name.size() <= 100 &&
+             data.name is string && data.name.size() > 0 &&
              data.ownerId == request.auth.uid;
     }
 
@@ -76,8 +72,8 @@ service cloud.firestore {
     // --- Collection Routes ---
     match /projects/{projectId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(projectId) && isValidProject(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidProject(incoming());
       allow update: if isOwner(existing()) && isValidProject(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());
@@ -85,8 +81,8 @@ service cloud.firestore {
 
     match /inventory/{itemId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(itemId) && isValidInventory(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidInventory(incoming());
       allow update: if isOwner(existing()) && isValidInventory(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());
@@ -94,8 +90,8 @@ service cloud.firestore {
 
     match /clients/{clientId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(clientId) && isValidClient(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidClient(incoming());
       allow update: if isOwner(existing()) && isValidClient(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());
@@ -103,8 +99,8 @@ service cloud.firestore {
 
     match /staff/{staffId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(staffId) && isValidStaff(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidStaff(incoming());
       allow update: if isOwner(existing()) && isValidStaff(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());
@@ -112,8 +108,8 @@ service cloud.firestore {
 
     match /suppliers/{supplierId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(supplierId) && isValidSupplier(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidSupplier(incoming());
       allow update: if isOwner(existing()) && isValidSupplier(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());
@@ -121,8 +117,8 @@ service cloud.firestore {
 
     match /transactions/{transactionId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(transactionId) && isValidTransaction(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidTransaction(incoming());
       allow update: if isOwner(existing()) && isValidTransaction(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());
@@ -130,8 +126,8 @@ service cloud.firestore {
 
     match /logs/{logId} {
       allow get: if isOwner(existing());
-      allow list: if isSignedIn() && resource.data.ownerId == request.auth.uid;
-      allow create: if isSignedIn() && isValidId(logId) && isValidLog(incoming());
+      allow list: if isSignedIn();
+      allow create: if isSignedIn() && isValidLog(incoming());
       allow update: if isOwner(existing()) && isValidLog(incoming()) &&
                     incoming().ownerId == existing().ownerId;
       allow delete: if isOwner(existing());

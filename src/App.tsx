@@ -13,6 +13,7 @@ import { LogIn } from 'lucide-react';
 import { motion } from 'motion/react';
 import Logo from './components/Logo';
 import { Toaster } from 'sonner';
+import { ProjectFilterProvider } from './contexts/ProjectFilterContext';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const CalculatorModule = lazy(() => import('./components/Calculator'));
@@ -24,6 +25,9 @@ const SuppliersModule = lazy(() => import('./components/Suppliers'));
 const StaffModule = lazy(() => import('./components/Staff'));
 const AnalyticsModule = lazy(() => import('./components/Analytics'));
 const SettingsModule = lazy(() => import('./components/Settings'));
+const SeedDataModule = lazy(() => import('./components/SeedData'));
+const SeguimientoModule = lazy(() => import('./components/Seguimiento'));
+const CleanDataModule = lazy(() => import('./components/CleanData'));
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -31,52 +35,66 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6" style={{background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'}}>
-        <div className="flex flex-col items-center gap-8">
-          {/* Ícono constructora animado */}
-          <div className="relative w-20 h-20">
-            <svg viewBox="0 0 80 80" className="w-full h-full">
-              {/* Base edificio */}
-              <motion.rect x="15" y="35" width="30" height="30" fill="#1e293b" stroke="#f59e0b" strokeWidth="1.5"
-                initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: 0.1 }} style={{ transformOrigin: 'bottom' }} />
-              {/* Techo triangular */}
-              <motion.path d="M10 35 L30 10 L50 35 Z" fill="#f59e0b"
-                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }} />
-              {/* Torre derecha */}
-              <motion.rect x="50" y="20" width="18" height="45" fill="#334155" stroke="#f59e0b" strokeWidth="1"
-                initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: 0.3 }} style={{ transformOrigin: 'bottom' }} />
-              {/* Ventanas parpadeantes */}
-              <motion.rect x="20" y="42" width="8" height="6" fill="#f59e0b" fillOpacity="0.3"
-                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0 }} />
-              <motion.rect x="32" y="42" width="8" height="6" fill="#f59e0b" fillOpacity="0.3"
-                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }} />
-              <motion.rect x="53" y="28" width="5" height="4" fill="#f59e0b" fillOpacity="0.3"
-                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.8 }} />
-              <motion.rect x="61" y="28" width="5" height="4" fill="#f59e0b" fillOpacity="0.3"
-                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 1.2 }} />
-              {/* Grúa */}
-              <motion.line x1="58" y1="20" x2="58" y2="5" stroke="#64748b" strokeWidth="1.5"
-                initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.3, delay: 0.7 }} style={{ transformOrigin: 'bottom' }} />
-              <motion.line x1="58" y1="5" x2="75" y2="5" stroke="#64748b" strokeWidth="1.5"
-                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.3, delay: 1 }} style={{ transformOrigin: 'left' }} />
-              <motion.line x1="72" y1="5" x2="72" y2="12" stroke="#f59e0b" strokeWidth="1"
-                animate={{ y: [0, 4, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 1.2 }} />
-            </svg>
-          </div>
+      <div className="min-h-screen flex flex-col items-center justify-center" style={{ background: 'radial-gradient(ellipse at center, #0f2040 0%, #0a0f1e 60%, #000 100%)' }}>
+        <style>{`
+          @keyframes orbit1 { from { transform: rotateZ(0deg) rotateX(65deg) rotateZ(0deg); } to { transform: rotateZ(360deg) rotateX(65deg) rotateZ(-360deg); } }
+          @keyframes orbit2 { from { transform: rotateZ(0deg) rotateX(65deg) rotateY(60deg) rotateZ(0deg); } to { transform: rotateZ(360deg) rotateX(65deg) rotateY(60deg) rotateZ(-360deg); } }
+          @keyframes orbit3 { from { transform: rotateZ(0deg) rotateX(65deg) rotateY(120deg) rotateZ(0deg); } to { transform: rotateZ(360deg) rotateX(65deg) rotateY(120deg) rotateZ(-360deg); } }
+          @keyframes nucleus { 0%,100% { transform: scale(1); box-shadow: 0 0 20px 6px #f59e0b, 0 0 60px 20px rgba(245,158,11,0.3); } 50% { transform: scale(1.18); box-shadow: 0 0 40px 12px #f59e0b, 0 0 100px 40px rgba(245,158,11,0.5); } }
+          @keyframes sparkle { 0%,100% { opacity: 0; transform: scale(0); } 50% { opacity: 1; transform: scale(1); } }
+          @keyframes scanline { from { transform: translateY(-100%); } to { transform: translateY(100vh); } }
+          .orbit-ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(245,158,11,0.5); }
+          .orbit-ring::after { content: ''; position: absolute; top: -5px; left: 50%; width: 10px; height: 10px; background: #f59e0b; border-radius: 50%; box-shadow: 0 0 12px 4px #f59e0b, 0 0 24px 8px rgba(245,158,11,0.6); transform: translateX(-50%); }
+          .ring1 { animation: orbit1 2.4s linear infinite; }
+          .ring2 { animation: orbit2 3.2s linear infinite; }
+          .ring3 { animation: orbit3 1.8s linear infinite; }
+        `}</style>
 
-          {/* Barra de progreso */}
-          <div className="w-48 space-y-2">
-            <div className="h-0.5 bg-slate-800 rounded-full overflow-hidden">
-              <motion.div
-                initial={{ width: '0%' }}
-                animate={{ width: '100%' }}
-                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
-                className="h-full bg-amber-500 rounded-full"
-              />
-            </div>
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] text-center">Iniciando sistema...</p>
-          </div>
+        {/* Scanline effect */}
+        <div style={{ position: 'fixed', inset: 0, overflow: 'hidden', pointerEvents: 'none', zIndex: 0 }}>
+          <div style={{ position: 'absolute', width: '100%', height: '2px', background: 'linear-gradient(90deg, transparent, rgba(245,158,11,0.15), transparent)', animation: 'scanline 4s linear infinite' }} />
         </div>
+
+        {/* Atom */}
+        <div style={{ position: 'relative', width: 200, height: 200, zIndex: 1 }}>
+          {/* Nucleus */}
+          <div style={{ position: 'absolute', top: '50%', left: '50%', width: 28, height: 28, borderRadius: '50%', background: 'radial-gradient(circle, #fbbf24, #f59e0b)', transform: 'translate(-50%,-50%)', animation: 'nucleus 1.6s ease-in-out infinite', zIndex: 10 }} />
+
+          {/* Orbit rings */}
+          <div className="orbit-ring ring1" />
+          <div className="orbit-ring ring2" />
+          <div className="orbit-ring ring3" />
+
+          {/* Sparkles */}
+          {[
+            { top: '8%',  left: '20%', delay: '0s',    size: 6 },
+            { top: '15%', left: '75%', delay: '0.4s',  size: 4 },
+            { top: '70%', left: '10%', delay: '0.8s',  size: 5 },
+            { top: '80%', left: '80%', delay: '1.2s',  size: 4 },
+            { top: '45%', left: '92%', delay: '0.6s',  size: 6 },
+            { top: '50%', left: '2%',  delay: '1.0s',  size: 5 },
+            { top: '30%', left: '50%', delay: '1.4s',  size: 3 },
+            { top: '88%', left: '45%', delay: '0.2s',  size: 4 },
+          ].map((s, i) => (
+            <div key={i} style={{ position: 'absolute', top: s.top, left: s.left, width: s.size, height: s.size, borderRadius: '50%', background: '#f59e0b', boxShadow: `0 0 ${s.size * 3}px ${s.size}px rgba(245,158,11,0.8)`, animation: `sparkle 1.8s ease-in-out infinite`, animationDelay: s.delay }} />
+          ))}
+        </div>
+
+        {/* Text */}
+        <motion.div className="flex flex-col items-center gap-3 mt-6" style={{ zIndex: 1 }}
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.6 }}>
+          <p className="text-[11px] font-black uppercase tracking-[0.4em] text-amber-400">Iniciando Sistema</p>
+          {/* Dot loader */}
+          <div className="flex gap-2">
+            {[0, 1, 2, 3].map(i => (
+              <motion.div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: '#f59e0b' }}
+                animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.3, 0.8] }}
+                transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.2, ease: 'easeInOut' }}
+              />
+            ))}
+          </div>
+          <p className="text-[8px] font-bold text-slate-600 uppercase tracking-[0.3em]">ERP CONSTRUCTORA · WM</p>
+        </motion.div>
       </div>
     );
   }
@@ -130,7 +148,7 @@ function AppContent() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard setActiveTab={setActiveTab} />;
       case 'calculator':
         return <CalculatorModule />;
       case 'execution':
@@ -149,8 +167,14 @@ function AppContent() {
         return <AnalyticsModule />;
       case 'settings':
         return <SettingsModule />;
+      case 'seed':
+        return <SeedDataModule />;
+      case 'clean':
+        return <CleanDataModule />;
+      case 'seguimiento':
+        return <SeguimientoModule />;
       default:
-        return <Dashboard />;
+        return <Dashboard setActiveTab={setActiveTab} />;
     }
   };
 
@@ -179,9 +203,10 @@ function AppContent() {
       }>
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 10, scale: 0.99 }}
+          initial={{ opacity: 0, y: 14, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.3, ease: 'easeOut' }}
+          exit={{ opacity: 0, y: -8, scale: 0.99 }}
+          transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
           className="h-full"
         >
           {renderContent()}
@@ -196,10 +221,13 @@ export default function App() {
     <AuthProvider>
       <SettingsProvider>
         <ThemeProvider>
-          <Toaster position="top-right" richColors />
-          <AppContent />
+          <ProjectFilterProvider>
+            <Toaster position="top-right" richColors />
+            <AppContent />
+          </ProjectFilterProvider>
         </ThemeProvider>
       </SettingsProvider>
     </AuthProvider>
   );
 }
+

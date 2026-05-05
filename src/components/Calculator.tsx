@@ -52,7 +52,9 @@ export default function CalculatorModule() {
     directCosts: 0,
     indirectCosts: 15, // Percentage
     administrativeCosts: 5,
-    personalCosts: 10
+    personalCosts: 10,
+    progress: 0,
+    budget: 0
   });
 
   const [expandedItem, setExpandedItem] = useState<string | null>(null);

@@ -27,6 +27,7 @@ import {
   CheckCircle2, 
   ArrowUpRight, 
   Filter,
+  TrendingUp,
   PieChart as PieIcon
 } from 'lucide-react';
 import { motion } from 'motion/react';
@@ -102,6 +103,7 @@ export default function ExecutionModule() {
     performance: projects.length > 0 ? (projects.filter(p => p.status === 'FINALIZADO').length / projects.length * 100).toFixed(0) : "0",
     criticalStock: inventory.filter(item => (item.stock || 0) <= (item.minStock || 0)).length,
     progress: projects.length > 0 ? (projects.filter(p => p.status === 'EJECUCION' || p.status === 'FINALIZADO').length / projects.length * 100).toFixed(0) : "0",
+    totalBudget: projects.filter(p => p.status === 'EJECUCION').reduce((a, p) => a + (p.budget || 0), 0),
   };
 
   if (loading) {
@@ -114,31 +116,35 @@ export default function ExecutionModule() {
 
   return (
     <div id="execution-control" className="space-y-8 pb-10">
-      <div id="execution-header-stats" className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-        <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-left">
-           <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4">
-              <div className="p-1.5 md:p-2 bg-accent/10 text-accent rounded-lg"><ClipboardList size={16} /></div>
-              <h4 className="text-[9px] md:text-xs font-black uppercase tracking-widest text-gray-500">Eficiencia</h4>
-           </div>
-           <h2 className="text-xl md:text-3xl font-black">{stats.performance}%</h2>
-           <p className="text-[8px] md:text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Tasa de Cierre</p>
-        </div>
-        <div className="bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-left">
-           <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4">
-              <div className="p-1.5 md:p-2 bg-secondary/10 text-secondary rounded-lg"><Package size={16} /></div>
-              <h4 className="text-[9px] md:text-xs font-black uppercase tracking-widest text-gray-500">Alertas</h4>
-           </div>
-           <h2 className="text-xl md:text-3xl font-black">{stats.criticalStock}</h2>
-           <p className="text-[8px] md:text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Stock Crítico</p>
-        </div>
-        <div className="col-span-2 md:col-span-1 bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm text-left">
-           <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4">
-              <div className="p-1.5 md:p-2 bg-green-500/10 text-green-500 rounded-lg"><CheckCircle2 size={16} /></div>
-              <h4 className="text-[9px] md:text-xs font-black uppercase tracking-widest text-gray-500">Actividad</h4>
-           </div>
-           <h2 className="text-xl md:text-3xl font-black">{stats.progress}%</h2>
-           <p className="text-[8px] md:text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Proyectos Iniciados</p>
-        </div>
+      <div id="execution-header-stats" className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Eficiencia', value: `${stats.performance}%`, sub: 'Tasa de Cierre', icon: <ClipboardList size={18} />, color: 'bg-blue-500', pulse: false },
+          { label: 'Stock Crítico', value: stats.criticalStock, sub: 'Alertas Activas', icon: <Package size={18} />, color: stats.criticalStock > 0 ? 'bg-red-500' : 'bg-emerald-500', pulse: stats.criticalStock > 0 },
+          { label: 'Actividad', value: `${stats.progress}%`, sub: 'Proyectos Iniciados', icon: <CheckCircle2 size={18} />, color: 'bg-green-500', pulse: false },
+          { label: 'Presupuesto Activo', value: `Q. ${stats.totalBudget.toLocaleString('es-GT', { minimumFractionDigits: 0 })}`, sub: 'En Ejecución', icon: <TrendingUp size={18} />, color: 'bg-secondary', pulse: false },
+        ].map((kpi, i) => (
+          <motion.div
+            key={i}
+            initial={{ opacity: 0, y: 16 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: i * 0.08 }}
+            className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm text-left relative overflow-hidden group hover:shadow-md transition-shadow"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <motion.div
+                animate={kpi.pulse ? { scale: [1, 1.15, 1] } : {}}
+                transition={{ duration: 1.2, repeat: Infinity, ease: 'easeInOut' }}
+                className={`p-2 rounded-xl text-white shadow-lg ${kpi.color}`}
+              >
+                {kpi.icon}
+              </motion.div>
+              <h4 className="text-[9px] font-black uppercase tracking-widest text-slate-400">{kpi.label}</h4>
+            </div>
+            <p className="text-xl font-black text-primary">{kpi.value}</p>
+            <p className="text-[8px] text-slate-400 mt-0.5 uppercase font-bold tracking-tight">{kpi.sub}</p>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-current to-transparent opacity-0 group-hover:opacity-20 transition-opacity" />
+          </motion.div>
+        ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -175,9 +181,14 @@ export default function ExecutionModule() {
                          <td className="py-4 px-4 text-right">
                             <div className="flex items-center justify-end gap-3">
                                <div className="w-16 md:w-24 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                                  <div className="h-full bg-secondary" style={{ width: project.status === 'FINALIZADO' ? '100%' : project.status === 'EJECUCION' ? '50%' : '0%' }} />
+                                  <motion.div
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${project.progress || 0}%` }}
+                                    transition={{ duration: 1, ease: 'easeOut' }}
+                                    className="h-full bg-secondary rounded-full"
+                                  />
                                 </div>
-                               <span className="font-black text-[10px]">{project.status === 'FINALIZADO' ? '100%' : project.status === 'EJECUCION' ? '50%' : '0%'}</span>
+                               <span className="font-black text-[10px]">{project.progress || 0}%</span>
                             </div>
                          </td>
                       </tr>

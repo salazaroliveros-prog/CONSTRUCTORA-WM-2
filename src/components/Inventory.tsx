@@ -47,7 +47,7 @@ export default function InventoryModule() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [newItem, setNewItem] = useState({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', unitPrice: 0, location: 'Almacén Central', iconUrl: '' });
+  const [newItem, setNewItem] = useState<{name: string, cat: 'Materiales' | 'Herramientas' | 'EPP', stock: number, minStock: number, unit: string, location: string, iconUrl: string}>({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '' });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingCell, setEditingCell] = useState<{id:string, field:string, value:string} | null>(null);
@@ -88,7 +88,7 @@ export default function InventoryModule() {
           }
         }
       },
-      cancel: { label: "Cancelar" }
+      cancel: { label: "Cancelar", onClick: () => {} }
     });
   };
 
@@ -103,7 +103,7 @@ export default function InventoryModule() {
       }
       await addDocument('inventory', { ...newItem, iconUrl, lastEntry: new Date().toISOString().split('T')[0] });
       setIsCreateModalOpen(false);
-      setNewItem({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', unitPrice: 0, location: 'Almacén Central', iconUrl: '' });
+      setNewItem({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '' });
       setIconFile(null);
       toast.success("Material registrado");
     } catch (e) {
@@ -218,7 +218,7 @@ export default function InventoryModule() {
     }
   };
 
-  const totalValue = items.reduce((acc, item) => acc + ((item.stock || 0) * (item.unitPrice || 0)), 0);
+  const totalValue = items.reduce((acc, item) => acc + (item.stock || 0), 0);
 
   if (loading) {
     return (
@@ -296,7 +296,7 @@ export default function InventoryModule() {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
               <select 
                 value={newItem.cat}
-                onChange={e => setNewItem({...newItem, cat: e.target.value})}
+                onChange={e => setNewItem({...newItem, cat: e.target.value as 'Materiales' | 'Herramientas' | 'EPP'})}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"
               >
                 {categories.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
@@ -333,12 +333,12 @@ export default function InventoryModule() {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Precio Unitario (Q)</label>
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stock Mínimo</label>
               <input 
                 type="number"
                 placeholder="0.00"
-                value={newItem.unitPrice}
-                onChange={e => setNewItem({...newItem, unitPrice: parseFloat(e.target.value)})}
+                value={newItem.minStock}
+                onChange={e => setNewItem({...newItem, minStock: parseFloat(e.target.value)})}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
               />
             </div>
@@ -475,9 +475,12 @@ export default function InventoryModule() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {paginatedItems.map((item) => (
-                <tr 
+              {paginatedItems.map((item, i) => (
+                <motion.tr
                   key={item.id}
+                  initial={{ opacity: 0, x: -8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.25, delay: i * 0.04 }}
                   className={cn(
                     "hover:bg-slate-50/50 transition-all cursor-pointer group",
                     selectedItem === item.id ? "bg-slate-50/80" : ""
@@ -574,7 +577,7 @@ export default function InventoryModule() {
                       </button>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               ))}
               {filteredItems.length === 0 && (
                 <tr>

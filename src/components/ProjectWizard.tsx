@@ -258,7 +258,7 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
 
   const isStep01Valid = project.name.trim().length >= 3 && project.clientName.trim().length >= 3 && !!project.startDate;
 
-  const [validationErrors, setValidationErrors] = useState<{name?: string, client?: string, date?: string, location?: string}>({});
+  const [validationErrors, setValidationErrors] = useState<{name?: string, client?: string, date?: string, location?: string, endDate?: string}>({});
 
   const validateStep01 = () => {
     const errors: {name?: string, client?: string, date?: string, location?: string, endDate?: string} = {};
@@ -844,7 +844,7 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
                         <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                            {field.icon} {field.label}
                         </label>
-                        <span className="text-[10px] font-black text-primary">{project[field.key as keyof Project]}%</span>
+                        <span className="text-[10px] font-black text-primary">{String(project[field.key as keyof Pick<Project, "administrativeCosts" | "indirectCosts" | "personalCosts" | "progress" | "budget">] || 0)}%</span>
                       </div>
                       <input 
                         type="range"

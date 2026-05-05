@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -28,7 +28,8 @@ import {
   Settings2,
   Calendar,
   Hammer,
-  Box
+  Box,
+  Layers
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
@@ -40,13 +41,29 @@ import { twMerge } from 'tailwind-merge';
 import { subscribeToCollection, deleteDocument, updateDocument, parseError } from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
+import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import { toast } from 'sonner';
-import { generatePDF, generateCSV, ExportStyle } from '../lib/exportUtils';
+import { generatePDF, generateCSV, exportToExcel, generateProjectPDF, generateProjectCSV, PDF_TEMPLATES, CSV_TEMPLATES, ExportStyle } from '../lib/exportUtils';
 import Pagination from './ui/Pagination';
 import { Users, MapPin, CalendarDays } from 'lucide-react';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+function CustomTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-[120px]">
+      {label && <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>}
+      {payload.map((entry: any, i: number) => (
+        <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
+          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+          <span className="text-[10px] font-black text-white">Q{Number(entry.value).toLocaleString()}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function ProjectsModule() {
@@ -62,6 +79,13 @@ export default function ProjectsModule() {
   const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [isEditing, setIsEditing] = useState(false);
+  const [exportPdfTemplate, setExportPdfTemplate] = useState('modern');
+  const [exportCsvTemplate, setExportCsvTemplate] = useState('completo');
+
+  // Auto page size based on view mode
+  const cardPageSize = useAutoPageSize(180, 300, 4);
+  const tablePageSize = useAutoPageSize(44, 260, 6);
+  const pageSize = viewMode === 'table' ? tablePageSize : cardPageSize;
   const [editForm, setEditForm] = useState<Partial<Project>>({});
 
   useEffect(() => {
@@ -88,19 +112,18 @@ export default function ProjectsModule() {
     goToPage,
     startIndex,
     totalItems
-  } = usePagination<Project>(filteredProjects, 8);
+  } = usePagination<Project>(filteredProjects, pageSize);
 
-  const handleSaveEdit = async () => {
+  const handleSaveEdit = () => {
     if (!selectedProject || !Object.keys(editForm).length) return;
-    try {
-      await updateDocument('projects', selectedProject.id, editForm);
-      setSelectedProject(prev => prev ? { ...prev, ...editForm } : null);
-      setIsEditing(false);
-      setEditForm({});
-      toast.success('Proyecto actualizado', { description: 'Cambios guardados' });
-    } catch (error) {
-      toast.error('Error al guardar', { description: parseError(error) });
-    }
+    toast('¿Guardar cambios del proyecto?', {
+      description: selectedProject.name,
+      action: { label: 'Guardar', onClick: async () => {
+        try { await updateDocument('projects', selectedProject.id, editForm); setSelectedProject(prev => prev ? { ...prev, ...editForm } : null); setIsEditing(false); setEditForm({}); toast.success('Proyecto actualizado', { description: 'Cambios guardados' }); }
+        catch (error) { toast.error('Error al guardar', { description: parseError(error) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
   };
 
   const handleUpdateProject = async (updates: Partial<Project>) => {
@@ -153,7 +176,7 @@ export default function ProjectsModule() {
           }
         }
       },
-      cancel: { label: "Cancelar" }
+      cancel: { label: "Cancelar", onClick: () => {} }
     });
   };
 
@@ -217,7 +240,7 @@ export default function ProjectsModule() {
             <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Progreso</span>
             <div className="flex items-center gap-1">
               {project.status === 'EJECUCION' && (new Date().getTime() - new Date(project.startDate).getTime()) / (new Date(project.endDate || project.startDate).getTime() - new Date(project.startDate).getTime() || 1) > 0.1 && (project.progress || 0) < 10 && (
-                 <AlertCircle size={10} className="text-red-500 animate-pulse" title="Progreso atrasado respecto al tiempo transcurrido" />
+                 <span title="Progreso atrasado respecto al tiempo transcurrido"><AlertCircle size={10} className="text-red-500 animate-pulse" /></span>
               )}
               <span className="text-[9px] font-black text-primary">{project.progress || 0}%</span>
               <div className="w-1 h-1 rounded-full bg-secondary animate-pulse" />
@@ -417,9 +440,12 @@ export default function ProjectsModule() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
-                {paginatedProjects.map((project) => (
-                  <tr 
-                    key={project.id} 
+                {paginatedProjects.map((project, i) => (
+                  <motion.tr
+                    key={project.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: i * 0.05 }}
                     onClick={() => setSelectedProject(project)}
                     className="group hover:bg-slate-50/10 transition-colors cursor-pointer"
                   >
@@ -475,15 +501,22 @@ export default function ProjectsModule() {
                         </button>
                       </div>
                     </td>
-                  </tr>
+                  </motion.tr>
                 ))}
               </tbody>
             </table>
           </div>
         ) : (
           <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {paginatedProjects.map((project) => (
-              <ProjectCard key={project.id} project={project} />
+            {paginatedProjects.map((project, i) => (
+              <motion.div
+                key={project.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: i * 0.06, ease: 'easeOut' }}
+              >
+                <ProjectCard project={project} />
+              </motion.div>
             ))}
         {viewMode === 'kanban' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
@@ -498,8 +531,15 @@ export default function ProjectsModule() {
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">{col.label}</span>
                   <span className="ml-auto text-[8px] font-black bg-white rounded-full px-2 py-0.5 text-slate-500">{filteredProjects.filter(p => p.status === col.id).length}</span>
                 </div>
-                {filteredProjects.filter(p => p.status === col.id).map(p => (
-                  <div key={p.id} onClick={() => setSelectedProject(p)} className="bg-white rounded-xl p-3 shadow-sm border border-white hover:border-secondary cursor-pointer transition-all space-y-2">
+                {filteredProjects.filter(p => p.status === col.id).map((p, ki) => (
+                  <motion.div
+                    key={p.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2, delay: ki * 0.07 }}
+                    onClick={() => setSelectedProject(p)}
+                    className="bg-white rounded-xl p-3 shadow-sm border border-white hover:border-secondary cursor-pointer transition-all space-y-2"
+                  >
                     <p className="text-[10px] font-black text-primary uppercase leading-tight">{p.name}</p>
                     <p className="text-[8px] text-slate-400 font-bold uppercase">{p.clientName}</p>
                     <div className="flex items-center justify-between">
@@ -508,7 +548,7 @@ export default function ProjectsModule() {
                         <div className="h-full bg-slate-900 rounded-full" style={{ width: `${p.progress || 0}%` }} />
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
                 {filteredProjects.filter(p => p.status === col.id).length === 0 && (
                   <div className="text-center py-6 text-[8px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos</div>
@@ -529,7 +569,7 @@ export default function ProjectsModule() {
             onPage={goToPage}
             totalItems={totalItems}
             startIndex={startIndex}
-            itemsPerPage={8}
+            itemsPerPage={pageSize}
             compact={true}
           />
         </div>
@@ -568,26 +608,39 @@ export default function ProjectsModule() {
                   <Settings2 size={14} /> Editar
                 </button>
               )}
-              <div className="relative group self-start">
-                <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-secondary text-slate-600 hover:text-white rounded-lg text-xs font-bold uppercase transition-all">
-                  <Download size={14} /> Exportar
-                </button>
-                <div className="absolute right-0 top-full mt-1 bg-white border border-slate-200 rounded-lg shadow-xl w-40 hidden group-hover:block z-50 overflow-hidden">
-                   <button onClick={() => generatePDF({
-                     title: 'Resumen Renglones',
-                     projectName: selectedProject.name || '',
-                     clientName: selectedProject.clientName || '',
-                     headers: ['Descripción', 'Unidad', 'Cantidad', 'Costo'],
-                     rows: (selectedProject.items || []).map(i => [i.description, i.unit, i.projectQuantity, i.priceTotal.toFixed(2)])
-                   }, 'Modern')} className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-slate-50 border-b border-slate-100">PDF Renglones</button>
-                   <button onClick={() => generateCSV({
-                     title: 'Resumen Renglones',
-                     projectName: selectedProject.name || '',
-                     clientName: selectedProject.clientName || '',
-                     headers: ['Descripción', 'Unidad', 'Cantidad', 'Costo'],
-                     rows: (selectedProject.items || []).map(i => [i.description, i.unit, i.projectQuantity, i.priceTotal.toFixed(2)])
-                   })} className="w-full text-left px-4 py-2 text-xs font-bold hover:bg-slate-50">CSV Renglones</button>
+              <div className="flex flex-wrap gap-2 self-start items-end">
+                <div className="flex flex-col gap-1">
+                  <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>
+                  <select
+                    value={exportPdfTemplate}
+                    onChange={e => setExportPdfTemplate(e.target.value)}
+                    className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                  </select>
                 </div>
+                <button
+                  onClick={() => generateProjectPDF(selectedProject, exportPdfTemplate)}
+                  className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all"
+                >
+                  <Download size={12} /> PDF
+                </button>
+                <div className="flex flex-col gap-1">
+                  <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla CSV</span>
+                  <select
+                    value={exportCsvTemplate}
+                    onChange={e => setExportCsvTemplate(e.target.value)}
+                    className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer"
+                  >
+                    {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                  </select>
+                </div>
+                <button
+                  onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)}
+                  className="h-8 flex items-center gap-1.5 px-3 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase hover:bg-slate-700 transition-all"
+                >
+                  <Download size={12} /> CSV
+                </button>
               </div>
             </div>
 
@@ -661,7 +714,7 @@ export default function ProjectsModule() {
                       ]}>
                         <XAxis dataKey="name" fontSize={10} />
                         <YAxis fontSize={10} />
-                        <Tooltip contentStyle={{ fontSize: 10 }} />
+                        <Tooltip content={<CustomTooltip />} />
                         <Bar dataKey="value" fill="#F15A24">
                           <Cell fill="#F15A24" />
                           <Cell fill="#1A1A1A" />
@@ -891,3 +944,5 @@ export default function ProjectsModule() {
     </div>
   );
 }
+
+
