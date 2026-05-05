@@ -115,7 +115,7 @@ export default function AnalyticsModule() {
         <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm text-left">
            <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-6">Composición de Portafolio</h4>
            <div className="h-[300px] w-full relative">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                 <PieChart>
                   <Pie
                     data={pieData}

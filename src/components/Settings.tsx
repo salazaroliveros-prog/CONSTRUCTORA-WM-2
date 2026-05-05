@@ -15,6 +15,7 @@ import { motion } from 'motion/react';
 import { useSettings, ThemeMode, GraphType, CardStyle, TransitionSpeed, TypographyStyle } from '../contexts/SettingsContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import FirestoreTest from './FirestoreTest';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -247,6 +248,11 @@ export default function Settings() {
           <div className="h-4 w-[1px] bg-slate-200 mx-2" />
           <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Build 1.0.4 - Pro Edition</span>
         </div>
+      </div>
+
+      {/* Diagnóstico Firestore */}
+      <div className="pt-8 border-t border-slate-100">
+        <FirestoreTest />
       </div>
     </div>
   );

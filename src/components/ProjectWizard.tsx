@@ -290,13 +290,28 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
     setLoading(true);
     try {
       const { id, ...projectData } = project;
-      const dataToSave = {
+
+      // Firestore rechaza undefined en cualquier nivel — reemplazar con null o eliminar
+      const sanitize = (obj: any): any => {
+        if (Array.isArray(obj)) return obj.map(sanitize);
+        if (obj !== null && typeof obj === 'object') {
+          return Object.fromEntries(
+            Object.entries(obj)
+              .filter(([, v]) => v !== undefined)
+              .map(([k, v]) => [k, sanitize(v)])
+          );
+        }
+        return obj;
+      };
+
+      const dataToSave = sanitize({
         ...projectData,
         budget: totalBudget,
         executed: 0,
         progress: 0,
         directCosts: totalDirect,
-      };
+      });
+
       await addDocument('projects', dataToSave);
       toast.success("Proyecto creado exitosamente");
       onComplete();

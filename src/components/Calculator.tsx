@@ -182,13 +182,13 @@ export default function CalculatorModule() {
     }
     setSaving(true);
     try {
+      const { id, ...projectData } = currentProject;
       const dataToSave = {
-        ...currentProject,
+        ...projectData,
         budget: totalBudget,
         executed: 0,
         progress: 0,
         directCosts: totalDirect,
-        id: undefined
       };
       await addDocument('projects', dataToSave);
       toast.success('Cotización guardada como proyecto');

@@ -27,6 +27,7 @@ import { twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
 import { subscribeToCollection, addDocument, getDocumentsForCollection, deleteDocument, parseError } from '../services/firestoreService';
 import { useSettings } from '../contexts/SettingsContext';
+import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
 import { 
   BarChart, 
@@ -47,6 +48,15 @@ import {
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
+}
+
+function AnimatedKpi({ value }: { value: string | number }) {
+  const num = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^0-9.-]/g, ''));
+  const prefix = typeof value === 'string' ? value.match(/^[^0-9-]*/)?.[0] || '' : '';
+  const suffix = typeof value === 'string' ? value.match(/[^0-9.]+$/)?.[0] || '' : '';
+  const animated = useCountUp(isNaN(num) ? 0 : num, 900);
+  if (isNaN(num)) return <span>{value}</span>;
+  return <span>{prefix}{Number.isInteger(num) ? animated : animated.toFixed(1)}{suffix}</span>;
 }
 
 export default function Dashboard() {
@@ -348,7 +358,7 @@ export default function Dashboard() {
               </div>
               <div className="min-w-0">
                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1 truncate">{kpi.label}</p>
-                <p className="text-base font-black text-primary leading-none truncate">{kpi.value}</p>
+                <p className="text-base font-black text-primary leading-none truncate"><AnimatedKpi value={kpi.value} /></p>
               </div>
             </div>
           ))}
@@ -367,7 +377,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                   {settings.graphType === 'bar' ? (
                     <BarChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -408,7 +418,7 @@ export default function Dashboard() {
                 </div>
               </div>
               <div className="h-[200px] w-full flex items-center">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                   <PieChart>
                     <Pie
                       data={expenseByCategory.length > 0 ? expenseByCategory : [{ name: 'Sin Datos', value: 1 }]}

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -60,6 +60,8 @@ export default function ProjectsModule() {
   const [updatingProgress, setUpdatingProgress] = useState(false);
   const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editForm, setEditForm] = useState<Partial<Project>>({});
 
   useEffect(() => {
     const unsub = subscribeToCollection('staff', (data) => {
@@ -86,6 +88,19 @@ export default function ProjectsModule() {
     startIndex,
     totalItems
   } = usePagination<Project>(filteredProjects, 8);
+
+  const handleSaveEdit = async () => {
+    if (!selectedProject || !Object.keys(editForm).length) return;
+    try {
+      await updateDocument('projects', selectedProject.id, editForm);
+      setSelectedProject(prev => prev ? { ...prev, ...editForm } : null);
+      setIsEditing(false);
+      setEditForm({});
+      toast.success('Proyecto actualizado', { description: 'Cambios guardados' });
+    } catch (error) {
+      toast.error('Error al guardar', { description: parseError(error) });
+    }
+  };
 
   const handleUpdateProject = async (updates: Partial<Project>) => {
     if (!selectedProject) return;
@@ -503,6 +518,16 @@ export default function ProjectsModule() {
                 <h2 className="text-2xl font-black text-primary uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
                 <p className="text-[10px] font-black text-secondary tracking-[0.2em] uppercase">ID: {selectedProject.id?.toUpperCase()}</p>
               </div>
+              {isEditing ? (
+                <div className="flex gap-2 self-start">
+                  <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase">Cancelar</button>
+                  <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase">Guardar</button>
+                </div>
+              ) : (
+                <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase self-start">
+                  <Settings2 size={14} /> Editar
+                </button>
+              )}
               <div className="relative group self-start">
                 <button className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-secondary text-slate-600 hover:text-white rounded-lg text-xs font-bold uppercase transition-all">
                   <Download size={14} /> Exportar
@@ -527,6 +552,19 @@ export default function ProjectsModule() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {isEditing && (
+                <div className="col-span-2 md:col-span-4 bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
+                  <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">Modo Edicion</p>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Cliente</label><input value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Estado</label><select value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Fecha Fin</label><input type="date" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                  </div>
+                </div>
+              )}
               <div className="p-4 bg-slate-50 rounded-2xl">
                 <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Cliente</p>
                 <p className="text-xs font-black text-primary uppercase">{selectedProject.clientName}</p>

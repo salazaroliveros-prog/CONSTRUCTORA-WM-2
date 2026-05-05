@@ -96,12 +96,23 @@ export const subscribeToCollection = (
   });
 };
 
+const sanitize = (obj: any): any => {
+  if (Array.isArray(obj)) return obj.map(sanitize);
+  if (obj !== null && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => [k, sanitize(v)])
+    );
+  }
+  return obj;
+};
+
 export const addDocument = async (collectionName: string, data: any) => {
   if (!auth.currentUser) throw new Error('Not authenticated');
-  
   try {
     const docRef = await addDoc(collection(db, collectionName), {
-      ...data,
+      ...sanitize(data),
       ownerId: auth.currentUser.uid,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp()
@@ -116,7 +127,7 @@ export const updateDocument = async (collectionName: string, id: string, data: a
   try {
     const docRef = doc(db, collectionName, id);
     await updateDoc(docRef, {
-      ...data,
+      ...sanitize(data),
       updatedAt: serverTimestamp()
     });
   } catch (error) {
