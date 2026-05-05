@@ -301,15 +301,16 @@ export default function Settings() {
           <div className="bg-white p-6 rounded-3xl border border-slate-200">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {ALL_MODULES.filter(m => m !== 'settings').map(mod => {
-                const active = settings.activeModules.includes(mod);
+                const active = (settings.activeModules ?? ALL_MODULES).includes(mod);
                 const labels: Record<string, string> = { dashboard: 'Dashboard', clients: 'Clientes', projects: 'Proyectos', calculator: 'Presupuestos', execution: 'Seguimiento', suppliers: 'Proveedores', inventory: 'Inventario', analytics: 'Analiticas', staff: 'RRHH' };
                 return (
                   <button
                     key={mod}
                     onClick={() => {
+                      const current = settings.activeModules ?? ALL_MODULES;
                       const next = active
-                        ? settings.activeModules.filter(m => m !== mod)
-                        : [...settings.activeModules, mod];
+                        ? current.filter(m => m !== mod)
+                        : [...current, mod];
                       if (next.length > 0) updateSettings({ activeModules: next });
                     }}
                     className={cn(

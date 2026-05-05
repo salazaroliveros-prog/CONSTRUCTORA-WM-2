@@ -34,6 +34,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
+import { ALL_MODULES } from '../contexts/SettingsContext';
 import { useTheme } from '../contexts/ThemeContext';
 import Logo from './Logo';
 import TopBarClock from './TopBarClock';
@@ -208,7 +209,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   ];
 
   const menuItems = allMenuItems.filter(item =>
-    item.id === 'settings' || settings.activeModules.includes(item.id)
+    item.id === 'settings' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
   );
 
   return (
