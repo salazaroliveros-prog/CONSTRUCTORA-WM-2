@@ -590,55 +590,45 @@ export default function ProjectsModule() {
             exit={{ opacity: 0, scale: 0.95 }}
             className="space-y-8 text-left"
           >
-            <div className="flex items-center gap-4 border-b border-slate-100 pb-6">
-              <div className="w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20">
-                <Building2 size={32} />
-              </div>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-2xl font-black text-primary uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
-                <p className="text-[10px] font-black text-secondary tracking-[0.2em] uppercase">ID: {selectedProject.id?.toUpperCase()}</p>
-              </div>
-              {isEditing ? (
-                <div className="flex gap-2 self-start">
-                  <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase">Cancelar</button>
-                  <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase">Guardar</button>
+            <div className="border-b border-slate-100 pb-6 space-y-3">
+              {/* Fila 1: icono + título + botón editar */}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20">
+                  <Building2 size={24} />
                 </div>
-              ) : (
-                <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase self-start">
-                  <Settings2 size={14} /> Editar
-                </button>
-              )}
-              <div className="flex flex-wrap gap-2 self-start items-end">
+                <div className="min-w-0 flex-1">
+                  <h2 className="text-xl font-black text-primary uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
+                  <p className="text-[9px] font-black text-secondary tracking-[0.2em] uppercase truncate">ID: {selectedProject.id?.toUpperCase()}</p>
+                </div>
+                {isEditing ? (
+                  <div className="flex gap-2 shrink-0">
+                    <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase">Cancelar</button>
+                    <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase">Guardar</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase">
+                    <Settings2 size={14} /> Editar
+                  </button>
+                )}
+              </div>
+              {/* Fila 2: controles de exportación */}
+              <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                   <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>
-                  <select
-                    value={exportPdfTemplate}
-                    onChange={e => setExportPdfTemplate(e.target.value)}
-                    className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer"
-                  >
+                  <select value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer">
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
-                <button
-                  onClick={() => generateProjectPDF(selectedProject, exportPdfTemplate)}
-                  className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all"
-                >
+                <button onClick={() => generateProjectPDF(selectedProject, exportPdfTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
                   <Download size={12} /> PDF
                 </button>
                 <div className="flex flex-col gap-1">
                   <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla CSV</span>
-                  <select
-                    value={exportCsvTemplate}
-                    onChange={e => setExportCsvTemplate(e.target.value)}
-                    className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer"
-                  >
+                  <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer">
                     {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
-                <button
-                  onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)}
-                  className="h-8 flex items-center gap-1.5 px-3 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase hover:bg-slate-700 transition-all"
-                >
+                <button onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase hover:bg-slate-700 transition-all">
                   <Download size={12} /> CSV
                 </button>
               </div>
