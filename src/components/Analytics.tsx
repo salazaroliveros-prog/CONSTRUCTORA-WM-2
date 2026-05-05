@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -56,6 +56,20 @@ export default function AnalyticsModule() {
     ejecucion: projects.filter(p => p.status === 'EJECUCION'),
     finalizados: projects.filter(p => p.status === 'FINALIZADO'),
   };
+
+  const rentabilidadData = projects
+    .filter(p => p.budget > 0)
+    .map(p => {
+      const costoReal = (p.directCosts || 0) * (1 + ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100);
+      const utilidad = (p.budget || 0) - costoReal;
+      return {
+        name: (p.name || "").substring(0, 14),
+        Presupuesto: Math.round(p.budget || 0),
+        Costo: Math.round(costoReal),
+        Utilidad: Math.round(utilidad),
+        Margen: p.budget > 0 ? Math.round((utilidad / p.budget) * 100) : 0,
+      };
+    }).slice(0, 8);
 
   const pieData = [
     { name: 'Cotizado', value: stats.cotizados.length, color: '#94a3b8' },
@@ -180,6 +194,43 @@ export default function AnalyticsModule() {
               </div>
            </div>
         </div>
+
+      {/* Grafica de Rentabilidad */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="mb-4">
+          <h3 className="text-sm font-black text-primary uppercase tracking-tight">Rentabilidad por Proyecto</h3>
+          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Presupuesto vs Costo Real vs Utilidad</p>
+        </div>
+        {rentabilidadData.length === 0 ? (
+          <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
+        ) : (
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+              <BarChart data={rentabilidadData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
+                <YAxis fontSize={9} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 10px 15px -3px rgb(0 0 0 / 0.1)", fontSize: 10 }} formatter={(v: any, n: string) => [`Q ${Number(v).toLocaleString()}`, n]} />
+                <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
+                <Bar dataKey="Presupuesto" fill="#94a3b8" radius={[4,4,0,0]} barSize={16} />
+                <Bar dataKey="Costo" fill="#f59e0b" radius={[4,4,0,0]} barSize={16} />
+                <Bar dataKey="Utilidad" fill="#10b981" radius={[4,4,0,0]} barSize={16} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+        {rentabilidadData.length > 0 && (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+            {rentabilidadData.map((p, i) => (
+              <div key={i} className="bg-slate-50 rounded-xl p-3">
+                <p className="text-[8px] font-black text-slate-400 uppercase truncate">{p.name}</p>
+                <p className={`text-sm font-black ${p.Margen >= 0 ? "text-emerald-600" : "text-red-500"}`}>{p.Margen}%</p>
+                <p className="text-[8px] text-slate-400">Margen</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
       </div>
     </div>
   );

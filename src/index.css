@@ -28,6 +28,32 @@
   body {
     @apply bg-bg-app text-slate-900 font-sans antialiased;
   }
+
+  /* Dark mode global — invierte los fondos y textos sin tocar cada componente */
+  .dark body {
+    background-color: #0f172a;
+    color: #f1f5f9;
+  }
+  .dark .bg-white { background-color: #1e293b !important; }
+  .dark .bg-slate-50 { background-color: #1e293b !important; }
+  .dark .bg-\[#F8FAFC\] { background-color: #0f172a !important; }
+  .dark .border-slate-200 { border-color: #334155 !important; }
+  .dark .border-slate-100 { border-color: #1e293b !important; }
+  .dark .text-primary { color: #f1f5f9 !important; }
+  .dark .text-slate-900 { color: #f1f5f9 !important; }
+  .dark .text-slate-600 { color: #94a3b8 !important; }
+  .dark .text-slate-500 { color: #64748b !important; }
+  .dark .text-slate-400 { color: #475569 !important; }
+  .dark .shadow-sm { box-shadow: 0 1px 3px rgba(0,0,0,0.4) !important; }
+  .dark .shadow-md { box-shadow: 0 4px 6px rgba(0,0,0,0.4) !important; }
+  .dark input, .dark select, .dark textarea {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9 !important;
+  }
+  .dark .bg-slate-100 { background-color: #334155 !important; }
+  .dark .hover\:bg-slate-50:hover { background-color: #334155 !important; }
+  .dark .hover\:bg-slate-100:hover { background-color: #334155 !important; }
 }
 
 .glass-card {

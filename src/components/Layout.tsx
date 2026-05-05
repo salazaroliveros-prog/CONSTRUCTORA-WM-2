@@ -152,7 +152,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     setIsMobileMenuOpen(false);
   };
 
-  const menuItems = [
+  const allMenuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { id: 'clients', label: 'Clientes', icon: <Users size={20} /> },
     { id: 'projects', label: 'Proyectos', icon: <Building2 size={20} /> },
@@ -164,6 +164,10 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'staff', label: 'Recursos Humanos', icon: <HardHat size={20} /> },
     { id: 'settings', label: 'Ajustes Visuales', icon: <Settings size={20} /> },
   ];
+
+  const menuItems = allMenuItems.filter(item =>
+    item.id === 'settings' || settings.activeModules.includes(item.id)
+  );
 
   return (
     <div 
@@ -269,7 +273,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           </div>
 
           <div className="hidden md:flex flex-col items-center">
-            <h1 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] leading-tight">CONSTRUCTORA WM/M&S</h1>
+            <h1 className="text-[10px] font-black text-primary uppercase tracking-[0.3em] leading-tight">{settings.companyName}</h1>
             <p className="text-[7px] font-bold text-secondary uppercase tracking-[0.2em]">EDIFICANDO EL FUTURO</p>
           </div>
 

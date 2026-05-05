@@ -12,7 +12,7 @@ import {
   Check
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useSettings, ThemeMode, GraphType, CardStyle, TransitionSpeed, TypographyStyle } from '../contexts/SettingsContext';
+import { useSettings, ThemeMode, GraphType, CardStyle, TransitionSpeed, TypographyStyle, Currency, ALL_MODULES } from '../contexts/SettingsContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import FirestoreTest from './FirestoreTest';
@@ -231,6 +231,99 @@ export default function Settings() {
                   <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-white transition-all shadow-sm", settings.compactMode ? "right-1" : "left-1")} />
                 </button>
              </div>
+          </div>
+        </section>
+      </div>
+
+      {/* Empresa, Moneda y Modulos */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-slate-100">
+
+        {/* Empresa */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Monitor size={18} className="text-secondary" />
+            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Empresa</h3>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-4">
+            <div>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Nombre de la Empresa</label>
+              <input
+                value={settings.companyName}
+                onChange={e => updateSettings({ companyName: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                placeholder="Mi Constructora S.A."
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">URL del Logo</label>
+              <input
+                value={settings.companyLogo}
+                onChange={e => updateSettings({ companyLogo: e.target.value })}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                placeholder="/logo.png"
+              />
+              {settings.companyLogo && <img src={settings.companyLogo} alt="logo" className="mt-2 h-10 object-contain" />}
+            </div>
+          </div>
+        </section>
+
+        {/* Moneda */}
+        <section className="space-y-4">
+          <div className="flex items-center gap-2">
+            <Zap size={18} className="text-secondary" />
+            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Moneda</h3>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200">
+            <div className="grid grid-cols-4 gap-2">
+              {(['Q', '$', '€', '£'] as Currency[]).map(c => (
+                <button
+                  key={c}
+                  onClick={() => updateSettings({ currency: c })}
+                  className={cn(
+                    "py-3 rounded-xl text-sm font-black border transition-all",
+                    settings.currency === c ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-400 border-slate-100"
+                  )}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+            <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-3">Quetzal (Q) · Dólar ($) · Euro (€) · Libra (£)</p>
+          </div>
+        </section>
+
+        {/* Modulos activos */}
+        <section className="md:col-span-2 space-y-4">
+          <div className="flex items-center gap-2">
+            <Layers size={18} className="text-secondary" />
+            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Modulos Activos</h3>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+              {ALL_MODULES.filter(m => m !== 'settings').map(mod => {
+                const active = settings.activeModules.includes(mod);
+                const labels: Record<string, string> = { dashboard: 'Dashboard', clients: 'Clientes', projects: 'Proyectos', calculator: 'Presupuestos', execution: 'Seguimiento', suppliers: 'Proveedores', inventory: 'Inventario', analytics: 'Analiticas', staff: 'RRHH' };
+                return (
+                  <button
+                    key={mod}
+                    onClick={() => {
+                      const next = active
+                        ? settings.activeModules.filter(m => m !== mod)
+                        : [...settings.activeModules, mod];
+                      if (next.length > 0) updateSettings({ activeModules: next });
+                    }}
+                    className={cn(
+                      "py-2.5 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all flex items-center justify-between gap-2",
+                      active ? "bg-slate-900 text-white border-slate-900" : "bg-slate-50 text-slate-400 border-slate-100"
+                    )}
+                  >
+                    {labels[mod] || mod}
+                    <div className={cn("w-2 h-2 rounded-full", active ? "bg-secondary" : "bg-slate-300")} />
+                  </button>
+                );
+              })}
+            </div>
+            <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-3">Settings siempre permanece activo</p>
           </div>
         </section>
       </div>

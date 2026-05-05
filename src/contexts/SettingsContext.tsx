@@ -5,6 +5,7 @@ export type GraphType = 'bar' | 'line' | 'area';
 export type CardStyle = 'flat' | 'elevated' | 'glass' | 'bordered';
 export type TransitionSpeed = 'none' | 'fast' | 'normal' | 'slow';
 export type TypographyStyle = 'inter' | 'space' | 'mono';
+export type Currency = 'Q' | '$' | '€' | '£';
 
 interface AppSettings {
   primaryColor: string;
@@ -16,17 +17,17 @@ interface AppSettings {
   typography: TypographyStyle;
   showGrid: boolean;
   compactMode: boolean;
+  companyName: string;
+  companyLogo: string;
+  currency: Currency;
+  activeModules: string[];
 }
 
-interface SettingsContextType {
-  settings: AppSettings;
-  updateSettings: (newSettings: Partial<AppSettings>) => void;
-  resetSettings: () => void;
-}
+const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','suppliers','inventory','analytics','staff','settings'];
 
 const defaultSettings: AppSettings = {
-  primaryColor: '#0F172A', // Slate 900
-  secondaryColor: '#FBBF24', // Amber 400
+  primaryColor: '#0F172A',
+  secondaryColor: '#FBBF24',
   themeMode: 'modern',
   graphType: 'bar',
   cardStyle: 'elevated',
@@ -34,7 +35,19 @@ const defaultSettings: AppSettings = {
   typography: 'inter',
   showGrid: true,
   compactMode: false,
+  companyName: 'WM/M&S Constructora',
+  companyLogo: '/logo.png',
+  currency: 'Q',
+  activeModules: ALL_MODULES,
 };
+
+export { ALL_MODULES };
+
+interface SettingsContextType {
+  settings: AppSettings;
+  updateSettings: (newSettings: Partial<AppSettings>) => void;
+  resetSettings: () => void;
+}
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
