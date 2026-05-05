@@ -116,7 +116,7 @@ function AppContent() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
+      <div className="min-h-screen dark flex items-center justify-center p-6" style={{background:'radial-gradient(ellipse 60% 55% at 50% -5%, rgba(200,160,60,0.55) 0%, rgba(120,90,20,0.25) 40%, transparent 70%), linear-gradient(to bottom, #0a0c14 55%, #0d1a3a 75%, #0a2060 88%, #0d2878 100%)'}}>
         <div className="max-w-md w-full bg-white rounded-3xl p-10 shadow-2xl flex flex-col items-center text-center space-y-10 animate-in fade-in zoom-in duration-500">
           <Logo />
           <div>

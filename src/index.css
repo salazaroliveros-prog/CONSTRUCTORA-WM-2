@@ -161,7 +161,7 @@
   .dark td             { color: #e2e8f0 !important; border-color: var(--border-light) !important; }
 
   /* ── Dark: keep intentionally dark cards — aclarar sobre fondo negro ── */
-  .dark .bg-slate-900  { background-color: rgba(20,32,56,0.90) !important; }
+  .dark .bg-slate-900:not(#app-root)  { background-color: rgba(20,32,56,0.90) !important; }
 
   /* ── Dark: text on dark surfaces ─────────────────────────── */
   .dark .bg-slate-900 .text-slate-400 { color: #94a3b8 !important; }

@@ -151,7 +151,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       id="app-root"
       className={cn(
         "flex flex-col h-screen text-primary overflow-hidden fixed inset-0",
-        theme === 'dark' ? 'bg-slate-900' : 'bg-[#F8FAFC]',
         settings.typography === 'inter' && 'font-inter',
         settings.typography === 'space' && 'font-space',
         settings.typography === 'mono' && 'font-mono'
@@ -365,7 +364,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-3 scroll-smooth bg-[#F8FAFC] dark:bg-slate-900 min-h-0">
+      <main className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-3 scroll-smooth bg-transparent min-h-0">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>
