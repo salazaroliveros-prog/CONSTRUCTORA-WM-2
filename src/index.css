@@ -407,18 +407,24 @@ button:active:not(:disabled), [role="button"]:active { transform: scale(0.97); }
 .gantt-row { @apply relative h-8 bg-gray-50 flex items-center mb-1 rounded overflow-hidden; }
 .gantt-bar { @apply absolute h-6 rounded-sm bg-accent shadow-sm flex items-center px-2 text-[10px] text-white font-medium; }
 
-/* ── App background image ────────────────────────────────── */
+/* ── App background — CSS puro, sin archivos externos ────── */
 #app-root {
-  background-image: url('/bg-light.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  /* Imita la imagen gris con textura de puntos diagonales */
+  background-color: #d8dce2;
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      rgba(255,255,255,0.18) 0px, rgba(255,255,255,0.18) 1px,
+      transparent 1px, transparent 6px
+    ),
+    linear-gradient(135deg, #c8cdd6 0%, #e8eaed 35%, #f0f0f0 50%, #e2e4e8 65%, #c5c9d2 100%);
 }
 .dark #app-root {
-  background-image: url('/bg-dark.jpg');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  /* Imita la imagen negra con spotlight dorado arriba y franja azul abajo */
+  background-color: #050810;
+  background-image:
+    radial-gradient(ellipse 60% 55% at 50% -5%, rgba(200,160,60,0.55) 0%, rgba(120,90,20,0.25) 40%, transparent 70%),
+    linear-gradient(to bottom, #0a0c14 55%, #0d1a3a 75%, #0a2060 88%, #0d2878 100%);
 }
 
 

@@ -14,7 +14,7 @@ export default function Logo({ className = "h-8 w-auto" }: LogoProps) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="relative w-10 h-10 shrink-0">
-        <img src="/logo.png" alt="Logo" className="w-full h-full object-contain rounded-xl" />
+        <img src="/logo.webp" alt="Logo" className="w-full h-full object-contain rounded-xl" />
       </div>
       <div className="flex flex-col leading-none">
         <span className="text-sm font-black tracking-tighter text-primary">CONSTRUCTORA</span>

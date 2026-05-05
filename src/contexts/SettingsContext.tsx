@@ -36,7 +36,7 @@ const defaultSettings: AppSettings = {
   showGrid: true,
   compactMode: false,
   companyName: 'WM/M&S Constructora',
-  companyLogo: '/logo.png',
+  companyLogo: '/logo.webp',
   currency: 'Q',
   activeModules: ALL_MODULES,
 };
