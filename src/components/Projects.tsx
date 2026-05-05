@@ -51,6 +51,7 @@ function cn(...inputs: ClassValue[]) {
 
 export default function ProjectsModule() {
   const [view, setView] = useState<'list' | 'create'>('list');
+  const [viewMode, setViewMode] = useState<'grid' | 'table' | 'kanban'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -179,7 +180,7 @@ export default function ProjectsModule() {
     });
   };
 
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+
 
   const ProjectCard = ({ project }: { project: any; [key: string]: any }) => (
     <motion.div 
@@ -363,6 +364,13 @@ export default function ProjectsModule() {
                </button>
              </div>
 
+               <button 
+                onClick={() => setViewMode('kanban')}
+                title="Vista Kanban"
+                className={cn("p-2 rounded-lg transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+               >
+                 <Layers size={18} />
+               </button>
              <div className="flex flex-col gap-1 min-w-[140px]">
                <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
                  <Clock size={8} /> Estado
@@ -477,6 +485,38 @@ export default function ProjectsModule() {
             {paginatedProjects.map((project) => (
               <ProjectCard key={project.id} project={project} />
             ))}
+        {viewMode === 'kanban' && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+            {[
+              { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-slate-100 border-slate-200', dot: 'bg-slate-400' },
+              { id: 'EJECUCION', label: 'Ejecucion', color: 'bg-blue-50 border-blue-200', dot: 'bg-blue-500' },
+              { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-green-50 border-green-200', dot: 'bg-green-500' },
+            ].map(col => (
+              <div key={col.id} className={`rounded-2xl border p-4 space-y-3 ${col.color}`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <div className={`w-2 h-2 rounded-full ${col.dot}`} />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">{col.label}</span>
+                  <span className="ml-auto text-[8px] font-black bg-white rounded-full px-2 py-0.5 text-slate-500">{filteredProjects.filter(p => p.status === col.id).length}</span>
+                </div>
+                {filteredProjects.filter(p => p.status === col.id).map(p => (
+                  <div key={p.id} onClick={() => setSelectedProject(p)} className="bg-white rounded-xl p-3 shadow-sm border border-white hover:border-secondary cursor-pointer transition-all space-y-2">
+                    <p className="text-[10px] font-black text-primary uppercase leading-tight">{p.name}</p>
+                    <p className="text-[8px] text-slate-400 font-bold uppercase">{p.clientName}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[8px] font-black text-secondary">Q {(p.budget || 0).toLocaleString()}</span>
+                      <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full bg-slate-900 rounded-full" style={{ width: `${p.progress || 0}%` }} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {filteredProjects.filter(p => p.status === col.id).length === 0 && (
+                  <div className="text-center py-6 text-[8px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos</div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
           </div>
         )}
         
