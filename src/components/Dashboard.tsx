@@ -120,7 +120,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       {/* Sparkline full-card background */}
       {kpi.spark?.length > 1 && (
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={160}>
             <LineChart data={kpi.spark} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
               <Line type="monotone" dataKey="v" stroke="#0f172a" strokeWidth={3} dot={false} isAnimationActive={false} />
             </LineChart>
@@ -175,7 +175,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       {/* Mini sparkline bottom */}
       {kpi.spark?.length > 1 && (
         <div className="mt-2 h-8 w-full opacity-70">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={160}>
             <LineChart data={kpi.spark} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
               <Line type="monotone" dataKey="v" stroke={kpi.sparkColor || '#94a3b8'} strokeWidth={1.5} dot={false} isAnimationActive={true} animationDuration={1200} />
             </LineChart>
