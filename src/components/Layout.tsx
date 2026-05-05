@@ -190,43 +190,55 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
+                  transition={{ duration: 0.18 }}
                   className="fixed inset-0 z-40"
+                  style={{ background: 'rgba(15,23,42,0.15)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
                   onClick={() => setMenuOpen(false)}
                 />
                 {/* Menu panel */}
                 <motion.div
-                  initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: -8, scale: 0.97 }}
-                  transition={{ duration: 0.15, ease: 'easeOut' }}
-                  className="absolute top-12 left-0 z-50 w-64 bg-white/95 backdrop-blur-xl border border-slate-200 rounded-2xl shadow-2xl shadow-slate-900/15 p-2 overflow-hidden"
+                  initial={{ opacity: 0, y: -12, scale: 0.95, filter: 'blur(8px)' }}
+                  animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -8, scale: 0.96, filter: 'blur(6px)' }}
+                  transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="absolute top-12 left-0 z-50 w-64 rounded-2xl p-2 overflow-hidden"
+                  style={{
+                    background: 'rgba(255,255,255,0.72)',
+                    backdropFilter: 'blur(24px) saturate(200%)',
+                    WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+                    border: '1px solid rgba(255,255,255,0.55)',
+                    boxShadow: '0 20px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.8)'
+                  }}
                 >
                   {/* Logo */}
-                  <div className="px-3 py-2 mb-1 border-b border-slate-100">
+                  <div className="px-3 py-2 mb-1 border-b border-white/50">
                     <Logo avatarUrl={user?.photoURL} />
                   </div>
                   <nav className="space-y-0.5 py-1 max-h-[70vh] overflow-y-auto">
-                    {menuItems.map(item => (
-                      <button
+                    {menuItems.map((item, i) => (
+                      <motion.button
                         key={item.id}
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: i * 0.03, duration: 0.18 }}
                         onClick={() => handleNav(item.id)}
                         className={cn(
                           "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
                           activeTab === item.id
-                            ? "bg-slate-900 text-white shadow-lg"
-                            : "text-slate-500 hover:bg-slate-50 hover:text-slate-900"
+                            ? "bg-slate-900/90 text-white shadow-lg backdrop-blur-sm"
+                            : "text-slate-600 hover:bg-white/60 hover:text-slate-900"
                         )}
                       >
                         <span className={cn("shrink-0", activeTab === item.id ? "text-secondary" : "")}>{item.icon}</span>
                         {item.label}
                         {activeTab === item.id && <div className="ml-auto w-1.5 h-1.5 rounded-full bg-secondary" />}
-                      </button>
+                      </motion.button>
                     ))}
                   </nav>
-                  <div className="border-t border-slate-100 pt-1 mt-1">
+                  <div className="border-t border-white/40 pt-1 mt-1">
                     <button
                       onClick={() => { signOut(); setMenuOpen(false); }}
-                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-50 transition-all"
+                      className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-red-500 hover:bg-red-500/10 transition-all"
                     >
                       <LogOut size={16} /> Salir del Sistema
                     </button>
