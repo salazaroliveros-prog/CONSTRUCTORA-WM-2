@@ -31,18 +31,51 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]">
-        <div className="max-w-xs w-full flex flex-col items-center text-center space-y-6 animate-pulse">
-          <Logo />
-          <div className="w-48 h-1 bg-slate-800 rounded-full overflow-hidden">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 2, repeat: Infinity }}
-              className="h-full bg-secondary" 
-            />
+      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-6" style={{background: 'linear-gradient(135deg, #0f172a 0%, #1e293b 100%)'}}>
+        <div className="flex flex-col items-center gap-8">
+          {/* Ícono constructora animado */}
+          <div className="relative w-20 h-20">
+            <svg viewBox="0 0 80 80" className="w-full h-full">
+              {/* Base edificio */}
+              <motion.rect x="15" y="35" width="30" height="30" fill="#1e293b" stroke="#f59e0b" strokeWidth="1.5"
+                initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: 0.1 }} style={{ transformOrigin: 'bottom' }} />
+              {/* Techo triangular */}
+              <motion.path d="M10 35 L30 10 L50 35 Z" fill="#f59e0b"
+                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.5 }} />
+              {/* Torre derecha */}
+              <motion.rect x="50" y="20" width="18" height="45" fill="#334155" stroke="#f59e0b" strokeWidth="1"
+                initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: 0.3 }} style={{ transformOrigin: 'bottom' }} />
+              {/* Ventanas parpadeantes */}
+              <motion.rect x="20" y="42" width="8" height="6" fill="#f59e0b" fillOpacity="0.3"
+                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0 }} />
+              <motion.rect x="32" y="42" width="8" height="6" fill="#f59e0b" fillOpacity="0.3"
+                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.4 }} />
+              <motion.rect x="53" y="28" width="5" height="4" fill="#f59e0b" fillOpacity="0.3"
+                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 0.8 }} />
+              <motion.rect x="61" y="28" width="5" height="4" fill="#f59e0b" fillOpacity="0.3"
+                animate={{ fillOpacity: [0.3, 0.9, 0.3] }} transition={{ duration: 1.5, repeat: Infinity, delay: 1.2 }} />
+              {/* Grúa */}
+              <motion.line x1="58" y1="20" x2="58" y2="5" stroke="#64748b" strokeWidth="1.5"
+                initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.3, delay: 0.7 }} style={{ transformOrigin: 'bottom' }} />
+              <motion.line x1="58" y1="5" x2="75" y2="5" stroke="#64748b" strokeWidth="1.5"
+                initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ duration: 0.3, delay: 1 }} style={{ transformOrigin: 'left' }} />
+              <motion.line x1="72" y1="5" x2="72" y2="12" stroke="#f59e0b" strokeWidth="1"
+                animate={{ y: [0, 4, 0] }} transition={{ duration: 1.2, repeat: Infinity, delay: 1.2 }} />
+            </svg>
           </div>
-          <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] animate-bounce">Iniciando Sistemas...</p>
+
+          {/* Barra de progreso */}
+          <div className="w-48 space-y-2">
+            <div className="h-0.5 bg-slate-800 rounded-full overflow-hidden">
+              <motion.div
+                initial={{ width: '0%' }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 1.8, repeat: Infinity, ease: 'easeInOut' }}
+                className="h-full bg-amber-500 rounded-full"
+              />
+            </div>
+            <p className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] text-center">Iniciando sistema...</p>
+          </div>
         </div>
       </div>
     );
@@ -124,11 +157,24 @@ function AppContent() {
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
       <Suspense fallback={
-        <div className="flex-1 flex items-center justify-center p-8">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Cargando Módulo...</p>
+        <div className="flex-1 p-6 space-y-4 animate-fade-in">
+          {/* Header skeleton */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="skeleton w-8 h-8 rounded-lg" />
+            <div className="skeleton w-40 h-5 rounded" />
           </div>
+          {/* Cards skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton h-20 rounded-xl" />
+            ))}
+          </div>
+          {/* Content skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="skeleton h-48 rounded-xl md:col-span-2" />
+            <div className="skeleton h-48 rounded-xl" />
+          </div>
+          <div className="skeleton h-32 rounded-xl" />
         </div>
       }>
         <motion.div
