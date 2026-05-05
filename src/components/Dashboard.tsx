@@ -62,7 +62,7 @@ function fmtQ(n: number) {
 function MiniRing({ value, color, label }: { value: number; color: string; label: string }) {
   const r = 16; const circ = 2 * Math.PI * r;
   const dash = Math.min(value / 100, 1) * circ;
-  const trackColor = document.documentElement.classList.contains('dark') ? '#334155' : '#e2e8f0';
+  const trackColor = document.documentElement.classList.contains('dark') ? '#4a6080' : '#e2e8f0';
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div className="relative" style={{ width: 40, height: 40 }}>
@@ -124,7 +124,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
         <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
           <ResponsiveContainer width="100%" height="100%" minHeight={160}>
             <LineChart data={kpi.spark} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <Line type="monotone" dataKey="v" stroke="#0f172a" strokeWidth={3} dot={false} isAnimationActive={false} />
+              <Line type="monotone" dataKey="v" stroke="var(--text-faint)" strokeWidth={3} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -153,7 +153,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
               className="flex gap-1 cursor-pointer"
             >
               <MiniRing value={kpi.rings.fisico} color="#f59e0b" label="Físico" />
-              <MiniRing value={kpi.rings.financiero} color="#3b82f6" label="Financiero" />
+              <MiniRing value={kpi.rings.financiero} color="#06b6d4" label="Financiero" />
             </motion.div>
           )}
         </div>

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Módulo de Seguimiento — Avance Físico y Financiero
  */
 import React, { useState, useEffect } from 'react';
@@ -23,7 +23,7 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
   const r = (size / 2) - 8;
   const circ = 2 * Math.PI * r;
   const dash = (value / 100) * circ;
-  const trackColor = document.documentElement.classList.contains('dark') ? '#334155' : '#e2e8f0';
+  const trackColor = document.documentElement.classList.contains('dark') ? '#4a6080' : '#e2e8f0';
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }}>
@@ -178,7 +178,7 @@ export default function Seguimiento() {
               <p className="text-[10px] font-black text-slate-700 uppercase truncate text-center">{selected.name}</p>
               <div className="flex justify-center gap-8">
                 <RingChart value={displayProjects[0]?.fisico ?? 0} color="#f59e0b" label="Físico" size={100} />
-                <RingChart value={displayProjects[0]?.financiero ?? 0} color="#3b82f6" label="Financiero" size={100} />
+                <RingChart value={displayProjects[0]?.financiero ?? 0} color="#06b6d4" label="Financiero" size={100} />
               </div>
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
                 <div className="bg-amber-50 rounded-xl p-2 text-center">

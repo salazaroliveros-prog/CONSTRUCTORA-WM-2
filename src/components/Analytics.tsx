@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -356,7 +356,7 @@ export default function AnalyticsModule() {
                 <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
-                <Bar dataKey="Presupuesto" fill="#94a3b8" radius={[4, 4, 0, 0]} barSize={16} />
+                <Bar dataKey="Presupuesto" fill="#a78bfa" radius={[4, 4, 0, 0]} barSize={16} />
                 <Bar dataKey="Costo" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={16} />
                 <Bar dataKey="Utilidad" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
               </BarChart>
