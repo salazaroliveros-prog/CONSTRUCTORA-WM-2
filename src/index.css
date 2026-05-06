@@ -490,3 +490,142 @@ button:active:not(:disabled), [role="button"]:active { transform: scale(0.97); }
 /* ── Dark: links ─────────────────────────────────────────── */
 .dark a:not([class*="text-"]) { color: #60a5fa; }
 .dark a:not([class*="text-"]):hover { color: #93c5fd; }
+
+/* ══════════════════════════════════════════════════════════
+   MOBILE OPTIMIZATION
+   ══════════════════════════════════════════════════════════ */
+
+/* Safe area for bottom navigation */
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) and (pointer: coarse) {
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Larger touch targets for mobile */
+  .btn-edit, .btn-delete {
+    padding: 0.5rem;
+  }
+  
+  /* Disable hover effects on touch devices */
+  .hover\:scale-\[1\.02\]:hover {
+    transform: none;
+  }
+}
+
+/* Mobile card styles */
+@media (max-width: 768px) {
+  /* Reduce padding on mobile */
+  .p-6 { padding: 1rem; }
+  .p-5 { padding: 0.875rem; }
+  .gap-6 { gap: 1rem; }
+  .gap-4 { gap: 0.75rem; }
+  
+  /* Adjust text sizes */
+  .text-2xl { font-size: 1.25rem; }
+  .text-3xl { font-size: 1.5rem; }
+  .text-4xl { font-size: 1.75rem; }
+  
+  /* Full width cards */
+  .col-span-12.lg\:col-span-9,
+  .col-span-12.lg\:col-span-3 {
+    grid-column: span 12;
+  }
+  
+  /* Horizontal scroll for tables */
+  table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Collapsible cards animation */
+  .mobile-collapse-enter {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+  }
+  .mobile-collapse-enter-active {
+    max-height: 500px;
+  }
+}
+
+/* Pull to refresh indicator */
+.pull-indicator {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.pull-indicator.active {
+  opacity: 1;
+}
+
+/* Bottom sheet modal for mobile */
+@media (max-width: 768px) {
+  .modal-content {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    max-height: 90vh;
+    border-radius: 1.5rem 1.5rem 0 0;
+    animation: slideUp 0.3s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from {
+      transform: translateY(100%);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+}
+
+/* Swipe gesture indicator */
+.swipe-indicator {
+  width: 40px;
+  height: 4px;
+  background: #cbd5e1;
+  border-radius: 2px;
+  margin: 8px auto;
+}
+
+/* Mobile optimized chart containers */
+@media (max-width: 768px) {
+  .recharts-wrapper {
+    touch-action: pan-y;
+  }
+}
+
+/* Dark mode mobile adjustments */
+.dark .safe-area-pb {
+  background: rgba(10, 18, 36, 0.98);
+}
+
+/* Haptic feedback simulation */
+@media (hover: none) {
+  button:active,
+  [role="button"]:active {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+  }
+}
+
+/* Prevent text selection on interactive elements */
+button, [role="button"], .no-select {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}

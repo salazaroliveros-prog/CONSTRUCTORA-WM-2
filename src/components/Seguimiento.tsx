@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Módulo de Seguimiento — Avance Físico y Financiero
  */
 import React, { useState, useEffect } from 'react';
@@ -11,7 +11,8 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   AreaChart, Area, LineChart, Line
 } from 'recharts';
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2 } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2, FileDown } from 'lucide-react';
+import { generateProgressReport } from '../lib/reports';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 function fmtQ(n: number) { return 'Q ' + n.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
@@ -130,14 +131,25 @@ export default function Seguimiento() {
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Módulo de Análisis</p>
           <h1 className="text-base font-black text-slate-900 uppercase tracking-tight">Seguimiento de Avance</h1>
         </div>
-        <select
-          value={selectedId}
-          onChange={e => setSelectedId(e.target.value)}
-          className="w-full md:w-64 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-amber-400 shadow-sm"
-        >
-          <option value="ALL">TODOS LOS PROYECTOS EN EJECUCIÓN</option>
-          {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-        </select>
+        <div className="flex gap-2 w-full md:w-auto">
+          <select
+            value={selectedId}
+            onChange={e => setSelectedId(e.target.value)}
+            className="flex-1 md:w-64 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-amber-400 shadow-sm"
+          >
+            <option value="ALL">TODOS LOS PROYECTOS EN EJECUCION</option>
+            {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+          </select>
+          {selected && (
+            <button
+              onClick={() => generateProgressReport(selected, transactions)}
+              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95"
+            >
+              <FileDown size={14} className="text-secondary" />
+              <span className="hidden sm:inline">Informe PDF</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* KPI Summary Row */}
