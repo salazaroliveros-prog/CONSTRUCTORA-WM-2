@@ -157,9 +157,19 @@ export default function GanttChart() {
 
   // Calcular tareas con CPM
   const tasks = useMemo<GanttTask[]>(() => {
-    const items = (project?.items ?? []).filter((i: any) => i.selected);
-    if (!items.length) return [];
-    return buildTasksFromItems(items, config);
+    try {
+      const items = (project?.items ?? []).filter((i: any) => i.selected);
+      if (!items.length) return [];
+      // Normalizar config defensivamente antes de pasar a CPM
+      const safeConfig: GanttConfig = {
+        overrides: config?.overrides ?? {},
+        progress:  config?.progress  ?? {},
+      };
+      return buildTasksFromItems(items, safeConfig);
+    } catch (e) {
+      console.error('GanttCPM error:', e);
+      return [];
+    }
   }, [project, config]);
 
   const maxDuration  = tasks.length ? Math.max(...tasks.map(t => t.lateFinish)) : 1;

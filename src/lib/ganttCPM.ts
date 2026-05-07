@@ -127,26 +127,23 @@ export function buildTasksFromItems(
   items: any[],
   config: GanttConfig
 ): GanttTask[] {
-  // Ordenar items por categoría lógica de construcción
-  const sorted = [...items].sort((a, b) => catOrder(a.category) - catOrder(b.category));
+  // Normalizar config defensivamente — Firestore puede devolver campos undefined
+  const overrides = config?.overrides ?? {};
+  const progressMap = config?.progress ?? {};
 
-  // Última tarea por categoría (para dependencias entre categorías)
+  const sorted = [...items].sort((a, b) => catOrder(a.category) - catOrder(b.category));
   const lastInCategory = new Map<string, string>();
 
   const tasks: GanttTask[] = sorted.map(item => {
-    const ov = config.overrides[item.id] ?? {};
-
-    // Duración: projectQuantity × durationDays (días por unidad)
+    const ov = overrides[item.id] ?? {};
     const baseDuration = Math.max(1, Math.ceil((item.projectQuantity || 1) * (item.durationDays || 1)));
     const duration = ov.duration ?? baseDuration;
 
-    // Dependencias: override manual O automáticas por categoría
     let dependencies: string[];
     if (ov.dependencies) {
       dependencies = ov.dependencies;
     } else {
       const deps: string[] = [];
-      // Depende de la última tarea de la categoría anterior
       const prevCatOrder = catOrder(item.category) - 1;
       if (prevCatOrder >= 0) {
         const prevCatName = Object.keys(CATEGORY_ORDER).find(k => CATEGORY_ORDER[k] === prevCatOrder);
@@ -154,7 +151,6 @@ export function buildTasksFromItems(
           deps.push(lastInCategory.get(prevCatName)!);
         }
       }
-      // Depende de la tarea anterior dentro de la misma categoría
       if (lastInCategory.has(item.category)) {
         deps.push(lastInCategory.get(item.category)!);
       }
@@ -163,7 +159,6 @@ export function buildTasksFromItems(
 
     lastInCategory.set(item.category, item.id);
 
-    // Costo del renglón
     const matCost   = (item.materials ?? []).reduce((s: number, m: any) => s + (m.price || 0) * (m.quantity || 0) * (item.projectQuantity || 1), 0);
     const laborCost = (item.labor    ?? []).reduce((s: number, l: any) => s + (l.price || 0) * (l.quantity || 0) * (item.projectQuantity || 1), 0);
 
@@ -173,7 +168,7 @@ export function buildTasksFromItems(
       category: item.category,
       duration,
       dependencies,
-      progress: config.progress[item.id] ?? 0,
+      progress: progressMap[item.id] ?? 0,
       earlyStart: 0, earlyFinish: 0,
       lateStart: 0,  lateFinish: 0,
       slack: 0, isCritical: false,
