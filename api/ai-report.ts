@@ -1,14 +1,13 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { streamText } from 'ai';
 
-export const config = { runtime: 'edge' };
-
-export default async function handler(req: Request) {
+export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
-    return new Response('Method Not Allowed', { status: 405 });
+    return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  const { messages, context } = await req.json();
+  const { messages, context } = req.body;
 
   const google = createGoogleGenerativeAI({
     apiKey: process.env.GEMINI_API_KEY ?? '',
@@ -18,15 +17,14 @@ export default async function handler(req: Request) {
 Tu función es analizar los datos del sistema y generar informes, análisis y respuestas precisas en español.
 
 DATOS ACTUALES DEL SISTEMA:
-${JSON.stringify(context, null, 2)}
+${JSON.stringify(context ?? {}, null, 2)}
 
 INSTRUCCIONES:
 - Responde siempre en español, de forma clara y profesional
 - Usa formato Markdown para estructurar tus respuestas (tablas, listas, negritas)
-- Cuando generes informes, incluye: resumen ejecutivo, datos clave, análisis y recomendaciones
+- Cuando generes informes incluye: resumen ejecutivo, datos clave, análisis y recomendaciones
 - Los montos monetarios van en Quetzales (Q.)
-- Sé conciso pero completo
-- Si el usuario pide un informe específico, genera uno estructurado con los datos disponibles`;
+- Sé conciso pero completo`;
 
   const result = streamText({
     model: google('gemini-2.0-flash'),
@@ -35,5 +33,5 @@ INSTRUCCIONES:
     maxOutputTokens: 2048,
   });
 
-  return result.toTextStreamResponse();
+  return result.pipeTextStreamToResponse(res);
 }
