@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -48,7 +48,13 @@ import {
   AreaChart,
   Area,
   ComposedChart,
-  Legend
+  Legend,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Treemap
 } from 'recharts';
 
 function cn(...inputs: ClassValue[]) {
@@ -80,6 +86,93 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
         </div>
       </div>
       <span className="text-[6px] font-black text-slate-400 uppercase tracking-wide leading-none">{label}</span>
+    </div>
+  );
+}
+
+// Gauge Chart Component para indicadores de rendimiento
+function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: number; max?: number; label: string; color?: string }) {
+  const percentage = Math.min((value / max) * 100, 100);
+  const angle = (percentage / 100) * 180;
+  const r = 60;
+  const x1 = 70 + r * Math.cos((180 - angle) * Math.PI / 180);
+  const y1 = 70 - r * Math.sin((180 - angle) * Math.PI / 180);
+  
+  return (
+    <div className="flex flex-col items-center">
+      <svg width={140} height={85} viewBox="0 0 140 85">
+        <defs>
+          <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#ef4444" />
+            <stop offset="50%" stopColor="#f59e0b" />
+            <stop offset="100%" stopColor="#10b981" />
+          </linearGradient>
+        </defs>
+        {/* Background arc */}
+        <path
+          d="M 10 70 A 60 60 0 0 1 130 70"
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth={10}
+          strokeLinecap="round"
+        />
+        {/* Value arc */}
+        <motion.path
+          d={`M 10 70 A 60 60 0 ${angle > 90 ? 1 : 0} 1 ${x1} ${y1}`}
+          fill="none"
+          stroke={`url(#gaugeGrad-${label})`}
+          strokeWidth={10}
+          strokeLinecap="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: percentage / 100 }}
+          transition={{ duration: 1.5, ease: 'easeOut' }}
+        />
+        {/* Center text */}
+        <text x="70" y="60" textAnchor="middle" className="text-lg font-black fill-current" style={{ fill: color }}>
+          {Math.round(value)}%
+        </text>
+      </svg>
+      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest -mt-1">{label}</span>
+    </div>
+  );
+}
+
+// Calendar Heatmap para visualizar actividad
+function ActivityHeatmap({ data }: { data: { date: string; value: number }[] }) {
+  const weeks = 12;
+  const days = 7;
+  const maxValue = Math.max(...data.map(d => d.value), 1);
+  
+  const getColor = (value: number) => {
+    if (value === 0) return 'rgba(148,163,184,0.2)';
+    const intensity = value / maxValue;
+    if (intensity < 0.25) return 'rgba(16,185,129,0.3)';
+    if (intensity < 0.5) return 'rgba(16,185,129,0.5)';
+    if (intensity < 0.75) return 'rgba(16,185,129,0.7)';
+    return 'rgba(16,185,129,1)';
+  };
+
+  return (
+    <div className="flex gap-1">
+      {Array.from({ length: weeks }).map((_, w) => (
+        <div key={w} className="flex flex-col gap-1">
+          {Array.from({ length: days }).map((_, d) => {
+            const idx = w * 7 + d;
+            const value = data[idx]?.value || 0;
+            return (
+              <motion.div
+                key={d}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: idx * 0.005, duration: 0.2 }}
+                className="w-3 h-3 rounded-sm cursor-pointer hover:ring-2 hover:ring-slate-400 transition-all"
+                style={{ backgroundColor: getColor(value) }}
+                title={`${data[idx]?.date || ''}: ${value} actividades`}
+              />
+            );
+          })}
+        </div>
+      ))}
     </div>
   );
 }
@@ -440,6 +533,33 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4', '#fb923c', '#a3e635'];
 
+  // Radar chart data - Rendimiento por área
+  const radarData = [
+    { area: 'Presupuesto', value: Math.min(100, (executingBudget > 0 ? (totalIncome / executingBudget) * 100 : 0)), fullMark: 100 },
+    { area: 'Avance', value: avgFisico, fullMark: 100 },
+    { area: 'Liquidez', value: Math.min(100, netCash > 0 ? 85 : 30), fullMark: 100 },
+    { area: 'Inventario', value: Math.max(0, 100 - (criticalStock * 10)), fullMark: 100 },
+    { area: 'Proyectos', value: Math.min(100, executingProjects.length * 15), fullMark: 100 },
+    { area: 'Eficiencia', value: avgFinanciero > 0 ? Math.min(100, (avgFisico / avgFinanciero) * 100) : 50, fullMark: 100 },
+  ];
+
+  // Treemap data - Distribución de presupuesto por proyecto
+  const treemapData = filteredProjects.map(p => ({
+    name: p.name?.slice(0, 15) || 'Sin nombre',
+    size: p.budget || 0,
+    progress: p.progress || 0,
+    color: p.progress > 70 ? '#10b981' : p.progress > 40 ? '#f59e0b' : '#3b82f6'
+  }));
+
+  // Activity heatmap data - Últimos 84 días de actividad
+  const heatmapData = Array.from({ length: 84 }).map((_, i) => {
+    const date = new Date();
+    date.setDate(date.getDate() - (83 - i));
+    const dateStr = date.toISOString().split('T')[0];
+    const dayTx = transactions.filter(t => t.date === dateStr).length;
+    return { date: dateStr, value: dayTx };
+  });
+
   const getCardStyle = () => {
     switch (settings.cardStyle) {
       case 'flat': return 'bg-slate-50 border border-slate-100 shadow-none';
@@ -771,11 +891,120 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
            </div>
         </div>
 
+        {/* Advanced Analytics Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Radar Chart - Performance Analysis */}
+          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Analisis de Rendimiento</h2>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Indicadores clave por area</p>
+              </div>
+            </div>
+            <div className="h-[200px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                  <PolarGrid stroke="var(--border)" />
+                  <PolarAngleAxis dataKey="area" tick={{ fontSize: 8, fontWeight: 900, fill: 'var(--text-subtle)' }} />
+                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
+                  <Radar name="Rendimiento" dataKey="value" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.4} strokeWidth={2} />
+                </RadarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Gauge Charts - Key Metrics */}
+          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Indicadores Clave</h2>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Metricas de proyecto</p>
+              </div>
+            </div>
+            <div className="flex justify-around items-center h-[200px]">
+              <GaugeChart value={avgFisico} label="Avance Fisico" color="#10b981" />
+              <GaugeChart value={avgFinanciero} label="Avance Financiero" color="#3b82f6" />
+            </div>
+          </div>
+
+          {/* Activity Heatmap */}
+          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Actividad del Sistema</h2>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ultimos 3 meses de transacciones</p>
+              </div>
+            </div>
+            <div className="flex flex-col items-center justify-center h-[180px]">
+              <ActivityHeatmap data={heatmapData} />
+              <div className="flex items-center gap-4 mt-4">
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-sm bg-slate-200" />
+                  <span className="text-[7px] font-bold text-slate-400 uppercase">Sin actividad</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 rounded-sm bg-emerald-500" />
+                  <span className="text-[7px] font-bold text-slate-400 uppercase">Alta actividad</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Treemap - Budget Distribution */}
+        {treemapData.length > 0 && (
+          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Distribucion de Presupuesto</h2>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proporcion por proyecto activo</p>
+              </div>
+            </div>
+            <div className="h-[150px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <Treemap
+                  data={treemapData}
+                  dataKey="size"
+                  aspectRatio={4 / 3}
+                  stroke="#fff"
+                  content={({ x, y, width, height, name, color }: any) => (
+                    <g>
+                      <rect
+                        x={x}
+                        y={y}
+                        width={width}
+                        height={height}
+                        style={{
+                          fill: color || '#f59e0b',
+                          stroke: '#fff',
+                          strokeWidth: 2,
+                          rx: 4,
+                        }}
+                      />
+                      {width > 60 && height > 30 && (
+                        <text
+                          x={x + width / 2}
+                          y={y + height / 2}
+                          textAnchor="middle"
+                          dominantBaseline="middle"
+                          className="text-[9px] font-black fill-white uppercase"
+                        >
+                          {name}
+                        </text>
+                      )}
+                    </g>
+                  )}
+                />
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+
         {/* Progress Tracker (Real Data) */}
         <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
           <div className="flex justify-between items-center mb-6">
             <div>
-              <h2 className="text-sm font-black text-primary uppercase tracking-tight">Cronograma de Ejecución</h2>
+              <h2 className="text-sm font-black text-primary uppercase tracking-tight">Cronograma de Ejecucion</h2>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Avance real de proyectos activos</p>
             </div>
             <TrendingUp size={20} className="text-secondary opacity-20" />

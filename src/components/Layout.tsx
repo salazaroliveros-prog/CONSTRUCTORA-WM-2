@@ -387,14 +387,58 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-3 scroll-smooth bg-transparent min-h-0">
+      <main className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-3 scroll-smooth bg-transparent min-h-0 pb-20 md:pb-3">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>
       </main>
 
-      {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer className="h-7 bg-white text-slate-400 text-[7px] font-bold flex items-center justify-between px-4 border-t border-slate-100 uppercase tracking-widest shrink-0">
+      {/* ── Mobile Bottom Navigation ─────────────────────────── */}
+      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-200 z-50 safe-area-pb">
+        <div className="flex justify-around items-center h-16 px-2">
+          {[
+            { id: 'dashboard', label: 'Inicio', icon: <LayoutDashboard size={20} /> },
+            { id: 'projects', label: 'Proyectos', icon: <Building2 size={20} /> },
+            { id: 'calculator', label: 'Presupuesto', icon: <Calculator size={20} /> },
+            { id: 'inventory', label: 'Stock', icon: <Package size={20} /> },
+            { id: 'analytics', label: 'Analisis', icon: <BarChart3 size={20} /> },
+          ].map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveTab(item.id)}
+              className={cn(
+                "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all active:scale-95",
+                activeTab === item.id 
+                  ? "text-secondary bg-secondary/10" 
+                  : "text-slate-400 hover:text-slate-600"
+              )}
+            >
+              <span className={cn(
+                "transition-transform",
+                activeTab === item.id && "scale-110"
+              )}>
+                {item.icon}
+              </span>
+              <span className={cn(
+                "text-[8px] font-black uppercase tracking-wide",
+                activeTab === item.id ? "text-secondary" : "text-slate-400"
+              )}>
+                {item.label}
+              </span>
+              {activeTab === item.id && (
+                <motion.div
+                  layoutId="mobileNav"
+                  className="absolute bottom-1 w-1 h-1 rounded-full bg-secondary"
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+      </nav>
+
+      {/* ── Footer (Desktop only) ─────────────────────────────── */}
+      <footer className="hidden md:flex h-7 bg-white text-slate-400 text-[7px] font-bold items-center justify-between px-4 border-t border-slate-100 uppercase tracking-widest shrink-0">
         <span>© 2024 WM/M&S CONSTRUCTORA · Motor V2.4.1 PRO</span>
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
       </footer>

@@ -16,7 +16,12 @@ import {
   Package,
   HardHat,
   Save,
-  CheckCircle2
+  CheckCircle2,
+  AlertTriangle,
+  Percent,
+  Gauge,
+  BarChart3,
+  TrendingUp
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePagination } from '../hooks/usePagination';
@@ -58,6 +63,14 @@ export default function CalculatorModule() {
   });
 
   const [expandedItem, setExpandedItem] = useState<string | null>(null);
+  
+  // Motor de Cálculo Avanzado - Configuración
+  const [wasteFactors, setWasteFactors] = useState({
+    materials: 5, // % de desperdicio de materiales
+    labor: 0,     // % de desperdicio de mano de obra
+  });
+  const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
+  const [areaTotal, setAreaTotal] = useState(0); // Para cálculo por m2
 
   // Available items filtered by typology and search
   const availableItems = useMemo<WorkItem[]>(() => {
@@ -169,11 +182,52 @@ export default function CalculatorModule() {
     return (matTotal + labTotal) * item.projectQuantity;
   };
 
+  // Cálculo con factor de desperdicio
+  const calculateItemTotalWithWaste = (item: ProjectItem) => {
+    const matTotal = item.materials.reduce((acc, m) => acc + (Math.max(0, m.price || 0) * m.quantity), 0);
+    const labTotal = item.labor.reduce((acc, l) => acc + (Math.max(0, l.price || 0) * l.quantity), 0);
+    const matWithWaste = matTotal * (1 + wasteFactors.materials / 100);
+    const labWithWaste = labTotal * (1 + wasteFactors.labor / 100);
+    return (matWithWaste + labWithWaste) * item.projectQuantity;
+  };
+
   const totalDirect = useMemo(() => {
-    return currentProject.items.reduce((acc, item) => acc + calculateItemTotal(item), 0);
-  }, [currentProject.items]);
+    return currentProject.items.reduce((acc, item) => acc + calculateItemTotalWithWaste(item), 0);
+  }, [currentProject.items, wasteFactors]);
+
+  // Desglose de costos
+  const costBreakdown = useMemo(() => {
+    const materialsTotal = currentProject.items.reduce((acc, item) => {
+      const mat = item.materials.reduce((m, mat) => m + (mat.price || 0) * mat.quantity, 0);
+      return acc + (mat * (1 + wasteFactors.materials / 100) * item.projectQuantity);
+    }, 0);
+    
+    const laborTotal = currentProject.items.reduce((acc, item) => {
+      const lab = item.labor.reduce((l, lab) => l + (lab.price || 0) * lab.quantity, 0);
+      return acc + (lab * (1 + wasteFactors.labor / 100) * item.projectQuantity);
+    }, 0);
+
+    const wasteAmount = currentProject.items.reduce((acc, item) => {
+      const mat = item.materials.reduce((m, mat) => m + (mat.price || 0) * mat.quantity, 0);
+      return acc + (mat * (wasteFactors.materials / 100) * item.projectQuantity);
+    }, 0);
+
+    const indirectCost = totalDirect * (currentProject.indirectCosts / 100);
+    const adminCost = totalDirect * (currentProject.administrativeCosts / 100);
+    const personalCost = totalDirect * (currentProject.personalCosts / 100);
+    
+    return { materialsTotal, laborTotal, wasteAmount, indirectCost, adminCost, personalCost };
+  }, [currentProject.items, totalDirect, wasteFactors, currentProject.indirectCosts, currentProject.administrativeCosts, currentProject.personalCosts]);
 
   const totalBudget = totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100);
+  
+  // Costo por m2
+  const costPerM2 = areaTotal > 0 ? totalBudget / areaTotal : 0;
+  
+  // Duración estimada del proyecto
+  const estimatedDays = useMemo(() => {
+    return currentProject.items.reduce((acc, item) => acc + (item.durationDays || 1) * item.projectQuantity, 0);
+  }, [currentProject.items]);
 
   const [saving, setSaving] = useState(false);
 
@@ -274,15 +328,130 @@ export default function CalculatorModule() {
               <div className="bg-slate-50 border border-slate-100 p-5 rounded-xl flex flex-col justify-between">
                  <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Costo Directo</span>
                  <h4 className="text-2xl font-black tracking-tighter text-primary">Q {totalDirect.toLocaleString()}</h4>
+                 <div className="flex gap-2 mt-2">
+                   <span className="text-[8px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">Mat: Q{costBreakdown.materialsTotal.toLocaleString()}</span>
+                   <span className="text-[8px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">M.O: Q{costBreakdown.laborTotal.toLocaleString()}</span>
+                 </div>
               </div>
               <div className="bg-secondary text-primary p-5 rounded-xl flex flex-col justify-between shadow-xl shadow-secondary/10">
                  <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">Total Presupuesto</span>
                  <h4 className="text-2xl font-black tracking-tighter">Q {totalBudget.toLocaleString()}</h4>
+                 <div className="flex gap-2 mt-2">
+                   <span className="text-[8px] font-bold text-primary/70 bg-primary/10 px-2 py-0.5 rounded">{estimatedDays.toFixed(0)} dias est.</span>
+                   {costPerM2 > 0 && <span className="text-[8px] font-bold text-primary/70 bg-primary/10 px-2 py-0.5 rounded">Q{costPerM2.toFixed(0)}/m2</span>}
+                 </div>
               </div>
            </div>
         </div>
 
-        <div className="mt-8 flex gap-3 border-t border-slate-50 pt-6">
+        {/* Panel de Configuración Avanzada */}
+        <div className="mt-6 border-t border-slate-100 pt-6">
+          <button
+            onClick={() => setShowAdvancedConfig(!showAdvancedConfig)}
+            className="flex items-center gap-2 text-[9px] font-black text-slate-500 uppercase tracking-widest hover:text-primary transition-colors"
+          >
+            <Settings2 size={14} className={cn("transition-transform", showAdvancedConfig && "rotate-90")} />
+            Configuracion Avanzada del Motor
+            <ChevronDown size={12} className={cn("transition-transform", showAdvancedConfig && "rotate-180")} />
+          </button>
+          
+          {showAdvancedConfig && (
+            <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-100">
+              {/* Factor de Desperdicio */}
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <AlertTriangle size={10} className="text-amber-500" /> Desperdicio Materiales
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="range"
+                    min="0"
+                    max="20"
+                    value={wasteFactors.materials}
+                    onChange={(e) => setWasteFactors(p => ({ ...p, materials: parseFloat(e.target.value) }))}
+                    className="flex-1 h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                  />
+                  <span className="text-sm font-black text-amber-600 w-12 text-right">{wasteFactors.materials}%</span>
+                </div>
+                <p className="text-[7px] text-slate-400 font-bold">Desperdicio: Q{costBreakdown.wasteAmount.toLocaleString()}</p>
+              </div>
+
+              {/* Área Total */}
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <Gauge size={10} className="text-blue-500" /> Area Total (m2)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.1"
+                  value={areaTotal || ''}
+                  onChange={(e) => setAreaTotal(parseFloat(e.target.value) || 0)}
+                  placeholder="Ej: 150"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-xs font-bold focus:outline-none focus:border-secondary"
+                />
+                {costPerM2 > 0 && <p className="text-[7px] text-blue-600 font-bold">Costo/m2: Q{costPerM2.toFixed(2)}</p>}
+              </div>
+
+              {/* Costos Indirectos */}
+              <div className="space-y-2">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <Percent size={10} className="text-emerald-500" /> Costos Indirectos
+                </label>
+                <div className="grid grid-cols-3 gap-1">
+                  <div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={currentProject.indirectCosts}
+                      onChange={(e) => setCurrentProject(p => ({ ...p, indirectCosts: parseFloat(e.target.value) || 0 }))}
+                      className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[10px] font-bold text-center focus:outline-none focus:border-secondary"
+                    />
+                    <span className="text-[7px] text-slate-400 font-bold block text-center">Indir. %</span>
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={currentProject.administrativeCosts}
+                      onChange={(e) => setCurrentProject(p => ({ ...p, administrativeCosts: parseFloat(e.target.value) || 0 }))}
+                      className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[10px] font-bold text-center focus:outline-none focus:border-secondary"
+                    />
+                    <span className="text-[7px] text-slate-400 font-bold block text-center">Admin. %</span>
+                  </div>
+                  <div>
+                    <input
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={currentProject.personalCosts}
+                      onChange={(e) => setCurrentProject(p => ({ ...p, personalCosts: parseFloat(e.target.value) || 0 }))}
+                      className="w-full bg-white border border-slate-200 rounded px-2 py-1.5 text-[10px] font-bold text-center focus:outline-none focus:border-secondary"
+                    />
+                    <span className="text-[7px] text-slate-400 font-bold block text-center">Pers. %</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Resumen Desglose */}
+              <div className="space-y-2 bg-white p-3 rounded-lg border border-slate-100">
+                <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1">
+                  <BarChart3 size={10} className="text-purple-500" /> Desglose de Costos
+                </label>
+                <div className="space-y-1 text-[8px] font-bold">
+                  <div className="flex justify-between"><span className="text-slate-500">Indirectos:</span><span className="text-slate-700">Q{costBreakdown.indirectCost.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Administrativos:</span><span className="text-slate-700">Q{costBreakdown.adminCost.toLocaleString()}</span></div>
+                  <div className="flex justify-between"><span className="text-slate-500">Personales:</span><span className="text-slate-700">Q{costBreakdown.personalCost.toLocaleString()}</span></div>
+                  <div className="flex justify-between border-t border-slate-100 pt-1 mt-1"><span className="text-primary font-black">TOTAL:</span><span className="text-primary font-black">Q{totalBudget.toLocaleString()}</span></div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 flex gap-3 border-t border-slate-50 pt-6">
            <button 
             onClick={() => generateBudgetPDF(currentProject)}
             className="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-primary/90"

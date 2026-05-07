@@ -32,7 +32,7 @@ const AIAssistantModule = lazy(() => import('./components/AIAssistant'));
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const { user, login, loading } = useAuth();
+  const { user, login, loading, isAuthorizedUser, signOut } = useAuth();
 
   if (loading) {
     return (
@@ -137,6 +137,43 @@ function AppContent() {
             <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Desarrollado para alta eficiencia operativa</p>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  // Si el usuario no está autorizado, mostrar pantalla en blanco
+  if (!isAuthorizedUser) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{background:'radial-gradient(ellipse 60% 55% at 50% -5%, rgba(100,100,120,0.3) 0%, rgba(60,60,80,0.15) 40%, transparent 70%), linear-gradient(to bottom, #0a0c14 55%, #1a1a2e 75%, #16213e 88%, #0f3460 100%)'}}>
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-md w-full bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 text-center space-y-8"
+        >
+          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-slate-600 to-slate-800 flex items-center justify-center shadow-2xl">
+            <LogIn size={32} className="text-white/60" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-white uppercase tracking-wide">Bienvenido</h1>
+            <p className="text-slate-400 text-sm mt-2">{user?.displayName}</p>
+            <p className="text-slate-500 text-xs mt-1">{user?.email}</p>
+          </div>
+          <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <p className="text-slate-300 text-sm leading-relaxed">
+              Tu cuenta ha sido registrada correctamente. Sin embargo, no tienes datos asociados en el sistema.
+            </p>
+            <p className="text-slate-500 text-xs mt-3">
+              Contacta al administrador para obtener acceso a los datos del ERP.
+            </p>
+          </div>
+          <button 
+            onClick={() => signOut()}
+            className="w-full flex items-center justify-center gap-3 bg-slate-800 text-white py-4 rounded-2xl font-bold text-sm hover:bg-slate-700 transition-all active:scale-95"
+          >
+            <LogIn size={18} className="rotate-180" />
+            Cerrar Sesion
+          </button>
+        </motion.div>
       </div>
     );
   }
