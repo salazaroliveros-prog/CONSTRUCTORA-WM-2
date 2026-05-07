@@ -21,7 +21,7 @@ const EMPTY_CONFIG: GanttConfig = { overrides: {}, progress: {} };
 function TaskTooltip({ task, startDate }: { task: GanttTask; startDate: string }) {
   const base = new Date(startDate);
   return (
-    <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 bg-slate-900 text-white rounded-xl p-3 shadow-2xl text-[9px] pointer-events-none">
+    <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900 text-white rounded-xl p-3 shadow-2xl text-[9px] pointer-events-none">
       <p className="font-black uppercase mb-2 text-amber-400 truncate">{task.name}</p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         <span className="text-slate-400">Inicio temprano</span><span className="font-bold">{fmtDate(addDays(base, task.earlyStart))}</span>
@@ -30,6 +30,9 @@ function TaskTooltip({ task, startDate }: { task: GanttTask; startDate: string }
         <span className="text-slate-400">Fin tardío</span>     <span className="font-bold">{fmtDate(addDays(base, task.lateFinish))}</span>
         <span className="text-slate-400">Holgura</span>        <span className={cn('font-bold', task.slack === 0 ? 'text-red-400' : 'text-green-400')}>{task.slack}d</span>
         <span className="text-slate-400">Avance</span>         <span className="font-bold text-blue-400">{task.progress}%</span>
+        <span className="text-slate-400">Cuadrilla</span>      <span className="font-bold text-purple-400">{task.workers} obrero{task.workers !== 1 ? 's' : ''}</span>
+        <span className="text-slate-400">Rendimiento</span>    <span className="font-bold">{task.durationPerUnit}d/{task.unit}</span>
+        <span className="text-slate-400">Cantidad</span>       <span className="font-bold">{task.quantity} {task.unit}</span>
         <span className="text-slate-400">Costo</span>          <span className="font-bold text-amber-400 col-span-2">{fmtQ(task.cost)}</span>
       </div>
       {task.isCritical && <p className="mt-2 text-red-400 font-black uppercase text-center">⚠ Ruta Crítica</p>}
@@ -118,6 +121,7 @@ export default function GanttChart() {
   const [config, setConfig]                   = useState<GanttConfig>(EMPTY_CONFIG);
   const [editingId, setEditingId]             = useState<string | null>(null);
   const [editDuration, setEditDuration]       = useState(1);
+  const [editWorkers, setEditWorkers]         = useState(1);
   const [collapsedCats, setCollapsedCats]     = useState<Set<string>>(new Set());
   const [saving, setSaving]                   = useState(false);
   const saveTimer                             = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -161,12 +165,11 @@ export default function GanttChart() {
     try {
       const items = (project?.items ?? []).filter((i: any) => i.selected);
       if (!items.length) return [];
-      // Normalizar config defensivamente antes de pasar a CPM
       const safeConfig: GanttConfig = {
         overrides: config?.overrides ?? {},
         progress:  config?.progress  ?? {},
       };
-      return buildTasksFromItems(items, safeConfig);
+      return buildTasksFromItems(items, safeConfig, project?.startDate, project?.endDate);
     } catch (e) {
       console.error('GanttCPM error:', e);
       return [];
@@ -214,13 +217,20 @@ export default function GanttChart() {
     if (!editingId) return;
     const next: GanttConfig = {
       ...config,
-      overrides: { ...config.overrides, [editingId]: { ...(config.overrides[editingId] ?? {}), duration: editDuration } }
+      overrides: {
+        ...config.overrides,
+        [editingId]: {
+          ...(config.overrides[editingId] ?? {}),
+          duration: editDuration,
+          workers:  editWorkers,
+        }
+      }
     };
     setConfig(next);
     persistConfig(next);
     setEditingId(null);
-    toast.success('Duración actualizada');
-  }, [editingId, editDuration, config, persistConfig]);
+    toast.success('Renglón actualizado');
+  }, [editingId, editDuration, editWorkers, config, persistConfig]);
 
   const toggleCat = (cat: string) =>
     setCollapsedCats(prev => { const s = new Set(prev); s.has(cat) ? s.delete(cat) : s.add(cat); return s; });
@@ -375,13 +385,23 @@ export default function GanttChart() {
                         {/* Info tarea */}
                         <div className="w-64 shrink-0">
                           {isEditing ? (
-                            <div className="flex items-center gap-1">
-                              <input
-                                type="number" min={1} value={editDuration}
-                                onChange={e => setEditDuration(Math.max(1, parseInt(e.target.value) || 1))}
-                                className="w-16 px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:border-blue-400"
-                              />
-                              <span className="text-[8px] text-slate-400">días</span>
+                            <div className="flex items-center gap-1 flex-wrap">
+                              <div className="flex items-center gap-1">
+                                <span className="text-[7px] text-slate-400">Días</span>
+                                <input
+                                  type="number" min={1} value={editDuration}
+                                  onChange={e => setEditDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                                  className="w-14 px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:border-blue-400"
+                                />
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <span className="text-[7px] text-slate-400">Obreros</span>
+                                <input
+                                  type="number" min={1} value={editWorkers}
+                                  onChange={e => setEditWorkers(Math.max(1, parseInt(e.target.value) || 1))}
+                                  className="w-14 px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:border-purple-400"
+                                />
+                              </div>
                               <button onClick={handleEditSave} className="p-1 bg-green-500 text-white rounded hover:bg-green-600">
                                 <Save size={10} />
                               </button>
@@ -393,9 +413,9 @@ export default function GanttChart() {
                             <div className="flex items-center gap-1 group">
                               <p className="text-[9px] font-bold text-slate-700 truncate flex-1">{task.name}</p>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                <span className="text-[7px] font-bold text-slate-400">{task.duration}d</span>
+                                <span className="text-[7px] font-bold text-slate-400">{task.duration}d · {task.workers}ob</span>
                                 <button
-                                  onClick={() => { setEditingId(task.id); setEditDuration(task.duration); }}
+                                  onClick={() => { setEditingId(task.id); setEditDuration(task.duration); setEditWorkers(task.workers); }}
                                   className="p-0.5 hover:bg-slate-200 rounded"
                                 >
                                   <Edit2 size={10} className="text-slate-400" />
