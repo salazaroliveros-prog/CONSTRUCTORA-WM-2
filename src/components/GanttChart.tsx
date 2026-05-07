@@ -4,7 +4,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
   Calendar, Clock, AlertTriangle, Edit2, Save, X,
-  TrendingUp, Activity, ChevronDown, ChevronRight, DollarSign
+  TrendingUp, Activity, ChevronDown, ChevronRight, DollarSign, Printer
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { subscribeToCollection, updateDocument } from '../services/firestoreService';
@@ -127,7 +127,8 @@ export default function GanttChart() {
     return subscribeToCollection('projects', (data: any[]) => {
       const exec = data.filter(p => p.status === 'EJECUCION');
       setProjects(exec);
-      setSelectedId(prev => prev || exec[0]?.id || '');
+      // Mantener selección actual si sigue válida; si no, seleccionar el primero
+      setSelectedId(prev => exec.find(p => p.id === prev) ? prev : (exec[0]?.id || ''));
     });
   }, []);
 
@@ -224,6 +225,13 @@ export default function GanttChart() {
   const toggleCat = (cat: string) =>
     setCollapsedCats(prev => { const s = new Set(prev); s.has(cat) ? s.delete(cat) : s.add(cat); return s; });
 
+  // Exportar a PDF via print
+  const handleExport = useCallback(() => {
+    // Expandir todas las categorías antes de imprimir
+    setCollapsedCats(new Set());
+    setTimeout(() => window.print(), 300);
+  }, []);
+
   // Agrupar por categoría
   const byCategory = useMemo(() => {
     const map = new Map<string, GanttTask[]>();
@@ -259,8 +267,20 @@ export default function GanttChart() {
             onChange={e => setSelectedId(e.target.value)}
             className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-blue-500"
           >
-            {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            {projects.length === 0
+              ? <option value="">Sin proyectos en ejecución</option>
+              : projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
+            }
           </select>
+          <button
+            onClick={handleExport}
+            disabled={tasks.length === 0}
+            title="Exportar / Imprimir Gantt"
+            className="flex items-center gap-1.5 px-3 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-40"
+          >
+            <Printer size={14} />
+            <span className="hidden sm:inline">Exportar</span>
+          </button>
         </div>
       </div>
 

@@ -1380,3 +1380,14 @@ th:last-child, td:last-child { white-space: normal; overflow: visible; }
 }
 @media (min-width: 768px) { .module-pad { padding: 1rem 1.25rem 1.25rem; } }
 @media (min-width: 1280px) { .module-pad { padding: 1.25rem 1.5rem 1.5rem; } }
+
+
+/* ── Print / Export Gantt ─────────────────────────────────────────────────── */
+@media print {
+  body > * { display: none !important; }
+  #app-root { display: block !important; }
+  header, nav, aside, .shrink-0:not(.print-keep) { display: none !important; }
+  .overflow-auto { overflow: visible !important; }
+  .flex-1.bg-white { page-break-inside: avoid; }
+  * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+}
