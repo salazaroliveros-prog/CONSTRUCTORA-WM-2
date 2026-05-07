@@ -1224,3 +1224,159 @@ th:last-child, td:last-child { white-space: normal; overflow: visible; }
 @media (min-width: 768px) {
   .page-container { padding: 1.5rem 1.5rem 2.5rem; }
 }
+
+
+/* ══════════════════════════════════════════════════════════
+   LAYOUT ADAPTATIVO — máxima densidad sin scroll
+   ══════════════════════════════════════════════════════════ */
+
+/* Contenedor principal de módulo — ocupa todo el alto disponible */
+.module-fill {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Área de contenido scrollable solo cuando es necesario */
+.module-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Grid de dashboard que se adapta al viewport */
+.dashboard-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  height: 100%;
+  min-height: 0;
+}
+
+/* KPI ribbon compacto */
+.kpi-ribbon {
+  display: grid;
+  gap: 0.5rem;
+  grid-template-columns: repeat(2, 1fr);
+  flex-shrink: 0;
+}
+@media (min-width: 640px)  { .kpi-ribbon { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 1024px) { .kpi-ribbon { grid-template-columns: repeat(5, 1fr); } }
+
+/* Tarjeta KPI compacta */
+.kpi-card-sm {
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.875rem;
+}
+.kpi-card-sm .kpi-value { font-size: 1.125rem; }
+.kpi-card-sm .kpi-label { font-size: 0.5625rem; }
+
+/* Grid de gráficas — 2 columnas en desktop, 1 en móvil */
+.charts-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: 1fr;
+  min-height: 0;
+}
+@media (min-width: 768px) {
+  .charts-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1280px) {
+  .charts-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+/* Tarjeta de gráfica — altura dinámica basada en viewport */
+.chart-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: 1rem;
+}
+.chart-card-header {
+  flex-shrink: 0;
+  padding: 0.75rem 1rem 0.5rem;
+}
+.chart-card-body {
+  flex: 1;
+  min-height: 0;
+  padding: 0 0.75rem 0.75rem;
+}
+
+/* Alturas de gráficas responsivas usando clamp */
+.chart-h-sm  { height: clamp(120px, 18vh, 180px); }
+.chart-h-md  { height: clamp(150px, 22vh, 220px); }
+.chart-h-lg  { height: clamp(180px, 28vh, 280px); }
+.chart-h-xl  { height: clamp(200px, 32vh, 320px); }
+.chart-h-auto { height: 100%; min-height: clamp(140px, 20vh, 200px); }
+
+/* Padding reducido en modo compacto para gráficas */
+.compact-mode .chart-card-header { padding: 0.5rem 0.75rem 0.25rem; }
+.compact-mode .chart-card-body   { padding: 0 0.5rem 0.5rem; }
+.compact-mode .chart-h-sm  { height: clamp(100px, 15vh, 150px); }
+.compact-mode .chart-h-md  { height: clamp(120px, 18vh, 180px); }
+.compact-mode .chart-h-lg  { height: clamp(140px, 22vh, 220px); }
+
+/* Sección lateral del dashboard */
+.dashboard-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-height: 0;
+}
+
+/* Paginación automática de contenido — columnas que se llenan */
+.auto-columns {
+  columns: 1;
+  column-gap: 0.75rem;
+  break-inside: avoid;
+}
+@media (min-width: 768px)  { .auto-columns { columns: 2; } }
+@media (min-width: 1280px) { .auto-columns { columns: 3; } }
+
+.auto-columns > * {
+  break-inside: avoid;
+  margin-bottom: 0.75rem;
+}
+
+/* Tabla compacta para dashboards */
+.table-compact th,
+.table-compact td {
+  padding: 0.375rem 0.625rem;
+  font-size: 0.6875rem;
+}
+.table-compact th {
+  font-size: 0.625rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Recharts — texto más pequeño en modo compacto */
+.compact-mode .recharts-text tspan,
+.compact-mode .recharts-cartesian-axis-tick-value tspan {
+  font-size: 8px !important;
+}
+.compact-mode .recharts-legend-item-text { font-size: 8px !important; }
+
+/* Ocultar eje Y en gráficas muy pequeñas */
+@media (max-width: 480px) {
+  .recharts-yAxis { display: none; }
+}
+
+/* Scroll suave en contenedores de módulos */
+.module-scroll::-webkit-scrollbar { width: 3px; }
+.module-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* Transición de página sin salto de scroll */
+.page-enter { animation: pageIn 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+
+/* Contenedor de módulo con padding optimizado */
+.module-pad {
+  padding: 0.875rem 1rem 1rem;
+}
+@media (min-width: 768px) { .module-pad { padding: 1rem 1.25rem 1.25rem; } }
+@media (min-width: 1280px) { .module-pad { padding: 1.25rem 1.5rem 1.5rem; } }

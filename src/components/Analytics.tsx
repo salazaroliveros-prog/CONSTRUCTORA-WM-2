@@ -270,7 +270,7 @@ export default function AnalyticsModule() {
           <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-6">
             {selectedProject ? 'Estado del Proyecto' : 'Composición de Portafolio'}
           </h4>
-          <div className="h-[300px] w-full relative">
+          <div className="chart-h-lg w-full relative">
             <ResponsiveContainer width="100%" height="100%" minHeight={180}>
               <PieChart>
                 <Pie
@@ -306,7 +306,7 @@ export default function AnalyticsModule() {
             </div>
             <BarChart3 size={24} className="text-secondary" />
           </div>
-          <div className="h-[180px]">
+          <div className="chart-h-sm">
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart
                 cx="50%" cy="50%"

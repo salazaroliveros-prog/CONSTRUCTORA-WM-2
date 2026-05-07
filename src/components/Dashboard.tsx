@@ -604,7 +604,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
     </div>
   ) : (
-    <div id="dashboard-container" className="grid grid-cols-12 auto-rows-min gap-6 pb-10">
+    <div id="dashboard-container" className="grid grid-cols-12 auto-rows-min gap-4 pb-4">
       
       {/* Accounting Modal */}
       <Modal 
@@ -788,17 +788,17 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       </div>
 
       {/* Main Analysis Section */}
-      <section className="col-span-12 lg:col-span-9 grid grid-cols-1 md:grid-cols-1 gap-6">
+      <section className="col-span-12 lg:col-span-9 grid grid-cols-1 md:grid-cols-1 gap-4">
         {/* Charts Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-           <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
-              <div className="flex justify-between items-center mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+           <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
+              <div className="flex justify-between items-center mb-3">
                 <div>
                   <h2 className="text-sm font-black text-primary uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja' : 'Flujo del Proyecto'}</h2>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Comparativa Ingresos vs Gastos</p>
                 </div>
               </div>
-              <div className="h-[200px] w-full">
+              <div className="chart-h-md w-full">
                 <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                   {settings.graphType === 'bar' ? (
                     <ComposedChart data={chartData}>
@@ -854,14 +854,14 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
               </div>
            </div>
 
-           <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
-              <div className="flex justify-between items-center mb-6">
+           <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
+              <div className="flex justify-between items-center mb-3">
                 <div>
                   <h2 className="text-sm font-black text-primary uppercase tracking-tight">Estructura de Gastos</h2>
                   <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Distribución por Categoría</p>
                 </div>
               </div>
-              <div className="h-[200px] w-full flex items-center">
+              <div className="chart-h-md w-full flex items-center">
                 <ResponsiveContainer width="100%" height="100%" minHeight={180}>
                   <PieChart>
                     <Pie
@@ -893,16 +893,16 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
         </div>
 
         {/* Advanced Analytics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Radar Chart - Performance Analysis */}
-          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-sm font-black text-primary uppercase tracking-tight">Analisis de Rendimiento</h2>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Indicadores clave por area</p>
               </div>
             </div>
-            <div className="h-[200px] w-full">
+            <div className="chart-h-md w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
                   <PolarGrid stroke="var(--border)" />
@@ -915,28 +915,28 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
           </div>
 
           {/* Gauge Charts - Key Metrics */}
-          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-sm font-black text-primary uppercase tracking-tight">Indicadores Clave</h2>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Metricas de proyecto</p>
               </div>
             </div>
-            <div className="flex justify-around items-center h-[200px]">
+            <div className="flex justify-around items-center chart-h-md">
               <GaugeChart value={avgFisico} label="Avance Fisico" color="#10b981" />
               <GaugeChart value={avgFinanciero} label="Avance Financiero" color="#3b82f6" />
             </div>
           </div>
 
           {/* Activity Heatmap */}
-          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-sm font-black text-primary uppercase tracking-tight">Actividad del Sistema</h2>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ultimos 3 meses de transacciones</p>
               </div>
             </div>
-            <div className="flex flex-col items-center justify-center h-[180px]">
+            <div className="flex flex-col items-center justify-center chart-h-sm">
               <ActivityHeatmap data={heatmapData} />
               <div className="flex items-center gap-4 mt-4">
                 <div className="flex items-center gap-1">
@@ -954,7 +954,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
         {/* Treemap - Budget Distribution */}
         {treemapData.length > 0 && (
-          <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
+          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
             <div className="flex justify-between items-center mb-4">
               <div>
                 <h2 className="text-sm font-black text-primary uppercase tracking-tight">Distribucion de Presupuesto</h2>
@@ -1002,8 +1002,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
         )}
 
         {/* Progress Tracker (Real Data) */}
-        <div className={cn(cardClass, "rounded-2xl p-6 text-left")}>
-          <div className="flex justify-between items-center mb-6">
+        <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
+          <div className="flex justify-between items-center mb-3">
             <div>
               <h2 className="text-sm font-black text-primary uppercase tracking-tight">Cronograma de Ejecucion</h2>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Avance real de proyectos activos</p>
@@ -1011,7 +1011,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             <TrendingUp size={20} className="text-secondary opacity-20" />
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredProjects.length > 0 ? filteredProjects.slice(0, 4).map((p) => (
               <div key={p.id} className="group p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-secondary transition-all">
                 <div className="flex justify-between text-[10px] font-black uppercase tracking-tight mb-2">
@@ -1092,7 +1092,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
       {/* Side Actions / Live Feed */}
       <aside className="col-span-12 lg:col-span-3 space-y-4">
-         <div className={cn(cardClass, "rounded-2xl p-6 text-left relative overflow-hidden")}>
+         <div className={cn(cardClass, "rounded-2xl p-4 text-left relative overflow-hidden")}>
             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Acciones Rápidas</h4>
             <div className="space-y-2">
                <button 
@@ -1125,7 +1125,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </div>
          </div>
 
-         <div className="bg-slate-900 rounded-2xl p-6 text-left relative overflow-hidden">
+         <div className="bg-slate-900 rounded-2xl p-4 text-left relative overflow-hidden">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estatus Financiero</h4>
             <div className="space-y-4">
