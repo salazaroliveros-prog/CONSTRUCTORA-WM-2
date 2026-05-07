@@ -143,18 +143,11 @@ export default function AIAssistant() {
         if (done) break;
 
         const chunk = decoder.decode(value, { stream: true });
-        // Parse Vercel AI data stream format: lines starting with "0:"
-        for (const line of chunk.split('\n')) {
-          if (line.startsWith('0:')) {
-            try {
-              const parsed = JSON.parse(line.slice(2));
-              accumulated += parsed;
-              setMessages(prev => prev.map(m =>
-                m.id === assistantId ? { ...m, content: accumulated } : m
-              ));
-            } catch { /* skip malformed */ }
-          }
-        }
+        // toTextStreamResponse emite texto plano directamente
+        accumulated += chunk;
+        setMessages(prev => prev.map(m =>
+          m.id === assistantId ? { ...m, content: accumulated } : m
+        ));
       }
     } catch (err: any) {
       if (err.name === 'AbortError') return;

@@ -32,8 +32,8 @@ INSTRUCCIONES:
     model: google('gemini-2.0-flash'),
     system: systemPrompt,
     messages,
-    maxTokens: 2048,
+    maxOutputTokens: 2048,
   });
 
-  return result.toDataStreamResponse();
+  return result.toTextStreamResponse();
 }
