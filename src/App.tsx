@@ -28,6 +28,7 @@ const SettingsModule = lazy(() => import('./components/Settings'));
 const SeedDataModule = lazy(() => import('./components/SeedData'));
 const SeguimientoModule = lazy(() => import('./components/Seguimiento'));
 const CleanDataModule = lazy(() => import('./components/CleanData'));
+const AIAssistantModule = lazy(() => import('./components/AIAssistant'));
 
 function AppContent() {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -166,6 +167,8 @@ function AppContent() {
         return <SeedDataModule />;
       case 'clean':
         return <CleanDataModule />;
+      case 'ai':
+        return <AIAssistantModule />;
       case 'seguimiento':
         return <SeguimientoModule />;
       default:

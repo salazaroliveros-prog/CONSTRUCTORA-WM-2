@@ -89,7 +89,9 @@ export function calcProjectDuration(project: Project): { days: number; weeks: nu
 
 
 
-function addPdfHeader(doc: jsPDF, project: Project, title: string, accentColor: number[]) {
+type RGB = [number, number, number];
+
+function addPdfHeader(doc: jsPDF, project: Project, title: string, accentColor: RGB) {
   const [r, g, b] = accentColor;
   doc.setFillColor(r, g, b);
   doc.rect(0, 0, 210, 28, 'F');
@@ -114,7 +116,7 @@ function addPdfFooter(doc: jsPDF) {
   doc.setTextColor(0, 0, 0);
 }
 
-function addSectionTitle(doc: jsPDF, title: string, y: number, color: number[]) {
+function addSectionTitle(doc: jsPDF, title: string, y: number, color: RGB) {
   doc.setFillColor(color[0], color[1], color[2]);
   doc.rect(14, y - 4, 182, 7, 'F');
   doc.setTextColor(255, 255, 255);
@@ -126,7 +128,7 @@ function addSectionTitle(doc: jsPDF, title: string, y: number, color: number[]) 
   return y + 8;
 }
 
-function getTemplateColors(templateId: string): { accent: number[]; header: number[]; altRow: number[] } {
+function getTemplateColors(templateId: string): { accent: RGB; header: RGB; altRow: RGB } {
   switch (templateId) {
     case 'minimal':      return { accent: [80, 80, 80],    header: [200, 200, 200], altRow: [248, 248, 248] };
     case 'professional': return { accent: [26, 26, 26],    header: [26, 26, 26],    altRow: [245, 245, 245] };
@@ -492,9 +494,9 @@ export function generateProjectCSV(project: Project, templateId: string = 'compl
 
 const getStyle = (style: ExportStyle) => {
   switch (style) {
-    case 'Minimal':      return { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontSize: 10 };
-    case 'Modern':       return { fillColor: [241, 90, 36],   textColor: [255, 255, 255], fontSize: 11 };
-    case 'Professional': return { fillColor: [26, 26, 26],    textColor: [255, 255, 255], fontSize: 10 };
+    case 'Minimal':      return { fillColor: [240, 240, 240] as RGB, textColor: [0, 0, 0] as RGB, fontSize: 10 };
+    case 'Modern':       return { fillColor: [241, 90, 36] as RGB, textColor: [255, 255, 255] as RGB, fontSize: 11 };
+    case 'Professional': return { fillColor: [26, 26, 26] as RGB, textColor: [255, 255, 255] as RGB, fontSize: 10 };
   }
 };
 

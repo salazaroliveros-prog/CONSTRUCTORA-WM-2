@@ -144,6 +144,47 @@ export const deleteDocument = async (collectionName: string, id: string) => {
 };
 
 
+/** All collections required by the app */
+export const REQUIRED_COLLECTIONS = [
+  'projects',
+  'clients',
+  'staff',
+  'suppliers',
+  'inventory',
+  'transactions',
+  'purchaseOrders',
+  'logs',
+] as const;
+
+export type CollectionStatus = {
+  name: string;
+  count: number;
+  ok: boolean;
+  error?: string;
+  ms: number;
+};
+
+/**
+ * Checks connectivity and document count for every required collection.
+ * Returns one status entry per collection.
+ */
+export const checkCollections = async (): Promise<CollectionStatus[]> => {
+  if (!auth.currentUser) throw new Error('Not authenticated');
+  const results: CollectionStatus[] = [];
+  for (const name of REQUIRED_COLLECTIONS) {
+    const t = Date.now();
+    try {
+      const snap = await getDocs(
+        query(collection(db, name), where('ownerId', '==', auth.currentUser.uid))
+      );
+      results.push({ name, count: snap.size, ok: true, ms: Date.now() - t });
+    } catch (e: any) {
+      results.push({ name, count: 0, ok: false, error: e.message, ms: Date.now() - t });
+    }
+  }
+  return results;
+};
+
 /**
  * Generates inventory items from a project's budget materials.
  * Called automatically when a project transitions to EJECUCION status.

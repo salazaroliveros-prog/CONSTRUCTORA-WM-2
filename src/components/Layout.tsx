@@ -3,11 +3,11 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Building2, Calculator, LayoutDashboard, Users, ClipboardList,
   Package, Settings, Truck, Menu, X, Bell, Search, Maximize,
-  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, Sun, Moon, ChevronDown
+  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, Sun, Moon, ChevronDown, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -39,7 +39,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   });
   const [liveNotifications, setLiveNotifications] = useState<{ id: string; text: string; type: string; module: string }[]>([]);
   const [globalSearch, setGlobalSearch] = useState('');
-  const [globalResults, setGlobalResults] = useState<{ label: string; sub: string; module: string }[]>([]);
   const [allData, setAllData] = useState<{ projects: any[]; clients: any[]; inventory: any[] }>({ projects: [], clients: [], inventory: [] });
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -60,18 +59,28 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     return () => { u1(); u2(); u3(); };
   }, [user]);
 
-  // Global search
-  useEffect(() => {
+  // Global search (avoid derived-state effects)
+  const globalResults = useMemo(() => {
     const q = globalSearch.trim().toLowerCase();
-    if (!q) { setGlobalResults([]); return; }
+    if (!q) return [];
     const results: { label: string; sub: string; module: string }[] = [];
-    allData.projects.filter(p => p.name?.toLowerCase().includes(q) || p.clientName?.toLowerCase().includes(q))
-      .slice(0, 3).forEach(p => results.push({ label: p.name, sub: `Proyecto · ${p.clientName || ''}`, module: 'projects' }));
-    allData.clients.filter(c => c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q))
-      .slice(0, 3).forEach(c => results.push({ label: c.name, sub: `Cliente · ${c.email || ''}`, module: 'clients' }));
-    allData.inventory.filter(i => i.name?.toLowerCase().includes(q))
-      .slice(0, 3).forEach(i => results.push({ label: i.name, sub: `Inventario · ${i.stock} ${i.unit || ''}`, module: 'inventory' }));
-    setGlobalResults(results.slice(0, 8));
+
+    allData.projects
+      .filter(p => p.name?.toLowerCase().includes(q) || p.clientName?.toLowerCase().includes(q))
+      .slice(0, 3)
+      .forEach(p => results.push({ label: p.name, sub: `Proyecto · ${p.clientName || ''}`, module: 'projects' }));
+
+    allData.clients
+      .filter(c => c.name?.toLowerCase().includes(q) || c.email?.toLowerCase().includes(q))
+      .slice(0, 3)
+      .forEach(c => results.push({ label: c.name, sub: `Cliente · ${c.email || ''}`, module: 'clients' }));
+
+    allData.inventory
+      .filter(i => i.name?.toLowerCase().includes(q))
+      .slice(0, 3)
+      .forEach(i => results.push({ label: i.name, sub: `Inventario · ${i.stock} ${i.unit || ''}`, module: 'inventory' }));
+
+    return results.slice(0, 8);
   }, [globalSearch, allData]);
 
   // Live notifications
@@ -135,13 +144,14 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'inventory',   label: 'Stock o Bodega',         icon: <Package size={18} /> },
     { id: 'analytics',   label: 'Analíticas',             icon: <BarChart3 size={18} /> },
     { id: 'staff',       label: 'Recursos Humanos',       icon: <HardHat size={18} /> },
+    { id: 'ai',          label: 'Asistente IA',           icon: <Sparkles size={18} /> },
     { id: 'settings',    label: 'Ajustes Visuales',       icon: <Settings size={18} /> },
     { id: 'seed',        label: 'Datos de Prueba',        icon: <Zap size={18} /> },
     { id: 'clean',       label: 'Limpiar Datos',          icon: <X size={18} /> },
   ];
 
   const menuItems = allMenuItems.filter(item =>
-    item.id === 'settings' || item.id === 'seed' || item.id === 'clean' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
+    item.id === 'settings' || item.id === 'seed' || item.id === 'clean' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
   );
 
   const activeItem = menuItems.find(m => m.id === activeTab);
@@ -166,6 +176,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             onClick={() => setMenuOpen(v => !v)}
             className="p-2 bg-slate-900 text-white rounded-xl hover:bg-slate-700 transition-all active:scale-95"
             title="Menú"
+            aria-label="Abrir o cerrar menú"
           >
             {menuOpen ? <X size={18} /> : <Menu size={18} />}
           </button>
@@ -174,6 +185,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           <button
             onClick={() => setMenuOpen(v => !v)}
             className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-600 hover:border-secondary transition-all"
+            aria-label="Abrir o cerrar menú"
           >
             {activeItem?.icon}
             <span className="max-w-[120px] truncate">{activeItem?.label || 'Dashboard'}</span>
@@ -285,6 +297,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             value={selectedProjectId}
             onChange={e => setSelectedProjectId(e.target.value)}
             className="bg-slate-50 border border-slate-200 rounded-xl px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm max-w-[160px] cursor-pointer"
+            aria-label="Filtrar por proyecto"
           >
             <option value="ALL">TODOS</option>
             {executingProjects.map((p: any) => (
@@ -295,10 +308,20 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
         {/* Right actions */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto md:ml-0">
-          <button onClick={toggleFullScreen} className="hidden sm:flex p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all">
+          <button
+            onClick={toggleFullScreen}
+            className="hidden sm:flex p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+            title="Pantalla completa"
+            aria-label="Activar o desactivar pantalla completa"
+          >
             <Maximize size={15} />
           </button>
-          <button className="hidden sm:flex p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all">
+          <button
+            className="hidden sm:flex p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+            title="Ayuda"
+            aria-label="Abrir ayuda"
+            type="button"
+          >
             <HelpCircle size={15} />
           </button>
 

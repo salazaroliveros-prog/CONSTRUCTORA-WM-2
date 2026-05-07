@@ -148,6 +148,12 @@ export default function ProjectsModule() {
   const tablePageSize = useAutoPageSize(44, 260, 6);
   const pageSize = viewMode === 'table' ? tablePageSize : cardPageSize;
   const [editForm, setEditForm] = useState<Partial<Project>>({});
+  const [addingItem, setAddingItem] = useState(false);
+  const [newItemForm, setNewItemForm] = useState<{
+    code: string; description: string; unit: string; projectQuantity: number;
+    materials: { name: string; unit: string; quantity: number; price: number }[];
+    labor: { role: string; unit: string; quantity: number; price: number }[];
+  }>({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
 
   useEffect(() => {
     const unsub = subscribeToCollection('staff', (data) => {
@@ -224,8 +230,9 @@ export default function ProjectsModule() {
       description: itemEditForm.description || 'Renglon de presupuesto',
       action: { label: 'Confirmar', onClick: async () => {
         try {
-          await updateDocument('projects', selectedProject.id, { items: updatedItems });
-          setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+          const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+          await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+          setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
           setEditingItem(null); setItemEditForm({});
           toast.success('Renglon actualizado');
         } catch (err) { toast.error('Error', { description: parseError(err) }); }
@@ -241,8 +248,9 @@ export default function ProjectsModule() {
       action: { label: 'Eliminar', onClick: async () => {
         const updatedItems = selectedProject.items.filter(it => it.id !== itemId);
         try {
-          await updateDocument('projects', selectedProject.id, { items: updatedItems });
-          setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+          const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+          await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+          setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
           toast.success('Renglon eliminado');
         } catch (err) { toast.error('Error', { description: parseError(err) }); }
       }},
@@ -258,8 +266,9 @@ export default function ProjectsModule() {
       mats[matIdx] = { ...mats[matIdx], ...matData };
       return { ...it, materials: mats };
     });
-    await updateDocument('projects', selectedProject.id, { items: updatedItems });
-    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+    const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+    await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
   };
 
   const deleteMaterial = (itemId: string, matIdx: number) => {
@@ -271,8 +280,9 @@ export default function ProjectsModule() {
           if (it.id !== itemId) return it;
           return { ...it, materials: (it.materials || []).filter((_: any, i: number) => i !== matIdx) };
         });
-        await updateDocument('projects', selectedProject.id, { items: updatedItems });
-        setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+        const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+        await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+        setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
         toast.success('Material eliminado');
       }},
       cancel: { label: 'Cancelar', onClick: () => {} }
@@ -285,8 +295,9 @@ export default function ProjectsModule() {
     const updatedItems = selectedProject.items.map(it =>
       it.id === itemId ? { ...it, materials: [...(it.materials || []), newMat] } : it
     );
-    await updateDocument('projects', selectedProject.id, { items: updatedItems });
-    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+    const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+    await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
   };
 
   const saveLaborEdit = async (itemId: string, labIdx: number, labData: any) => {
@@ -297,8 +308,9 @@ export default function ProjectsModule() {
       labs[labIdx] = { ...labs[labIdx], ...labData };
       return { ...it, labor: labs };
     });
-    await updateDocument('projects', selectedProject.id, { items: updatedItems });
-    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+    const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+    await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
   };
 
   const deleteLabor = (itemId: string, labIdx: number) => {
@@ -310,8 +322,9 @@ export default function ProjectsModule() {
           if (it.id !== itemId) return it;
           return { ...it, labor: (it.labor || []).filter((_: any, i: number) => i !== labIdx) };
         });
-        await updateDocument('projects', selectedProject.id, { items: updatedItems });
-        setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+        const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+        await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+        setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
         toast.success('Mano de obra eliminada');
       }},
       cancel: { label: 'Cancelar', onClick: () => {} }
@@ -324,8 +337,55 @@ export default function ProjectsModule() {
     const updatedItems = selectedProject.items.map(it =>
       it.id === itemId ? { ...it, labor: [...(it.labor || []), newLab] } : it
     );
-    await updateDocument('projects', selectedProject.id, { items: updatedItems });
-    setSelectedProject(prev => prev ? { ...prev, items: updatedItems } : null);
+    const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+    await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+    setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
+  };
+
+  // Recalculates directCosts and budget from items array
+  const calcBudget = (items: any[], project: Project) => {
+    const directCosts = items.reduce((acc, item) => {
+      const matCost = (item.materials || []).reduce((a: number, m: any) => a + m.price * m.quantity * (item.projectQuantity || 1), 0);
+      const labCost = (item.labor || []).reduce((a: number, l: any) => a + l.price * l.quantity * (item.projectQuantity || 1), 0);
+      return acc + matCost + labCost;
+    }, 0);
+    const indirect = directCosts * (project.indirectCosts || 0) / 100;
+    const admin = directCosts * (project.administrativeCosts || 0) / 100;
+    const personal = directCosts * (project.personalCosts || 0) / 100;
+    const budget = directCosts + indirect + admin + personal;
+    return { directCosts, budget };
+  };
+
+  const addItem = async () => {
+    if (!selectedProject) return;
+    if (!newItemForm.code || !newItemForm.description) {
+      toast.error('Código y descripción son requeridos');
+      return;
+    }
+    const newItem = {
+      id: `item_${Date.now()}`,
+      code: newItemForm.code,
+      description: newItemForm.description,
+      unit: newItemForm.unit,
+      projectQuantity: newItemForm.projectQuantity,
+      selected: true,
+      typology: selectedProject.typology,
+      durationDays: 1,
+      category: 'PERSONALIZADO',
+      materials: newItemForm.materials,
+      labor: newItemForm.labor,
+    };
+    const updatedItems = [...selectedProject.items, newItem];
+    const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+    try {
+      await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+      setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
+      setAddingItem(false);
+      setNewItemForm({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
+      toast.success('Renglon agregado', { description: `Presupuesto actualizado: Q ${budget.toLocaleString()}` });
+    } catch (err) {
+      toast.error('Error al agregar renglon', { description: parseError(err) });
+    }
   };
 
   useEffect(() => {
@@ -756,6 +816,8 @@ export default function ProjectsModule() {
         onClose={() => {
           setSelectedProject(null);
           setExpandedItems([]);
+          setAddingItem(false);
+          setNewItemForm({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
         }}
         title="Detalles del Proyecto"
       >
@@ -940,6 +1002,90 @@ export default function ProjectsModule() {
                     <ListFilter size={14} className="text-secondary" /> Detalles del Presupuesto (Renglones)
                   </h4>
                   <div className="space-y-3">
+                    {/* Add new item form */}
+                    {addingItem ? (
+                      <div className="border border-emerald-200 bg-emerald-50 rounded-2xl p-4 space-y-3">
+                        <p className="text-[9px] font-black text-emerald-700 uppercase tracking-widest">Nuevo Renglon</p>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div>
+                            <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Código</label>
+                            <input value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" className="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-emerald-400" />
+                          </div>
+                          <div>
+                            <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Unidad</label>
+                            <input value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." className="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-emerald-400" />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Descripción</label>
+                          <input value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripcion del renglon..." className="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-emerald-400" />
+                        </div>
+                        <div>
+                          <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">Cantidad en Proyecto</label>
+                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} className="w-full bg-white border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-emerald-400" />
+                        </div>
+
+                        {/* Materials sub-section */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Box size={10} className="text-secondary" /> Materiales</span>
+                            <button onClick={() => setNewItemForm(p => ({...p, materials: [...p.materials, {name:'',unit:'U',quantity:1,price:0}]}))} className="text-[7px] font-black text-emerald-600 uppercase flex items-center gap-0.5"><PlusCircle size={10} /> Agregar</button>
+                          </div>
+                          {newItemForm.materials.map((m, idx) => (
+                            <div key={idx} className="grid grid-cols-5 gap-1 items-center">
+                              <input value={m.name} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],name:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Material" className="col-span-2 bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
+                              <input value={m.unit} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],unit:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Und" className="bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
+                              <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
+                              <div className="flex gap-0.5">
+                                <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="flex-1 bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
+                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Labor sub-section */}
+                        <div className="space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-1"><Hammer size={10} className="text-secondary" /> Mano de Obra</span>
+                            <button onClick={() => setNewItemForm(p => ({...p, labor: [...p.labor, {role:'',unit:'dia',quantity:1,price:0}]}))} className="text-[7px] font-black text-emerald-600 uppercase flex items-center gap-0.5"><PlusCircle size={10} /> Agregar</button>
+                          </div>
+                          {newItemForm.labor.map((l, idx) => (
+                            <div key={idx} className="grid grid-cols-5 gap-1 items-center">
+                              <input value={l.role} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],role:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Rol" className="col-span-2 bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
+                              <input value={l.unit} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],unit:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Und" className="bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
+                              <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
+                              <div className="flex gap-0.5">
+                                <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="flex-1 bg-white border border-slate-200 rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
+                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} className="text-red-400 hover:text-red-600"><Trash2 size={10} /></button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* Preview cost */}
+                        {(newItemForm.materials.length > 0 || newItemForm.labor.length > 0) && (
+                          <div className="bg-white border border-emerald-100 rounded-xl px-3 py-2 flex justify-between items-center">
+                            <span className="text-[8px] font-black text-slate-400 uppercase">Costo estimado renglon</span>
+                            <span className="text-[10px] font-black text-emerald-700">
+                              Q {(
+                                newItemForm.materials.reduce((a,m)=>a+m.price*m.quantity*newItemForm.projectQuantity,0) +
+                                newItemForm.labor.reduce((a,l)=>a+l.price*l.quantity*newItemForm.projectQuantity,0)
+                              ).toLocaleString(undefined,{maximumFractionDigits:2})}
+                            </span>
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 pt-1">
+                          <button onClick={() => { setAddingItem(false); setNewItemForm({code:'',description:'',unit:'M2',projectQuantity:1,materials:[],labor:[]}); }} className="flex-1 py-2 bg-white border border-slate-200 rounded-xl text-[8px] font-black uppercase text-slate-500">Cancelar</button>
+                          <button onClick={addItem} className="flex-1 py-2 bg-emerald-600 text-white rounded-xl text-[8px] font-black uppercase">Guardar Renglon</button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button onClick={() => setAddingItem(true)} className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-emerald-300 rounded-2xl text-[9px] font-black text-emerald-600 uppercase hover:bg-emerald-50 transition-all">
+                        <PlusCircle size={14} /> Agregar Renglon
+                      </button>
+                    )}
                     {selectedProject.items && selectedProject.items.length > 0 ? (
                       selectedProject.items.map((item) => (
                         <div key={item.id} className="border border-slate-100 rounded-2xl overflow-hidden bg-white shadow-sm">

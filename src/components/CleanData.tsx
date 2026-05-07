@@ -7,7 +7,7 @@ import { getDocumentsForCollection, deleteDocument } from '../services/firestore
 import { toast } from 'sonner';
 import { Trash2, AlertTriangle } from 'lucide-react';
 
-const COLLECTIONS = ['projects', 'clients', 'staff', 'suppliers', 'inventory', 'transactions'];
+const COLLECTIONS = ['projects', 'clients', 'staff', 'suppliers', 'inventory', 'transactions', 'purchaseOrders', 'logs'];
 
 export default function CleanData() {
   const [loading, setLoading] = useState(false);
