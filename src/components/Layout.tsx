@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Building2, Calculator, LayoutDashboard, Users, ClipboardList,
   Package, Settings, Truck, Menu, X, Bell, Search, Maximize,
-  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, Sun, Moon, ChevronDown, Sparkles
+  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, Sun, Moon, ChevronDown, Sparkles, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -141,6 +141,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'calculator',  label: 'Presupuestos',           icon: <Calculator size={18} /> },
     { id: 'execution',   label: 'Seguimiento y Bitácora', icon: <ClipboardList size={18} /> },
     { id: 'seguimiento', label: 'Avance de Proyectos',    icon: <TrendingUp size={18} /> },
+    { id: 'gantt',       label: 'Diagrama de Gantt',      icon: <Calendar size={18} /> },
     { id: 'suppliers',   label: 'Proveedores',            icon: <Truck size={18} /> },
     { id: 'inventory',   label: 'Stock o Bodega',         icon: <Package size={18} /> },
     { id: 'analytics',   label: 'Analíticas',             icon: <BarChart3 size={18} /> },
