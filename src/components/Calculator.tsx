@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
   Calculator, 
   Search, 
@@ -37,7 +37,7 @@ import { generateBudgetPDF, generateBudgetCSV } from '../lib/reports';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
-import { addDocument, parseError } from '../services/firestoreService';
+import { addDocument, parseError, subscribeToCollection } from '../services/firestoreService';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -242,6 +242,14 @@ export default function CalculatorModule() {
 
   const [saving, setSaving] = useState(false);
 
+  // Cargar clientes para el selector
+  const [clientList, setClientList] = useState<{ id: string; name: string }[]>([]);
+  useEffect(() => {
+    return subscribeToCollection('clients', (data: any[]) =>
+      setClientList(data.map(c => ({ id: c.id, name: c.name })))
+    );
+  }, []);
+
   const handleSaveProject = async () => {
     if (!currentProject.name || currentProject.items.length === 0) {
       toast.error('Datos incompletos', { description: 'Debe ingresar un nombre y agregar renglones' });
@@ -293,13 +301,27 @@ export default function CalculatorModule() {
                <div className="grid grid-cols-2 gap-4">
                  <div className="space-y-1">
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Nombre del Cliente</label>
-                   <input 
-                     type="text" 
+                   <select
                      value={currentProject.clientName}
-                     onChange={(e) => setCurrentProject(p => ({ ...p, clientName: e.target.value }))}
+                     onChange={e => setCurrentProject(p => ({ ...p, clientName: e.target.value }))}
                      className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-secondary"
-                     placeholder="CLIENTE..."
-                   />
+                   >
+                     <option value="">— Seleccionar cliente —</option>
+                     {clientList.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                     <option value={currentProject.clientName && !clientList.find(c => c.name === currentProject.clientName) ? currentProject.clientName : '__custom__'}>
+                       + Escribir manualmente
+                     </option>
+                   </select>
+                   {/* Si eligió "escribir manualmente" o no está en la lista */}
+                   {(currentProject.clientName === '__custom__' || (currentProject.clientName && !clientList.find(c => c.name === currentProject.clientName))) && (
+                     <input
+                       type="text"
+                       value={currentProject.clientName === '__custom__' ? '' : currentProject.clientName}
+                       onChange={e => setCurrentProject(p => ({ ...p, clientName: e.target.value }))}
+                       placeholder="Nombre del cliente..."
+                       className="w-full bg-white border border-secondary rounded px-3 py-2 text-xs font-bold focus:outline-none mt-1"
+                     />
+                   )}
                  </div>
                  <div className="space-y-1">
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Estado del Proyecto</label>

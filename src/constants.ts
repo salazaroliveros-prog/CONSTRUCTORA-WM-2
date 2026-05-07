@@ -80,6 +80,10 @@ export interface Client {
   email: string;
   phone: string;
   address: string;
+  nit?: string;
+  type?: 'PERSONA' | 'EMPRESA';
+  notes?: string;
+  status?: 'ACTIVO' | 'INACTIVO';
   projects?: string[];
 }
 
