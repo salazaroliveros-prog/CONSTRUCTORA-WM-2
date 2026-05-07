@@ -52,10 +52,11 @@ export default function CalculatorModule() {
     clientName: 'Cliente Sin Nombre',
     typology: Typology.RESIDENCIAL,
     status: 'COTIZACION',
-    startDate: new Date().toISOString(),
+    startDate: new Date().toISOString().split('T')[0],
+    endDate: '',
     items: [],
     directCosts: 0,
-    indirectCosts: 15, // Percentage
+    indirectCosts: 15,
     administrativeCosts: 5,
     personalCosts: 10,
     progress: 0,
@@ -176,6 +177,13 @@ export default function CalculatorModule() {
     }));
   };
 
+  const updateDurationDays = (id: string, days: number) => {
+    setCurrentProject(prev => ({
+      ...prev,
+      items: prev.items.map(i => i.id === id ? { ...i, durationDays: Math.max(0.01, days) } : i)
+    }));
+  };
+
   const calculateItemTotal = (item: ProjectItem) => {
     const matTotal = item.materials.reduce((acc, m) => acc + (Math.max(0, m.price || 0) * m.quantity), 0);
     const labTotal = item.labor.reduce((acc, l) => acc + (Math.max(0, l.price || 0) * l.quantity), 0);
@@ -224,9 +232,12 @@ export default function CalculatorModule() {
   // Costo por m2
   const costPerM2 = areaTotal > 0 ? totalBudget / areaTotal : 0;
   
-  // Duración estimada del proyecto
+  // Duración estimada corregida: (qty × days/unit) / cuadrilla
   const estimatedDays = useMemo(() => {
-    return currentProject.items.reduce((acc, item) => acc + (item.durationDays || 1) * item.projectQuantity, 0);
+    return currentProject.items.reduce((acc, item) => {
+      const workers = Math.max(1, item.labor.reduce((s, l) => s + (l.quantity || 0), 0));
+      return acc + Math.ceil((item.projectQuantity * (item.durationDays || 1)) / workers);
+    }, 0);
   }, [currentProject.items]);
 
   const [saving, setSaving] = useState(false);
@@ -302,6 +313,27 @@ export default function CalculatorModule() {
                      <option value="EJECUCION">En Ejecución</option>
                      <option value="FINALIZADO">Finalizado</option>
                    </select>
+                 </div>
+               </div>
+
+               <div className="grid grid-cols-2 gap-4">
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Fecha de Inicio</label>
+                   <input
+                     type="date"
+                     value={currentProject.startDate?.split('T')[0] ?? ''}
+                     onChange={e => setCurrentProject(p => ({ ...p, startDate: e.target.value }))}
+                     className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-secondary"
+                   />
+                 </div>
+                 <div className="space-y-1">
+                   <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Fecha de Entrega</label>
+                   <input
+                     type="date"
+                     value={currentProject.endDate?.split('T')[0] ?? ''}
+                     onChange={e => setCurrentProject(p => ({ ...p, endDate: e.target.value }))}
+                     className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-secondary"
+                   />
                  </div>
                </div>
 
@@ -684,57 +716,33 @@ export default function CalculatorModule() {
                                  </h5>
                                  <div className="space-y-2">
                                     {item.labor.map((l, idx) => (
-                                      <div key={idx} className="bg-white p-3 rounded border border-slate-100 flex justify-between items-center text-[11px] font-bold">
-                                         {item.category === 'Personalizado' || (item.id === 'custom-1709791367000' && l.role === 'Oficial') ? (
-                                           <div className="flex gap-2 items-center w-full max-w-[200px]">
-                                             <input 
-                                                value={l.role}
-                                                onChange={e => updateLaborField(item.id, idx, 'role', e.target.value)}
-                                                className="w-full text-[11px] font-bold border-b border-transparent focus:border-secondary focus:outline-none uppercase"
-                                                placeholder="Rol"
-                                             />
-                                             <input 
-                                                value={l.unit}
-                                                onChange={e => updateLaborField(item.id, idx, 'unit', e.target.value)}
-                                                className="w-12 text-[11px] font-bold border-b border-transparent focus:border-secondary focus:outline-none uppercase text-center"
-                                                placeholder="Unid"
-                                             />
-                                           </div>
-                                         ) : (
-                                           <span className="uppercase">{l.role}</span>
-                                         )}
-                                         <div className="flex items-center gap-2">
-                                           {item.category === 'Personalizado' ? (
-                                             <div className="flex items-center mr-2">
-                                                <input 
-                                                  type="number" 
-                                                  min="0.1" 
-                                                  step="0.1"
-                                                  value={l.quantity}
-                                                  onChange={e => updateLaborField(item.id, idx, 'quantity', parseFloat(e.target.value))}
-                                                  className="w-16 text-[11px] font-bold border-b border-slate-200 focus:border-secondary focus:outline-none text-right"
-                                                />
-                                                <span className="text-slate-400 ml-1">x</span>
-                                             </div>
-                                           ) : (
-                                             <span className="text-slate-400">{l.quantity} x </span>
-                                           )}
-                                           <div className="relative">
-                                              <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400">Q</span>
-                                              <input 
-                                                type="number"
-                                                step="0.01"
-                                                value={l.price === 0 && l.price.toString() !== '0' ? '' : l.price}
-                                                onChange={(e) => updateLaborField(item.id, idx, 'price', e.target.value === '' ? 0 : parseFloat(e.target.value))}
-                                                className={cn(
-                                                  "w-24 pl-5 pr-2 py-1 bg-slate-50 border rounded text-right focus:outline-none",
-                                                  l.price < 0 ? "border-red-500 text-red-500 focus:border-red-500" : "border-slate-200 focus:border-secondary"
-                                                )}
-                                              />
-                                              {l.price < 0 && (
-                                                <span className="absolute -bottom-4 right-0 text-[8px] text-red-500 whitespace-nowrap font-black">Precio inválido</span>
-                                              )}
-                                           </div>
+                                      <div key={idx} className="bg-white p-3 rounded border border-slate-100 flex justify-between items-center text-[11px] font-bold gap-2">
+                                         {/* Rol — editable siempre */}
+                                         <input
+                                           value={l.role}
+                                           onChange={e => updateLaborField(item.id, idx, 'role', e.target.value)}
+                                           className="flex-1 min-w-0 text-[11px] font-bold border-b border-transparent focus:border-secondary focus:outline-none uppercase truncate"
+                                           placeholder="Rol"
+                                         />
+                                         {/* Cuadrilla — editable en todos */}
+                                         <div className="flex items-center gap-1 shrink-0">
+                                           <span className="text-[8px] text-slate-400 uppercase">Obreros</span>
+                                           <input
+                                             type="number" min="0.1" step="0.1"
+                                             value={l.quantity}
+                                             onChange={e => updateLaborField(item.id, idx, 'quantity', parseFloat(e.target.value) || 0.1)}
+                                             className="w-14 text-[11px] font-bold border border-slate-200 rounded px-1 py-0.5 text-center focus:outline-none focus:border-secondary"
+                                           />
+                                         </div>
+                                         {/* Precio */}
+                                         <div className="relative shrink-0">
+                                           <span className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-[10px]">Q</span>
+                                           <input
+                                             type="number" step="0.01"
+                                             value={l.price || ''}
+                                             onChange={e => updateLaborField(item.id, idx, 'price', parseFloat(e.target.value) || 0)}
+                                             className="w-24 pl-5 pr-2 py-1 bg-slate-50 border border-slate-200 rounded text-right focus:outline-none focus:border-secondary text-[11px]"
+                                           />
                                          </div>
                                       </div>
                                     ))}
@@ -746,33 +754,48 @@ export default function CalculatorModule() {
                               <div className="flex-1">
                                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Cantidad de Obra ({item.unit})</label>
                                  <input 
-                                   type="range"
-                                   min="0.1"
-                                   max="500"
-                                   step="0.1"
+                                   type="range" min="0.1" max="500" step="0.1"
                                    value={item.projectQuantity}
                                    onChange={(e) => updateQuantity(item.id, parseFloat(e.target.value))}
                                    className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-secondary"
                                  />
                               </div>
                               <div className="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
-                                 <button 
-                                   onClick={() => updateQuantity(item.id, item.projectQuantity > 1 ? item.projectQuantity - 1 : 0.1)}
-                                   className="px-3 py-1.5 bg-slate-50 text-slate-500 hover:bg-slate-100 font-bold transition-colors"
-                                 >-</button>
+                                 <button onClick={() => updateQuantity(item.id, item.projectQuantity > 1 ? item.projectQuantity - 1 : 0.1)} className="px-3 py-1.5 bg-slate-50 text-slate-500 hover:bg-slate-100 font-bold transition-colors">-</button>
                                  <input 
-                                   type="number" 
-                                   min="0.1"
-                                   step="0.1"
-                                   value={item.projectQuantity === 0 && item.projectQuantity.toString() !== '0' ? '' : item.projectQuantity}
-                                   onChange={(e) => updateQuantity(item.id, e.target.value === '' ? 0 : parseFloat(e.target.value))}
+                                   type="number" min="0.1" step="0.1"
+                                   value={item.projectQuantity || ''}
+                                   onChange={(e) => updateQuantity(item.id, parseFloat(e.target.value) || 0.1)}
                                    className="w-16 px-1 py-1.5 text-xs font-black text-center text-primary border-x border-slate-200 focus:outline-none appearance-none"
                                  />
-                                 <button 
-                                   onClick={() => updateQuantity(item.id, item.projectQuantity + 1)}
-                                   className="px-3 py-1.5 bg-slate-50 text-slate-500 hover:bg-slate-100 font-bold transition-colors"
-                                 >+</button>
+                                 <button onClick={() => updateQuantity(item.id, item.projectQuantity + 1)} className="px-3 py-1.5 bg-slate-50 text-slate-500 hover:bg-slate-100 font-bold transition-colors">+</button>
                               </div>
+                           </div>
+
+                           {/* Rendimiento y duración real */}
+                           <div className="flex items-center gap-4 pt-3 border-t border-slate-100">
+                              <div className="flex items-center gap-2">
+                                 <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">Rendimiento (días/{item.unit})</label>
+                                 <input
+                                   type="number" min="0.01" step="0.01"
+                                   value={item.durationDays ?? 1}
+                                   onChange={e => updateDurationDays(item.id, parseFloat(e.target.value) || 0.01)}
+                                   className="w-20 px-2 py-1 bg-white border border-slate-200 rounded text-xs font-black text-center focus:outline-none focus:border-secondary"
+                                 />
+                              </div>
+                              {(() => {
+                                const workers = Math.max(1, item.labor.reduce((s, l) => s + (l.quantity || 0), 0));
+                                const realDays = Math.ceil((item.projectQuantity * (item.durationDays || 1)) / workers);
+                                return (
+                                  <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-lg px-3 py-1.5">
+                                    <TrendingUp size={12} className="text-blue-500" />
+                                    <span className="text-[9px] font-black text-blue-700 uppercase">
+                                      Duración real: <span className="text-blue-900">{realDays} días</span>
+                                      <span className="text-blue-400 ml-2">({workers} obrero{workers !== 1 ? 's' : ''})</span>
+                                    </span>
+                                  </div>
+                                );
+                              })()}
                            </div>
                         </motion.div>
                       )}
