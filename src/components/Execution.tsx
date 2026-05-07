@@ -23,18 +23,18 @@ import {
 import { 
   ClipboardList, 
   Package, 
-  AlertCircle, 
-  CheckCircle2, 
-  ArrowUpRight, 
-  Filter,
+  CheckCircle2,
   TrendingUp,
-  PieChart as PieIcon
+  BarChart2,
+  ChevronDown,
+  ChevronRight,
+  Save
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Project, WarehouseItem } from '../constants';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { subscribeToCollection, addDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, addDocument, updateDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
 import { Plus } from 'lucide-react';
@@ -44,13 +44,17 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export default function ExecutionModule() {
+export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [inventory, setInventory] = useState<WarehouseItem[]>([]);
   const [logs, setLogs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [newLog, setNewLog] = useState('');
   const [savingLog, setSavingLog] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState('');
+  const [itemProgress, setItemProgress] = useState<Record<string, number>>({});
+  const [savingProgress, setSavingProgress] = useState(false);
+  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const unsubProjects = subscribeToCollection('projects', (data) => setProjects(data));
@@ -67,6 +71,54 @@ export default function ExecutionModule() {
       unsubLogs();
     };
   }, []);
+
+  // Proyecto seleccionado para avance por renglón
+  const execProjects = projects.filter(p => p.status === 'EJECUCION');
+  const activeProject = execProjects.find(p => p.id === selectedProjectId) ?? execProjects[0] ?? null;
+
+  // Cargar avances guardados en ganttConfig cuando cambia el proyecto
+  useEffect(() => {
+    if (!activeProject) return;
+    setItemProgress(activeProject.ganttConfig?.progress ?? {});
+  }, [activeProject?.id]);
+
+  // Agrupar items por categoría
+  const itemsByCategory = (() => {
+    const map = new Map<string, any[]>();
+    (activeProject?.items ?? []).filter((i: any) => i.selected).forEach((item: any) => {
+      if (!map.has(item.category)) map.set(item.category, []);
+      map.get(item.category)!.push(item);
+    });
+    return map;
+  })();
+
+  const toggleCat = (cat: string) =>
+    setCollapsedCats(prev => { const s = new Set(prev); s.has(cat) ? s.delete(cat) : s.add(cat); return s; });
+
+  const handleSaveProgress = async () => {
+    if (!activeProject) return;
+    setSavingProgress(true);
+    try {
+      // Calcular avance global ponderado por duración
+      const items = (activeProject.items ?? []).filter((i: any) => i.selected);
+      const totalDays = items.reduce((s: number, i: any) => s + Math.max(1, (i.projectQuantity || 1) * (i.durationDays || 1)), 0);
+      const done = items.reduce((s: number, i: any) => {
+        const dur = Math.max(1, (i.projectQuantity || 1) * (i.durationDays || 1));
+        return s + (itemProgress[i.id] ?? 0) * dur;
+      }, 0);
+      const globalProgress = Math.round(done / (totalDays || 1));
+
+      await updateDocument('projects', activeProject.id, {
+        progress: globalProgress,
+        ganttConfig: { ...(activeProject.ganttConfig ?? {}), progress: itemProgress }
+      });
+      toast.success(`Avance guardado — ${globalProgress}% global`);
+    } catch {
+      toast.error('Error al guardar avance');
+    } finally {
+      setSavingProgress(false);
+    }
+  };
 
   const handleAddLog = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -298,42 +350,97 @@ export default function ExecutionModule() {
         </div>
       </div>
 
-      {/* Diagrama Gantt */}
+      {/* ── Avance por Renglón ── */}
       <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <div className="mb-4">
-          <h3 className="text-sm font-black text-primary uppercase tracking-tight">Cronograma Gantt</h3>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Avance de proyectos en ejecucion</p>
+        <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+          <div>
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight">Avance Físico por Renglón</h3>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ingresa el % completado por cada actividad</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={activeProject?.id ?? ''}
+              onChange={e => setSelectedProjectId(e.target.value)}
+              className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-blue-500"
+            >
+              {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+            <button
+              onClick={handleSaveProgress}
+              disabled={savingProgress || !activeProject}
+              className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-40"
+            >
+              <Save size={13} />
+              {savingProgress ? 'Guardando…' : 'Guardar'}
+            </button>
+            {setActiveTab && (
+              <button
+                onClick={() => setActiveTab('gantt')}
+                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase hover:bg-blue-700 active:scale-95 transition-all"
+              >
+                <BarChart2 size={13} />
+                Ver Gantt
+              </button>
+            )}
+          </div>
         </div>
-        {projects.filter(p => p.status === 'EJECUCION').length === 0 ? (
-          <div className="py-10 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos en ejecucion</div>
+
+        {!activeProject ? (
+          <div className="py-10 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">
+            Sin proyectos en ejecución
+          </div>
+        ) : itemsByCategory.size === 0 ? (
+          <div className="py-10 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">
+            Este proyecto no tiene renglones de presupuesto asignados
+          </div>
         ) : (
-          <div className="space-y-3 overflow-x-auto">
-            {/* Cabecera de meses */}
-            <div className="flex gap-2 pl-32 mb-1">
-              {['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'].map(m => (
-                <div key={m} className="flex-1 text-center text-[7px] font-black text-slate-400 uppercase">{m}</div>
-              ))}
-            </div>
-            {projects.filter(p => p.status === 'EJECUCION').map(p => {
-              const start = p.startDate ? new Date(p.startDate).getMonth() : 0;
-              const end = p.endDate ? new Date(p.endDate).getMonth() : start + 2;
-              const duration = Math.max(1, end - start + 1);
-              const progress = p.progress || 0;
+          <div className="space-y-2">
+            {Array.from(itemsByCategory.entries()).map(([cat, items]) => {
+              const collapsed = collapsedCats.has(cat);
+              const catAvg = Math.round(items.reduce((s, i) => s + (itemProgress[i.id] ?? 0), 0) / items.length);
               return (
-                <div key={p.id} className="flex items-center gap-2">
-                  <div className="w-28 shrink-0">
-                    <p className="text-[8px] font-black text-primary uppercase truncate">{p.name}</p>
-                    <p className="text-[7px] text-slate-400">{progress}%</p>
-                  </div>
-                  <div className="flex-1 flex gap-0.5 h-6">
-                    {Array.from({length: 12}, (_, i) => {
-                      const inRange = i >= start && i <= end;
-                      const done = inRange && ((i - start) / duration * 100) <= progress;
-                      return (
-                        <div key={i} className={`flex-1 rounded-sm transition-all ${inRange ? (done ? 'bg-slate-900' : 'bg-slate-200') : 'bg-slate-50'}`} />
-                      );
-                    })}
-                  </div>
+                <div key={cat}>
+                  <button
+                    onClick={() => toggleCat(cat)}
+                    className="w-full flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-left hover:bg-slate-100 transition-colors"
+                  >
+                    {collapsed ? <ChevronRight size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 flex-1">{cat}</span>
+                    <span className="text-[8px] font-bold text-slate-400">{items.length} renglones</span>
+                    <span className={cn('text-[9px] font-black ml-2', catAvg >= 100 ? 'text-green-600' : catAvg > 0 ? 'text-blue-600' : 'text-slate-400')}>
+                      {catAvg}%
+                    </span>
+                  </button>
+
+                  {!collapsed && (
+                    <div className="mt-1 space-y-1 pl-2">
+                      {items.map((item: any) => {
+                        const val = itemProgress[item.id] ?? 0;
+                        return (
+                          <div key={item.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 group">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[9px] font-bold text-slate-700 uppercase truncate">{item.description}</p>
+                              <p className="text-[7px] font-bold text-slate-400 uppercase">{item.projectQuantity} {item.unit}</p>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0 w-48">
+                              <input
+                                type="range" min={0} max={100} value={val}
+                                onChange={e => setItemProgress(prev => ({ ...prev, [item.id]: parseInt(e.target.value) }))}
+                                className="flex-1 h-1.5 accent-blue-500 cursor-pointer"
+                              />
+                              <span className={cn(
+                                'text-[9px] font-black w-8 text-right',
+                                val >= 100 ? 'text-green-600' : val > 0 ? 'text-blue-600' : 'text-slate-400'
+                              )}>
+                                {val}%
+                              </span>
+                            </div>
+                            {val >= 100 && <CheckCircle2 size={13} className="text-green-500 shrink-0" />}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}

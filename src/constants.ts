@@ -60,6 +60,7 @@ export interface Project {
   progress: number;
   budget: number;
   attachments?: string[];
+  ganttConfig?: { overrides?: Record<string, any>; progress?: Record<string, number> };
 }
 
 export interface StaffMember {

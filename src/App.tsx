@@ -186,7 +186,7 @@ function AppContent() {
       case 'calculator':
         return <CalculatorModule />;
       case 'execution':
-        return <ExecutionModule />;
+        return <ExecutionModule setActiveTab={setActiveTab} />;
       case 'clients':
         return <ClientsModule />;
       case 'inventory':
