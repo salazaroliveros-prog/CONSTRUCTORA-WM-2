@@ -32,6 +32,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
+import AIFloatingButton from './AIFloatingButton';
 import { 
   BarChart, 
   Bar, 
@@ -1185,6 +1186,9 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
           </div>
         </div>
       )}
+
+      {/* AI Floating Button */}
+      <AIFloatingButton setActiveTab={setActiveTab} />
     </div>
   );
 }

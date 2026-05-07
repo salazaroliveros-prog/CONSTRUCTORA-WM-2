@@ -20,6 +20,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import Logo from './Logo';
 import TopBarClock from './TopBarClock';
+import AIFloatingButton from './AIFloatingButton';
+import AIFloatingButton from './AIFloatingButton';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
@@ -442,6 +444,9 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         <span>© 2024 WM/M&S CONSTRUCTORA · Motor V2.4.1 PRO</span>
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
       </footer>
+
+      {/* AI Floating Button — visible en todos los módulos excepto el propio módulo IA */}
+      {activeTab !== 'ai' && <AIFloatingButton setActiveTab={setActiveTab} />}
     </div>
   );
 }
