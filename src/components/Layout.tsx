@@ -21,7 +21,6 @@ import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import Logo from './Logo';
 import TopBarClock from './TopBarClock';
 import AIFloatingButton from './AIFloatingButton';
-import AIFloatingButton from './AIFloatingButton';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
