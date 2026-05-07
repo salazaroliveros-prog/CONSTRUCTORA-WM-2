@@ -216,7 +216,7 @@ function AppContent() {
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
       <Suspense fallback={
-        <div className="flex-1 p-6 space-y-4 animate-fade-in">
+        <div className="flex-1 p-4 space-y-3 animate-fade-in">
           {/* Header skeleton */}
           <div className="flex items-center gap-3 mb-6">
             <div className="skeleton w-8 h-8 rounded-lg" />

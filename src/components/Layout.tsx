@@ -389,7 +389,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-3 py-3 md:px-4 md:py-3 scroll-smooth bg-transparent min-h-0 pb-20 md:pb-3">
+      <main className="flex-1 overflow-y-auto px-2 py-2 md:px-3 md:py-2 scroll-smooth bg-transparent min-h-0 pb-16 md:pb-2 flex flex-col">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>

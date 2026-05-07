@@ -236,7 +236,7 @@ export default function Seguimiento() {
         {/* Comparison bar chart */}
         <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Comparativa Físico vs Financiero</p>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height="100%" style={{minHeight:"clamp(140px,20vh,220px)"}}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
@@ -252,7 +252,7 @@ export default function Seguimiento() {
         {/* Deviation chart */}
         <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Desviación (Físico − Financiero)</p>
-          <ResponsiveContainer width="100%" height={220}>
+          <ResponsiveContainer width="100%" height="100%" style={{minHeight:"clamp(140px,20vh,220px)"}}>
             <BarChart data={desvData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
@@ -268,7 +268,7 @@ export default function Seguimiento() {
         {/* Budget vs Cost area */}
         <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Presupuesto vs Costo Real (Q)</p>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height="100%" style={{minHeight:"clamp(130px,18vh,200px)"}}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
@@ -286,7 +286,7 @@ export default function Seguimiento() {
         {/* Status pie */}
         <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Distribución por Estado</p>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height="100%" style={{minHeight:"clamp(130px,18vh,200px)"}}>
             <PieChart>
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value"
                 label={({ name, value }) => `${name}: ${value}`} labelLine={false}
@@ -312,7 +312,7 @@ export default function Seguimiento() {
               <p className="text-[9px] font-black text-slate-400 uppercase">Genera stock desde presupuesto en el módulo de Bodega</p>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={220} minHeight={160}>
+            <ResponsiveContainer width="100%" height="100%" style={{minHeight:"clamp(140px,20vh,220px)"}} minHeight={160}>
               <BarChart data={materialData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />

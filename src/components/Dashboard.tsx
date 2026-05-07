@@ -961,7 +961,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proporcion por proyecto activo</p>
               </div>
             </div>
-            <div className="h-[150px] w-full">
+            <div className="chart-h-sm w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <Treemap
                   data={treemapData}
