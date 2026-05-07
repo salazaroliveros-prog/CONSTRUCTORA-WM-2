@@ -44,9 +44,14 @@ function catOrder(cat: string) {
 export function calculateCPM(tasks: GanttTask[]): GanttTask[] {
   const map = new Map<string, GanttTask>(tasks.map(t => [t.id, { ...t }]));
 
+  // Filtrar dependencias que apunten a IDs que no existen en el mapa
+  map.forEach(t => {
+    t.dependencies = t.dependencies.filter(dep => map.has(dep));
+  });
+
   // Kahn: construir grado de entrada y lista de adyacencia
   const inDegree = new Map<string, number>();
-  const adj = new Map<string, string[]>(); // id → sucesores
+  const adj = new Map<string, string[]>();
   map.forEach((t, id) => {
     inDegree.set(id, t.dependencies.length);
     adj.set(id, []);
@@ -71,12 +76,14 @@ export function calculateCPM(tasks: GanttTask[]): GanttTask[] {
     });
   }
 
+  // Incluir nodos que no llegaron al topoOrder (ciclos o huérfanos)
+  map.forEach((_, id) => { if (!topoOrder.includes(id)) topoOrder.push(id); });
+
   // Forward pass
   topoOrder.forEach(id => {
     const t = map.get(id)!;
-    t.earlyStart = t.dependencies.length === 0
-      ? 0
-      : Math.max(...t.dependencies.map(dep => map.get(dep)?.earlyFinish ?? 0));
+    const depFinishes = t.dependencies.map(dep => map.get(dep)?.earlyFinish ?? 0);
+    t.earlyStart  = depFinishes.length > 0 ? Math.max(...depFinishes) : 0;
     t.earlyFinish = t.earlyStart + t.duration;
   });
 
@@ -85,10 +92,9 @@ export function calculateCPM(tasks: GanttTask[]): GanttTask[] {
   // Backward pass (reverse topo)
   [...topoOrder].reverse().forEach(id => {
     const t = map.get(id)!;
-    const succs = adj.get(id) ?? [];
-    t.lateFinish = succs.length === 0
-      ? maxFinish
-      : Math.min(...succs.map(s => map.get(s)?.lateStart ?? maxFinish));
+    const succs = (adj.get(id) ?? []).filter(s => map.has(s));
+    const succStarts = succs.map(s => map.get(s)!.lateStart);
+    t.lateFinish = succStarts.length > 0 ? Math.min(...succStarts) : maxFinish;
     t.lateStart  = t.lateFinish - t.duration;
     t.slack       = t.lateStart - t.earlyStart;
     t.isCritical  = t.slack <= 0;
