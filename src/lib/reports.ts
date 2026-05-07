@@ -396,7 +396,168 @@ export const generateBudgetPDF = (project: Project) => {
   doc.save(`Presupuesto_${project.name.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
 };
 
-// Generar Informe de Avance de Proyecto
+// ── Plantilla EJECUTIVA (1 página, resumen compacto) ─────────────────────────
+export const generateBudgetPDFEjecutivo = (project: Project) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const totals = calculateProjectTotals(project);
+
+  addHeader(doc, 'COTIZACIÓN EJECUTIVA', `Ref: ${project.id?.slice(0, 8) || 'NUEVO'}`);
+
+  let y = addProjectInfo(doc, project, 60);
+  y = addExecutiveSummary(doc, project, totals, y + 5);
+
+  // Tabla resumen de renglones (sin desglose)
+  autoTable(doc, {
+    startY: y + 5,
+    head: [['#', 'Descripción', 'Unid.', 'Cant.', 'P.Unit Q', 'Subtotal Q']],
+    body: project.items.map((item, i) => {
+      const u = item.materials.reduce((a, m) => a + m.price * m.quantity, 0) +
+                item.labor.reduce((a, l) => a + l.price * l.quantity, 0);
+      return [i + 1, item.description.slice(0, 40), item.unit,
+        item.projectQuantity.toFixed(2), fmtCurrency(u), fmtCurrency(u * item.projectQuantity)];
+    }),
+    foot: [['', '', '', '', 'TOTAL:', fmtCurrency(totals.totalBudget)]],
+    theme: 'striped',
+    headStyles: { fillColor: COLORS.primary, fontSize: 7, fontStyle: 'bold' },
+    footStyles: { fillColor: COLORS.secondary, textColor: COLORS.primary, fontStyle: 'bold', fontSize: 8 },
+    styles: { fontSize: 7, cellPadding: 2.5 },
+    columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 65 }, 4: { halign: 'right' }, 5: { halign: 'right', fontStyle: 'bold' } }
+  });
+
+  // Bloque de validez y firma
+  const finalY = Math.min((doc as any).lastAutoTable.finalY + 10, 250);
+  setFill(doc, COLORS.light);
+  doc.roundedRect(15, finalY, pageWidth - 30, 22, 2, 2, 'F');
+  setTxt(doc, COLORS.gray);
+  doc.setFontSize(7);
+  doc.text(`Presupuesto válido por 30 días · Elaborado: ${fmtDate()} · CONSTRUCTORA WM/M&S`, pageWidth / 2, finalY + 8, { align: 'center' });
+  doc.text('Precios sujetos a variación según condiciones de mercado y disponibilidad de materiales.', pageWidth / 2, finalY + 14, { align: 'center' });
+
+  addFooter(doc, 1, 1);
+  doc.save(`Cotizacion_Ejecutiva_${project.name.replace(/\s/g, '_')}.pdf`);
+};
+
+// ── Plantilla APU COMPLETO (análisis de precios unitarios por renglón) ────────
+export const generateBudgetPDFAPU = (project: Project) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const totals = calculateProjectTotals(project);
+  let pageNum = 1;
+
+  // Portada
+  addHeader(doc, 'ANÁLISIS DE PRECIOS UNITARIOS', project.name);
+  let y = addProjectInfo(doc, project, 60);
+  y = addExecutiveSummary(doc, project, totals, y + 5);
+
+  // Índice de renglones
+  setFill(doc, COLORS.light);
+  doc.roundedRect(15, y + 5, pageWidth - 30, 8, 2, 2, 'F');
+  setTxt(doc, COLORS.primary);
+  doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+  doc.text('ÍNDICE DE RENGLONES', 20, y + 11);
+  y += 18;
+
+  project.items.forEach((item, i) => {
+    const u = item.materials.reduce((a, m) => a + m.price * m.quantity, 0) +
+              item.labor.reduce((a, l) => a + l.price * l.quantity, 0);
+    setTxt(doc, COLORS.gray);
+    doc.setFontSize(7); doc.setFont('helvetica', 'normal');
+    doc.text(`${i + 1}. ${item.description.slice(0, 55)}`, 20, y);
+    doc.text(fmtCurrency(u * item.projectQuantity), pageWidth - 20, y, { align: 'right' });
+    y += 6;
+    if (y > 260) { addFooter(doc, pageNum, 99); doc.addPage(); pageNum++; addHeader(doc, 'APU — ÍNDICE', project.name); y = 60; }
+  });
+
+  // Una página por renglón (APU detallado)
+  project.items.forEach((item, idx) => {
+    addFooter(doc, pageNum, 99); doc.addPage(); pageNum++;
+    addHeader(doc, `APU ${idx + 1}/${project.items.length}`, project.name);
+
+    let cy = 58;
+    // Encabezado del renglón
+    setFill(doc, COLORS.primary);
+    doc.roundedRect(15, cy, pageWidth - 30, 14, 2, 2, 'F');
+    setTxt(doc, COLORS.secondary);
+    doc.setFontSize(9); doc.setFont('helvetica', 'bold');
+    doc.text(`${item.code} — ${item.description}`, 20, cy + 6);
+    setTxt(doc, COLORS.white);
+    doc.setFontSize(7);
+    doc.text(`Unidad: ${item.unit} | Cantidad: ${item.projectQuantity} | Categoría: ${item.category}`, 20, cy + 12);
+    cy += 18;
+
+    // Materiales
+    const matRows = item.materials.map(m => [
+      m.name, m.unit,
+      m.quantity.toFixed(3),
+      fmtCurrency(m.price),
+      fmtCurrency(m.price * m.quantity)
+    ]);
+    autoTable(doc, {
+      startY: cy,
+      head: [['MATERIALES', 'Unid.', 'Cant./unid.', 'P.Unit Q', 'Subtotal Q']],
+      body: matRows,
+      theme: 'grid',
+      headStyles: { fillColor: COLORS.accent, fontSize: 7, fontStyle: 'bold' },
+      styles: { fontSize: 7, cellPadding: 2.5 },
+      columnStyles: { 0: { cellWidth: 70 }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } },
+      margin: { left: 15, right: 15 }
+    });
+    cy = (doc as any).lastAutoTable.finalY + 4;
+
+    // Mano de obra
+    const labRows = item.labor.map(l => [
+      l.role, l.unit,
+      l.quantity.toFixed(3),
+      fmtCurrency(l.price),
+      fmtCurrency(l.price * l.quantity)
+    ]);
+    autoTable(doc, {
+      startY: cy,
+      head: [['MANO DE OBRA', 'Unid.', 'Cant./unid.', 'P.Unit Q', 'Subtotal Q']],
+      body: labRows,
+      theme: 'grid',
+      headStyles: { fillColor: COLORS.dark, fontSize: 7, fontStyle: 'bold' },
+      styles: { fontSize: 7, cellPadding: 2.5 },
+      columnStyles: { 0: { cellWidth: 70 }, 3: { halign: 'right' }, 4: { halign: 'right', fontStyle: 'bold' } },
+      margin: { left: 15, right: 15 }
+    });
+    cy = (doc as any).lastAutoTable.finalY + 4;
+
+    // Resumen del renglón
+    const matTotal = item.materials.reduce((a, m) => a + m.price * m.quantity, 0);
+    const labTotal = item.labor.reduce((a, l) => a + l.price * l.quantity, 0);
+    const unitCost = matTotal + labTotal;
+    const workers  = Math.max(1, item.labor.reduce((s, l) => s + l.quantity, 0));
+    const realDays = Math.ceil((item.projectQuantity * (item.durationDays || 1)) / workers);
+
+    setFill(doc, COLORS.secondary);
+    doc.roundedRect(15, cy, pageWidth - 30, 18, 2, 2, 'F');
+    setTxt(doc, COLORS.primary);
+    doc.setFontSize(8); doc.setFont('helvetica', 'bold');
+    doc.text(`Costo unitario: ${fmtCurrency(unitCost)}/${item.unit}`, 20, cy + 7);
+    doc.text(`Subtotal renglón: ${fmtCurrency(unitCost * item.projectQuantity)}`, 20, cy + 14);
+    doc.text(`Duración real: ${realDays} días (${workers} obreros)`, pageWidth / 2, cy + 7);
+    doc.text(`Rendimiento: ${item.durationDays} días/${item.unit}`, pageWidth / 2, cy + 14);
+  });
+
+  // Página de totales finales
+  addFooter(doc, pageNum, 99); doc.addPage(); pageNum++;
+  addHeader(doc, 'RESUMEN FINAL', project.name);
+  addExecutiveSummary(doc, project, totals, 60);
+  addFooter(doc, pageNum, pageNum);
+
+  // Corregir total de páginas
+  const total = pageNum;
+  for (let i = 1; i <= total; i++) {
+    doc.setPage(i);
+    addFooter(doc, i, total);
+  }
+
+  doc.save(`APU_Completo_${project.name.replace(/\s/g, '_')}.pdf`);
+};
+
+
 export const generateProgressReport = (project: Project, transactions: any[] = []) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();

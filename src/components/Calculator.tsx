@@ -33,7 +33,8 @@ import {
   ProjectItem, 
   WorkItem 
 } from '../constants';
-import { generateBudgetPDF, generateBudgetCSV } from '../lib/reports';
+import { generateBudgetPDF, generateBudgetCSV, generateBudgetPDFEjecutivo, generateBudgetPDFAPU } from '../lib/reports';
+import { APU_BY_TYPOLOGY, APUItem } from '../lib/apuLibrary';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
@@ -71,7 +72,9 @@ export default function CalculatorModule() {
     labor: 0,     // % de desperdicio de mano de obra
   });
   const [showAdvancedConfig, setShowAdvancedConfig] = useState(false);
-  const [areaTotal, setAreaTotal] = useState(0); // Para cálculo por m2
+  const [areaTotal, setAreaTotal] = useState(0);
+  const [showAPUPanel, setShowAPUPanel] = useState(false);
+  const [apuSearch, setApuSearch] = useState('');
 
   // Available items filtered by typology and search
   const availableItems = useMemo<WorkItem[]>(() => {
@@ -156,11 +159,31 @@ export default function CalculatorModule() {
       materials: [{ name: 'Material Nuevo', unit: 'GL', quantity: 1, price: 0 }],
       labor: [{ role: 'Oficial', unit: 'día', quantity: 1, price: 0 }]
     };
-    setCurrentProject(prev => ({
-      ...prev,
-      items: [...prev.items, newItem]
-    }));
+    setCurrentProject(prev => ({ ...prev, items: [...prev.items, newItem] }));
     setExpandedItem(customId);
+  };
+
+  const addAPUItem = (apu: APUItem) => {
+    if (currentProject.items.find(i => i.id === apu.id)) {
+      toast.info('Este renglón APU ya está en el presupuesto');
+      return;
+    }
+    const newItem: ProjectItem = {
+      id: apu.id,
+      code: apu.code,
+      description: apu.description,
+      unit: apu.unit,
+      typology: apu.typology,
+      category: apu.category,
+      durationDays: apu.durationDays,
+      projectQuantity: 1,
+      selected: true,
+      materials: apu.materials.map(m => ({ ...m })),
+      labor: apu.labor.map(l => ({ ...l })),
+    };
+    setCurrentProject(prev => ({ ...prev, items: [...prev.items, newItem] }));
+    toast.success(`APU agregado: ${apu.description}`);
+    setShowAPUPanel(false);
   };
 
   const updateItemBasic = (id: string, field: 'description' | 'unit', value: string) => {
@@ -241,6 +264,7 @@ export default function CalculatorModule() {
   }, [currentProject.items]);
 
   const [saving, setSaving] = useState(false);
+  const [pdfTemplate, setPdfTemplate] = useState<'completo' | 'ejecutivo' | 'apu'>('completo');
 
   // Cargar clientes para el selector
   const [clientList, setClientList] = useState<{ id: string; name: string }[]>([]);
@@ -505,13 +529,28 @@ export default function CalculatorModule() {
           )}
         </div>
 
-        <div className="mt-6 flex gap-3 border-t border-slate-50 pt-6">
-           <button 
-            onClick={() => generateBudgetPDF(currentProject)}
-            className="flex items-center gap-2 bg-slate-900 text-white px-5 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-primary/90"
-           >
-             <FileDown size={14} className="text-secondary" /> PDF PROFESIONAL
-           </button>
+        <div className="mt-6 flex gap-3 border-t border-slate-50 pt-6 flex-wrap">
+           <div className="flex items-center gap-2">
+             <select
+               value={pdfTemplate}
+               onChange={e => setPdfTemplate(e.target.value as any)}
+               className="h-10 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary"
+             >
+               <option value="completo">PDF Completo (4 páginas)</option>
+               <option value="ejecutivo">PDF Ejecutivo (1 página)</option>
+               <option value="apu">PDF APU Detallado</option>
+             </select>
+             <button
+               onClick={() => {
+                 if (pdfTemplate === 'ejecutivo') generateBudgetPDFEjecutivo(currentProject);
+                 else if (pdfTemplate === 'apu') generateBudgetPDFAPU(currentProject);
+                 else generateBudgetPDF(currentProject);
+               }}
+               className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-primary/90"
+             >
+               <FileDown size={14} className="text-secondary" /> Exportar PDF
+             </button>
+           </div>
            <button 
              onClick={() => generateBudgetCSV(currentProject)}
              className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-50"
@@ -547,13 +586,88 @@ export default function CalculatorModule() {
                    <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary">Renglones {selectedTypology}</h4>
                    <span className="bg-slate-700 px-2 py-0.5 rounded text-[9px] font-black">{availableItems.length}</span>
                 </div>
-                <div className="p-3 border-b border-slate-50">
-                  <button 
-                    onClick={addCustomItem}
-                    className="w-full bg-slate-50 border border-dashed border-slate-300 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-secondary hover:border-secondary transition-all flex items-center justify-center gap-2"
-                  >
-                    <Plus size={14} /> CREAR RENGLÓN PERSONALIZADO
-                  </button>
+                <div className="p-3 border-b border-slate-50 space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => { setShowAPUPanel(v => !v); setApuSearch(''); }}
+                      className="bg-blue-50 border border-blue-200 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest text-blue-600 hover:bg-blue-100 transition-all flex items-center justify-center gap-1"
+                    >
+                      <Search size={12} /> Librería APU
+                    </button>
+                    <button
+                      onClick={addCustomItem}
+                      className="bg-slate-50 border border-dashed border-slate-300 py-2 rounded-lg text-[8px] font-black uppercase tracking-widest text-slate-400 hover:text-secondary hover:border-secondary transition-all flex items-center justify-center gap-1"
+                    >
+                      <Plus size={12} /> Personalizado
+                    </button>
+                  </div>
+
+                  {/* Panel Librería APU */}
+                  {showAPUPanel && (() => {
+                    const apuItems = APU_BY_TYPOLOGY[selectedTypology] ?? [];
+                    const filtered = apuItems.filter(a =>
+                      a.description.toLowerCase().includes(apuSearch.toLowerCase()) ||
+                      a.category.toLowerCase().includes(apuSearch.toLowerCase()) ||
+                      a.code.toLowerCase().includes(apuSearch.toLowerCase())
+                    );
+                    return (
+                      <div className="border border-blue-200 rounded-xl overflow-hidden bg-white">
+                        <div className="bg-blue-600 px-3 py-2 flex items-center justify-between">
+                          <span className="text-[8px] font-black text-white uppercase">Librería APU — {selectedTypology}</span>
+                          <span className="text-[7px] text-blue-200">{apuItems.length} renglones</span>
+                        </div>
+                        <div className="p-2">
+                          <input
+                            value={apuSearch}
+                            onChange={e => setApuSearch(e.target.value)}
+                            placeholder="Buscar en librería..."
+                            className="w-full bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-bold focus:outline-none focus:border-blue-400"
+                          />
+                        </div>
+                        <div className="max-h-64 overflow-y-auto divide-y divide-slate-50">
+                          {filtered.length === 0 && (
+                            <p className="text-center py-4 text-[8px] text-slate-300 font-bold uppercase">Sin resultados</p>
+                          )}
+                          {filtered.map(apu => {
+                            const matTotal = apu.materials.reduce((s, m) => s + m.price * m.quantity, 0);
+                            const labTotal = apu.labor.reduce((s, l) => s + l.price * l.quantity, 0);
+                            const unitCost = matTotal + labTotal;
+                            const alreadyAdded = currentProject.items.some(i => i.id === apu.id);
+                            return (
+                              <div key={apu.id} className="p-2 hover:bg-blue-50 transition-colors flex items-center gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-[8px] font-black text-slate-700 uppercase truncate">{apu.description}</p>
+                                  <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-[7px] font-bold text-blue-500 uppercase">{apu.category}</span>
+                                    <span className="text-[7px] text-slate-400">·</span>
+                                    <span className="text-[7px] font-bold text-slate-500">{apu.unit}</span>
+                                    <span className="text-[7px] text-slate-400">·</span>
+                                    <span className="text-[7px] font-black text-amber-600">Q{unitCost.toLocaleString()}/{apu.unit}</span>
+                                  </div>
+                                  <div className="flex gap-1 mt-0.5 flex-wrap">
+                                    {apu.materials.slice(0, 3).map((m, i) => (
+                                      <span key={i} className="text-[6px] bg-slate-100 text-slate-500 px-1 rounded">{m.name}</span>
+                                    ))}
+                                    {apu.materials.length > 3 && <span className="text-[6px] text-slate-400">+{apu.materials.length - 3} más</span>}
+                                  </div>
+                                </div>
+                                <button
+                                  onClick={() => addAPUItem(apu)}
+                                  disabled={alreadyAdded}
+                                  className={cn(
+                                    'shrink-0 p-1.5 rounded-lg transition-all',
+                                    alreadyAdded ? 'bg-green-100 text-green-500' : 'bg-blue-600 text-white hover:bg-blue-700'
+                                  )}
+                                >
+                                  {alreadyAdded ? <CheckCircle2 size={12} /> : <Plus size={12} />}
+                                </button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
                 <div className="max-h-[500px] overflow-y-auto">
                     {paginatedAvailableItems.map((item) => {
