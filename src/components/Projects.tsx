@@ -33,9 +33,10 @@ import {
   Pencil,
   PlusCircle
 } from 'lucide-react';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from 'recharts';
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line, Area, AreaChart, ReferenceLine } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
-import { Typology, Project, StaffMember } from '../constants';
+import { Typology, Project, StaffMember, Client } from '../constants';
+import { calcRealDuration } from '../lib/ganttCPM';
 import ProjectWizard from './ProjectWizard';
 import Modal from './ui/Modal';
 import { clsx, type ClassValue } from 'clsx';
@@ -47,7 +48,7 @@ import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import { toast } from 'sonner';
 import { generatePDF, generateCSV, exportToExcel, generateProjectPDF, generateProjectCSV, calcProjectDuration, PDF_TEMPLATES, CSV_TEMPLATES, ExportStyle } from '../lib/exportUtils';
 import Pagination from './ui/Pagination';
-import { Users, MapPin, CalendarDays } from 'lucide-react';
+import { Users, MapPin, CalendarDays, DollarSign, TrendingDown } from 'lucide-react';
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -136,6 +137,8 @@ export default function ProjectsModule() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [updatingProgress, setUpdatingProgress] = useState(false);
   const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
+  const [allClients, setAllClients] = useState<Client[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<string | null>(null); // item.id being edited
   const [itemEditForm, setItemEditForm] = useState<any>({});
@@ -156,10 +159,10 @@ export default function ProjectsModule() {
   }>({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
 
   useEffect(() => {
-    const unsub = subscribeToCollection('staff', (data) => {
-      setAllStaff(data as StaffMember[]);
-    });
-    return () => unsub();
+    const unsub = subscribeToCollection('staff', (data) => { setAllStaff(data as StaffMember[]); });
+    const u2 = subscribeToCollection('clients', (data) => setAllClients(data as Client[]));
+    const u3 = subscribeToCollection('transactions', (data) => setTransactions(data));
+    return () => { unsub(); u2(); u3(); };
   }, []);
 
   const filteredProjects = projects.filter(p => {
@@ -575,23 +578,38 @@ export default function ProjectsModule() {
           </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-6">
-        <div className="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center md:items-start">
-           <div className="p-2 bg-blue-50 text-blue-600 rounded-lg mb-2"><Building2 size={16} /></div>
-           <h2 className="text-xl md:text-3xl font-black">{stats.total}</h2>
-           <p className="text-[8px] md:text-[10px] text-slate-400 uppercase font-bold tracking-widest">Total</p>
-        </div>
-        <div className="bg-white p-4 md:p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col items-center md:items-start">
-           <div className="p-2 bg-orange-50 text-orange-600 rounded-lg mb-2"><TrendingUp size={16} /></div>
-           <h2 className="text-xl md:text-3xl font-black">{stats.cotizaciones}</h2>
-           <p className="text-[8px] md:text-[10px] text-slate-400 uppercase font-bold tracking-widest">Cotizaciones</p>
-        </div>
-        <div className="hidden md:flex bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex-col items-start">
-           <div className="p-2 bg-green-50 text-green-600 rounded-lg mb-2"><Clock size={16} /></div>
-           <h2 className="text-3xl font-black">{stats.ejecucion}</h2>
-           <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">En Ejecución</p>
-        </div>
-      </div>
+      {/* ── KPIs financieros ── */}
+      {(() => {
+        const totalBudget   = projects.reduce((s, p) => s + (p.budget || 0), 0);
+        const inExec        = projects.filter(p => p.status === 'EJECUCION');
+        const execBudget    = inExec.reduce((s, p) => s + (p.budget || 0), 0);
+        const totalExecuted = transactions.filter(t => t.type === 'GASTO').reduce((s, t) => s + (t.amount || 0), 0);
+        const deviation     = execBudget > 0 ? ((totalExecuted - execBudget) / execBudget) * 100 : 0;
+        // Proyectos con retraso real: tiempo transcurrido > avance físico + 10%
+        const delayed = inExec.filter(p => {
+          if (!p.startDate || !p.endDate) return false;
+          const total = new Date(p.endDate).getTime() - new Date(p.startDate).getTime();
+          const elapsed = Date.now() - new Date(p.startDate).getTime();
+          const expectedProgress = Math.min(100, (elapsed / total) * 100);
+          return (p.progress || 0) < expectedProgress - 10;
+        });
+        return (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {[
+              { icon: <Building2 size={14} className="text-blue-500" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700' },
+              { icon: <DollarSign size={14} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700' },
+              { icon: <TrendingUp size={14} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
+              { icon: <AlertCircle size={14} className={delayed.length > 0 ? 'text-red-500' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600' : 'text-green-700' },
+            ].map(k => (
+              <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">{k.icon}<span className="text-[8px] font-black text-slate-400 uppercase">{k.label}</span></div>
+                <p className={cn('text-xl font-black', k.color)}>{k.value}</p>
+                <p className="text-[8px] font-bold text-slate-400 uppercase mt-0.5 truncate">{k.sub}</p>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
@@ -878,7 +896,13 @@ export default function ProjectsModule() {
                   <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">Modo Edicion</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
-                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Cliente</label><input value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Cliente</label>
+                      <select value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400">
+                        <option value="">— Seleccionar —</option>
+                        {allClients.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                        {editForm.clientName && !allClients.find(c => c.name === editForm.clientName) && <option value={editForm.clientName}>{editForm.clientName}</option>}
+                      </select>
+                    </div>
                     <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Estado</label><select value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
                     <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
                     <div><label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-white border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
@@ -934,7 +958,53 @@ export default function ProjectsModule() {
                   <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
                     <Settings2 size={14} className="text-secondary" /> Breakdown de Costos
                   </h4>
-                  <div className="h-64 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                  {/* Curva S: avance físico vs tiempo transcurrido */}
+                  {(() => {
+                    if (!selectedProject.startDate) return null;
+                    const start = new Date(selectedProject.startDate).getTime();
+                    const end   = selectedProject.endDate ? new Date(selectedProject.endDate).getTime() : start + 90 * 86400000;
+                    const total = end - start;
+                    const today = Date.now();
+                    const elapsed = Math.min(100, Math.max(0, ((today - start) / total) * 100));
+                    // Generar puntos de curva S teórica (distribución normal acumulada aproximada)
+                    const sCurve = Array.from({ length: 11 }, (_, i) => {
+                      const t = i * 10;
+                      // Curva S: distribución logística
+                      const theoretical = Math.round(100 / (1 + Math.exp(-0.1 * (t - 50))));
+                      const actual = t <= Math.round(elapsed) ? Math.round((selectedProject.progress || 0) * (t / Math.round(elapsed || 1))) : null;
+                      return { t: `${t}%`, theoretical, actual };
+                    });
+                    return (
+                      <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[8px] font-black text-slate-400 uppercase">Curva S — Avance Físico vs Tiempo</span>
+                          <div className="flex items-center gap-3 text-[7px] font-bold text-slate-400 uppercase">
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-amber-400 inline-block" /> Teórico</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-500 inline-block" /> Real</span>
+                          </div>
+                        </div>
+                        <div className="h-48">
+                          <ResponsiveContainer width="100%" height="100%">
+                            <LineChart data={sCurve}>
+                              <XAxis dataKey="t" fontSize={8} />
+                              <YAxis fontSize={8} domain={[0, 100]} tickFormatter={v => `${v}%`} />
+                              <Tooltip formatter={(v: any) => `${v}%`} />
+                              <ReferenceLine x={`${Math.round(elapsed)}%`} stroke="#ef4444" strokeDasharray="3 3" label={{ value: 'Hoy', fontSize: 8, fill: '#ef4444' }} />
+                              <Line type="monotone" dataKey="theoretical" stroke="#f59e0b" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                              <Line type="monotone" dataKey="actual" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </div>
+                        <div className="flex items-center justify-between mt-2 text-[8px] font-bold">
+                          <span className="text-slate-400">Tiempo transcurrido: <span className="text-slate-700">{Math.round(elapsed)}%</span></span>
+                          <span className={cn('font-black', (selectedProject.progress || 0) < elapsed - 10 ? 'text-red-500' : 'text-green-600')}>
+                            {(selectedProject.progress || 0) < elapsed - 10 ? `⚠ Retraso ${Math.round(elapsed - (selectedProject.progress || 0))}%` : '✓ Al día'}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                  <div className="h-48 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={[
                         { name: 'Materiales', value: selectedProject.items.reduce((acc, item) => acc + (item.materials?.reduce((a, m) => a + (m.price * m.quantity * (item.projectQuantity || 1)), 0) || 0), 0) },
@@ -1243,8 +1313,18 @@ export default function ProjectsModule() {
                          <span className="text-[9px] font-black uppercase tracking-widest">Suma Alzada</span>
                        </div>
                        <div className="flex justify-between items-center">
-                         <span className="text-[8px] font-black text-slate-500 uppercase">Duración Estimada</span>
-                         <span className="text-[9px] font-black text-secondary uppercase tracking-widest text-right max-w-[55%] truncate">{calcProjectDuration(selectedProject).label}</span>
+                         <span className="text-[8px] font-black text-slate-500 uppercase">Duración Real</span>
+                         <span className="text-[9px] font-black text-secondary uppercase tracking-widest text-right max-w-[55%] truncate">
+                           {(() => {
+                             const days = (selectedProject.items || []).reduce((acc, item) => {
+                               const { duration } = calcRealDuration(item);
+                               return acc + duration;
+                             }, 0);
+                             if (days < 7) return `${days} días`;
+                             if (days < 60) return `${Math.ceil(days/7)} semanas`;
+                             return `${Math.ceil(days/30)} meses`;
+                           })()}
+                         </span>
                        </div>
                      </div>
                    </div>
