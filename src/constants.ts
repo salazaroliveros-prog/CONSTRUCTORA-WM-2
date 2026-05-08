@@ -408,3 +408,88 @@ export const BRAND_COLORS = {
   bg: '#F8F9FA',
   text: '#2D3436'
 };
+
+// ──────────────────────────────────────────────────────────────────────────────
+// MATERIALS SUMMARY - Cálculo de materiales para presupuesto
+// ──────────────────────────────────────────────────────────────────────────────
+
+export interface MaterialSummaryItem {
+  name: string;
+  unit: string;
+  totalQuantity: number;
+  category: string; // 'Concreto' | 'Acero' | 'Mampostería' | 'Acabados' | 'Instalaciones' | 'Varios'
+}
+
+// Materiales estándar por categoría de trabajo (por unidad de medida del renglón)
+export interface MaterialPerUnit {
+  materialName: string;
+  unit: string;
+  quantity: number; // Cantidad por unidad del renglón
+  category: 'concreto' | 'acero' | 'mamposteria' | 'acabados' | 'instalaciones' | 'varios';
+}
+
+// Materiales por categoría de ítem (cantidad por unidad del trabajo)
+export const MATERIALS_BY_CATEGORY: Record<string, MaterialPerUnit[]> = {
+  'Cimentación': [
+    { materialName: 'Cemento Portland tipo I (saco 42.5kg)', unit: 'saco', quantity: 8.5, category: 'concreto' },
+    { materialName: 'Arena de río lavada', unit: 'm3', quantity: 0.45, category: 'concreto' },
+    { materialName: 'Grava triturada 3/4"', unit: 'm3', quantity: 0.65, category: 'concreto' },
+    { materialName: 'Acero de refuerzo No.4 (1/2")', unit: 'kg', quantity: 85, category: 'acero' },
+    { materialName: 'Alambre de amarre No.18', unit: 'kg', quantity: 1.2, category: 'acero' },
+  ],
+  'Estructura': [
+    { materialName: 'Cemento Portland tipo I (saco 42.5kg)', unit: 'saco', quantity: 8.5, category: 'concreto' },
+    { materialName: 'Arena de río lavada', unit: 'm3', quantity: 0.45, category: 'concreto' },
+    { materialName: 'Grava triturada 3/4"', unit: 'm3', quantity: 0.65, category: 'concreto' },
+    { materialName: 'Acero de refuerzo No.4 (1/2")', unit: 'kg', quantity: 120, category: 'acero' },
+    { materialName: 'Acero de refuerzo No.3 (3/8")', unit: 'kg', quantity: 45, category: 'acero' },
+    { materialName: 'Alambre de amarre No.18', unit: 'kg', quantity: 2, category: 'acero' },
+    { materialName: 'Formaleta madera pino', unit: 'm2', quantity: 4, category: 'varios' },
+  ],
+  'Mampostería': [
+    { materialName: 'Bloque pómez No.4 (0.10m)', unit: 'un', quantity: 12.5, category: 'mamposteria' },
+    { materialName: 'Cemento Portland tipo I (saco 42.5kg)', unit: 'saco', quantity: 0.25, category: 'concreto' },
+    { materialName: 'Arena de río lavada', unit: 'm3', quantity: 0.015, category: 'concreto' },
+  ],
+  'Acabados': [
+    { materialName: 'Cemento Portland tipo I (saco 42.5kg)', unit: 'saco', quantity: 0.15, category: 'concreto' },
+    { materialName: 'Arena de río lavada', unit: 'm3', quantity: 0.02, category: 'concreto' },
+    { materialName: 'Pintura vinílica', unit: 'gal', quantity: 0.08, category: 'acabados' },
+    { materialName: 'Cerámica o porcelanato', unit: 'm2', quantity: 1.05, category: 'acabados' },
+  ],
+  'Preliminares': [
+    { materialName: 'Combustible', unit: 'lt', quantity: 0.5, category: 'varios' },
+  ],
+  'Instalaciones': [
+    { materialName: 'Tubo PVC sanitario 4"', unit: 'ml', quantity: 1, category: 'instalaciones' },
+    { materialName: 'Tubo PVC hidráulico 1/2"', unit: 'ml', quantity: 1, category: 'instalaciones' },
+    { materialName: 'Cable eléctrico THW 12', unit: 'ml', quantity: 3, category: 'instalaciones' },
+    { materialName: 'Tub conduit PVC 3/4"', unit: 'ml', quantity: 1.5, category: 'instalaciones' },
+  ],
+  'Cubierta': [
+    { materialName: 'Lámina metálica calibre 26', unit: 'm2', quantity: 1.05, category: 'varios' },
+    { materialName: 'Tornillo autorroscante', unit: 'un', quantity: 6, category: 'varios' },
+    { materialName: 'Sellador de полиуретано', unit: 'tubo', quantity: 0.1, category: 'varios' },
+  ],
+  'Exteriores': [
+    { materialName: 'Cemento Portland tipo I (saco 42.5kg)', unit: 'saco', quantity: 0.35, category: 'concreto' },
+    { materialName: 'Arena de río lavada', unit: 'm3', quantity: 0.04, category: 'concreto' },
+    { materialName: 'Grava triturada 3/4"', unit: 'm3', quantity: 0.06, category: 'concreto' },
+    { materialName: 'Planta de grama', unit: 'm2', quantity: 1, category: 'varios' },
+  ],
+  'Fachada': [
+    { materialName: 'Panel ACM o similar', unit: 'm2', quantity: 1.02, category: 'acabados' },
+    { materialName: 'Perfilería aluminio', unit: 'ml', quantity: 0.8, category: 'varios' },
+    { materialName: 'Sellador estructural', unit: 'tubo', quantity: 0.15, category: 'varios' },
+  ],
+};
+
+// Categorías de materiales para el resumen
+export const MATERIAL_CATEGORIES = [
+  { key: 'concreto', label: 'Concreto', color: '#6B7280' },
+  { key: 'acero', label: 'Acero y Ferretería', color: '#EF4444' },
+  { key: 'mamposteria', label: 'Mampostería', color: '#F59E0B' },
+  { key: 'acabados', label: 'Acabados', color: '#10B981' },
+  { key: 'instalaciones', label: 'Instalaciones', color: '#3B82F6' },
+  { key: 'varios', label: 'Varios', color: '#8B5CF6' },
+];

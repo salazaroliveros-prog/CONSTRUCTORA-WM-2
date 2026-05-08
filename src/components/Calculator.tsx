@@ -26,12 +26,14 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
-import { 
-  Typology, 
-  DEFAULT_WORK_ITEMS, 
-  Project, 
-  ProjectItem, 
-  WorkItem 
+import {
+  Typology,
+  DEFAULT_WORK_ITEMS,
+  Project,
+  ProjectItem,
+  WorkItem,
+  MATERIALS_BY_CATEGORY,
+  MATERIAL_CATEGORIES
 } from '../constants';
 import { generateBudgetPDF, generateBudgetCSV, generateBudgetPDFEjecutivo, generateBudgetPDFAPU } from '../lib/reports';
 import { APU_BY_TYPOLOGY, APUItem } from '../lib/apuLibrary';
@@ -225,6 +227,56 @@ export default function CalculatorModule() {
   const totalDirect = useMemo(() => {
     return currentProject.items.reduce((acc, item) => acc + calculateItemTotalWithWaste(item), 0);
   }, [currentProject.items, wasteFactors]);
+
+  // ──────────────────────────────────────────────────────────────────────────────
+  // CÁLCULO DE MATERIALES POR ÍTEM Y RESUMEN TOTAL
+  // ──────────────────────────────────────────────────────────────────────────────
+  
+  // Función para calcular materiales por cada renglón
+  const calculateMaterialsPerItem = (item: ProjectItem) => {
+    const category = item.category;
+    const materialsConfig = MATERIALS_BY_CATEGORY[category] || MATERIALS_BY_CATEGORY['Varios'] || [];
+    
+    return materialsConfig.map(mat => ({
+      ...mat,
+      totalQuantity: mat.quantity * item.projectQuantity
+    }));
+  };
+
+  // Función para calcular el resumen total de materiales del proyecto
+  const totalMaterialsSummary = useMemo(() => {
+    const summary: Record<string, { name: string; unit: string; totalQuantity: number; category: string }> = {};
+    
+    currentProject.items.forEach(item => {
+      const itemMaterials = calculateMaterialsPerItem(item);
+      itemMaterials.forEach(mat => {
+        const key = mat.materialName;
+        if (summary[key]) {
+          summary[key].totalQuantity += mat.totalQuantity;
+        } else {
+          summary[key] = {
+            name: mat.materialName,
+            unit: mat.unit,
+            totalQuantity: mat.totalQuantity,
+            category: mat.category
+          };
+        }
+      });
+    });
+    
+    // Ordenar por categoría y nombre
+    const categories = ['concreto', 'acero', 'mamposteria', 'acabados', 'instalaciones', 'varios'];
+    return Object.values(summary).sort((a, b) => {
+      const catA = categories.indexOf(a.category);
+      const catB = categories.indexOf(b.category);
+      if (catA !== catB) return catA - catB;
+      return a.name.localeCompare(b.name);
+    });
+  }, [currentProject.items]);
+
+  // Estado para mostrar/ocultar sección de materiales
+  const [showMaterialsSection, setShowMaterialsSection] = useState(true);
+  const [expandedMaterialsItem, setExpandedMaterialsItem] = useState<string | null>(null);
 
   // Desglose de costos
   const costBreakdown = useMemo(() => {
@@ -886,6 +938,71 @@ export default function CalculatorModule() {
                               </div>
                            </div>
 
+                           {/* ───────────────────────────────────────────────────────────────────────── */}
+                           {/* MATERIALES CALCULADOS POR CANTIDAD DEL PROYECTO */}
+                           {/* ───────────────────────────────────────────────────────────────────────── */}
+                           <div className="mt-4 pt-4 border-t border-slate-200">
+                              <button
+                                onClick={() => setExpandedMaterialsItem(expandedMaterialsItem === item.id ? null : item.id)}
+                                className="flex items-center gap-2 text-[10px] font-black uppercase tracking-wider text-slate-500 hover:text-secondary transition-colors"
+                              >
+                                <Package size={14} />
+                                Materiales del Proyecto
+                                {expandedMaterialsItem === item.id ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+                              </button>
+                              
+                              {expandedMaterialsItem === item.id && (
+                                <motion.div
+                                  initial={{ opacity: 0, height: 0 }}
+                                  animate={{ opacity: 1, height: 'auto' }}
+                                  exit={{ opacity: 0, height: 0 }}
+                                  className="mt-3 bg-slate-50 rounded-lg p-3"
+                                >
+                                  <table className="w-full text-[10px]">
+                                    <thead>
+                                      <tr className="border-b border-slate-200">
+                                        <th className="text-left py-2 font-black text-slate-400 uppercase">Material</th>
+                                        <th className="text-center py-2 font-black text-slate-400 uppercase">Und</th>
+                                        <th className="text-center py-2 font-black text-slate-400 uppercase">x Und</th>
+                                        <th className="text-center py-2 font-black text-slate-400 uppercase">Cantidad</th>
+                                        <th className="text-right py-2 font-black text-slate-400 uppercase">Total</th>
+                                      </tr>
+                                    </thead>
+                                    <tbody>
+                                      {(() => {
+                                        const calculatedMaterials = calculateMaterialsPerItem(item);
+                                        return calculatedMaterials.length > 0 ? (
+                                          calculatedMaterials.map((mat, idx) => (
+                                            <motion.tr
+                                              key={idx}
+                                              initial={{ opacity: 0, x: -10 }}
+                                              animate={{ opacity: 1, x: 0 }}
+                                              transition={{ delay: idx * 0.05 }}
+                                              className="border-b border-slate-100 hover:bg-white transition-colors"
+                                            >
+                                              <td className="py-2 font-bold text-slate-700">{mat.materialName}</td>
+                                              <td className="py-2 text-center text-slate-500">{mat.unit}</td>
+                                              <td className="py-2 text-center text-slate-400">{mat.quantity.toFixed(3)}</td>
+                                              <td className="py-2 text-center font-black text-secondary">{mat.totalQuantity.toFixed(2)}</td>
+                                              <td className="py-2 text-right font-bold text-slate-600">
+                                                {mat.totalQuantity > 0 ? mat.totalQuantity.toLocaleString('es-GT', { maximumFractionDigits: 2 }) : '-'}
+                                              </td>
+                                            </motion.tr>
+                                          ))
+                                        ) : (
+                                          <tr>
+                                            <td colSpan={5} className="py-4 text-center text-slate-400 italic">
+                                              No hay materiales definidos para esta categoría
+                                            </td>
+                                          </tr>
+                                        );
+                                      })()}
+                                    </tbody>
+                                  </table>
+                                </motion.div>
+                              )}
+                           </div>
+
                            <div className="flex items-center gap-6 pt-4 border-t border-slate-100">
                               <div className="flex-1">
                                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-2">Cantidad de Obra ({item.unit})</label>
@@ -938,10 +1055,129 @@ export default function CalculatorModule() {
                     </AnimatePresence>
                  </motion.div>
                ))}
+
+               {/* ───────────────────────────────────────────────────────────────────────── */}
+               {/* RESUMEN TOTAL DE MATERIALES DEL PROYECTO */}
+               {/* ───────────────────────────────────────────────────────────────────────── */}
+               {currentProject.items.length > 0 && showMaterialsSection && (
+                 <motion.div
+                   initial={{ opacity: 0, y: 20 }}
+                   animate={{ opacity: 1, y: 0 }}
+                   className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 shadow-xl mt-6"
+                 >
+                   <div className="flex items-center justify-between mb-4">
+                     <div className="flex items-center gap-3">
+                       <div className="p-2 bg-secondary/20 rounded-lg">
+                         <Package size={20} className="text-secondary" />
+                       </div>
+                       <div>
+                         <h3 className="text-sm font-black text-white uppercase tracking-wider">Resumen de Materiales</h3>
+                         <p className="text-[10px] text-slate-400">Cantidades totales para ejecutar el proyecto</p>
+                       </div>
+                     </div>
+                     <button
+                       onClick={() => setShowMaterialsSection(false)}
+                       className="p-2 hover:bg-white/10 rounded-lg transition-colors"
+                     >
+                       <ChevronUp size={18} className="text-slate-400" />
+                     </button>
+                   </div>
+
+                   {totalMaterialsSummary.length > 0 ? (
+                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                       {MATERIAL_CATEGORIES.map(cat => {
+                         const materialsInCategory = totalMaterialsSummary.filter(m => m.category === cat.key);
+                         if (materialsInCategory.length === 0) return null;
+                         
+                         return (
+                           <motion.div
+                             key={cat.key}
+                             initial={{ opacity: 0, scale: 0.9 }}
+                             animate={{ opacity: 1, scale: 1 }}
+                             className="bg-white/5 rounded-lg p-3 border border-white/10"
+                           >
+                             <div className="flex items-center gap-2 mb-2">
+                               <div className="w-2 h-2 rounded-full" style={{ backgroundColor: cat.color }} />
+                               <span className="text-[10px] font-black text-slate-300 uppercase tracking-wider">{cat.label}</span>
+                             </div>
+                             <div className="space-y-1">
+                               {materialsInCategory.map((mat, idx) => (
+                                 <div key={idx} className="flex justify-between items-center text-[10px]">
+                                   <span className="text-slate-400 truncate flex-1">{mat.name}</span>
+                                   <span className="font-black text-white ml-2">
+                                     {mat.totalQuantity > 0 ? mat.totalQuantity.toLocaleString('es-GT', { maximumFractionDigits: 2 }) : '0'}
+                                     <span className="text-slate-500 ml-1 text-[8px]">{mat.unit}</span>
+                                   </span>
+                                 </div>
+                               ))}
+                             </div>
+                           </motion.div>
+                         );
+                       })}
+                     </div>
+                   ) : (
+                     <div className="text-center py-8 text-slate-500">
+                       <Package size={32} className="mx-auto mb-2 opacity-50" />
+                       <p className="text-sm">No hay materiales calculados para este presupuesto</p>
+                     </div>
+                   )}
+
+                   {/* Tabla detallada */}
+                   <div className="mt-4 pt-4 border-t border-white/10">
+                     <details className="group">
+                       <summary className="cursor-pointer text-[10px] font-black text-slate-400 uppercase tracking-wider hover:text-secondary transition-colors flex items-center gap-2">
+                         <ChevronDown size={14} className="group-open:rotate-180 transition-transform" />
+                         Ver tabla detallada
+                       </summary>
+                       <div className="mt-3 overflow-x-auto">
+                         <table className="w-full text-[10px]">
+                           <thead>
+                             <tr className="border-b border-white/10">
+                               <th className="text-left py-2 font-black text-slate-400 uppercase">Material</th>
+                               <th className="text-center py-2 font-black text-slate-400 uppercase">Und</th>
+                               <th className="text-right py-2 font-black text-slate-400 uppercase">Cantidad Total</th>
+                             </tr>
+                           </thead>
+                           <tbody>
+                             {totalMaterialsSummary.map((mat, idx) => (
+                               <motion.tr
+                                 key={idx}
+                                 initial={{ opacity: 0 }}
+                                 animate={{ opacity: 1 }}
+                                 transition={{ delay: idx * 0.02 }}
+                                 className="border-b border-white/5 hover:bg-white/5 transition-colors"
+                               >
+                                 <td className="py-2 font-bold text-slate-300">{mat.name}</td>
+                                 <td className="py-2 text-center text-slate-500">{mat.unit}</td>
+                                 <td className="py-2 text-right font-black text-secondary">
+                                   {mat.totalQuantity > 0 ? mat.totalQuantity.toLocaleString('es-GT', { maximumFractionDigits: 3 }) : '0'}
+                                 </td>
+                               </motion.tr>
+                             ))}
+                           </tbody>
+                         </table>
+                       </div>
+                     </details>
+                   </div>
+                 </motion.div>
+               )}
+
+               {/* Botón para mostrar sección si está oculta */}
+               {currentProject.items.length > 0 && !showMaterialsSection && (
+                 <motion.button
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   onClick={() => setShowMaterialsSection(true)}
+                   className="w-full py-3 bg-slate-800 rounded-xl border border-slate-700 hover:border-secondary transition-colors flex items-center justify-center gap-2 mt-4"
+                 >
+                   <Package size={16} className="text-secondary" />
+                   <span className="text-xs font-black text-slate-300 uppercase tracking-wider">Ver Resumen de Materiales</span>
+                 </motion.button>
+               )}
              </div>
            )}
-        </div>
-      </div>
-    </div>
-  );
+       </div>
+     </div>
+   </div>
+ );
 }

@@ -6,7 +6,7 @@
 
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import { Project } from '../constants';
+import { Project, MATERIALS_BY_CATEGORY } from '../constants';
 
 // Colores corporativos
 const COLORS = {
@@ -62,6 +62,41 @@ const calculateProjectTotals = (project: Project) => {
   const estimatedDays = project.items.reduce((acc, item) => acc + (item.durationDays || 1) * item.projectQuantity, 0);
 
   return { directCost, materialsTotal, laborTotal, indirectCost, adminCost, personalCost, totalBudget, estimatedDays };
+};
+
+// Función para calcular materiales del proyecto (para informes)
+const calculateProjectMaterials = (project: Project) => {
+  const summary: Record<string, { name: string; unit: string; totalQuantity: number; category: string }> = {};
+  
+  project.items.forEach(item => {
+    const category = item.category;
+    const materialsConfig = MATERIALS_BY_CATEGORY[category] || MATERIALS_BY_CATEGORY['Varios'] || [];
+    
+    materialsConfig.forEach(mat => {
+      const key = mat.materialName;
+      const totalQuantity = mat.quantity * item.projectQuantity;
+      
+      if (summary[key]) {
+        summary[key].totalQuantity += totalQuantity;
+      } else {
+        summary[key] = {
+          name: mat.materialName,
+          unit: mat.unit,
+          totalQuantity,
+          category: mat.category
+        };
+      }
+    });
+  });
+  
+  // Ordenar por categoría y nombre
+  const categories = ['concreto', 'acero', 'mamposteria', 'acabados', 'instalaciones', 'varios'];
+  return Object.values(summary).sort((a, b) => {
+    const catA = categories.indexOf(a.category);
+    const catB = categories.indexOf(b.category);
+    if (catA !== catB) return catA - catB;
+    return a.name.localeCompare(b.name);
+  });
 };
 
 // Agregar encabezado corporativo
@@ -340,7 +375,76 @@ export const generateBudgetPDF = (project: Project) => {
       currentY = (doc as any).lastAutoTable.finalY + 8;
     });
   }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Página de RESUMEN DE MATERIALES
+  // ─────────────────────────────────────────────────────────────────────────
+  const projectMaterials = calculateProjectMaterials(project);
   
+  if (projectMaterials.length > 0) {
+    doc.addPage();
+    addHeader(doc, 'RESUMEN DE MATERIALES', project.name);
+    
+    // Agrupar por categoría
+    const categories = [
+      { key: 'concreto', label: 'CONCRETO', color: COLORS.gray },
+      { key: 'acero', label: 'ACERO Y FERRETERÍA', color: COLORS.danger },
+      { key: 'mamposteria', label: 'MAMPOSTERÍA', color: COLORS.secondary },
+      { key: 'acabados', label: 'ACABADOS', color: COLORS.success },
+      { key: 'instalaciones', label: 'INSTALACIONES', color: COLORS.accent },
+      { key: 'varios', label: 'VARIOS', color: COLORS.gray },
+    ];
+    
+    let matY = 55;
+    
+    categories.forEach(cat => {
+      const materialsInCat = projectMaterials.filter(m => m.category === cat.key);
+      if (materialsInCat.length === 0) return;
+      
+      if (matY > 250) {
+        doc.addPage();
+        addHeader(doc, 'RESUMEN DE MATERIALES', project.name);
+        matY = 55;
+      }
+      
+      // Título de categoría
+      // @ts-ignore
+      doc.setFillColor(...cat.color);
+      doc.roundedRect(15, matY, pageWidth - 30, 8, 1, 1, 'F');
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      // @ts-ignore
+      doc.setTextColor(...COLORS.white);
+      doc.text(cat.label, 20, matY + 6);
+      
+      matY += 12;
+      
+      // Tabla de materiales
+      const matRows = materialsInCat.map(m => [
+        m.name,
+        m.unit,
+        m.totalQuantity.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 3 })
+      ]);
+      
+      autoTable(doc, {
+        startY: matY,
+        head: [['Material', 'Unidad', 'Cantidad Total']],
+        body: matRows,
+        theme: 'striped',
+        headStyles: { fillColor: cat.color, fontSize: 8, fontStyle: 'bold' },
+        styles: { fontSize: 7, cellPadding: 3 },
+        columnStyles: {
+          0: { cellWidth: 90 },
+          1: { cellWidth: 25, halign: 'center' },
+          2: { cellWidth: 35, halign: 'right', fontStyle: 'bold' }
+        },
+        margin: { left: 15, right: 15 }
+      });
+      
+      matY = (doc as any).lastAutoTable.finalY + 10;
+    });
+  }
+
   // Página de Firmas
   doc.addPage();
   addHeader(doc, 'APROBACIÓN Y FIRMAS', project.name);
@@ -424,6 +528,49 @@ export const generateBudgetPDFEjecutivo = (project: Project) => {
     styles: { fontSize: 7, cellPadding: 2.5 },
     columnStyles: { 0: { cellWidth: 8 }, 1: { cellWidth: 65 }, 4: { halign: 'right' }, 5: { halign: 'right', fontStyle: 'bold' } }
   });
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // RESUMEN DE MATERIALES (versión ejecutiva compacta)
+  // ─────────────────────────────────────────────────────────────────────────
+  const projectMaterials = calculateProjectMaterials(project);
+  
+  if (projectMaterials.length > 0) {
+    let matY = (doc as any).lastAutoTable.finalY + 15;
+    
+    // Título
+    // @ts-ignore
+    doc.setFillColor(...COLORS.primary);
+    doc.roundedRect(15, matY, pageWidth - 30, 10, 2, 2, 'F');
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    // @ts-ignore
+    doc.setTextColor(...COLORS.white);
+    doc.text('RESUMEN DE MATERIALES', 20, matY + 7);
+    
+    matY += 15;
+    
+    // Tabla compacta de materiales
+    const matRows = projectMaterials.slice(0, 15).map(m => [
+      m.name.length > 30 ? m.name.substring(0, 30) + '...' : m.name,
+      m.unit,
+      m.totalQuantity.toLocaleString('es-GT', { minimumFractionDigits: 1, maximumFractionDigits: 2 })
+    ]);
+    
+    autoTable(doc, {
+      startY: matY,
+      head: [['Material', 'Und', 'Cantidad']],
+      body: matRows,
+      theme: 'striped',
+      headStyles: { fillColor: COLORS.secondary, fontSize: 7, fontStyle: 'bold' },
+      styles: { fontSize: 6, cellPadding: 2 },
+      columnStyles: {
+        0: { cellWidth: 100 },
+        1: { cellWidth: 20, halign: 'center' },
+        2: { cellWidth: 30, halign: 'right' }
+      },
+      margin: { left: 15, right: 15 }
+    });
+  }
 
   // Bloque de validez y firma
   const finalY = Math.min((doc as any).lastAutoTable.finalY + 10, 250);
@@ -523,6 +670,36 @@ export const generateBudgetPDFAPU = (project: Project) => {
       margin: { left: 15, right: 15 }
     });
     cy = (doc as any).lastAutoTable.finalY + 4;
+
+    // ─────────────────────────────────────────────────────────────────────
+    // MATERIALES CALCULADOS (cantidad total para el proyecto)
+    // ─────────────────────────────────────────────────────────────────────
+    const materialsConfig = MATERIALS_BY_CATEGORY[item.category] || [];
+    if (materialsConfig.length > 0) {
+      const calculatedMats = materialsConfig.map(m => [
+        m.materialName,
+        m.unit,
+        m.quantity.toFixed(3),
+        (m.quantity * item.projectQuantity).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 3 })
+      ]);
+      
+      autoTable(doc, {
+        startY: cy,
+        head: [['MATERIALES PROYECTO', 'Unid.', 'x Und', 'Cant. Total']],
+        body: calculatedMats,
+        theme: 'grid',
+        headStyles: { fillColor: COLORS.success, fontSize: 7, fontStyle: 'bold' },
+        styles: { fontSize: 6, cellPadding: 2 },
+        columnStyles: {
+          0: { cellWidth: 80 },
+          1: { cellWidth: 20, halign: 'center' },
+          2: { cellWidth: 25, halign: 'right' },
+          3: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }
+        },
+        margin: { left: 15, right: 15 }
+      });
+      cy = (doc as any).lastAutoTable.finalY + 4;
+    }
 
     // Resumen del renglón
     const matTotal = item.materials.reduce((a, m) => a + m.price * m.quantity, 0);
@@ -668,6 +845,27 @@ export const generateBudgetCSV = (project: Project) => {
   rows.push(['Gastos Administrativos', '', '', '', '', totals.adminCost.toFixed(2), '']);
   rows.push(['Gastos de Personal', '', '', '', '', totals.personalCost.toFixed(2), '']);
   rows.push(['TOTAL PRESUPUESTO', '', '', '', '', totals.totalBudget.toFixed(2), '']);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // AGREGAR RESUMEN DE MATERIALES AL CSV
+  // ─────────────────────────────────────────────────────────────────────────
+  const projectMaterials = calculateProjectMaterials(project);
+  
+  if (projectMaterials.length > 0) {
+    rows.push(['', '', '', '', '', '', '']);
+    rows.push(['RESUMEN DE MATERIALES', '', '', '', '', '', '']);
+    rows.push(['Material', 'Unidad', 'Cantidad Total', 'Categoría', '', '', '']);
+    
+    projectMaterials.forEach(mat => {
+      rows.push([
+        mat.name,
+        mat.unit,
+        mat.totalQuantity.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 3 }),
+        mat.category,
+        '', '', ''
+      ]);
+    });
+  }
 
   const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
   const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
