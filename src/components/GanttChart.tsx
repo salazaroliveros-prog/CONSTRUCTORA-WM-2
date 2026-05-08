@@ -4,8 +4,9 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
   Calendar, Clock, AlertTriangle, Edit2, Save, X,
-  TrendingUp, Activity, ChevronDown, ChevronRight, DollarSign, Printer
+  TrendingUp, Activity, ChevronDown, ChevronRight, DollarSign, Printer, Download
 } from 'lucide-react';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
 import { toast } from 'sonner';
 import { subscribeToCollection, updateDocument } from '../services/firestoreService';
 import {
@@ -129,6 +130,7 @@ export default function GanttChart() {
   const [viewMode, setViewMode]               = useState<ViewMode>('compact');
   const [showDependencies, setShowDependencies] = useState(false);
   const [showFinancialSummary, setShowFinancialSummary] = useState(false);
+  const [financialViewMode, setFinancialViewMode] = useState<'tables' | 'charts'>('tables');
   const saveTimer                             = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cargar proyectos en ejecución
@@ -263,9 +265,10 @@ export default function GanttChart() {
 
   // Exportar a PDF via print
   const handleExport = useCallback(() => {
-    // Expandir todas las categorías antes de imprimir
+    // Expandir todas las categorías y mostrar resumen financiero
     setCollapsedCats(new Set());
-    setTimeout(() => window.print(), 300);
+    setShowFinancialSummary(true);
+    setTimeout(() => window.print(), 500);
   }, []);
 
   // Agrupar por categoría
@@ -397,8 +400,8 @@ export default function GanttChart() {
       </div>
 
       {/* ── Diagrama ── */}
-      <div className="flex-1 bg-white border border-slate-200 rounded-xl overflow-auto">
-        <div style={{ minWidth: 1100 }} className="p-4">
+      <div className="flex-1 bg-white border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
+        <div style={{ minWidth: 1100, minHeight: '100%' }} className="p-4">
 
           {/* Escala de tiempo */}
           <div className="flex mb-3 pl-72">
@@ -595,6 +598,93 @@ export default function GanttChart() {
                 <p className="text-[9px] text-slate-400">Inversión proyectada por período</p>
               </div>
             </div>
+            {/* Toggle Tablas / Gráficos */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-white/10 rounded-lg p-1">
+                <button
+                  onClick={() => setFinancialViewMode('tables')}
+                  className={cn(
+                    'px-3 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
+                    financialViewMode === 'tables' ? 'bg-green-500 text-white' : 'text-slate-400 hover:text-white'
+                  )}
+                  title="Ver tablas"
+                >
+                  Tablas
+                </button>
+                <button
+                  onClick={() => setFinancialViewMode('charts')}
+                  className={cn(
+                    'px-3 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
+                    financialViewMode === 'charts' ? 'bg-green-500 text-white' : 'text-slate-400 hover:text-white'
+                  )}
+                  title="Ver gráficos"
+                >
+                  Gráficos
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
+                  const weeks = Math.ceil(maxDuration / 7);
+                  const months = Math.ceil(maxDuration / 30);
+                  const dailyInvestment = totalCost / maxDuration;
+                  
+                  // Calcular datos
+                  const weeklyData = Array.from({ length: weeks }, (_, i) => {
+                    const weekStart = i * 7;
+                    const weekEnd = Math.min((i + 1) * 7, maxDuration);
+                    const weekTasks = tasks.filter(t => t.earlyStart < weekEnd && t.earlyFinish > weekStart);
+                    const weekCost = weekTasks.reduce((s, t) => s + (t.cost * (t.progress / 100)), 0);
+                    const effectiveDays = Math.min(weekEnd, maxDuration) - Math.max(weekStart, 0);
+                    return { week: i + 1, cost: weekCost || (dailyInvestment * effectiveDays) };
+                  });
+                  
+                  const monthlyData = Array.from({ length: months }, (_, i) => {
+                    const monthStart = i * 30;
+                    const monthEnd = Math.min((i + 1) * 30, maxDuration);
+                    const monthTasks = tasks.filter(t => t.earlyStart < monthEnd && t.earlyFinish > monthStart);
+                    const monthCost = monthTasks.reduce((s, t) => s + (t.cost * (t.progress / 100)), 0);
+                    const effectiveDays = Math.min(monthEnd, maxDuration) - Math.max(monthStart, 0);
+                    return { month: i + 1, cost: monthCost || (dailyInvestment * effectiveDays) };
+                  });
+                  
+                  // Generar CSV
+                  const headers = ['Período', 'Tipo', 'Inversión (Q)', 'Acumulado (Q)'];
+                  const rows: string[][] = [];
+                  
+                  // Semanas
+                  weeklyData.forEach((w, i) => {
+                    const acumulado = weeklyData.slice(0, i + 1).reduce((s, x) => s + x.cost, 0);
+                    rows.push([`Semana ${w.week}`, 'Semanal', w.cost.toFixed(2), acumulado.toFixed(2)]);
+                  });
+                  
+                  rows.push(['', '', '', '']);
+                  rows.push(['RESUMEN MENSUAL', '', '', '']);
+                  
+                  // Meses
+                  monthlyData.forEach((m, i) => {
+                    const acumulado = monthlyData.slice(0, i + 1).reduce((s, x) => s + x.cost, 0);
+                    rows.push([`Mes ${m.month}`, 'Mensual', m.cost.toFixed(2), acumulado.toFixed(2)]);
+                  });
+                  
+                  rows.push(['', '', '', '']);
+                  rows.push(['TOTAL PROYECTO', '', totalCost.toFixed(2), '']);
+                  
+                  const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');
+                  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+                  const link = document.createElement('a');
+                  link.href = URL.createObjectURL(blob);
+                  link.download = `Resumen_Financiero_${project?.name || 'Proyecto'}_${new Date().toISOString().split('T')[0]}.csv`;
+                  link.click();
+                  toast.success('Exportado a Excel/CSV');
+                }}
+                className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-black uppercase hover:bg-green-700 transition-all"
+                title="Exportar a Excel/CSV"
+              >
+                <Download size={14} />
+                Excel
+              </button>
+            </div>
           </div>
 
           {/* Cálculo de inversión por semana y mes */}
@@ -729,6 +819,71 @@ export default function GanttChart() {
                     </table>
                   </div>
                 </div>
+
+                {/* Gráficos financieros */}
+                {financialViewMode === 'charts' && (
+                  <div className="space-y-6 mt-6">
+                    {/* Gráfico de inversión por semana */}
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <h4 className="text-[10px] font-black text-slate-300 uppercase mb-3">Inversión por Semana (Q)</h4>
+                      <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart data={weeklyData.map(w => ({ ...w, name: `S${w.week}` }))}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q${(v/1000).toFixed(0)}k`} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                              formatter={(value: number) => [fmtQ(value), 'Inversión']}
+                            />
+                            <Bar dataKey="cost" fill="#10b981" radius={[4, 4, 0, 0]} name="Inversión" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Gráfico de inversión por mes */}
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <h4 className="text-[10px] font-black text-slate-300 uppercase mb-3">Inversión por Mes (Q)</h4>
+                      <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <AreaChart data={monthlyData.map(m => ({ ...m, name: `Mes ${m.month}` }))}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q${(v/1000).toFixed(0)}k`} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                              formatter={(value: number) => [fmtQ(value), 'Inversión']}
+                            />
+                            <Area type="monotone" dataKey="cost" stroke="#8b5cf6" fill="rgba(139, 92, 246, 0.3)" name="Inversión" />
+                          </AreaChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+
+                    {/* Gráfico de inversión acumulada */}
+                    <div className="bg-white/5 rounded-lg p-4 border border-white/10">
+                      <h4 className="text-[10px] font-black text-slate-300 uppercase mb-3">Inversión Acumulada (Q)</h4>
+                      <div className="h-64 w-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <LineChart data={weeklyData.map((w, i) => ({
+                            name: `S${w.week}`,
+                            acumulado: weeklyData.slice(0, i + 1).reduce((s, x) => s + x.cost, 0)
+                          }))}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
+                            <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q${(v/1000).toFixed(0)}k`} />
+                            <Tooltip
+                              contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
+                              formatter={(value: number) => [fmtQ(value), 'Acumulado']}
+                            />
+                            <Line type="monotone" dataKey="acumulado" stroke="#3b82f6" strokeWidth={2} dot={{ fill: '#3b82f6' }} name="Acumulado" />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             );
           })()}
