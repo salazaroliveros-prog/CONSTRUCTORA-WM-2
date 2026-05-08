@@ -1306,11 +1306,16 @@ th:last-child, td:last-child { white-space: normal; overflow: visible; }
   padding: 0 0.75rem 0.75rem;
 }
 
-/* Alturas de gráficas responsivas usando clamp */
-.chart-h-sm  { height: clamp(120px, 18vh, 180px); }
-.chart-h-md  { height: clamp(150px, 22vh, 220px); }
-.chart-h-lg  { height: clamp(180px, 28vh, 280px); }
-.chart-h-xl  { height: clamp(200px, 32vh, 320px); }
+/* Alturas de gráficas responsivas usando clamp - optimizadas para más visualización */
+.chart-h-sm  { height: clamp(140px, 20vh, 200px); }
+.chart-h-md  { height: clamp(200px, 30vh, 320px); }
+.chart-h-lg  { height: clamp(260px, 40vh, 400px); }
+.chart-h-xl  { height: clamp(320px, 50vh, 500px); }
+
+/* Dashboard expandido - más espacio para gráficas */
+.dashboard-expanded .chart-h-sm  { height: clamp(160px, 22vh, 220px); }
+.dashboard-expanded .chart-h-md  { height: clamp(240px, 35vh, 400px); }
+.dashboard-expanded .chart-h-lg  { height: clamp(300px, 45vh, 480px); }
 .chart-h-auto { height: 100%; min-height: clamp(140px, 20vh, 200px); }
 
 /* Padding reducido en modo compacto para gráficas */

@@ -103,7 +103,7 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
   
   return (
     <div className="flex flex-col items-center">
-      <svg width={140} height={85} viewBox="0 0 140 85">
+      <svg width={100} height={60} viewBox="0 0 140 85">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#ef4444" />
@@ -116,7 +116,7 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
           d="M 10 70 A 60 60 0 0 1 130 70"
           fill="none"
           stroke="#e2e8f0"
-          strokeWidth={10}
+          strokeWidth={12}
           strokeLinecap="round"
         />
         {/* Value arc */}
@@ -124,18 +124,18 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
           d={`M 10 70 A 60 60 0 ${angle > 90 ? 1 : 0} 1 ${x1} ${y1}`}
           fill="none"
           stroke={`url(#gaugeGrad-${label})`}
-          strokeWidth={10}
+          strokeWidth={12}
           strokeLinecap="round"
           initial={{ pathLength: 0 }}
           animate={{ pathLength: percentage / 100 }}
           transition={{ duration: 1.5, ease: 'easeOut' }}
         />
         {/* Center text */}
-        <text x="70" y="60" textAnchor="middle" className="text-lg font-black fill-current" style={{ fill: color }}>
+        <text x="70" y="65" textAnchor="middle" className="text-2xl font-black fill-current" style={{ fill: color }}>
           {Math.round(value)}%
         </text>
       </svg>
-      <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest -mt-1">{label}</span>
+      <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest -mt-1">{label}</span>
     </div>
   );
 }
@@ -188,8 +188,8 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
     const { left, top, width, height } = el.getBoundingClientRect();
     const x = (e.clientX - left) / width - 0.5;
     const y = (e.clientY - top) / height - 0.5;
-    el.style.transform = `perspective(700px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) scale(1.02)`;
-    el.style.boxShadow = `${x * -8}px ${y * -8}px 24px rgba(15,23,42,0.12)`;
+    el.style.transform = `perspective(700px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1.01)`;
+    el.style.boxShadow = `${x * -6}px ${y * -6}px 16px rgba(15,23,42,0.1)`;
   }, []);
   const onMouseLeave = useCallback(() => {
     if (ref.current) { ref.current.style.transform = ''; ref.current.style.boxShadow = ''; }
@@ -203,79 +203,78 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.08, ease: [0.25, 0.46, 0.45, 0.94] }}
+      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
-      className="relative bg-white border border-slate-100 rounded-2xl p-4 cursor-default will-change-transform overflow-hidden group
-                 hover:border-slate-200 hover:shadow-lg"
+      className="relative bg-white border border-slate-100 rounded-xl p-3 cursor-default will-change-transform overflow-hidden group
+                 hover:border-slate-200 hover:shadow-md"
     >
       {/* Color accent bar top */}
-      <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-2xl", kpi.color)} />
+      <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
 
       {/* Sparkline full-card background */}
       {kpi.spark?.length > 1 && (
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none">
-          <ResponsiveContainer width="100%" height="100%" minHeight={160}>
+        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={kpi.spark} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <Line type="monotone" dataKey="v" stroke="var(--text-faint)" strokeWidth={3} dot={false} isAnimationActive={false} />
+              <Line type="monotone" dataKey="v" stroke="var(--text-faint)" strokeWidth={2} dot={false} isAnimationActive={false} />
             </LineChart>
           </ResponsiveContainer>
         </div>
       )}
 
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-1.5">
           {/* Animated icon */}
           <motion.div
-            animate={kpi.pulse ? { scale: [1, 1.18, 1] } : { rotate: [0, 0] }}
+            animate={kpi.pulse ? { scale: [1, 1.12, 1] } : { rotate: [0, 0] }}
             transition={kpi.pulse
               ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
               : { duration: 3, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }
             }
-            className={cn("p-2.5 rounded-xl text-white shadow-lg", kpi.color)}
+            className={cn("p-2 rounded-lg text-white shadow-md", kpi.color)}
           >
-            {kpi.icon}
+            {React.cloneElement(kpi.icon as React.ReactElement, { size: 14 })}
           </motion.div>
           {/* Mini ring charts next to icon */}
           {kpi.rings && (
             <motion.div
               onClick={kpi.onNavigate}
               title="Ver detalle en Seguimiento"
-              whileHover={{ scale: 1.06 }}
+              whileHover={{ scale: 1.04 }}
               whileTap={{ scale: 0.95 }}
-              className="flex gap-1 cursor-pointer"
+              className="flex gap-0.5 cursor-pointer"
             >
-              <MiniRing value={kpi.rings.fisico} color="#f59e0b" label="Físico" />
-              <MiniRing value={kpi.rings.financiero} color="#06b6d4" label="Financiero" />
+              <MiniRing value={kpi.rings.fisico} color="#f59e0b" label="Fís" />
+              <MiniRing value={kpi.rings.financiero} color="#06b6d4" label="Fin" />
             </motion.div>
           )}
         </div>
         {/* Trend badge */}
         {trend !== null && (
           <span className={cn(
-            "text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full flex items-center gap-0.5",
+            "text-[6px] font-black uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
             trend > 0 ? "bg-emerald-50 text-emerald-600" : trend < 0 ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400"
           )}>
             {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}
-            {trend !== 0 ? " tendencia" : " estable"}
           </span>
         )}
       </div>
 
-      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{kpi.label}</p>
-      <p className="text-lg font-black text-primary leading-none">
+      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{kpi.label}</p>
+      <p className="text-base font-black text-primary leading-none">
         <AnimatedKpi value={kpi.value} currency={kpi.currency} />
       </p>
 
       {/* Mini sparkline bottom */}
       {kpi.spark?.length > 1 && (
-        <div className="mt-2 h-8 w-full opacity-70">
-          <ResponsiveContainer width="100%" height="100%" minHeight={160}>
+        <div className="mt-1.5 h-6 w-full opacity-60">
+          <ResponsiveContainer width="100%" height="100%">
             <LineChart data={kpi.spark} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-              <Line type="monotone" dataKey="v" stroke={kpi.sparkColor || '#94a3b8'} strokeWidth={1.5} dot={false} isAnimationActive={true} animationDuration={1200} />
+              <Line type="monotone" dataKey="v" stroke={kpi.sparkColor || '#94a3b8'} strokeWidth={1.2} dot={false} isAnimationActive={true} />
             </LineChart>
           </ResponsiveContainer>
         </div>
@@ -300,13 +299,13 @@ function AnimatedKpi({ value, currency }: { value: string | number; currency?: b
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-[140px]">
-      {label && <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>}
+    <div className="bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 shadow-2xl text-left min-w-[120px]">
+      {label && <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{label}</p>}
       {payload.map((entry: any, i: number) => (
-        <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
-          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-[9px] font-bold text-slate-300 uppercase">{entry.name}:</span>
-          <span className="text-[10px] font-black text-white">Q{Number(entry.value).toLocaleString()}</span>
+        <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
+          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+          <span className="text-[8px] font-bold text-slate-300 uppercase">{entry.name}:</span>
+          <span className="text-[9px] font-black text-white">Q{Number(entry.value).toLocaleString()}</span>
         </div>
       ))}
     </div>
@@ -606,7 +605,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
     </div>
   ) : (
-    <div id="dashboard-container" className="grid grid-cols-12 auto-rows-min gap-4 pb-4">
+    <div id="dashboard-container" className="grid grid-cols-12 auto-rows-min gap-3 pb-2 dashboard-expanded">
       
       {/* Enhanced Gradient Header */}
       <div className="col-span-12">
@@ -614,22 +613,9 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
           title={selectedProjectId === 'ALL' ? 'Dashboard General' : 'Detalle del Proyecto'}
           subtitle={selectedProjectId === 'ALL' ? 'Resumen ejecutivo de constructora WM' : `Proyecto: ${filteredProjects[0]?.name || 'Seleccionado'}`}
           variant="ocean"
-          size="md"
+          size="sm"
           icon={<TrendingUp size={24} className="text-white" />}
-        >
-          <div className="flex items-center gap-3">
-            <AnimatedProgress
-              value={avgFisico}
-              max={100}
-              size="sm"
-              color="#10b981"
-              className="w-32"
-            />
-            <span className="text-[10px] font-black text-white/80 uppercase">
-              {avgFisico}% Avance
-            </span>
-          </div>
-        </GradientHeader>
+        />
       </div>
       
       {/* Accounting Modal */}
@@ -662,22 +648,26 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Fecha</label>
+              <label htmlFor="accounting-date" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Fecha</label>
               <input 
+                id="accounting-date"
                 type="date"
                 value={accountingForm.date}
                 onChange={(e) => setAccountingForm({ ...accountingForm, date: e.target.value })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
+                title="Fecha del movimiento"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Categoría</label>
+            <label htmlFor="accounting-category" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Categoría</label>
             <select 
+              id="accounting-category"
               value={accountingForm.category}
               onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+              title="Seleccionar categoría"
             >
               {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -685,11 +675,13 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </select>
           </div>
           <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
+            <label htmlFor="accounting-project" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
             <select
+              id="accounting-project"
               value={accountingForm.projectId}
               onChange={(e) => setAccountingForm({ ...accountingForm, projectId: e.target.value })}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+              title="Asignar a proyecto"
             >
               <option value="">Sin proyecto especifico</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -698,36 +690,42 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Cantidad / Unidades</label>
+              <label htmlFor="accounting-quantity" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Cantidad / Unidades</label>
               <input 
+                id="accounting-quantity"
                 type="number"
                 step="0.01"
                 value={accountingForm.quantity || ''}
                 onChange={(e) => setAccountingForm({ ...accountingForm, quantity: parseFloat(e.target.value) || 0 })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
                 placeholder="1"
+                title="Cantidad"
               />
             </div>
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
+              <label htmlFor="accounting-cost" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
               <input 
+                id="accounting-cost"
                 type="number"
                 step="0.01"
                 value={accountingForm.cost || ''}
                 onChange={(e) => setAccountingForm({ ...accountingForm, cost: parseFloat(e.target.value) || 0 })}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
                 placeholder="0.00"
+                title="Costo unitario"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
+            <label htmlFor="accounting-description" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
             <textarea 
+              id="accounting-description"
               value={accountingForm.description}
               onChange={(e) => setAccountingForm({ ...accountingForm, description: e.target.value })}
               placeholder="Ej: Pago sub-contrato Fase 1, Compra de cemento..."
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm min-h-[80px]"
+              title="Descripción del movimiento"
             />
           </div>
 
@@ -752,7 +750,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                 <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Limpiar Datos del Sistema</h3>
                 <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
               </div>
-              <button onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><X size={16} /></button>
+              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><X size={16} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {Object.entries(resetData).map(([col, { items, selected }]) => {
@@ -761,14 +759,14 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                 return (
                   <div key={col} className="border border-slate-100 rounded-xl overflow-hidden">
                     <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
-                      <input type="checkbox" checked={allChecked} onChange={() => setResetData(prev => ({ ...prev, [col]: { ...prev[col], selected: allChecked ? [] : items.map((d: any) => d.id) } }))} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                      <input title="Seleccionar todos" type="checkbox" checked={allChecked} onChange={() => setResetData(prev => ({ ...prev, [col]: { ...prev[col], selected: allChecked ? [] : items.map((d: any) => d.id) } }))} className="w-4 h-4 accent-red-500 cursor-pointer" />
                       <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest flex-1">{labels[col] || col}</span>
                       <span className="text-[8px] font-bold text-slate-400">{selected.length}/{items.length} seleccionados</span>
                     </div>
                     <div className="divide-y divide-slate-50 max-h-40 overflow-y-auto">
                       {items.map((item: any) => (
                         <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors">
-                          <input type="checkbox" checked={selected.includes(item.id)}
+                          <input title={`Seleccionar ${item.name || item.description}`} type="checkbox" checked={selected.includes(item.id)}
                             onChange={() => setResetData(prev => {
                               const sel = prev[col].selected;
                               return { ...prev, [col]: { ...prev[col], selected: sel.includes(item.id) ? sel.filter(s => s !== item.id) : [...sel, item.id] } };
@@ -814,18 +812,18 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       </div>
 
       {/* Main Analysis Section */}
-      <section className="col-span-12 lg:col-span-9 grid grid-cols-1 md:grid-cols-1 gap-4">
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-           <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-              <div className="flex justify-between items-center mb-3">
+      <section className="col-span-12 lg:col-span-9 grid grid-cols-1 gap-3">
+        {/* Row 1: Cash Flow & Expenses */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+           <div className={cn(cardClass, "md:col-span-2 rounded-xl p-3 text-left")}>
+              <div className="flex justify-between items-center mb-2">
                 <div>
-                  <h2 className="text-sm font-black text-primary uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja' : 'Flujo del Proyecto'}</h2>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Comparativa Ingresos vs Gastos</p>
+                  <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja' : 'Flujo del Proyecto'}</h2>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Ingresos vs Gastos</p>
                 </div>
               </div>
               <div className="chart-h-md w-full">
-                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+                <ResponsiveContainer width="100%" height="100%">
                   {settings.graphType === 'bar' ? (
                     <ComposedChart data={chartData}>
                       <defs>
@@ -839,22 +837,22 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                      <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                      <YAxis fontSize={10} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
+                      <YAxis fontSize={9} axisLine={false} tickLine={false} />
                       <Tooltip cursor={{fill: 'rgba(248,250,252,0.05)'}} content={<CustomTooltip />} />
-                      <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase' }} />
-                      <Bar dataKey="ingresos" fill="url(#barGradIngresos)" radius={[4, 4, 0, 0]} barSize={20} />
-                      <Bar dataKey="gastos" fill="url(#barGradGastos)" radius={[4, 4, 0, 0]} barSize={20} />
-                    <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                      <Legend wrapperStyle={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase' }} />
+                      <Bar dataKey="ingresos" fill="url(#barGradIngresos)" radius={[3, 3, 0, 0]} barSize={15} />
+                      <Bar dataKey="gastos" fill="url(#barGradGastos)" radius={[3, 3, 0, 0]} barSize={15} />
+                    <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
                     </ComposedChart>
                   ) : settings.graphType === 'line' ? (
                     <LineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                      <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                      <YAxis fontSize={10} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
+                      <YAxis fontSize={9} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={3} dot={{ r: 4, fill: settings.secondaryColor }} />
-                      <Line type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={3} dot={{ r: 4, fill: settings.primaryColor }} />
+                      <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={2} dot={{ r: 3, fill: settings.secondaryColor }} />
+                      <Line type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={2} dot={{ r: 3, fill: settings.primaryColor }} />
                     </LineChart>
                   ) : (
                     <AreaChart data={chartData}>
@@ -869,48 +867,50 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                      <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} />
-                      <YAxis fontSize={10} axisLine={false} tickLine={false} />
+                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
+                      <YAxis fontSize={9} axisLine={false} tickLine={false} />
                       <Tooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={2} fill="url(#gradIngresos)" />
-                      <Area type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={2} fill="url(#gradGastos)" />
+                      <Area type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={1.5} fill="url(#gradIngresos)" />
+                      <Area type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={1.5} fill="url(#gradGastos)" />
                     </AreaChart>
                   )}
                 </ResponsiveContainer>
               </div>
            </div>
 
-           <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-              <div className="flex justify-between items-center mb-3">
+           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
+              <div className="flex justify-between items-center mb-2">
                 <div>
-                  <h2 className="text-sm font-black text-primary uppercase tracking-tight">Estructura de Gastos</h2>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Distribución por Categoría</p>
+                  <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Gastos</h2>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Por Categoría</p>
                 </div>
               </div>
-              <div className="chart-h-md w-full flex items-center">
-                <ResponsiveContainer width="100%" height="100%" minHeight={180}>
-                  <PieChart>
-                    <Pie
-                      data={expenseByCategory.length > 0 ? expenseByCategory : [{ name: 'Sin Datos', value: 1 }]}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {expenseByCategory.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip content={<CustomTooltip />} />
-                  </PieChart>
-                </ResponsiveContainer>
-                <div className="w-1/3 space-y-2">
+              <div className="chart-h-md w-full flex flex-col items-center justify-center">
+                <div className="h-3/4 w-full">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={expenseByCategory.length > 0 ? expenseByCategory : [{ name: 'Sin Datos', value: 1 }]}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={45}
+                        outerRadius={60}
+                        paddingAngle={4}
+                        dataKey="value"
+                      >
+                        {expenseByCategory.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="w-full grid grid-cols-2 gap-x-2 gap-y-1 mt-1">
                    {expenseByCategory.slice(0, 4).map((item, i) => (
-                     <div key={i} className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="text-[8px] font-black uppercase truncate text-slate-500">{item.name}</span>
+                     <div key={i} className="flex items-center gap-1 min-w-0">
+                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                        <span className="text-[7px] font-black uppercase truncate text-slate-500">{item.name}</span>
                      </div>
                    ))}
                 </div>
@@ -918,81 +918,61 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
            </div>
         </div>
 
-        {/* Advanced Analytics Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Radar Chart - Performance Analysis */}
-          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Analisis de Rendimiento</h2>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Indicadores clave por area</p>
-              </div>
-            </div>
-            <div className="chart-h-md w-full">
+        {/* Row 2: Advanced Analytics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* Radar Chart */}
+          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Rendimiento</h2>
+            <div className="chart-h-sm w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radarData}>
+                <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
                   <PolarGrid stroke="var(--border)" />
-                  <PolarAngleAxis dataKey="area" tick={{ fontSize: 8, fontWeight: 900, fill: 'var(--text-subtle)' }} />
-                  <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fontSize: 8 }} />
-                  <Radar name="Rendimiento" dataKey="value" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.4} strokeWidth={2} />
+                  <PolarAngleAxis dataKey="area" tick={{ fontSize: 7, fontWeight: 900, fill: 'var(--text-subtle)' }} />
+                  <Radar name="Rendimiento" dataKey="value" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.4} strokeWidth={1.5} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          {/* Gauge Charts - Key Metrics */}
-          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Indicadores Clave</h2>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Metricas de proyecto</p>
-              </div>
-            </div>
-            <div className="flex justify-around items-center chart-h-md">
-              <GaugeChart value={avgFisico} label="Avance Fisico" color="#10b981" />
-              <GaugeChart value={avgFinanciero} label="Avance Financiero" color="#3b82f6" />
+          {/* Gauge Charts */}
+          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Avances</h2>
+            <div className="flex justify-around items-center chart-h-sm">
+              <GaugeChart value={avgFisico} label="Físico" color="#10b981" />
+              <GaugeChart value={avgFinanciero} label="Financiero" color="#3b82f6" />
             </div>
           </div>
 
           {/* Activity Heatmap */}
-          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Actividad del Sistema</h2>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ultimos 3 meses de transacciones</p>
-              </div>
-            </div>
+          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Actividad</h2>
             <div className="flex flex-col items-center justify-center chart-h-sm">
               <ActivityHeatmap data={heatmapData} />
-              <div className="flex items-center gap-4 mt-4">
+              <div className="flex items-center gap-3 mt-2">
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-sm bg-slate-200" />
-                  <span className="text-[7px] font-bold text-slate-400 uppercase">Sin actividad</span>
+                  <div className="w-1.5 h-1.5 rounded-sm bg-slate-200" />
+                  <span className="text-[6px] font-bold text-slate-400 uppercase">Baja</span>
                 </div>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-sm bg-emerald-500" />
-                  <span className="text-[7px] font-bold text-slate-400 uppercase">Alta actividad</span>
+                  <div className="w-1.5 h-1.5 rounded-sm bg-emerald-500" />
+                  <span className="text-[6px] font-bold text-slate-400 uppercase">Alta</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Treemap - Budget Distribution */}
-        {treemapData.length > 0 && (
-          <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-sm font-black text-primary uppercase tracking-tight">Distribucion de Presupuesto</h2>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proporcion por proyecto activo</p>
-              </div>
-            </div>
+        {/* Row 3: Treemap & Progress Tracker */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Treemap */}
+          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-2">Presupuesto por Proyecto</h2>
             <div className="chart-h-sm w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <Treemap
                   data={treemapData}
                   dataKey="size"
-                  aspectRatio={4 / 3}
+                  aspectRatio={2}
                   stroke="#fff"
                   content={({ x, y, width, height, name, color }: any) => (
                     <g>
@@ -1004,19 +984,19 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                         style={{
                           fill: color || '#f59e0b',
                           stroke: '#fff',
-                          strokeWidth: 2,
-                          rx: 4,
+                          strokeWidth: 1,
+                          rx: 3,
                         }}
                       />
-                      {width > 60 && height > 30 && (
+                      {width > 40 && height > 20 && (
                         <text
                           x={x + width / 2}
                           y={y + height / 2}
                           textAnchor="middle"
                           dominantBaseline="middle"
-                          className="text-[9px] font-black fill-white uppercase"
+                          className="text-[8px] font-black fill-white uppercase"
                         >
-                          {name}
+                          {name.length > 12 ? name.slice(0, 10) + '..' : name}
                         </text>
                       )}
                     </g>
@@ -1025,91 +1005,67 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
               </ResponsiveContainer>
             </div>
           </div>
-        )}
 
-        {/* Progress Tracker (Real Data) */}
-        <div className={cn(cardClass, "rounded-2xl p-4 text-left")}>
-          <div className="flex justify-between items-center mb-3">
-            <div>
-              <h2 className="text-sm font-black text-primary uppercase tracking-tight">Cronograma de Ejecucion</h2>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Avance real de proyectos activos</p>
+          {/* Progress Tracker */}
+          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-2">Cronograma</h2>
+            <div className="space-y-2 overflow-y-auto max-h-[180px] pr-1">
+              {filteredProjects.length > 0 ? filteredProjects.slice(0, 6).map((p) => (
+                <div key={p.id} className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                  <div className="flex justify-between text-[8px] font-black uppercase mb-1">
+                    <span className="truncate">{p.name}</span>
+                    <span className="text-secondary">{p.progress || 0}%</span>
+                  </div>
+                  <div className="h-1.5 bg-white rounded-full overflow-hidden border border-slate-200">
+                    <motion.div 
+                      initial={{ width: 0 }}
+                      animate={{ width: `${p.progress || 0}%` }}
+                      className="h-full bg-slate-900 rounded-full"
+                    />
+                  </div>
+                </div>
+              )) : (
+                <div className="h-full flex flex-col items-center justify-center opacity-30 py-4">
+                   <Building2 size={20} className="mb-1" />
+                   <p className="text-[7px] font-black uppercase">Sin Proyectos</p>
+                </div>
+              )}
             </div>
-            <TrendingUp size={20} className="text-secondary opacity-20" />
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {filteredProjects.length > 0 ? filteredProjects.slice(0, 4).map((p) => (
-              <div key={p.id} className="group p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-secondary transition-all">
-                <div className="flex justify-between text-[10px] font-black uppercase tracking-tight mb-2">
-                  <span className="truncate flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-slate-900 group-hover:bg-secondary transition-colors" />
-                    {p.name}
-                  </span>
-                  <span className={cn(
-                    "px-1.5 py-0.5 rounded text-[7px] font-black",
-                    p.status === 'EJECUCION' ? "bg-blue-50 text-blue-600" : "bg-green-50 text-green-600"
-                  )}>{p.progress || 0}%</span>
-                </div>
-                <div className="h-3 bg-white rounded-full overflow-hidden relative border border-slate-200">
-                  <motion.div 
-                    initial={{ width: 0 }}
-                    animate={{ width: `${p.progress || 0}%` }}
-                    transition={{ duration: 1.5, ease: "easeOut" }}
-                    className="h-full bg-slate-900 absolute z-10 rounded-full"
-                  />
-                  <div className="absolute inset-0 z-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-                </div>
-                <div className="mt-3 flex justify-between text-[8px] font-bold text-slate-400 uppercase italic">
-                   <span>ID: {p.id.slice(0, 8)}</span>
-                   <span>Cliente: {p.clientName || 'S/N'}</span>
-                </div>
-              </div>
-            )) : (
-              <div className="col-span-2 py-12 flex flex-col items-center justify-center bg-slate-50 border border-dashed border-slate-200 rounded-xl opacity-40">
-                 <Building2 size={24} className="text-slate-300 mb-2" />
-                 <p className="text-[8px] font-black uppercase tracking-[0.2em]">Sin Proyectos en Ejecución</p>
-              </div>
-            )}
           </div>
         </div>
 
-        {/* Transactions Table */}
-        <div className={cn(cardClass, 'rounded-2xl p-5 text-left mt-4')}>
-          <div className='flex items-center justify-between mb-3'>
-            <h4 className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Movimientos Financieros</h4>
-            <span className='text-[8px] font-bold text-slate-400'>{filteredTransactions.length} registros</span>
+        {/* Row 4: Transactions Table */}
+        <div className={cn(cardClass, 'rounded-xl p-3 text-left')}>
+          <div className='flex items-center justify-between mb-2'>
+            <h4 className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Movimientos Recientes</h4>
+            <span className='text-[7px] font-bold text-slate-400'>{filteredTransactions.length} registros</span>
           </div>
-          <div className='overflow-auto max-h-64'>
-            <table className='w-full text-left'>
+          <div className='overflow-auto max-h-48'>
+            <table className='w-full text-left table-fixed'>
               <thead className='sticky top-0 bg-slate-50 z-10'>
                 <tr className='border-b border-slate-100'>
-                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Fecha</th>
-                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Descripcion</th>
-                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Categoria</th>
-                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Monto (Q)</th>
-                  <th className='px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Accion</th>
+                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Fecha</th>
+                  <th className='px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Descripcion</th>
+                  <th className='w-20 px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Monto (Q)</th>
+                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Accion</th>
                 </tr>
               </thead>
               <tbody className='divide-y divide-slate-50'>
-                {filteredTransactions.slice(0, 50).map((t, i) => (
+                {filteredTransactions.slice(0, 20).map((t, i) => (
                   <tr key={t.id || i} className='hover:bg-slate-50/50 transition-colors group'>
-                    <td className='px-3 py-2 text-[8px] font-bold text-slate-500 whitespace-nowrap'>{t.date || '--'}</td>
-                    <td className='px-3 py-2 text-[8px] font-black text-primary uppercase truncate max-w-[160px]'>{t.description || '--'}</td>
-                    <td className='px-3 py-2 text-[8px] font-bold text-slate-400 uppercase'>{t.category || '--'}</td>
-                    <td className={cn('px-3 py-2 text-[9px] font-black text-right', t.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-500')}>
-                      {t.type === 'INGRESO' ? '+' : '-'} Q {(t.amount || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
+                    <td className='px-2 py-1.5 text-[7px] font-bold text-slate-500 whitespace-nowrap'>{t.date?.slice(5) || '--'}</td>
+                    <td className='px-2 py-1.5 text-[8px] font-black text-primary uppercase truncate'>{t.description || '--'}</td>
+                    <td className={cn('px-2 py-1.5 text-[8px] font-black text-right', t.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-500')}>
+                      Q{(t.amount || 0).toLocaleString()}
                     </td>
-                    <td className='px-3 py-2 text-right'>
+                    <td className='px-2 py-1.5 text-right'>
                       <div className='flex gap-1 justify-end'>
-                        <button onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className='btn-edit'><Pencil size={11} /></button>
-                        <button onClick={() => handleDeleteTx(t.id)} className='btn-delete'><Trash2 size={11} /></button>
+                        <button title="Editar" onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className='btn-edit p-1'><Pencil size={10} /></button>
+                        <button title="Eliminar" onClick={() => handleDeleteTx(t.id)} className='btn-delete p-1'><Trash2 size={10} /></button>
                       </div>
                     </td>
                   </tr>
                 ))}
-                {filteredTransactions.length === 0 && (
-                  <tr><td colSpan={5} className='py-8 text-center text-[8px] font-black text-slate-300 uppercase tracking-widest'>Sin movimientos registrados</td></tr>
-                )}
               </tbody>
             </table>
           </div>
@@ -1196,13 +1152,13 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
             <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
               <div className='grid grid-cols-2 gap-3'>
-                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Tipo</label><select value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
-                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Fecha</label><input type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-type" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Tipo</label><select id="edit-tx-type" title="Tipo de movimiento" value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
+                <div><label htmlFor="edit-tx-date" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Fecha</label><input id="edit-tx-date" title="Fecha" type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
               </div>
-              <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Descripcion</label><input type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+              <div><label htmlFor="edit-tx-desc" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Descripcion</label><input id="edit-tx-desc" title="Descripción" type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
               <div className='grid grid-cols-2 gap-3'>
-                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Categoria</label><input type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
-                <div><label className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Monto (Q)</label><input type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-cat" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Categoria</label><input id="edit-tx-cat" title="Categoría" type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-amount" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Monto (Q)</label><input id="edit-tx-amount" title="Monto" type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
               </div>
               <div className='flex gap-2 pt-2'>
                 <button type='button' onClick={() => setEditTx(null)} className='flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase'>Cancelar</button>
