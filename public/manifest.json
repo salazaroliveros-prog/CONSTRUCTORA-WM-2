@@ -1,19 +1,61 @@
 {
-  "name": "WM/M&S Constructora",
-  "short_name": "Constructora",
-  "description": "Sistema de Gestión de Obra y Presupuestos WM/M&S",
+  "name": "WM/M&S Constructora ERP",
+  "short_name": "WM Constructor",
+  "description": "Sistema de Gestión de Obra, Presupuestos y Proyectos - Constructora WM/M&S",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#F8FAFC",
-  "theme_color": "#0F172A",
+  "orientation": "any",
+  "background_color": "#0F172A",
+  "theme_color": "#F59E0B",
+  "categories": ["business", "productivity"],
+  "lang": "es-GT",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/logo.webp",
       "sizes": "any",
       "type": "image/webp",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.webp",
+      "sizes": "192x192",
+      "type": "image/webp",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo.webp",
+      "sizes": "512x512",
+      "type": "image/webp",
       "purpose": "any maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Ver dashboard principal",
+      "url": "/?tab=dashboard",
+      "icons": [{ "src": "/logo.webp", "sizes": "96x96" }]
+    },
+    {
+      "name": "Proyectos",
+      "short_name": "Proyectos",
+      "description": "Ver proyectos activos",
+      "url": "/?tab=projects",
+      "icons": [{ "src": "/logo.webp", "sizes": "96x96" }]
+    },
+    {
+      "name": "Inventario",
+      "short_name": "Inventario",
+      "description": "Ver inventario y stock",
+      "url": "/?tab=inventory",
+      "icons": [{ "src": "/logo.webp", "sizes": "96x96" }]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
 }

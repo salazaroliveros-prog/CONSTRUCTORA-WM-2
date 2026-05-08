@@ -1391,3 +1391,161 @@ th:last-child, td:last-child { white-space: normal; overflow: visible; }
   .flex-1.bg-white { page-break-inside: avoid; }
   * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
 }
+
+/* ══════════════════════════════════════════════════════════
+   PWA & OFFLINE MODE STYLES
+   ══════════════════════════════════════════════════════════ */
+
+/* Offline indicator banner */
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 0.5rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.offline-banner::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  background: white;
+  border-radius: 50%;
+  animation: offlinePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes offlinePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+body.offline-mode .offline-banner {
+  display: flex;
+}
+
+/* PWA Install prompt styling */
+.pwa-install-prompt {
+  position: fixed;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  background: white;
+  border-radius: 1rem;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 90vw;
+  animation: slideUp 0.3s ease-out;
+}
+
+.dark .pwa-install-prompt {
+  background: var(--bg-card);
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Safe area padding for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-pb {
+    padding-bottom: env(safe-area-inset-bottom) !important;
+  }
+  .safe-area-pt {
+    padding-top: env(safe-area-inset-top) !important;
+  }
+  .safe-area-pl {
+    padding-left: env(safe-area-inset-left) !important;
+  }
+  .safe-area-pr {
+    padding-right: env(safe-area-inset-right) !important;
+  }
+}
+
+/* Touch-optimized tap targets (minimum 44px) */
+@media (pointer: coarse) {
+  button,
+  [role="button"],
+  a,
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Larger touch targets for mobile */
+  .touch-manageable {
+    padding: 0.75rem;
+  }
+  
+  /* Hide hover-only elements on touch devices */
+  .hover-only {
+    display: none;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  .mobile-nav {
+    height: 56px;
+  }
+  .page-container {
+    padding-bottom: 4rem;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .glass-card,
+  .bg-white.border {
+    border-width: 2px !important;
+    border-color: currentColor !important;
+  }
+  
+  button {
+    border: 2px solid currentColor;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-only {
+    display: block !important;
+  }
+  
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

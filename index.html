@@ -1,22 +1,84 @@
 <!doctype html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>WM / M&S Constructora</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
+    <title>WM/M&S Constructora - ERP de Gestión de Obra</title>
     
-    <!-- PWA Settings -->
-    <link rel="manifest" href="/manifest.json" />
-    <meta name="theme-color" content="#F15A24" />
+    <!-- PWA & Mobile Meta Tags -->
+    <meta name="description" content="Sistema de Gestión de Obra, Presupuestos y Proyectos Constructora WM/M&S" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="WM Constructora" />
+    <meta name="apple-mobile-web-app-title" content="WM Constructor" />
+    <meta name="application-name" content="WM/M&S Constructora" />
+    <meta name="msapplication-TileColor" content="#0F172A" />
+    <meta name="msapplication-tap-highlight" content="no" />
+    <meta name="theme-color" content="#F59E0B" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="format-detection" content="address=no" />
+    <meta name="format-detection" content="email=no" />
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/logo.webp" />
     <link rel="icon" type="image/webp" href="/logo.webp" />
+    <link rel="shortcut icon" type="image/webp" href="/logo.webp" />
+    
+    <!-- Preconnect to external resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://firebase.googleapis.com" />
+    <link rel="preconnect" href="https://www.gstatic.com" />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="WM/M&S Constructora ERP" />
+    <meta property="og:description" content="Sistema de Gestión de Obra y Presupuestos" />
+    <meta property="og:image" content="/logo.webp" />
+    <meta property="og:url" content="https://wm-constructora.vercel.app" />
+    <meta property="og:site_name" content="WM/M&S Constructora" />
+    <meta property="og:locale" content="es_GT" />
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="WM/M&S Constructora ERP" />
+    <meta name="twitter:description" content="Sistema de Gestión de Obra y Presupuestos" />
+    <meta name="twitter:image" content="/logo.webp" />
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Register Service Worker -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then((registration) => {
+              console.log('SW registered:', registration.scope);
+              
+              // Check for updates
+              registration.addEventListener('updatefound', () => {
+                const newWorker = registration.installing;
+                if (newWorker) {
+                  newWorker.addEventListener('statechange', () => {
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      // New version available
+                      console.log('New version available');
+                      if (confirm('Nueva versión disponible. ¿Actualizar?')) {
+                        window.location.reload();
+                      }
+                    }
+                  });
+                }
+              });
+            })
+            .catch((error) => {
+              console.log('SW registration failed:', error);
+            });
+        });
+      }
+    </script>
   </body>
 </html>
-
