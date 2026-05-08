@@ -70,6 +70,7 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
   // Filtros bitácora
   const [filterProject, setFilterProject] = useState('ALL');
   const [filterType, setFilterType]       = useState('ALL');
+  const [searchLog, setSearchLog]         = useState('');
 
   // Avance por renglón
   const [selectedProjectId, setSelectedProjectId] = useState('');
@@ -174,8 +175,18 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
   const filteredLogs = useMemo(() =>
     logs.filter(l =>
       (filterProject === 'ALL' || l.projectId === filterProject) &&
-      (filterType === 'ALL' || l.type === filterType)
-    ), [logs, filterProject, filterType]);
+      (filterType === 'ALL' || l.type === filterType) &&
+      (!searchLog || l.msg?.toLowerCase().includes(searchLog.toLowerCase()) ||
+        l.projectName?.toLowerCase().includes(searchLog.toLowerCase()) ||
+        l.author?.toLowerCase().includes(searchLog.toLowerCase()))
+    ), [logs, filterProject, filterType, searchLog]);
+
+  // Estadísticas por tipo
+  const logStats = useMemo(() => {
+    const map: Record<string, number> = {};
+    logs.forEach(l => { map[l.type || 'CUSTOM'] = (map[l.type || 'CUSTOM'] || 0) + 1; });
+    return map;
+  }, [logs]);
 
   // KPIs
   const stats = useMemo(() => ({
@@ -297,7 +308,7 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
             <h3 className="text-[10px] font-black uppercase tracking-widest text-secondary">Bitácora de Obra</h3>
             <div className="flex items-center gap-2">
               <span className="text-[7px] text-slate-500 font-bold">{filteredLogs.length} entradas</span>
-              <button onClick={() => exportLogsCSV(filteredLogs, filterProject !== 'ALL' ? (projects.find(p => p.id === filterProject)?.name ?? 'General') : 'General')}
+              <button type="button" onClick={() => exportLogsCSV(filteredLogs, filterProject !== 'ALL' ? (projects.find(p => p.id === filterProject)?.name ?? 'General') : 'General')}
                 className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-secondary transition-colors" title="Exportar CSV">
                 <FileDown size={13} />
               </button>
@@ -336,18 +347,23 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
             </div>
           </form>
 
-          {/* Filtros */}
-          <div className="px-4 py-2 border-b border-slate-800 flex gap-2">
-            <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
-              className="flex-1 bg-slate-800 border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-slate-400 focus:outline-none">
-              <option value="ALL">Todos los proyectos</option>
-              {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-            <select value={filterType} onChange={e => setFilterType(e.target.value)}
-              className="flex-1 bg-slate-800 border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-slate-400 focus:outline-none">
-              <option value="ALL">Todos los tipos</option>
-              {LOG_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-            </select>
+          {/* Filtros + búsqueda */}
+          <div className="px-4 py-2 border-b border-slate-800 space-y-2">
+            <div className="flex gap-2">
+              <select value={filterProject} onChange={e => setFilterProject(e.target.value)} title="Filtrar por proyecto"
+                className="flex-1 bg-slate-800 border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-slate-400 focus:outline-none">
+                <option value="ALL">Todos los proyectos</option>
+                {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <select value={filterType} onChange={e => setFilterType(e.target.value)} title="Filtrar por tipo"
+                className="flex-1 bg-slate-800 border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-slate-400 focus:outline-none">
+                <option value="ALL">Todos los tipos</option>
+                {LOG_TYPES.map(t => <option key={t.id} value={t.id}>{t.label} {logStats[t.id] ? `(${logStats[t.id]})` : ''}</option>)}
+              </select>
+            </div>
+            <input value={searchLog} onChange={e => setSearchLog(e.target.value)}
+              placeholder="Buscar en bitácora..." title="Buscar en bitácora"
+              className="w-full bg-slate-800 border-none rounded-lg px-3 py-1.5 text-[8px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary" />
           </div>
 
           {/* Lista de entradas */}
@@ -385,7 +401,7 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
                       )}
                     </div>
                   </div>
-                  <button onClick={() => handleDeleteLog(log.id)}
+                  <button type="button" onClick={() => handleDeleteLog(log.id)}
                     className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-900/50 rounded text-slate-500 hover:text-red-400 transition-all shrink-0">
                     <Trash2 size={11} />
                   </button>

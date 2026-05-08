@@ -48,6 +48,7 @@ export default function InventoryModule() {
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
+  const [filterProject, setFilterProject] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -284,10 +285,21 @@ export default function InventoryModule() {
 
   const filteredItems = items.filter(item => {
     const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCat = activeCategory === 'Todos' || item.cat === activeCategory;
-    const matchesZone = !selectedZone || item.location?.includes(selectedZone);
-    return matchesSearch && matchesCat && matchesZone;
+    const matchesCat    = activeCategory === 'Todos' || item.cat === activeCategory;
+    const matchesZone   = !selectedZone || item.location?.includes(selectedZone);
+    const matchesProj   = filterProject === 'ALL' || item.projectId === filterProject || (!item.projectId && filterProject === 'GENERAL');
+    return matchesSearch && matchesCat && matchesZone && matchesProj;
   });
+
+  // KPI: valor real = stock × budgetedCost (costo unitario del presupuesto)
+  const totalRealValue = items.reduce((acc, i) => acc + (i.stock || 0) * (i.budgetedCost || 0), 0);
+  const criticalItems  = items.filter(i => (i.stock || 0) <= (i.minStock || 0));
+  // Días restantes por item según tasa de consumo
+  const withDaysLeft = (item: WarehouseItem): number | null => {
+    const days = item.lastEntry ? Math.max(1, Math.floor((Date.now() - new Date(item.lastEntry).getTime()) / 86_400_000)) : 30;
+    const rate = (item.usedQty || 0) / days;
+    return rate > 0 ? Math.floor((item.stock || 0) / rate) : null;
+  };
 
   const { 
     currentItems: paginatedItems, 
@@ -372,15 +384,17 @@ export default function InventoryModule() {
           <div className="min-w-0">
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Total Items</p>
             <h3 className="text-sm md:text-xl font-black text-primary truncate">{items.length}</h3>
+            <p className="text-[7px] text-slate-400 font-bold">{filteredItems.length} filtrados</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
-          <div className="p-2 bg-red-50 text-red-500 rounded-lg shrink-0">
+          <div className={cn('p-2 rounded-lg shrink-0', criticalItems.length > 0 ? 'bg-red-100 text-red-500' : 'bg-green-50 text-green-500')}>
             <ShieldCheck size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Bajo Stock</p>
-            <h3 className="text-sm md:text-xl font-black text-red-500 truncate">{items.filter(i => i.stock < i.minStock).length}</h3>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Stock Crítico</p>
+            <h3 className={cn('text-sm md:text-xl font-black truncate', criticalItems.length > 0 ? 'text-red-500' : 'text-green-600')}>{criticalItems.length}</h3>
+            <p className="text-[7px] text-slate-400 font-bold">de {items.length} items</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
@@ -388,8 +402,9 @@ export default function InventoryModule() {
             <DollarSign size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Valor Inventario</p>
-            <h3 className="text-sm md:text-xl font-black text-primary truncate">Q {totalValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</h3>
+            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Valor Real Stock</p>
+            <h3 className="text-sm md:text-xl font-black text-primary truncate">Q {Math.round(totalRealValue).toLocaleString('es-GT')}</h3>
+            <p className="text-[7px] text-slate-400 font-bold">stock × costo presupuestado</p>
           </div>
         </div>
         <div className="col-span-2 md:col-span-1 grid grid-cols-2 gap-2">
@@ -417,6 +432,15 @@ export default function InventoryModule() {
             {t.icon}{t.label}
           </button>
         ))}
+        {/* Filtro por proyecto */}
+        <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
+          className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary">
+          <option value="ALL">Todos los proyectos</option>
+          <option value="GENERAL">Sin proyecto</option>
+          {projects.filter(p => p.status === 'EJECUCION').map((p: any) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
         <button onClick={() => setIsGenModalOpen(true)}
           className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow">
           <Building2 size={13}/> Generar desde Presupuesto

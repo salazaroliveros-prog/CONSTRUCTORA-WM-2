@@ -3,30 +3,16 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
-  BarChart3, 
-  TrendingUp, 
-  PieChart as PieChartIcon, 
-  Zap,
-  Target,
-  Download,
-  Filter
+  BarChart3, TrendingUp, PieChart as PieChartIcon, Zap, Target,
+  Download, Filter, DollarSign, Award, AlertTriangle, CheckCircle2,
+  ArrowUpRight, ArrowDownRight, Calendar, Layers
 } from 'lucide-react';
 import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
-  ResponsiveContainer, 
-  PieChart,
-  Cell,
-  Pie,
-  Legend,
-  RadialBarChart,
-  RadialBar
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Cell, Pie, Legend, RadialBarChart, RadialBar,
+  LineChart, Line, AreaChart, Area, ComposedChart
 } from 'recharts';
 import { motion } from 'motion/react';
 import { subscribeToCollection } from '../services/firestoreService';
@@ -64,17 +50,17 @@ function calcItemCost(item: any) {
 
 export default function AnalyticsModule() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('ALL');
   const [exportTemplate, setExportTemplate] = useState<string>('modern');
   const [exportCsvTemplate, setExportCsvTemplate] = useState<string>('completo');
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'ranking'>('overview');
 
   useEffect(() => {
-    const unsub = subscribeToCollection('projects', (data) => {
-      setProjects(data as Project[]);
-      setLoading(false);
-    });
-    return () => unsub();
+    const u1 = subscribeToCollection('projects', (data) => { setProjects(data as Project[]); setLoading(false); });
+    const u2 = subscribeToCollection('transactions', (data) => setTransactions(data));
+    return () => { u1(); u2(); };
   }, []);
 
   // Filtered data based on selected project
@@ -132,6 +118,59 @@ export default function AnalyticsModule() {
     generateProjectCSV(selectedProject, exportCsvTemplate as any);
   };
 
+  // ── Tendencias mensuales (últimos 6 meses) ──────────────────────────────────
+  const monthlyTrends = useMemo(() => {
+    const months: Record<string, { mes: string; Ingresos: number; Gastos: number; Neto: number }> = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const label = d.toLocaleDateString('es-GT', { month: 'short', year: '2-digit' }).toUpperCase();
+      months[key] = { mes: label, Ingresos: 0, Gastos: 0, Neto: 0 };
+    }
+    transactions.forEach(t => {
+      if (!t.date) return;
+      const key = t.date.substring(0, 7);
+      if (!months[key]) return;
+      if (t.type === 'INGRESO') months[key].Ingresos += Number(t.amount || 0);
+      else months[key].Gastos += Number(t.amount || 0);
+    });
+    return Object.values(months).map(m => ({ ...m, Neto: m.Ingresos - m.Gastos }));
+  }, [transactions]);
+
+  // ── Ranking de proyectos por margen ────────────────────────────────────────
+  const projectRanking = useMemo(() =>
+    displayProjects
+      .filter(p => p.budget > 0)
+      .map(p => {
+        const costoReal = (p.directCosts || 0) * (1 + ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100);
+        const utilidad = (p.budget || 0) - costoReal;
+        const margen = p.budget > 0 ? (utilidad / p.budget) * 100 : 0;
+        return { ...p, costoReal, utilidad, margen };
+      })
+      .sort((a, b) => b.margen - a.margen),
+    [displayProjects]
+  );
+
+  // ── Distribución por tipología ──────────────────────────────────────────────
+  const typologyData = useMemo(() => {
+    const map: Record<string, { count: number; budget: number }> = {};
+    displayProjects.forEach(p => {
+      const t = p.typology || 'OTRO';
+      if (!map[t]) map[t] = { count: 0, budget: 0 };
+      map[t].count++;
+      map[t].budget += p.budget || 0;
+    });
+    const COLORS = ['#F15A24','#1A1A1A','#0071BC','#10b981','#a78bfa'];
+    return Object.entries(map).map(([name, v], i) => ({ name, ...v, color: COLORS[i % COLORS.length] }));
+  }, [displayProjects]);
+
+  // ── KPIs financieros ────────────────────────────────────────────────────────
+  const totalIngresos = transactions.filter(t => t.type === 'INGRESO').reduce((a, t) => a + Number(t.amount || 0), 0);
+  const totalGastos = transactions.filter(t => t.type === 'GASTO').reduce((a, t) => a + Number(t.amount || 0), 0);
+  const netoCaja = totalIngresos - totalGastos;
+  const totalPresupuesto = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
+
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -141,7 +180,7 @@ export default function AnalyticsModule() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="text-left">
@@ -149,59 +188,46 @@ export default function AnalyticsModule() {
           <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-end">
+          {/* Tabs */}
+          <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+            {([['overview','Resumen'],['trends','Tendencias'],['ranking','Ranking']] as const).map(([tab, label]) => (
+              <button key={tab} type="button" onClick={() => setActiveTab(tab)}
+                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                {label}
+              </button>
+            ))}
+          </div>
           {/* Project filter */}
           <div className="flex flex-col gap-1">
             <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><Filter size={8} /> Proyecto</span>
-            <select
-              value={selectedProjectId}
-              onChange={e => setSelectedProjectId(e.target.value)}
-              className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[160px]"
-            >
+            <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} title="Filtrar por proyecto"
+              className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[160px]">
               <option value="ALL">TODOS LOS PROYECTOS</option>
-              {projects.map(p => (
-                <option key={p.id} value={p.id}>{(p.name || '').substring(0, 30).toUpperCase()}</option>
-              ))}
+              {projects.map(p => <option key={p.id} value={p.id}>{(p.name || '').substring(0, 30).toUpperCase()}</option>)}
             </select>
           </div>
-
-          {/* PDF template selector + export */}
           {selectedProject && (
             <>
               <div className="flex flex-col gap-1">
                 <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>
-                <select
-                  value={exportTemplate}
-                  onChange={e => setExportTemplate(e.target.value)}
-                  className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[140px]"
-                >
-                  {PDF_TEMPLATES.map(t => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
-                  ))}
+                <select value={exportTemplate} onChange={e => setExportTemplate(e.target.value)} title="Plantilla PDF"
+                  className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[140px]">
+                  {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
               </div>
-              <button
-                onClick={handleExportPDF}
-                className="h-10 bg-secondary text-primary px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-secondary/90 transition-all shadow-sm"
-              >
+              <button type="button" onClick={handleExportPDF}
+                className="h-10 bg-secondary text-primary px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-secondary/90 transition-all shadow-sm">
                 <Download size={14} /> PDF
               </button>
-
               <div className="flex flex-col gap-1">
                 <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla CSV</span>
-                <select
-                  value={exportCsvTemplate}
-                  onChange={e => setExportCsvTemplate(e.target.value)}
-                  className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[140px]"
-                >
-                  {CSV_TEMPLATES.map(t => (
-                    <option key={t.id} value={t.id}>{t.label}</option>
-                  ))}
+                <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} title="Plantilla CSV"
+                  className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[140px]">
+                  {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
               </div>
-              <button
-                onClick={handleExportCSV}
-                className="h-10 bg-slate-900 text-white px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-700 transition-all shadow-sm"
-              >
+              <button type="button" onClick={handleExportCSV}
+                className="h-10 bg-slate-900 text-white px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-700 transition-all shadow-sm">
                 <Download size={14} /> CSV
               </button>
             </>
@@ -209,7 +235,27 @@ export default function AnalyticsModule() {
         </div>
       </div>
 
-      {/* KPI Cards */}
+      {/* Financial KPI Strip */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-purple-600', bg: 'bg-purple-50', trend: null },
+          { label: 'Ingresos Reales', value: `Q ${totalIngresos.toLocaleString('es-GT')}`, icon: <ArrowUpRight size={14}/>, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'up' },
+          { label: 'Gastos Reales', value: `Q ${totalGastos.toLocaleString('es-GT')}`, icon: <ArrowDownRight size={14}/>, color: 'text-red-600', bg: 'bg-red-50', trend: 'down' },
+          { label: 'Neto en Caja', value: `Q ${netoCaja.toLocaleString('es-GT')}`, icon: <DollarSign size={14}/>, color: netoCaja >= 0 ? 'text-emerald-600' : 'text-red-600', bg: netoCaja >= 0 ? 'bg-emerald-50' : 'bg-red-50', trend: netoCaja >= 0 ? 'up' : 'down' },
+        ].map((kpi, i) => (
+          <motion.div key={i} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+            className="bg-white rounded-xl border border-slate-100 p-3 flex items-center gap-3 shadow-sm">
+            <div className={`p-2 rounded-lg shrink-0 ${kpi.bg} ${kpi.color}`}>{kpi.icon}</div>
+            <div>
+              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{kpi.label}</p>
+              <p className="text-sm font-black text-primary">{kpi.value}</p>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* Tab: OVERVIEW (contenido original) */}
+      {activeTab === 'overview' && (<>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 text-left">
         {[
           { label: 'Proyectos', value: displayProjects.length, label2: 'Total Registrados', icon: <BarChart3 className="text-primary w-5 h-5" /> },
@@ -425,6 +471,290 @@ export default function AnalyticsModule() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+      </>)}
+
+      {/* ── TAB: TENDENCIAS ─────────────────────────────────────────────────── */}
+      {activeTab === 'trends' && (
+        <div className="space-y-6">
+          {/* Área de ingresos vs gastos por mes */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight">Flujo de Caja Mensual</h3>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ingresos vs Gastos — últimos 6 meses</p>
+              </div>
+              <Calendar size={18} className="text-slate-300" />
+            </div>
+            {monthlyTrends.every(m => m.Ingresos === 0 && m.Gastos === 0) ? (
+              <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin transacciones registradas</div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                    <defs>
+                      <linearGradient id="gradIngresos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                      </linearGradient>
+                      <linearGradient id="gradGastos" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#F15A24" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#F15A24" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="mes" fontSize={9} axisLine={false} tickLine={false} />
+                    <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase' }} />
+                    <Area type="monotone" dataKey="Ingresos" stroke="#10b981" strokeWidth={2} fill="url(#gradIngresos)" dot={{ r: 4, fill: '#10b981' }} />
+                    <Area type="monotone" dataKey="Gastos" stroke="#F15A24" strokeWidth={2} fill="url(#gradGastos)" dot={{ r: 4, fill: '#F15A24' }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+
+          {/* Neto mensual en barras */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-sm font-black text-primary uppercase tracking-tight">Neto Mensual</h3>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Resultado neto por mes (Ingresos − Gastos)</p>
+            </div>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <XAxis dataKey="mes" fontSize={9} axisLine={false} tickLine={false} />
+                  <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Bar dataKey="Neto" radius={[4, 4, 0, 0]} barSize={28}
+                    fill="#10b981"
+                    label={false}>
+                    {monthlyTrends.map((entry, index) => (
+                      <Cell key={index} fill={entry.Neto >= 0 ? '#10b981' : '#ef4444'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Distribución por tipología */}
+          {typologyData.length > 0 && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Proyectos por Tipología</h3>
+                <div className="h-52">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie data={typologyData} cx="50%" cy="50%" outerRadius={80} dataKey="count" paddingAngle={4}>
+                        {typologyData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+                      </Pie>
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase' }} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Presupuesto por Tipología</h3>
+                <div className="space-y-3">
+                  {typologyData.map((t, i) => (
+                    <div key={i}>
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[9px] font-black text-primary uppercase">{t.name}</span>
+                        <span className="text-[9px] font-black text-slate-500">Q {t.budget.toLocaleString('es-GT')}</span>
+                      </div>
+                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: `${totalPresupuesto > 0 ? (t.budget / totalPresupuesto) * 100 : 0}%` }}
+                          transition={{ duration: 0.8, delay: i * 0.1 }}
+                          className="h-full rounded-full"
+                          style={{ backgroundColor: t.color }}
+                        />
+                      </div>
+                      <p className="text-[7px] font-bold text-slate-400 mt-0.5">{t.count} proyecto{t.count !== 1 ? 's' : ''} · {totalPresupuesto > 0 ? ((t.budget / totalPresupuesto) * 100).toFixed(1) : 0}%</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Tabla resumen mensual */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Resumen Mensual</h3>
+            <table className="w-full text-left text-[9px]">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Mes</th>
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Ingresos</th>
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Gastos</th>
+                  <th className="py-2 font-black text-slate-400 uppercase tracking-widest text-right">Neto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {monthlyTrends.map((m, i) => (
+                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                    <td className="py-2 pr-4 font-black text-primary uppercase">{m.mes}</td>
+                    <td className="py-2 pr-4 font-black text-emerald-600 text-right">Q {m.Ingresos.toLocaleString('es-GT')}</td>
+                    <td className="py-2 pr-4 font-black text-red-500 text-right">Q {m.Gastos.toLocaleString('es-GT')}</td>
+                    <td className={`py-2 font-black text-right ${m.Neto >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>Q {m.Neto.toLocaleString('es-GT')}</td>
+                  </tr>
+                ))}
+                <tr className="bg-slate-50 font-black border-t border-slate-200">
+                  <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
+                  <td className="py-2 pr-4 text-right text-emerald-600">Q {monthlyTrends.reduce((a,m)=>a+m.Ingresos,0).toLocaleString('es-GT')}</td>
+                  <td className="py-2 pr-4 text-right text-red-500">Q {monthlyTrends.reduce((a,m)=>a+m.Gastos,0).toLocaleString('es-GT')}</td>
+                  <td className={`py-2 text-right ${netoCaja>=0?'text-emerald-600':'text-red-500'}`}>Q {netoCaja.toLocaleString('es-GT')}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB: RANKING ────────────────────────────────────────────────────── */}
+      {activeTab === 'ranking' && (
+        <div className="space-y-6">
+          {/* Gráfico de barras ranking */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-sm font-black text-primary uppercase tracking-tight">Ranking de Rentabilidad</h3>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proyectos ordenados por margen de utilidad</p>
+            </div>
+            {projectRanking.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={projectRanking.slice(0,8).map(p=>({ name:(p.name||'').substring(0,12), Margen: Math.round(p.margen) }))}
+                    layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                    <XAxis type="number" fontSize={9} axisLine={false} tickLine={false} tickFormatter={v=>`${v}%`} />
+                    <YAxis type="category" dataKey="name" fontSize={8} axisLine={false} tickLine={false} width={90} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Bar dataKey="Margen" radius={[0, 4, 4, 0]} barSize={18}>
+                      {projectRanking.slice(0,8).map((p, i) => (
+                        <Cell key={i} fill={p.margen >= 20 ? '#10b981' : p.margen >= 0 ? '#f59e0b' : '#ef4444'} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+
+          {/* Tabla ranking completa */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Tabla de Rentabilidad Completa</h3>
+            {projectRanking.length === 0 ? (
+              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest text-center py-8">Sin datos</p>
+            ) : (
+              <table className="w-full text-left text-[9px]">
+                <thead>
+                  <tr className="border-b border-slate-100">
+                    <th className="py-2 pr-2 font-black text-slate-400 uppercase tracking-widest">#</th>
+                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Proyecto</th>
+                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest hidden sm:table-cell">Estado</th>
+                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Presupuesto</th>
+                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right hidden md:table-cell">Costo Real</th>
+                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Utilidad</th>
+                    <th className="py-2 font-black text-slate-400 uppercase tracking-widest text-right">Margen</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {projectRanking.map((p, i) => (
+                    <motion.tr key={p.id}
+                      initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="border-b border-slate-50 hover:bg-slate-50">
+                      <td className="py-2 pr-2">
+                        {i === 0 && <span className="text-amber-500 font-black">🥇</span>}
+                        {i === 1 && <span className="text-slate-400 font-black">🥈</span>}
+                        {i === 2 && <span className="text-amber-700 font-black">🥉</span>}
+                        {i > 2 && <span className="font-black text-slate-400">{i+1}</span>}
+                      </td>
+                      <td className="py-2 pr-4 font-black text-primary uppercase max-w-[140px] truncate">{p.name}</td>
+                      <td className="py-2 pr-4 hidden sm:table-cell">
+                        <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full ${
+                          p.status==='EJECUCION'?'bg-orange-100 text-orange-700':
+                          p.status==='FINALIZADO'?'bg-emerald-100 text-emerald-700':
+                          'bg-slate-100 text-slate-600'}`}>
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="py-2 pr-4 font-black text-slate-600 text-right">Q {(p.budget||0).toLocaleString('es-GT')}</td>
+                      <td className="py-2 pr-4 font-black text-slate-600 text-right hidden md:table-cell">Q {Math.round(p.costoReal).toLocaleString('es-GT')}</td>
+                      <td className={`py-2 pr-4 font-black text-right ${p.utilidad>=0?'text-emerald-600':'text-red-500'}`}>
+                        Q {Math.round(p.utilidad).toLocaleString('es-GT')}
+                      </td>
+                      <td className="py-2 text-right">
+                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                          p.margen>=20?'bg-emerald-100 text-emerald-700':
+                          p.margen>=0?'bg-amber-100 text-amber-700':
+                          'bg-red-100 text-red-600'}`}>
+                          {Math.round(p.margen)}%
+                        </span>
+                      </td>
+                    </motion.tr>
+                  ))}
+                </tbody>
+                <tfoot className="bg-slate-50 border-t border-slate-200">
+                  <tr>
+                    <td colSpan={3} className="py-2 pr-4 font-black text-slate-400 uppercase text-[8px] tracking-widest">TOTALES ({projectRanking.length} proyectos)</td>
+                    <td className="py-2 pr-4 font-black text-primary text-right">Q {projectRanking.reduce((a,p)=>a+(p.budget||0),0).toLocaleString('es-GT')}</td>
+                    <td className="py-2 pr-4 font-black text-primary text-right hidden md:table-cell">Q {Math.round(projectRanking.reduce((a,p)=>a+p.costoReal,0)).toLocaleString('es-GT')}</td>
+                    <td className={`py-2 pr-4 font-black text-right ${projectRanking.reduce((a,p)=>a+p.utilidad,0)>=0?'text-emerald-600':'text-red-500'}`}>
+                      Q {Math.round(projectRanking.reduce((a,p)=>a+p.utilidad,0)).toLocaleString('es-GT')}
+                    </td>
+                    <td className="py-2 font-black text-right text-secondary">
+                      {projectRanking.length > 0 ? Math.round(projectRanking.reduce((a,p)=>a+p.margen,0)/projectRanking.length) : 0}%
+                    </td>
+                  </tr>
+                </tfoot>
+              </table>
+            )}
+          </div>
+
+          {/* Alertas de proyectos en riesgo */}
+          {projectRanking.filter(p => p.margen < 0).length > 0 && (
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle size={16} className="text-red-500" />
+                <h3 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Proyectos en Riesgo Financiero</h3>
+              </div>
+              <div className="space-y-2">
+                {projectRanking.filter(p => p.margen < 0).map(p => (
+                  <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-red-100">
+                    <span className="text-[9px] font-black text-primary uppercase">{p.name}</span>
+                    <span className="text-[9px] font-black text-red-600">Margen: {Math.round(p.margen)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top performers */}
+          {projectRanking.filter(p => p.margen >= 20).length > 0 && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Award size={16} className="text-emerald-600" />
+                <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Proyectos de Alto Rendimiento (≥20% margen)</h3>
+              </div>
+              <div className="space-y-2">
+                {projectRanking.filter(p => p.margen >= 20).map(p => (
+                  <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-emerald-100">
+                    <span className="text-[9px] font-black text-primary uppercase">{p.name}</span>
+                    <span className="text-[9px] font-black text-emerald-600">Margen: {Math.round(p.margen)}% · Q {Math.round(p.utilidad).toLocaleString('es-GT')}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

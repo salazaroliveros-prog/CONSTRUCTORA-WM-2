@@ -32,6 +32,8 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
+import GradientHeader from './ui/GradientHeader';
+import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, Tooltip, staggerContainer, staggerItem } from './ui/Animations';
 import AIFloatingButton from './AIFloatingButton';
 import { 
   BarChart, 
@@ -605,6 +607,30 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
     </div>
   ) : (
     <div id="dashboard-container" className="grid grid-cols-12 auto-rows-min gap-4 pb-4">
+      
+      {/* Enhanced Gradient Header */}
+      <div className="col-span-12">
+        <GradientHeader
+          title={selectedProjectId === 'ALL' ? 'Dashboard General' : 'Detalle del Proyecto'}
+          subtitle={selectedProjectId === 'ALL' ? 'Resumen ejecutivo de constructora WM' : `Proyecto: ${filteredProjects[0]?.name || 'Seleccionado'}`}
+          variant="ocean"
+          size="md"
+          icon={<TrendingUp size={24} className="text-white" />}
+        >
+          <div className="flex items-center gap-3">
+            <AnimatedProgress
+              value={avgFisico}
+              max={100}
+              size="sm"
+              color="#10b981"
+              className="w-32"
+            />
+            <span className="text-[10px] font-black text-white/80 uppercase">
+              {avgFisico}% Avance
+            </span>
+          </div>
+        </GradientHeader>
+      </div>
       
       {/* Accounting Modal */}
       <Modal 
