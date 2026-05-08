@@ -114,6 +114,8 @@ function TaskBar({
   );
 }
 
+type ViewMode = 'compact' | 'expanded' | 'detailed';
+
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function GanttChart() {
   const [projects, setProjects]               = useState<any[]>([]);
@@ -124,6 +126,9 @@ export default function GanttChart() {
   const [editWorkers, setEditWorkers]         = useState(1);
   const [collapsedCats, setCollapsedCats]     = useState<Set<string>>(new Set());
   const [saving, setSaving]                   = useState(false);
+  const [viewMode, setViewMode]               = useState<ViewMode>('compact');
+  const [showDependencies, setShowDependencies] = useState(false);
+  const [showFinancialSummary, setShowFinancialSummary] = useState(false);
   const saveTimer                             = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cargar proyectos en ejecución
@@ -143,6 +148,27 @@ export default function GanttChart() {
     if (!project) return;
     setConfig(project.ganttConfig ?? EMPTY_CONFIG);
   }, [project?.id]);
+
+  // Aplicar vista compacta por defecto al cargar proyecto
+  useEffect(() => {
+    if (viewMode === 'compact') {
+      // En vista compacta, colapsar todas las categorías excepto las críticas
+      const criticalCats = new Set<string>();
+      tasks.forEach(t => {
+        if (t.isCritical) criticalCats.add(t.category);
+      });
+      setCollapsedCats(prev => {
+        const newSet = new Set<string>();
+        byCategory.forEach((_, cat) => {
+          if (!criticalCats.has(cat)) newSet.add(cat);
+        });
+        return newSet;
+      });
+    } else if (viewMode === 'expanded') {
+      // En expandida, mostrar todo
+      setCollapsedCats(new Set());
+    }
+  }, [viewMode, project?.id]);
 
   // Guardar config en Firestore con debounce
   const persistConfig = useCallback((newConfig: GanttConfig) => {
@@ -270,7 +296,7 @@ export default function GanttChart() {
             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">CPM · Ruta Crítica · Holguras · Avance Real</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           {saving && <span className="text-[8px] font-bold text-amber-500 uppercase animate-pulse">Guardando…</span>}
           <select
             value={selectedId}
@@ -282,6 +308,67 @@ export default function GanttChart() {
               : projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)
             }
           </select>
+          
+          {/* Vista Compacta/Expandida/Detallada */}
+          <div className="flex items-center bg-slate-100 rounded-lg p-1">
+            <button
+              onClick={() => setViewMode('compact')}
+              className={cn(
+                'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
+                viewMode === 'compact' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'
+              )}
+              title="Vista Compacta"
+            >
+              Compacta
+            </button>
+            <button
+              onClick={() => setViewMode('expanded')}
+              className={cn(
+                'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
+                viewMode === 'expanded' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'
+              )}
+              title="Vista Expandida"
+            >
+              Ver Todo
+            </button>
+            <button
+              onClick={() => setViewMode('detailed')}
+              className={cn(
+                'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
+                viewMode === 'detailed' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'
+              )}
+              title="Vista Detallada"
+            >
+              Detalle
+            </button>
+          </div>
+          
+          {/* Mostrar/Ocultar Dependencias */}
+          <button
+            onClick={() => setShowDependencies(!showDependencies)}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase transition-all',
+              showDependencies ? 'bg-purple-100 text-purple-700 border border-purple-300' : 'bg-white border border-slate-200 text-slate-600 hover:border-purple-300'
+            )}
+            title="Mostrar dependencias"
+          >
+            <TrendingUp size={14} />
+            <span className="hidden sm:inline">Rutas</span>
+          </button>
+          
+          {/* Resumen Financiero */}
+          <button
+            onClick={() => setShowFinancialSummary(!showFinancialSummary)}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase transition-all',
+              showFinancialSummary ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-white border border-slate-200 text-slate-600 hover:border-green-300'
+            )}
+            title="Resumen financiero"
+          >
+            <DollarSign size={14} />
+            <span className="hidden sm:inline">Financiero</span>
+          </button>
+          
           <button
             onClick={handleExport}
             disabled={tasks.length === 0}
@@ -453,21 +540,199 @@ export default function GanttChart() {
         </div>
       </div>
 
-      {/* ── Ruta crítica ── */}
+      {/* ── Ruta crítica mejorada ── */}
       {criticalPath.length > 0 && (
-        <div className="shrink-0 bg-red-50 border border-red-200 rounded-xl p-3">
-          <div className="flex items-center gap-2 mb-2">
-            <AlertTriangle size={13} className="text-red-500" />
-            <span className="text-[8px] font-black text-red-600 uppercase">Ruta Crítica — {criticalPath.length} tareas · {maxDuration} días totales</span>
-          </div>
-          <div className="flex flex-wrap gap-1.5">
-            {criticalPath.map(t => (
-              <span key={t.id} className="px-2 py-0.5 bg-white border border-red-200 rounded text-[7px] font-bold text-red-700 uppercase">
-                {t.name}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="shrink-0 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4"
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={14} className="text-red-600" />
+              <span className="text-[9px] font-black text-red-700 uppercase tracking-wider">
+                Ruta Crítica — {criticalPath.length} tareas · {maxDuration} días totales
               </span>
+            </div>
+            <div className="flex items-center gap-2 text-[8px]">
+              <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-bold">
+                CRÍTICO
+              </span>
+              <span className="text-slate-500">Las tareas en rojo no pueden sufrir retrasos</span>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {criticalPath.map((t, idx) => (
+              <motion.div
+                key={t.id}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: idx * 0.05 }}
+                className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
+              >
+                {t.name.length > 25 ? t.name.substring(0, 25) + '...' : t.name}
+                <span className="ml-2 opacity-75">{t.duration}d</span>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
+      )}
+
+      {/* ── Resumen Físico-Financiero ── */}
+      {showFinancialSummary && tasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          className="shrink-0 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-4 shadow-xl"
+        >
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <DollarSign size={18} className="text-green-400" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-white uppercase tracking-wider">Resumen Físico-Financiero</h3>
+                <p className="text-[9px] text-slate-400">Inversión proyectada por período</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Cálculo de inversión por semana y mes */}
+          {(() => {
+            const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
+            const weeks = Math.ceil(maxDuration / 7);
+            const months = Math.ceil(maxDuration / 30);
+            
+            // Calcular inversión por día basado en el costo total
+            const dailyInvestment = totalCost / maxDuration;
+            const weeklyInvestment = dailyInvestment * 7;
+            const monthlyInvestment = dailyInvestment * 30;
+
+            // Calcular inversión acumulada por semana
+            const weeklyData = Array.from({ length: weeks }, (_, i) => {
+              const weekStart = i * 7;
+              const weekEnd = Math.min((i + 1) * 7, maxDuration);
+              const weekTasks = tasks.filter(t =>
+                t.earlyStart < weekEnd && t.earlyFinish > weekStart
+              );
+              const weekCost = weekTasks.reduce((s, t) => s + (t.cost * (t.progress / 100)), 0);
+              const effectiveDays = Math.min(weekEnd, maxDuration) - Math.max(weekStart, 0);
+              return {
+                week: i + 1,
+                cost: weekCost || (dailyInvestment * effectiveDays),
+                tasks: weekTasks.length
+              };
+            });
+
+            // Calcular inversión por mes
+            const monthlyData = Array.from({ length: months }, (_, i) => {
+              const monthStart = i * 30;
+              const monthEnd = Math.min((i + 1) * 30, maxDuration);
+              const monthTasks = tasks.filter(t =>
+                t.earlyStart < monthEnd && t.earlyFinish > monthStart
+              );
+              const monthCost = monthTasks.reduce((s, t) => s + (t.cost * (t.progress / 100)), 0);
+              const effectiveDays = Math.min(monthEnd, maxDuration) - Math.max(monthStart, 0);
+              return {
+                month: i + 1,
+                cost: monthCost || (dailyInvestment * effectiveDays),
+                tasks: monthTasks.length
+              };
+            });
+
+            return (
+              <div className="space-y-4">
+                {/* KPIs de inversión */}
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Inversión Total</p>
+                    <p className="text-lg font-black text-green-400">{fmtQ(totalCost)}</p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Por Semana</p>
+                    <p className="text-lg font-black text-blue-400">{fmtQ(weeklyInvestment)}</p>
+                  </div>
+                  <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                    <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Por Mes</p>
+                    <p className="text-lg font-black text-purple-400">{fmtQ(monthlyInvestment)}</p>
+                  </div>
+                </div>
+
+                {/* Tabla de inversión semanal */}
+                <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <h4 className="text-[10px] font-black text-slate-300 uppercase mb-3">Inversión por Semana</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[9px]">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-2 font-black text-slate-400 uppercase">Semana</th>
+                          <th className="text-right py-2 font-black text-slate-400 uppercase">Inversión</th>
+                          <th className="text-center py-2 font-black text-slate-400 uppercase">Tareas</th>
+                          <th className="text-right py-2 font-black text-slate-400 uppercase">Acumulado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {weeklyData.map((w, idx) => {
+                          const accumulated = weeklyData.slice(0, idx + 1).reduce((s, x) => s + x.cost, 0);
+                          return (
+                            <motion.tr
+                              key={w.week}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.02 }}
+                              className="border-b border-white/5 hover:bg-white/5"
+                            >
+                              <td className="py-2 font-bold text-slate-300">Semana {w.week}</td>
+                              <td className="py-2 text-right font-black text-green-400">{fmtQ(w.cost)}</td>
+                              <td className="py-2 text-center text-slate-400">{w.tasks}</td>
+                              <td className="py-2 text-right font-bold text-blue-400">{fmtQ(accumulated)}</td>
+                            </motion.tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Tabla de inversión mensual */}
+                <div className="bg-white/5 rounded-lg p-3 border border-white/10">
+                  <h4 className="text-[10px] font-black text-slate-300 uppercase mb-3">Inversión por Mes</h4>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-[9px]">
+                      <thead>
+                        <tr className="border-b border-white/10">
+                          <th className="text-left py-2 font-black text-slate-400 uppercase">Mes</th>
+                          <th className="text-right py-2 font-black text-slate-400 uppercase">Inversión</th>
+                          <th className="text-center py-2 font-black text-slate-400 uppercase">Tareas</th>
+                          <th className="text-right py-2 font-black text-slate-400 uppercase">Acumulado</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {monthlyData.map((m, idx) => {
+                          const accumulated = monthlyData.slice(0, idx + 1).reduce((s, x) => s + x.cost, 0);
+                          return (
+                            <motion.tr
+                              key={m.month}
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: idx * 0.05 }}
+                              className="border-b border-white/5 hover:bg-white/5"
+                            >
+                              <td className="py-2 font-bold text-slate-300">Mes {m.month}</td>
+                              <td className="py-2 text-right font-black text-purple-400">{fmtQ(m.cost)}</td>
+                              <td className="py-2 text-center text-slate-400">{m.tasks}</td>
+                              <td className="py-2 text-right font-bold text-blue-400">{fmtQ(accumulated)}</td>
+                            </motion.tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </motion.div>
       )}
     </div>
   );
