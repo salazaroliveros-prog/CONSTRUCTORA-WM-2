@@ -146,11 +146,10 @@ export function AnimatedContainer({
   children, 
   className, 
   delay = 0.05,
-  as: Component = 'div',
+  as: _Component = 'div',
 }: AnimatedContainerProps) {
   return (
     <motion.div
-      as={Component}
       variants={{
         hidden: { opacity: 0 },
         show: {
@@ -381,7 +380,7 @@ export function SkeletonTableRow({ columns = 5 }: { columns?: number }) {
 // MICRO-INTERACTION BUTTONS
 // ============================================
 
-interface MicroButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface MicroButtonProps extends Omit<HTMLMotionProps<'button'>, 'ref'> {
   variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
   size?: 'sm' | 'md' | 'lg';
   icon?: React.ReactNode;
@@ -464,7 +463,7 @@ export function Tooltip({
   delay = 200,
 }: TooltipProps) {
   const [show, setShow] = useState(false);
-  const timeoutRef = useRef<NodeJS.Timeout>();
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const positionStyles = {
     top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',

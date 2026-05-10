@@ -847,7 +847,7 @@ export default function ProjectsModule() {
             className="space-y-8 text-left"
           >
             <div className="border-b border-slate-100 pb-6 space-y-3">
-              {/* Fila 1: icono + t�tulo + bot�n editar */}
+              {/* Fila 1: icono + titulo + boton editar */}
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20">
                   <Building2 size={24} />
@@ -867,7 +867,7 @@ export default function ProjectsModule() {
                   </button>
                 )}
               </div>
-              {/* Fila 2: controles de exportaci�n */}
+              {/* Fila 2: controles de exportacion */}
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                   <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>

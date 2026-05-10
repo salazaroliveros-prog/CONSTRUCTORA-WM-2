@@ -32,8 +32,35 @@ const AIAssistantModule = lazy(() => import('./components/AIAssistant'));
 const GanttChartModule = lazy(() => import('./components/GanttChart'));
 
 function AppContent() {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const validTabs = new Set(['dashboard', 'calculator', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seed', 'seguimiento', 'clean', 'ai', 'gantt']);
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+    return tab && validTabs.has(tab) ? tab : 'dashboard';
+  });
   const { user, login, loading, isAuthorizedUser, signOut } = useAuth();
+
+  const handleSetActiveTab = (tab: string) => {
+    const nextTab = validTabs.has(tab) ? tab : 'dashboard';
+    setActiveTab(nextTab);
+    const url = new URL(window.location.href);
+    url.searchParams.set('tab', nextTab);
+    window.history.replaceState(null, '', url);
+  };
+
+  useEffect(() => {
+    if (user?.photoURL) {
+      // Update favicon
+      const link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
+      if (link) {
+        link.href = user.photoURL;
+      }
+      // Update apple-touch-icon
+      const appleIcon: HTMLLinkElement | null = document.querySelector("link[rel='apple-touch-icon']");
+      if (appleIcon) {
+        appleIcon.href = user.photoURL;
+      }
+    }
+  }, [user]);
 
   if (loading) {
     return (
@@ -101,21 +128,6 @@ function AppContent() {
     );
   }
 
-  useEffect(() => {
-    if (user?.photoURL) {
-      // Update favicon
-      const link: HTMLLinkElement | null = document.querySelector("link[rel*='icon']");
-      if (link) {
-        link.href = user.photoURL;
-      }
-      // Update apple-touch-icon
-      const appleIcon: HTMLLinkElement | null = document.querySelector("link[rel='apple-touch-icon']");
-      if (appleIcon) {
-        appleIcon.href = user.photoURL;
-      }
-    }
-  }, [user]);
-
   if (!user) {
     return (
       <div className="min-h-screen dark flex items-center justify-center p-6" style={{background:'radial-gradient(ellipse 60% 55% at 50% -5%, rgba(200,160,60,0.55) 0%, rgba(120,90,20,0.25) 40%, transparent 70%), linear-gradient(to bottom, #0a0c14 55%, #0d1a3a 75%, #0a2060 88%, #0d2878 100%)'}}>
@@ -182,11 +194,11 @@ function AppContent() {
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <Dashboard setActiveTab={setActiveTab} />;
+        return <Dashboard setActiveTab={handleSetActiveTab} />;
       case 'calculator':
         return <CalculatorModule />;
       case 'execution':
-        return <ExecutionModule setActiveTab={setActiveTab} />;
+        return <ExecutionModule setActiveTab={handleSetActiveTab} />;
       case 'clients':
         return <ClientsModule />;
       case 'inventory':
@@ -212,12 +224,12 @@ function AppContent() {
       case 'gantt':
         return <GanttChartModule />;
       default:
-        return <Dashboard setActiveTab={setActiveTab} />;
+        return <Dashboard setActiveTab={handleSetActiveTab} />;
     }
   };
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
+    <Layout activeTab={activeTab} setActiveTab={handleSetActiveTab}>
       <Suspense fallback={
         <div className="flex-1 p-4 space-y-3 animate-fade-in">
           {/* Header skeleton */}

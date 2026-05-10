@@ -16,7 +16,18 @@ import { twMerge } from 'tailwind-merge';
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 function fmtQ(n: number) { return 'Q ' + Math.round(n).toLocaleString('es-GT'); }
 
-const EMPTY_FORM = { name: '', email: '', phone: '', address: '', nit: '', type: 'PERSONA' as const, notes: '', status: 'ACTIVO' as const };
+type ClientForm = {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  nit: string;
+  type: NonNullable<Client['type']>;
+  notes: string;
+  status: NonNullable<Client['status']>;
+};
+
+const EMPTY_FORM: ClientForm = { name: '', email: '', phone: '', address: '', nit: '', type: 'PERSONA', notes: '', status: 'ACTIVO' };
 
 export default function ClientsModule() {
   const [clients, setClients]         = useState<Client[]>([]);

@@ -3,6 +3,9 @@
     "rules": "firestore.rules",
     "database": "ai-studio-c0b6a70a-6116-4e09-a484-07f3e9c63eec"
   },
+  "storage": {
+    "rules": "storage.rules"
+  },
   "emulators": {
     "singleProjectMode": true
   }

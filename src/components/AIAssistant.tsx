@@ -121,9 +121,12 @@ export default function AIAssistant() {
     abortRef.current = new AbortController();
 
     try {
+      const token = await user?.getIdToken();
+      if (!token) throw new Error('Sesión no válida');
+
       const res = await fetch('/api/ai-report', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         signal: abortRef.current.signal,
         body: JSON.stringify({
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
@@ -156,7 +159,7 @@ export default function AIAssistant() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages, context, isLoading]);
+  }, [messages, context, isLoading, user]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 

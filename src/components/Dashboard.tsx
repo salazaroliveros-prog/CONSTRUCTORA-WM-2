@@ -33,15 +33,14 @@ import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
 import GradientHeader from './ui/GradientHeader';
-import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, Tooltip, staggerContainer, staggerItem } from './ui/Animations';
-import AIFloatingButton from './AIFloatingButton';
+import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
 import { 
   BarChart, 
   Bar, 
   XAxis, 
   YAxis, 
   CartesianGrid, 
-  Tooltip, 
+  Tooltip as ChartTooltip, 
   ResponsiveContainer, 
   PieChart, 
   Pie, 
@@ -237,7 +236,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
             }
             className={cn("p-2 rounded-lg text-white shadow-md", kpi.color)}
           >
-            {React.cloneElement(kpi.icon as React.ReactElement, { size: 14 })}
+            {React.cloneElement(kpi.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
           </motion.div>
           {/* Mini ring charts next to icon */}
           {kpi.rings && (
@@ -839,7 +838,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                       <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <Tooltip cursor={{fill: 'rgba(248,250,252,0.05)'}} content={<CustomTooltip />} />
+                      <ChartTooltip cursor={{fill: 'rgba(248,250,252,0.05)'}} content={<CustomTooltip />} />
                       <Legend wrapperStyle={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase' }} />
                       <Bar dataKey="ingresos" fill="url(#barGradIngresos)" radius={[3, 3, 0, 0]} barSize={15} />
                       <Bar dataKey="gastos" fill="url(#barGradGastos)" radius={[3, 3, 0, 0]} barSize={15} />
@@ -850,7 +849,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                       <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
+                      <ChartTooltip content={<CustomTooltip />} />
                       <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={2} dot={{ r: 3, fill: settings.secondaryColor }} />
                       <Line type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={2} dot={{ r: 3, fill: settings.primaryColor }} />
                     </LineChart>
@@ -869,7 +868,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                       <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <Tooltip content={<CustomTooltip />} />
+                      <ChartTooltip content={<CustomTooltip />} />
                       <Area type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={1.5} fill="url(#gradIngresos)" />
                       <Area type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={1.5} fill="url(#gradGastos)" />
                     </AreaChart>
@@ -902,7 +901,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                           <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                         ))}
                       </Pie>
-                      <Tooltip content={<CustomTooltip />} />
+                      <ChartTooltip content={<CustomTooltip />} />
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
@@ -1168,9 +1167,6 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
           </div>
         </div>
       )}
-
-      {/* AI Floating Button */}
-      <AIFloatingButton setActiveTab={setActiveTab} />
     </div>
   );
 }

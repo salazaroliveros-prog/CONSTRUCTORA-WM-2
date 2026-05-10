@@ -23,7 +23,7 @@ interface AppSettings {
   activeModules: string[];
 }
 
-const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','seguimiento','suppliers','inventory','analytics','staff','settings'];
+const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','seguimiento','gantt','suppliers','inventory','analytics','staff','settings'];
 
 const defaultSettings: AppSettings = {
   primaryColor: '#0F172A',

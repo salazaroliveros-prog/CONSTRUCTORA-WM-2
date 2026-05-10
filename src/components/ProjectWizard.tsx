@@ -312,10 +312,10 @@ export default function ProjectWizard({ onComplete }: { onComplete: () => void }
         directCosts: totalDirect,
       });
 
-      await addDocument('projects', dataToSave);
+      const projectId = await addDocument('projects', dataToSave);
       // Auto-generate inventory stock when project is in EJECUCION
-      if (dataToSave.status === 'EJECUCION') {
-        const created = await generateProjectStock({ ...dataToSave, id: '' });
+      if (projectId && dataToSave.status === 'EJECUCION') {
+        const created = await generateProjectStock({ ...dataToSave, id: projectId });
         if (created > 0) toast.info(`${created} materiales agregados al inventario automáticamente`);
       }
       toast.success("Proyecto creado exitosamente");

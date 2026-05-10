@@ -305,7 +305,7 @@ export default function Settings() {
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {ALL_MODULES.filter(m => m !== 'settings').map(mod => {
                 const active = (settings.activeModules ?? ALL_MODULES).includes(mod);
-                const labels: Record<string, string> = { dashboard: 'Dashboard', clients: 'Clientes', projects: 'Proyectos', calculator: 'Presupuestos', execution: 'Seguimiento', suppliers: 'Proveedores', inventory: 'Inventario', analytics: 'Analiticas', staff: 'RRHH' };
+                const labels: Record<string, string> = { dashboard: 'Dashboard', clients: 'Clientes', projects: 'Proyectos', calculator: 'Presupuestos', execution: 'Bitacora', seguimiento: 'Avance', gantt: 'Gantt', suppliers: 'Proveedores', inventory: 'Inventario', analytics: 'Analiticas', staff: 'RRHH' };
                 return (
                   <button
                     key={mod}

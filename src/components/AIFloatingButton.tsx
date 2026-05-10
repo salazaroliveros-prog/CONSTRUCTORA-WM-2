@@ -60,7 +60,7 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
   // Load context
   useEffect(() => {
     if (!user) return;
-    const cols = ['projects', 'clients', 'staff', 'suppliers', 'inventory', 'transactions'] as const;
+    const cols = ['projects', 'clients', 'staff', 'suppliers', 'inventory', 'transactions', 'purchaseOrders'] as const;
     const unsubs = cols.map(col => subscribeToCollection(col, data => setContext(p => ({ ...p, [col]: data }))));
     return () => unsubs.forEach(u => u());
   }, [user]);
@@ -107,9 +107,12 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
     abortRef.current = new AbortController();
 
     try {
+      const token = await user?.getIdToken();
+      if (!token) throw new Error('Sesión no válida');
+
       const res = await fetch('/api/ai-report', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         signal: abortRef.current.signal,
         body: JSON.stringify({
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
@@ -129,12 +132,12 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
       }
     } catch (e: any) {
       if (e.name === 'AbortError') return;
-      toast.error('Error al conectar con la IA');
+      toast.error('Error al conectar con la IA', { description: e.message });
       setMessages(prev => prev.filter(m => m.id !== asstId));
     } finally {
       setLoading(false);
     }
-  }, [messages, context, loading]);
+  }, [messages, context, loading, user]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 

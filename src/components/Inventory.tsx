@@ -943,7 +943,7 @@ export default function InventoryModule() {
           {purchaseOrders.length === 0 ? (
             <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center">
               <ShoppingCart size={32} className="mx-auto text-slate-300 mb-3" />
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin �rdenes de compra</p>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin ordenes de compra</p>
               <p className="text-[9px] text-slate-300 mt-1">Crea una nueva OC para solicitar materiales a proveedores</p>
             </div>
           ) : purchaseOrders.map(order => (
@@ -971,7 +971,7 @@ export default function InventoryModule() {
               <div className="space-y-1">
                 {order.items.map((oi, i) => (
                   <div key={i} className="flex justify-between items-center text-[9px] py-1 border-b border-slate-50 last:border-0">
-                    <span className="font-bold text-slate-700">{oi.materialName} � {oi.qty} {oi.unit}</span>
+                    <span className="font-bold text-slate-700">{oi.materialName} - {oi.qty} {oi.unit}</span>
                     <span className="font-black text-primary">Q {oi.total.toLocaleString()}</span>
                   </div>
                 ))}
