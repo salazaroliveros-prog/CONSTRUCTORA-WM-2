@@ -208,7 +208,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       onMouseLeave={onMouseLeave}
       style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
       className="relative bg-white border border-slate-100 rounded-xl p-3 cursor-default will-change-transform overflow-hidden group
-                 hover:border-slate-200 hover:shadow-md"
+                 hover:border-slate-200 hover:shadow-md shimmer-effect kpi-particles particle-effect"
     >
       {/* Color accent bar top */}
       <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
@@ -233,7 +233,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
               ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
               : { duration: 3, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }
             }
-            className={cn("p-2 rounded-lg text-white shadow-md", kpi.color)}
+            className={cn("icon-box", kpi.color)}
           >
             {React.cloneElement(kpi.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
           </motion.div>
@@ -1066,7 +1066,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             <div className="space-y-2">
                <button 
                  onClick={() => setIsAccountingModalOpen(true)}
-                 className="w-full flex items-center gap-3 p-4 bg-primary text-white rounded-xl font-black tracking-widest uppercase text-[9px] transition-all hover:scale-[1.02] active:scale-95 shadow-xl shadow-primary/20"
+                 className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-4 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all hover:scale-[1.02] active:scale-95 shadow-xl"
                >
                  <ArrowUpRight size={14} className="text-secondary" />
                  Registro Contable
@@ -1077,7 +1077,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                  { label: 'Reporte de Obra', icon: <Truck size={14} />, color: 'bg-slate-100 text-primary', tab: 'seguimiento' },
                ].map((action, i) => (
                  <button key={i} onClick={() => setActiveTab?.(action.tab as string)} className={cn(
-                   "w-full flex items-center gap-3 p-3.5 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all hover:scale-[1.02] active:scale-95",
+                   "interactive-card w-full flex items-center gap-3 p-3.5 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all",
                    action.color
                  )}>
                    {action.icon}
@@ -1094,7 +1094,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </div>
          </div>
 
-         <div className="bg-slate-900 rounded-2xl p-3 text-left relative overflow-hidden">
+         <div className="bg-slate-900 rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estatus Financiero</h4>
             <div className="space-y-4">
@@ -1104,7 +1104,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
                      <span className="text-secondary">{(globalIncome - globalExpenses) > 0 ? 'ALTA' : 'CRÍTICA'}</span>
                   </div>
                   <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                     <div className="h-full bg-secondary w-[85%] rounded-full shadow-[0_0_10px_#FBBF24]" />
+                     <div className="progress-neon-fill h-full w-[85%] rounded-full" />
                   </div>
                </div>
                <div className="pt-4 border-t border-white/5 space-y-2">
@@ -1120,7 +1120,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </div>
          </div>
 
-         <div className="bg-secondary p-5 rounded-2xl text-primary text-left">
+         <div className="bg-secondary p-5 rounded-2xl text-primary text-left border-animated">
             <div className="flex items-center gap-2 mb-3">
                <Zap size={16} className="fill-current" />
                <span className="text-[9px] font-black uppercase tracking-widest">Tip Constructivo</span>

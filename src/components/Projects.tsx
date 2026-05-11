@@ -450,11 +450,11 @@ export default function ProjectsModule() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={() => setSelectedProject(project)}
-      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full"
+      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect"
     >
       <div className="p-4 space-y-3 flex-1">
         <div className="flex justify-between items-start">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform duration-300">
+          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform duration-300 icon-box icon-gradient-blue">
             <Building2 size={20} />
           </div>
           <div className="flex flex-col items-end">
@@ -572,7 +572,7 @@ export default function ProjectsModule() {
             </button>
             <button 
               onClick={() => setView('create')}
-              className="flex-[2] md:flex-none bg-secondary text-primary px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-secondary/90 transition-all shadow-lg shadow-secondary/20"
+              className="btn-primary-enhanced btn-liquid flex-[2] md:flex-none px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg"
             >
               <Plus size={18} /> Nueva Cotización
             </button>

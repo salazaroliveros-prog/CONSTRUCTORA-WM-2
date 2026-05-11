@@ -21,7 +21,8 @@ import {
   Percent,
   Gauge,
   BarChart3,
-  TrendingUp
+  TrendingUp,
+  ShoppingCart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { usePagination } from '../hooks/usePagination';

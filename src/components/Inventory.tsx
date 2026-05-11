@@ -24,7 +24,8 @@ import {
   ShoppingCart,
   ClipboardList,
   CheckCircle2,
-  Building2
+  Building2,
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WarehouseItem, PurchaseOrder, PurchaseOrderItem } from '../constants';

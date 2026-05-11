@@ -147,6 +147,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'analytics',   label: 'Analíticas',             icon: <BarChart3 size={18} /> },
     { id: 'staff',       label: 'Recursos Humanos',       icon: <HardHat size={18} /> },
     { id: 'ai',          label: 'Asistente IA',           icon: <Sparkles size={18} /> },
+    { id: 'effects',     label: 'Efectos Visuales',       icon: <Zap size={18} /> },
     { id: 'settings',    label: 'Ajustes Visuales',       icon: <Settings size={18} /> },
     { id: 'seed',        label: 'Datos de Prueba',        icon: <Zap size={18} /> },
     { id: 'clean',       label: 'Limpiar Datos',          icon: <X size={18} /> },

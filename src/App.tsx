@@ -30,9 +30,10 @@ const SeguimientoModule = lazy(() => import('./components/Seguimiento'));
 const CleanDataModule = lazy(() => import('./components/CleanData'));
 const AIAssistantModule = lazy(() => import('./components/AIAssistant'));
 const GanttChartModule = lazy(() => import('./components/GanttChart'));
+const EffectsShowcaseModule = lazy(() => import('./components/EffectsShowcase'));
 
 function AppContent() {
-  const validTabs = new Set(['dashboard', 'calculator', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seed', 'seguimiento', 'clean', 'ai', 'gantt']);
+  const validTabs = new Set(['dashboard', 'calculator', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seed', 'seguimiento', 'clean', 'ai', 'gantt', 'effects']);
   const [activeTab, setActiveTab] = useState(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
     return tab && validTabs.has(tab) ? tab : 'dashboard';
@@ -223,6 +224,8 @@ function AppContent() {
         return <SeguimientoModule />;
       case 'gantt':
         return <GanttChartModule />;
+      case 'effects':
+        return <EffectsShowcaseModule />;
       default:
         return <Dashboard setActiveTab={handleSetActiveTab} />;
     }
