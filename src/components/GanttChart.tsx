@@ -6,6 +6,8 @@ import {
   Calendar, Clock, AlertTriangle, Edit2, Save, X,
   TrendingUp, Activity, ChevronDown, ChevronRight, DollarSign, Printer, Download
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
 import { toast } from 'sonner';
 import { subscribeToCollection, updateDocument } from '../services/firestoreService';
@@ -19,8 +21,13 @@ function fmtQ(n: number) { return 'Q ' + Math.round(n).toLocaleString('es-GT'); 
 const EMPTY_CONFIG: GanttConfig = { overrides: {}, progress: {} };
 
 // ── Tooltip flotante ──────────────────────────────────────────────────────────
-function TaskTooltip({ task, startDate }: { task: GanttTask; startDate: string }) {
+function TaskTooltip({ task, startDate, expectedProgress }: {
+  task: GanttTask;
+  startDate: string;
+  expectedProgress: number;
+}) {
   const base = new Date(startDate);
+  const gap  = task.progress - expectedProgress;
   return (
     <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900 text-white rounded-xl p-3 shadow-2xl text-[9px] pointer-events-none">
       <p className="font-black uppercase mb-2 text-amber-400 truncate">{task.name}</p>
@@ -30,7 +37,10 @@ function TaskTooltip({ task, startDate }: { task: GanttTask; startDate: string }
         <span className="text-slate-400">Inicio tardío</span>  <span className="font-bold">{fmtDate(addDays(base, task.lateStart))}</span>
         <span className="text-slate-400">Fin tardío</span>     <span className="font-bold">{fmtDate(addDays(base, task.lateFinish))}</span>
         <span className="text-slate-400">Holgura</span>        <span className={cn('font-bold', task.slack === 0 ? 'text-red-400' : 'text-green-400')}>{task.slack}d</span>
-        <span className="text-slate-400">Avance</span>         <span className="font-bold text-blue-400">{task.progress}%</span>
+        <span className="text-slate-400">Avance real</span>    <span className="font-bold text-blue-400">{task.progress}%</span>
+        <span className="text-slate-400">Esperado hoy</span>   <span className={cn('font-bold', gap >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+          {expectedProgress}% ({gap >= 0 ? '+' : ''}{gap}%)
+        </span>
         <span className="text-slate-400">Cuadrilla</span>      <span className="font-bold text-purple-400">{task.workers} obrero{task.workers !== 1 ? 's' : ''}</span>
         <span className="text-slate-400">Rendimiento</span>    <span className="font-bold">{task.durationPerUnit}d/{task.unit}</span>
         <span className="text-slate-400">Cantidad</span>       <span className="font-bold">{task.quantity} {task.unit}</span>
@@ -43,72 +53,129 @@ function TaskTooltip({ task, startDate }: { task: GanttTask; startDate: string }
 
 // ── Barra de una tarea ────────────────────────────────────────────────────────
 function TaskBar({
-  task, maxDuration, startDate, onProgressChange
+  task, maxDuration, startDate, onProgressChange, todayDay
 }: {
   task: GanttTask;
   maxDuration: number;
   startDate: string;
   onProgressChange: (id: string, val: number) => void;
+  todayDay: number;
 }) {
   const [hover, setHover] = useState(false);
-  const barLeft  = (task.earlyStart  / maxDuration) * 100;
-  const barWidth = (task.duration    / maxDuration) * 100;
-  const slackW   = (task.slack       / maxDuration) * 100;
-  const progW    = (task.progress / 100) * barWidth;
+  const base     = new Date(startDate);
+  const barLeft  = (task.earlyStart / maxDuration) * 100;
+  const barWidth = (task.duration   / maxDuration) * 100;
+  const slackW   = (task.slack      / maxDuration) * 100;
+
+  const dateStart = fmtDate(addDays(base, task.earlyStart));
+  const dateEnd   = fmtDate(addDays(base, task.earlyFinish));
+
+  // Avance esperado a hoy (0-100) dentro de la barra
+  const expectedProgress = (() => {
+    if (todayDay <= task.earlyStart) return 0;
+    if (todayDay >= task.earlyFinish) return 100;
+    return Math.round(((todayDay - task.earlyStart) / task.duration) * 100);
+  })();
+
+  // Posición de la línea de avance esperado dentro de la barra (% relativo a la barra)
+  const expectedLineLeft = barLeft + (expectedProgress / 100) * barWidth;
+  const showExpectedLine = expectedProgress > 0 && expectedProgress < 100 && task.progress !== 100;
 
   return (
     <div
-      className="flex-1 relative h-7"
+      className="flex-1 relative h-8"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       {/* Track */}
-      <div className="absolute inset-y-1 left-0 right-0 bg-slate-100 rounded" />
+      <div className="absolute inset-y-1.5 left-0 right-0 bg-slate-100 rounded" />
 
-      {/* Holgura (gris claro) */}
+      {/* Holgura */}
       {task.slack > 0 && (
         <div
-          className="absolute inset-y-2 rounded bg-slate-300/60"
-          style={{ left: `${barLeft + barWidth}%`, width: `${slackW}%` }}
+          className="absolute rounded bg-slate-300/50 border border-dashed border-slate-400/40"
+          style={{ left: `${barLeft + barWidth}%`, width: `${slackW}%`, top: '30%', bottom: '30%' }}
         />
       )}
 
       {/* Barra principal */}
       <motion.div
         className={cn(
-          'absolute inset-y-1 rounded',
+          'absolute rounded overflow-hidden',
           task.isCritical
             ? 'bg-gradient-to-r from-red-500 to-red-600'
-            : 'bg-gradient-to-r from-blue-500 to-blue-600'
+            : task.progress === 100
+              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
+              : 'bg-gradient-to-r from-blue-500 to-blue-600'
         )}
-        style={{ left: `${barLeft}%`, width: `${barWidth}%` }}
+        style={{ left: `${barLeft}%`, width: `${barWidth}%`, top: '14%', bottom: '14%' }}
         initial={{ scaleX: 0, originX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
-        {/* Progreso real */}
+        {/* Progreso real (franja blanca semitransparente) */}
         <div
-          className="absolute inset-0 rounded bg-white/30"
+          className="absolute inset-0 bg-white/25"
           style={{ width: `${task.progress}%` }}
         />
-        {barWidth > 6 && (
-          <span className="absolute inset-0 flex items-center justify-center text-[8px] font-black text-white">
+        {/* Texto dentro de la barra: % avance */}
+        {barWidth > 5 && (
+          <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow">
             {task.progress > 0 ? `${task.progress}%` : ''}
           </span>
         )}
       </motion.div>
 
-      {/* Tooltip */}
-      {hover && <TaskTooltip task={task} startDate={startDate} />}
+      {/* Línea de avance esperado (donde debería estar hoy) */}
+      {showExpectedLine && (
+        <div
+          className="absolute z-20 pointer-events-none"
+          style={{ left: `${expectedLineLeft}%`, top: '8%', bottom: '8%', width: 2 }}
+        >
+          {/* Línea punteada blanca con sombra */}
+          <div className="w-full h-full border-l-2 border-dashed border-white/90 drop-shadow" />
+          {/* Etiqueta flotante */}
+          <div
+            className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap"
+            style={{ fontSize: 6 }}
+          >
+            <span className={cn(
+              'px-1 py-0.5 rounded font-black text-white',
+              task.progress >= expectedProgress ? 'bg-emerald-500' : 'bg-red-500'
+            )}>
+              {task.progress >= expectedProgress ? '+' : '-'}{Math.abs(task.progress - expectedProgress)}%
+            </span>
+          </div>
+        </div>
+      )}
 
-      {/* Input de avance al hacer click */}
+      {/* Fecha inicio — izquierda de la barra */}
+      <span
+        className="absolute text-[6px] font-bold text-slate-500 whitespace-nowrap"
+        style={{ left: `${barLeft}%`, top: 0, transform: 'translateX(-100%) translateX(-2px)' }}
+      >
+        {dateStart}
+      </span>
+
+      {/* Fecha fin — derecha de la barra */}
+      <span
+        className="absolute text-[6px] font-bold text-slate-500 whitespace-nowrap"
+        style={{ left: `${barLeft + barWidth}%`, bottom: 0, transform: 'translateX(2px)' }}
+      >
+        {dateEnd}
+      </span>
+
+      {/* Tooltip */}
+      {hover && <TaskTooltip task={task} startDate={startDate} expectedProgress={expectedProgress} />}
+
+      {/* Slider de avance sobre la barra */}
       {hover && (
         <input
           type="range" min={0} max={100} value={task.progress}
           onChange={e => onProgressChange(task.id, parseInt(e.target.value))}
-          className="absolute bottom-0 left-0 right-0 h-1 opacity-0 hover:opacity-100 cursor-pointer"
+          className="absolute inset-0 w-full opacity-0 cursor-pointer"
           style={{ left: `${barLeft}%`, width: `${barWidth}%` }}
-          title="Arrastrar para ajustar avance"
+          title={`Avance: ${task.progress}%`}
         />
       )}
     </div>
@@ -116,6 +183,32 @@ function TaskBar({
 }
 
 type ViewMode = 'compact' | 'expanded' | 'detailed';
+
+// ── Calcula el estado real de una tarea según avance esperado vs real ───────────
+type TaskStatus = 'done' | 'on-track' | 'at-risk' | 'delayed' | 'pending';
+
+function calcTaskStatus(task: GanttTask, todayDay: number): TaskStatus {
+  if (task.progress === 100) return 'done';
+  // Tarea que aún no ha comenzado
+  if (todayDay < task.earlyStart) return 'pending';
+  // Tarea que ya debió terminar pero no está al 100%
+  if (todayDay >= task.earlyFinish) return 'delayed';
+  // Avance esperado a hoy
+  const elapsed   = todayDay - task.earlyStart;
+  const expected  = Math.round((elapsed / task.duration) * 100);
+  const gap       = expected - task.progress;
+  if (gap <= 5)  return 'on-track';
+  if (gap <= 20) return 'at-risk';
+  return 'delayed';
+}
+
+const STATUS_CFG: Record<TaskStatus, { dot: string; label: string; badge: string }> = {
+  done:     { dot: 'bg-emerald-500', label: 'Completada', badge: 'bg-emerald-100 text-emerald-700' },
+  'on-track': { dot: 'bg-blue-500',   label: 'Al día',    badge: 'bg-blue-100 text-blue-700'     },
+  'at-risk':  { dot: 'bg-amber-400',  label: 'En riesgo', badge: 'bg-amber-100 text-amber-700'   },
+  delayed:  { dot: 'bg-red-500',    label: 'Retrasada', badge: 'bg-red-100 text-red-700'       },
+  pending:  { dot: 'bg-slate-300',  label: 'Pendiente', badge: 'bg-slate-100 text-slate-500'   },
+};
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function GanttChart() {
@@ -125,13 +218,15 @@ export default function GanttChart() {
   const [editingId, setEditingId]             = useState<string | null>(null);
   const [editDuration, setEditDuration]       = useState(1);
   const [editWorkers, setEditWorkers]         = useState(1);
+  const [editDeps, setEditDeps]               = useState<string[]>([]);
   const [collapsedCats, setCollapsedCats]     = useState<Set<string>>(new Set());
   const [saving, setSaving]                   = useState(false);
   const [viewMode, setViewMode]               = useState<ViewMode>('compact');
   const [showDependencies, setShowDependencies] = useState(false);
   const [showFinancialSummary, setShowFinancialSummary] = useState(false);
   const [financialViewMode, setFinancialViewMode] = useState<'tables' | 'charts'>('tables');
-  const saveTimer                             = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [showSlackTable, setShowSlackTable]       = useState(false);
+  const saveTimer                                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Cargar proyectos en ejecución
   useEffect(() => {
@@ -206,7 +301,8 @@ export default function GanttChart() {
 
   const maxDuration  = tasks.length ? Math.max(...tasks.map(t => t.lateFinish)) : 1;
   const criticalPath = tasks.filter(t => t.isCritical);
-  const todayLine    = project?.startDate ? (daysSinceStart(project.startDate) / maxDuration) * 100 : null;
+  const todayDay     = project?.startDate ? daysSinceStart(project.startDate) : 0;
+  const todayLine    = project?.startDate ? (todayDay / maxDuration) * 100 : null;
 
   // Avance global ponderado por duración
   const globalProgress = useMemo(() => {
@@ -219,20 +315,17 @@ export default function GanttChart() {
   // Notificaciones automáticas
   useEffect(() => {
     if (!tasks.length || !project?.startDate) return;
-    const today = daysSinceStart(project.startDate);
-    const atRisk = tasks.filter(t =>
-      t.isCritical &&
-      t.earlyStart <= today &&
-      t.earlyFinish > today &&
-      t.progress < Math.round(((today - t.earlyStart) / t.duration) * 100) - 10
-    );
+    const atRisk = tasks.filter(t => {
+      const st = calcTaskStatus(t, todayDay);
+      return st === 'delayed' || st === 'at-risk';
+    });
     if (atRisk.length) {
-      toast.warning(`${atRisk.length} tarea(s) crítica(s) con retraso`, {
+      toast.warning(`${atRisk.length} tarea(s) con retraso o en riesgo`, {
         description: atRisk[0].name,
         duration: 6000,
       });
     }
-  }, [tasks]);
+  }, [tasks, todayDay]);
 
   // Handlers
   const handleProgressChange = useCallback((id: string, val: number) => {
@@ -249,8 +342,9 @@ export default function GanttChart() {
         ...config.overrides,
         [editingId]: {
           ...(config.overrides[editingId] ?? {}),
-          duration: editDuration,
-          workers:  editWorkers,
+          duration:     editDuration,
+          workers:      editWorkers,
+          dependencies: editDeps,
         }
       }
     };
@@ -258,18 +352,299 @@ export default function GanttChart() {
     persistConfig(next);
     setEditingId(null);
     toast.success('Renglón actualizado');
-  }, [editingId, editDuration, editWorkers, config, persistConfig]);
+  }, [editingId, editDuration, editWorkers, editDeps, config, persistConfig]);
 
   const toggleCat = (cat: string) =>
     setCollapsedCats(prev => { const s = new Set(prev); s.has(cat) ? s.delete(cat) : s.add(cat); return s; });
 
-  // Exportar a PDF via print
+  // Resetear overrides de una tarea (volver a valores del presupuesto)
+  const handleResetOverride = useCallback((id: string) => {
+    const next: GanttConfig = {
+      ...config,
+      overrides: Object.fromEntries(
+        Object.entries(config.overrides).filter(([k]) => k !== id)
+      ),
+    };
+    setConfig(next);
+    persistConfig(next);
+    toast.success('Renglón restaurado a valores originales');
+  }, [config, persistConfig]);
+
+  // Fecha fin real del proyecto (lateFinish máximo)
+  const projectEndReal = useMemo(() => {
+    if (!tasks.length || !project?.startDate) return null;
+    const base = new Date(project.startDate);
+    return fmtDate(addDays(base, maxDuration));
+  }, [tasks, project, maxDuration]);
+
+  // Exportar PDF profesional con jsPDF
   const handleExport = useCallback(() => {
-    // Expandir todas las categorías y mostrar resumen financiero
-    setCollapsedCats(new Set());
-    setShowFinancialSummary(true);
-    setTimeout(() => window.print(), 500);
-  }, []);
+    if (!tasks.length || !project) return;
+    const base   = project.startDate ? new Date(project.startDate) : new Date();
+    const totalCost = tasks.reduce((s, t) => s + t.cost, 0);
+    const dailyInv  = totalCost / Math.max(maxDuration, 1);
+    const weeks     = Math.ceil(maxDuration / 7);
+    const months    = Math.ceil(maxDuration / 30);
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+    const W = doc.internal.pageSize.getWidth();
+
+    // ── Portada / encabezado ──────────────────────────────────────────────────
+    doc.setFillColor(15, 23, 42);
+    doc.rect(0, 0, W, 22, 'F');
+    doc.setTextColor(245, 158, 11);
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.text('DIAGRAMA DE GANTT — RUTA CRÍTICA CPM', W / 2, 10, { align: 'center' });
+    doc.setTextColor(200, 210, 230);
+    doc.setFontSize(8);
+    doc.text(`Proyecto: ${project.name}`, W / 2, 16, { align: 'center' });
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-GT')}   |   Duración: ${maxDuration} días   |   Costo Total: Q ${Math.round(totalCost).toLocaleString('es-GT')}`, W / 2, 20, { align: 'center' });
+
+    let y = 28;
+
+    // ── KPIs resumen ─────────────────────────────────────────────────────────
+    const kpis = [
+      ['Duración Total', `${maxDuration} días`],
+      ['Tareas Ruta Crítica', `${criticalPath.length}`],
+      ['Avance Global', `${globalProgress}%`],
+      ['Costo Total', `Q ${Math.round(totalCost).toLocaleString('es-GT')}`],
+      ['Inicio', project.startDate ? new Date(project.startDate).toLocaleDateString('es-GT') : '—'],
+      ['Fin Estimado', fmtDate(addDays(base, maxDuration))],
+    ];
+    autoTable(doc, {
+      startY: y,
+      head: [['Indicador', 'Valor', 'Indicador', 'Valor', 'Indicador', 'Valor']],
+      body: [[kpis[0][0], kpis[0][1], kpis[1][0], kpis[1][1], kpis[2][0], kpis[2][1]],
+             [kpis[3][0], kpis[3][1], kpis[4][0], kpis[4][1], kpis[5][0], kpis[5][1]]],
+      theme: 'grid',
+      headStyles: { fillColor: [15, 23, 42], textColor: [245, 158, 11], fontSize: 7, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 8, fontStyle: 'bold' },
+      columnStyles: {
+        0: { textColor: [100, 116, 139], fontStyle: 'normal' },
+        2: { textColor: [100, 116, 139], fontStyle: 'normal' },
+        4: { textColor: [100, 116, 139], fontStyle: 'normal' },
+      },
+      margin: { left: 10, right: 10 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 6;
+
+    // ── Tabla principal de tareas ─────────────────────────────────────────────
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.text('CRONOGRAMA DE ACTIVIDADES', 10, y);
+    y += 3;
+
+    const taskRows = tasks.map(t => {
+      const exp = (() => {
+        if (todayDay <= t.earlyStart) return 0;
+        if (todayDay >= t.earlyFinish) return 100;
+        return Math.round(((todayDay - t.earlyStart) / t.duration) * 100);
+      })();
+      const diff = t.progress - exp;
+      const st   = calcTaskStatus(t, todayDay);
+      return [
+        t.isCritical ? '⚠ ' + t.name : t.name,
+        t.category,
+        `${t.duration}d`,
+        fmtDate(addDays(base, t.earlyStart)),
+        fmtDate(addDays(base, t.earlyFinish)),
+        fmtDate(addDays(base, t.lateStart)),
+        fmtDate(addDays(base, t.lateFinish)),
+        t.slack === 0 ? '0 ⚠' : `${t.slack}d`,
+        `${t.progress}%`,
+        exp > 0 ? `${exp}%` : '—',
+        exp > 0 ? (diff >= 0 ? `+${diff}%` : `${diff}%`) : '—',
+        STATUS_CFG[st].label,
+        `${t.workers}`,
+        `Q ${Math.round(t.cost).toLocaleString('es-GT')}`,
+      ];
+    });
+
+    autoTable(doc, {
+      startY: y,
+      head: [['Actividad', 'Cat.', 'Dur.', 'Inicio T.', 'Fin T.', 'Inicio L.', 'Fin L.', 'Holgura', 'Avance', 'Esperado', 'Dif.', 'Estado', 'Ob.', 'Costo (Q)']],
+      body: taskRows,
+      theme: 'striped',
+      headStyles: { fillColor: [30, 41, 59], textColor: 255, fontSize: 6.5, fontStyle: 'bold', halign: 'center' },
+      bodyStyles: { fontSize: 6 },
+      columnStyles: {
+        0: { cellWidth: 44 },
+        1: { cellWidth: 18, halign: 'center' },
+        2: { cellWidth: 9,  halign: 'center' },
+        3: { cellWidth: 18, halign: 'center' },
+        4: { cellWidth: 18, halign: 'center' },
+        5: { cellWidth: 18, halign: 'center' },
+        6: { cellWidth: 18, halign: 'center' },
+        7: { cellWidth: 12, halign: 'center' },
+        8: { cellWidth: 11, halign: 'center' },
+        9: { cellWidth: 11, halign: 'center' },
+        10: { cellWidth: 11, halign: 'center' },
+        11: { cellWidth: 16, halign: 'center' },
+        12: { cellWidth: 9,  halign: 'center' },
+        13: { cellWidth: 20, halign: 'right'  },
+      },
+      didParseCell: (data: any) => {
+        const task = tasks[data.row.index];
+        if (task?.isCritical && data.section === 'body') {
+          data.cell.styles.fillColor = [255, 235, 235];
+          data.cell.styles.textColor = [185, 28, 28];
+          data.cell.styles.fontStyle = 'bold';
+        }
+        // Holgura 0 en rojo
+        if (data.column.index === 7 && data.section === 'body' && data.cell.raw?.toString().startsWith('0')) {
+          data.cell.styles.textColor = [220, 38, 38];
+          data.cell.styles.fontStyle = 'bold';
+        }
+        // Diferencia: verde si positivo, rojo si negativo
+        if (data.column.index === 10 && data.section === 'body') {
+          const val = data.cell.raw?.toString() ?? '';
+          if (val.startsWith('+')) data.cell.styles.textColor = [5, 150, 105];
+          else if (val.startsWith('-')) data.cell.styles.textColor = [220, 38, 38];
+        }
+        // Estado: color por tipo
+        if (data.column.index === 11 && data.section === 'body') {
+          const val = data.cell.raw?.toString() ?? '';
+          if (val === 'Retrasada')  data.cell.styles.textColor = [220, 38, 38];
+          if (val === 'En riesgo')  data.cell.styles.textColor = [180, 120, 0];
+          if (val === 'Completada') data.cell.styles.textColor = [5, 150, 105];
+          if (val === 'Al día')    data.cell.styles.textColor = [37, 99, 235];
+        }
+      },
+      margin: { left: 10, right: 10 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+
+    // ── Ruta crítica ──────────────────────────────────────────────────────────
+    if (criticalPath.length > 0) {
+      if (y > 170) { doc.addPage(); y = 15; }
+      doc.setFontSize(9);
+      doc.setTextColor(185, 28, 28);
+      doc.setFont('helvetica', 'bold');
+      doc.text('RUTA CRÍTICA — TAREAS SIN HOLGURA', 10, y);
+      y += 3;
+      autoTable(doc, {
+        startY: y,
+        head: [['#', 'Actividad', 'Duración', 'Inicio Temprano', 'Fin Temprano', 'Costo (Q)']],
+        body: criticalPath.map((t, i) => [
+          i + 1,
+          t.name,
+          `${t.duration} días`,
+          fmtDate(addDays(base, t.earlyStart)),
+          fmtDate(addDays(base, t.earlyFinish)),
+          `Q ${Math.round(t.cost).toLocaleString('es-GT')}`,
+        ]),
+        theme: 'grid',
+        headStyles: { fillColor: [185, 28, 28], textColor: 255, fontSize: 7, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 7.5, fillColor: [255, 245, 245] },
+        margin: { left: 10, right: 10 },
+      });
+      y = (doc as any).lastAutoTable.finalY + 8;
+    }
+
+    // ── Inversión semanal ─────────────────────────────────────────────────────
+    if (y > 160) { doc.addPage(); y = 15; }
+    doc.setFontSize(9);
+    doc.setTextColor(15, 23, 42);
+    doc.setFont('helvetica', 'bold');
+    doc.text('INVERSIÓN PROYECTADA POR SEMANA', 10, y);
+    y += 3;
+    const weeklyRows = Array.from({ length: weeks }, (_, i) => {
+      const ws = i * 7, we = Math.min((i + 1) * 7, maxDuration);
+      const wt = tasks.filter(t => t.earlyStart < we && t.earlyFinish > ws);
+      const wc = wt.reduce((s, t) => s + (t.cost / t.duration) * (Math.min(we, t.earlyFinish) - Math.max(ws, t.earlyStart)), 0);
+      const acc = Array.from({ length: i + 1 }, (_, j) => {
+        const js = j * 7, je = Math.min((j + 1) * 7, maxDuration);
+        const jt = tasks.filter(t => t.earlyStart < je && t.earlyFinish > js);
+        return jt.reduce((s, t) => s + (t.cost / t.duration) * (Math.min(je, t.earlyFinish) - Math.max(js, t.earlyStart)), 0);
+      }).reduce((a, b) => a + b, 0);
+      return [
+        `Semana ${i + 1}`,
+        project.startDate ? fmtDate(addDays(base, ws)) : `Día ${ws}`,
+        project.startDate ? fmtDate(addDays(base, Math.min(we, maxDuration))) : `Día ${we}`,
+        wt.length,
+        `Q ${Math.round(wc).toLocaleString('es-GT')}`,
+        `Q ${Math.round(acc).toLocaleString('es-GT')}`,
+        `${Math.round((acc / totalCost) * 100)}%`,
+      ];
+    });
+    autoTable(doc, {
+      startY: y,
+      head: [['Semana', 'Inicio', 'Fin', 'Tareas', 'Inversión', 'Acumulado', '% Avance $']],
+      body: weeklyRows,
+      theme: 'striped',
+      headStyles: { fillColor: [5, 150, 105], textColor: 255, fontSize: 7, fontStyle: 'bold' },
+      bodyStyles: { fontSize: 7.5 },
+      columnStyles: {
+        0: { fontStyle: 'bold' },
+        4: { halign: 'right' },
+        5: { halign: 'right', fontStyle: 'bold' },
+        6: { halign: 'center' },
+      },
+      margin: { left: 10, right: 10 },
+    });
+    y = (doc as any).lastAutoTable.finalY + 8;
+
+    // ── Inversión mensual ─────────────────────────────────────────────────────
+    if (months > 1) {
+      if (y > 160) { doc.addPage(); y = 15; }
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.setFont('helvetica', 'bold');
+      doc.text('INVERSIÓN PROYECTADA POR MES', 10, y);
+      y += 3;
+      const monthlyRows = Array.from({ length: months }, (_, i) => {
+        const ms = i * 30, me = Math.min((i + 1) * 30, maxDuration);
+        const mt = tasks.filter(t => t.earlyStart < me && t.earlyFinish > ms);
+        const mc = mt.reduce((s, t) => s + (t.cost / t.duration) * (Math.min(me, t.earlyFinish) - Math.max(ms, t.earlyStart)), 0);
+        const acc = Array.from({ length: i + 1 }, (_, j) => {
+          const js = j * 30, je = Math.min((j + 1) * 30, maxDuration);
+          const jt = tasks.filter(t => t.earlyStart < je && t.earlyFinish > js);
+          return jt.reduce((s, t) => s + (t.cost / t.duration) * (Math.min(je, t.earlyFinish) - Math.max(js, t.earlyStart)), 0);
+        }).reduce((a, b) => a + b, 0);
+        return [
+          `Mes ${i + 1}`,
+          project.startDate ? fmtDate(addDays(base, ms)) : `Día ${ms}`,
+          project.startDate ? fmtDate(addDays(base, Math.min(me, maxDuration))) : `Día ${me}`,
+          mt.length,
+          `Q ${Math.round(mc).toLocaleString('es-GT')}`,
+          `Q ${Math.round(acc).toLocaleString('es-GT')}`,
+          `${Math.round((acc / totalCost) * 100)}%`,
+        ];
+      });
+      autoTable(doc, {
+        startY: y,
+        head: [['Mes', 'Inicio', 'Fin', 'Tareas', 'Inversión', 'Acumulado', '% Avance $']],
+        body: monthlyRows,
+        theme: 'striped',
+        headStyles: { fillColor: [109, 40, 217], textColor: 255, fontSize: 7, fontStyle: 'bold' },
+        bodyStyles: { fontSize: 7.5 },
+        columnStyles: {
+          0: { fontStyle: 'bold' },
+          4: { halign: 'right' },
+          5: { halign: 'right', fontStyle: 'bold' },
+          6: { halign: 'center' },
+        },
+        margin: { left: 10, right: 10 },
+      });
+    }
+
+    // ── Pie de página en todas las páginas ────────────────────────────────────
+    const totalPages = (doc as any).internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, doc.internal.pageSize.getHeight() - 8, W, 8, 'F');
+      doc.setTextColor(100, 116, 139);
+      doc.setFontSize(6.5);
+      doc.setFont('helvetica', 'normal');
+      doc.text(`ERP Constructora WM · ${project.name} · Página ${p} de ${totalPages}`, W / 2, doc.internal.pageSize.getHeight() - 2.5, { align: 'center' });
+    }
+
+    doc.save(`Gantt_${project.name.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.pdf`);
+    toast.success('PDF exportado correctamente');
+  }, [tasks, project, maxDuration, criticalPath, globalProgress]);
 
   // Agrupar por categoría
   const byCategory = useMemo(() => {
@@ -385,18 +760,57 @@ export default function GanttChart() {
       </div>
 
       {/* ── KPIs ── */}
-      <div className="grid grid-cols-4 gap-3 shrink-0">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2 shrink-0">
         {[
-          { icon: <Calendar size={13} className="text-blue-500" />,    label: 'Duración',      value: `${maxDuration}d`,          color: 'text-slate-700' },
-          { icon: <AlertTriangle size={13} className="text-red-500" />, label: 'Ruta Crítica',  value: `${criticalPath.length} tareas`, color: 'text-red-600' },
-          { icon: <TrendingUp size={13} className="text-green-500" />,  label: 'Avance Global', value: `${globalProgress}%`,       color: 'text-green-600' },
-          { icon: <DollarSign size={13} className="text-amber-500" />,  label: 'Costo Total',   value: fmtQ(tasks.reduce((s,t)=>s+t.cost,0)), color: 'text-amber-600' },
+          { icon: <Calendar size={13} className="text-blue-500" />,    label: 'Duración',       value: `${maxDuration}d`,                                          color: 'text-slate-700' },
+          { icon: <AlertTriangle size={13} className="text-red-500" />, label: 'Ruta Crítica',   value: `${criticalPath.length} tareas`,                            color: 'text-red-600'   },
+          { icon: <TrendingUp size={13} className="text-green-500" />,  label: 'Avance Global',  value: `${globalProgress}%`,                                       color: 'text-green-600' },
+          { icon: <DollarSign size={13} className="text-amber-500" />,  label: 'Costo Total',    value: fmtQ(tasks.reduce((s,t)=>s+t.cost,0)),                      color: 'text-amber-600' },
+          { icon: <Calendar size={13} className="text-purple-500" />,   label: 'Fin Estimado',   value: projectEndReal ?? '—',                                       color: 'text-purple-600' },
         ].map(k => (
-          <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-3">
+          <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-2.5">
             <div className="flex items-center gap-1.5 mb-1">{k.icon}<span className="text-[7px] font-black text-slate-400 uppercase">{k.label}</span></div>
-            <p className={cn('text-lg font-black', k.color)}>{k.value}</p>
+            <p className={cn('text-sm font-black leading-tight', k.color)}>{k.value}</p>
           </div>
         ))}
+      </div>
+
+      {/* ── Leyenda de colores ── */}
+      <div className="flex items-center gap-3 shrink-0 px-1 flex-wrap">
+        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Barras:</span>
+        {[
+          { color: 'bg-gradient-to-r from-red-500 to-red-600',         label: 'Ruta crítica' },
+          { color: 'bg-gradient-to-r from-blue-500 to-blue-600',       label: 'Normal'       },
+          { color: 'bg-gradient-to-r from-emerald-500 to-emerald-600', label: 'Completada'   },
+          { color: 'bg-slate-300/70 border border-dashed border-slate-400/50', label: 'Holgura' },
+        ].map(l => (
+          <div key={l.label} className="flex items-center gap-1">
+            <div className={cn('w-5 h-2.5 rounded-sm', l.color)} />
+            <span className="text-[7px] font-bold text-slate-500">{l.label}</span>
+          </div>
+        ))}
+        <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-2">Estado:</span>
+        {(Object.entries(STATUS_CFG) as [TaskStatus, typeof STATUS_CFG[TaskStatus]][]).map(([, cfg]) => (
+          <div key={cfg.label} className="flex items-center gap-1">
+            <div className={cn('w-2 h-2 rounded-full', cfg.dot)} />
+            <span className="text-[7px] font-bold text-slate-500">{cfg.label}</span>
+          </div>
+        ))}
+        <div className="ml-auto flex items-center gap-1.5">
+          <button
+            onClick={() => setShowSlackTable(v => !v)}
+            className={cn(
+              'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all border',
+              showSlackTable
+                ? 'bg-amber-100 text-amber-700 border-amber-300'
+                : 'bg-white text-slate-500 border-slate-200 hover:border-amber-300'
+            )}
+            title="Tabla de holguras"
+          >
+            <AlertTriangle size={11} />
+            Holguras
+          </button>
+        </div>
       </div>
 
       {/* ── Diagrama ── */}
@@ -464,6 +878,8 @@ export default function GanttChart() {
                   {/* Filas de tareas */}
                   {!collapsed && catTasks.map(task => {
                     const isEditing = editingId === task.id;
+                    const status    = calcTaskStatus(task, todayDay);
+                    const sCfg      = STATUS_CFG[status];
                     return (
                       <div
                         key={task.id}
@@ -472,44 +888,105 @@ export default function GanttChart() {
                           task.isCritical ? 'bg-red-50/50 border-red-100' : 'border-transparent hover:bg-slate-50'
                         )}
                       >
+                        {/* Semáforo de estado */}
+                        <div className="shrink-0 flex flex-col items-center gap-0.5" title={sCfg.label}>
+                          <div className={cn('w-2 h-2 rounded-full', sCfg.dot,
+                            status === 'delayed' && 'animate-pulse',
+                            status === 'at-risk' && 'animate-pulse'
+                          )} />
+                        </div>
                         {/* Info tarea */}
                         <div className="w-64 shrink-0">
                           {isEditing ? (
-                            <div className="flex items-center gap-1 flex-wrap">
-                              <div className="flex items-center gap-1">
-                                <span className="text-[7px] text-slate-400">Días</span>
-                                <input
-                                  type="number" min={1} value={editDuration}
-                                  onChange={e => setEditDuration(Math.max(1, parseInt(e.target.value) || 1))}
-                                  className="w-14 px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:border-blue-400"
-                                />
+                            <div className="flex flex-col gap-1.5 py-1">
+                              {/* Fila 1: Días + Obreros */}
+                              <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[7px] text-slate-400">Días</span>
+                                  <input
+                                    type="number" min={1} value={editDuration}
+                                    onChange={e => setEditDuration(Math.max(1, parseInt(e.target.value) || 1))}
+                                    className="w-12 px-1.5 py-0.5 text-[10px] border border-slate-300 rounded focus:outline-none focus:border-blue-400"
+                                  />
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className="text-[7px] text-slate-400">Obreros</span>
+                                  <input
+                                    type="number" min={1} value={editWorkers}
+                                    onChange={e => setEditWorkers(Math.max(1, parseInt(e.target.value) || 1))}
+                                    className="w-12 px-1.5 py-0.5 text-[10px] border border-slate-300 rounded focus:outline-none focus:border-purple-400"
+                                  />
+                                </div>
+                                <button onClick={handleEditSave} className="p-1 bg-green-500 text-white rounded hover:bg-green-600 ml-auto">
+                                  <Save size={10} />
+                                </button>
+                                <button onClick={() => setEditingId(null)} className="p-1 bg-slate-200 rounded hover:bg-slate-300">
+                                  <X size={10} />
+                                </button>
                               </div>
-                              <div className="flex items-center gap-1">
-                                <span className="text-[7px] text-slate-400">Obreros</span>
-                                <input
-                                  type="number" min={1} value={editWorkers}
-                                  onChange={e => setEditWorkers(Math.max(1, parseInt(e.target.value) || 1))}
-                                  className="w-14 px-2 py-1 text-xs border border-slate-300 rounded focus:outline-none focus:border-purple-400"
-                                />
+                              {/* Fila 2: Dependencias */}
+                              <div>
+                                <span className="text-[7px] text-slate-400 block mb-0.5">Predecesoras</span>
+                                <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto">
+                                  {tasks
+                                    .filter(t => t.id !== editingId)
+                                    .map(t => {
+                                      const checked = editDeps.includes(t.id);
+                                      return (
+                                        <label
+                                          key={t.id}
+                                          className={cn(
+                                            'flex items-center gap-0.5 px-1.5 py-0.5 rounded cursor-pointer text-[7px] font-bold border transition-all',
+                                            checked
+                                              ? 'bg-purple-100 border-purple-400 text-purple-700'
+                                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-purple-300'
+                                          )}
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            className="sr-only"
+                                            checked={checked}
+                                            onChange={() =>
+                                              setEditDeps(prev =>
+                                                prev.includes(t.id)
+                                                  ? prev.filter(d => d !== t.id)
+                                                  : [...prev, t.id]
+                                              )
+                                            }
+                                          />
+                                          {t.name.length > 18 ? t.name.slice(0, 16) + '…' : t.name}
+                                        </label>
+                                      );
+                                    })}
+                                </div>
                               </div>
-                              <button onClick={handleEditSave} className="p-1 bg-green-500 text-white rounded hover:bg-green-600">
-                                <Save size={10} />
-                              </button>
-                              <button onClick={() => setEditingId(null)} className="p-1 bg-slate-200 rounded hover:bg-slate-300">
-                                <X size={10} />
-                              </button>
                             </div>
                           ) : (
                             <div className="flex items-center gap-1 group">
                               <p className="text-[9px] font-bold text-slate-700 truncate flex-1">{task.name}</p>
                               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                                <span className="text-[7px] font-bold text-slate-400">{task.duration}d · {task.workers}ob</span>
+                                <span className="text-[7px] font-bold text-slate-400">{task.duration}d·{task.workers}ob</span>
                                 <button
-                                  onClick={() => { setEditingId(task.id); setEditDuration(task.duration); setEditWorkers(task.workers); }}
-                                  className="p-0.5 hover:bg-slate-200 rounded"
+                                  title="Editar renglon"
+                                  onClick={() => {
+                                    setEditingId(task.id);
+                                    setEditDuration(task.duration);
+                                    setEditWorkers(task.workers);
+                                    setEditDeps(config.overrides[task.id]?.dependencies ?? task.dependencies);
+                                  }}
+                                  className="p-0.5 hover:bg-blue-100 rounded text-blue-500"
                                 >
-                                  <Edit2 size={10} className="text-slate-400" />
+                                  <Edit2 size={10} />
                                 </button>
+                                {config.overrides[task.id] && (
+                                  <button
+                                    title="Restaurar valores originales"
+                                    onClick={() => handleResetOverride(task.id)}
+                                    className="p-0.5 hover:bg-red-100 rounded text-red-400"
+                                  >
+                                    <X size={10} />
+                                  </button>
+                                )}
                               </div>
                             </div>
                           )}
@@ -532,6 +1009,7 @@ export default function GanttChart() {
                           maxDuration={maxDuration}
                           startDate={project?.startDate ?? new Date().toISOString()}
                           onProgressChange={handleProgressChange}
+                          todayDay={todayDay}
                         />
                       </div>
                     );
@@ -542,6 +1020,146 @@ export default function GanttChart() {
           </div>
         </div>
       </div>
+
+      {/* ── Tabla de holguras ── */}
+      {showSlackTable && tasks.length > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="shrink-0 bg-white border border-slate-200 rounded-xl overflow-hidden"
+        >
+          <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <AlertTriangle size={13} className="text-amber-500" />
+              <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Tabla de Holguras y Fechas Reales</span>
+            </div>
+            <span className="text-[7px] font-bold text-slate-400">{tasks.length} actividades</span>
+          </div>
+          <div className="overflow-x-auto max-h-56 overflow-y-auto">
+            <table className="w-full text-[8px]">
+              <thead className="sticky top-0 bg-slate-50 z-10">
+                <tr className="border-b border-slate-100">
+                  <th className="text-left px-3 py-2 font-black text-slate-500 uppercase">Actividad</th>
+                  <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Cat.</th>
+                  <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Dur.</th>
+                  <th className="text-center px-2 py-2 font-black text-blue-600 uppercase">Inicio T.</th>
+                  <th className="text-center px-2 py-2 font-black text-blue-600 uppercase">Fin T.</th>
+                  <th className="text-center px-2 py-2 font-black text-purple-600 uppercase">Inicio L.</th>
+                  <th className="text-center px-2 py-2 font-black text-purple-600 uppercase">Fin L.</th>
+                  <th className="text-center px-2 py-2 font-black text-amber-600 uppercase">Holgura</th>
+                  <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Estado</th>
+                  <th className="text-center px-2 py-2 font-black text-green-600 uppercase">Avance</th>
+                  <th className="text-center px-2 py-2 font-black text-blue-500 uppercase">Esperado</th>
+                  <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Dif.</th>
+                  <th className="text-right px-3 py-2 font-black text-slate-500 uppercase">Costo</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {tasks.map(t => {
+                  const base = project?.startDate ? new Date(project.startDate) : new Date();
+                  return (
+                    <tr
+                      key={t.id}
+                      className={cn(
+                        'hover:bg-slate-50 transition-colors',
+                        t.isCritical && 'bg-red-50/60'
+                      )}
+                    >
+                      <td className="px-3 py-1.5 font-bold text-slate-700 max-w-[180px] truncate">
+                        {t.isCritical && <span className="text-red-500 mr-1">⚠</span>}
+                        {t.name}
+                      </td>
+                      <td className="px-2 py-1.5 text-center text-slate-500">{t.category}</td>
+                      <td className="px-2 py-1.5 text-center font-bold text-slate-700">{t.duration}d</td>
+                      <td className="px-2 py-1.5 text-center text-blue-600 font-bold">{fmtDate(addDays(base, t.earlyStart))}</td>
+                      <td className="px-2 py-1.5 text-center text-blue-600 font-bold">{fmtDate(addDays(base, t.earlyFinish))}</td>
+                      <td className="px-2 py-1.5 text-center text-purple-600">{fmtDate(addDays(base, t.lateStart))}</td>
+                      <td className="px-2 py-1.5 text-center text-purple-600">{fmtDate(addDays(base, t.lateFinish))}</td>
+                      <td className="px-2 py-1.5 text-center">
+                        <span className={cn(
+                          'px-1.5 py-0.5 rounded-full font-black text-[7px]',
+                          t.slack === 0
+                            ? 'bg-red-100 text-red-600'
+                            : t.slack <= 3
+                              ? 'bg-amber-100 text-amber-600'
+                              : 'bg-green-100 text-green-600'
+                        )}>
+                          {t.slack === 0 ? 'CRÍTICA' : `${t.slack}d`}
+                        </span>
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        {(() => {
+                          const st   = calcTaskStatus(t, todayDay);
+                          const scfg = STATUS_CFG[st];
+                          return (
+                            <span className={cn('px-1.5 py-0.5 rounded-full font-black text-[7px] flex items-center gap-1 justify-center', scfg.badge)}>
+                              <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', scfg.dot)} />
+                              {scfg.label}
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td className="px-2 py-1.5 text-center">
+                        <div className="flex items-center gap-1">
+                          <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div
+                              className={cn('h-full rounded-full', t.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500')}
+                              style={{ width: `${t.progress}%` }}
+                            />
+                          </div>
+                          <span className="font-black text-slate-600 w-6 text-right">{t.progress}%</span>
+                        </div>
+                      </td>
+                      {/* Avance esperado */}
+                      <td className="px-2 py-1.5 text-center">
+                        {(() => {
+                          const exp = (() => {
+                            if (todayDay <= t.earlyStart) return 0;
+                            if (todayDay >= t.earlyFinish) return 100;
+                            return Math.round(((todayDay - t.earlyStart) / t.duration) * 100);
+                          })();
+                          return <span className="font-bold text-blue-500">{exp}%</span>;
+                        })()}
+                      </td>
+                      {/* Diferencia real vs esperado */}
+                      <td className="px-2 py-1.5 text-center">
+                        {(() => {
+                          const exp = (() => {
+                            if (todayDay <= t.earlyStart) return 0;
+                            if (todayDay >= t.earlyFinish) return 100;
+                            return Math.round(((todayDay - t.earlyStart) / t.duration) * 100);
+                          })();
+                          const diff = t.progress - exp;
+                          if (exp === 0 && t.progress === 0) return <span className="text-slate-400 font-bold">—</span>;
+                          return (
+                            <span className={cn(
+                              'px-1.5 py-0.5 rounded-full font-black text-[7px]',
+                              diff >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                            )}>
+                              {diff >= 0 ? '+' : ''}{diff}%
+                            </span>
+                          );
+                        })()}
+                      </td>
+                      <td className="px-3 py-1.5 text-right font-bold text-amber-600">{fmtQ(t.cost)}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot className="sticky bottom-0 bg-slate-50 border-t border-slate-200">
+                <tr>
+                  <td colSpan={2} className="px-3 py-2 font-black text-slate-700 uppercase text-[8px]">TOTALES</td>
+                  <td className="px-2 py-2 text-center font-black text-slate-700">{tasks.reduce((s,t)=>s+t.duration,0)}d</td>
+                  <td colSpan={6} />
+                  <td className="px-2 py-2 text-center font-black text-blue-600">{globalProgress}%</td>
+                  <td colSpan={2} />
+                  <td className="px-3 py-2 text-right font-black text-amber-600">{fmtQ(tasks.reduce((s,t)=>s+t.cost,0))}</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </motion.div>
+      )}
 
       {/* ── Ruta crítica mejorada ── */}
       {criticalPath.length > 0 && (
