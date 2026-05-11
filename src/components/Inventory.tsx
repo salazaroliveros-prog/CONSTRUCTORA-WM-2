@@ -544,7 +544,7 @@ export default function InventoryModule() {
             disabled={saving}
             className="w-full bg-slate-900 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-secondary hover:text-primary transition-all disabled:opacity-50"
           >
-            {saving ? 'PROCESANDO...' : 'REIGSTRAR EN SISTEMA'}
+            {saving ? 'PROCESANDO...' : 'REGISTRAR EN SISTEMA'}
           </button>
         </form>
       </Modal>

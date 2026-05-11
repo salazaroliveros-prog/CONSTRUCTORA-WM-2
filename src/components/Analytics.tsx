@@ -807,6 +807,327 @@ export default function AnalyticsModule() {
           )}
         </div>
       )}
+
+      {/* ── TAB: CONECTIVIDAD ──────────────────────────────────────────────── */}
+      {activeTab === 'connectivity' && (
+        <div className="space-y-6">
+          {/* Alertas inteligentes del sistema */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Alertas críticas */}
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle size={16} className="text-red-500" />
+                <h3 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Alertas Críticas</h3>
+              </div>
+              <div className="space-y-2">
+                {criticalInventory.length > 0 && (
+                  <div className="bg-white rounded-lg p-2 border border-red-100">
+                    <p className="text-[8px] font-black text-red-600 uppercase">{criticalInventory.length} Materiales Críticos</p>
+                    <p className="text-[7px] text-red-500">Stock bajo mínimo requerido</p>
+                  </div>
+                )}
+                {pendingOrders.length > 5 && (
+                  <div className="bg-white rounded-lg p-2 border border-red-100">
+                    <p className="text-[8px] font-black text-red-600 uppercase">{pendingOrders.length} OC Pendientes</p>
+                    <p className="text-[7px] text-red-500">Órdenes sin recibir</p>
+                  </div>
+                )}
+                {staffEfficiency.filter(s => s.efficiency < 1).length > 0 && (
+                  <div className="bg-white rounded-lg p-2 border border-red-100">
+                    <p className="text-[8px] font-black text-red-600 uppercase">Baja Eficiencia Personal</p>
+                    <p className="text-[7px] text-red-500">{staffEfficiency.filter(s => s.efficiency < 1).length} proyectos afectados</p>
+                  </div>
+                )}
+                {(criticalInventory.length === 0 && pendingOrders.length <= 5 && staffEfficiency.filter(s => s.efficiency < 1).length === 0) && (
+                  <div className="bg-white rounded-lg p-2 border border-green-100">
+                    <p className="text-[8px] font-black text-green-600 uppercase">✓ Sistema Saludable</p>
+                    <p className="text-[7px] text-green-500">Sin alertas críticas</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Recomendaciones */}
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <CheckCircle2 size={16} className="text-blue-500" />
+                <h3 className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Recomendaciones</h3>
+              </div>
+              <div className="space-y-2">
+                {supplierAnalysis.slice(0, 1).map(s => s.pendingCount > 0 && (
+                  <div key={s.id} className="bg-white rounded-lg p-2 border border-blue-100">
+                    <p className="text-[8px] font-black text-blue-600 uppercase">Seguimiento a {s.name}</p>
+                    <p className="text-[7px] text-blue-500">{s.pendingCount} órdenes pendientes</p>
+                  </div>
+                ))}
+                {inventoryByProject.filter(p => p.completeness < 50).length > 0 && (
+                  <div className="bg-white rounded-lg p-2 border border-blue-100">
+                    <p className="text-[8px] font-black text-blue-600 uppercase">Generar Stock Faltante</p>
+                    <p className="text-[7px] text-blue-500">{inventoryByProject.filter(p => p.completeness < 50).length} proyectos incompletos</p>
+                  </div>
+                )}
+                {staffEfficiency.filter(s => s.efficiency > 3).length > 0 && (
+                  <div className="bg-white rounded-lg p-2 border border-blue-100">
+                    <p className="text-[8px] font-black text-blue-600 uppercase">Reconocer Alto Rendimiento</p>
+                    <p className="text-[7px] text-blue-500">{staffEfficiency.filter(s => s.efficiency > 3).length} equipos destacados</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Métricas de conectividad */}
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Building2 size={16} className="text-emerald-500" />
+                <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Estado General</h3>
+              </div>
+              <div className="space-y-2">
+                <div className="bg-white rounded-lg p-2 border border-emerald-100">
+                  <p className="text-[8px] font-black text-emerald-600 uppercase">Proyectos Activos</p>
+                  <p className="text-[7px] text-emerald-500">{stats.ejecucion.length} en ejecución</p>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-100">
+                  <p className="text-[8px] font-black text-emerald-600 uppercase">Personal Asignado</p>
+                  <p className="text-[7px] text-emerald-500">{activeStaff.filter(s => s.projectIds?.length > 0).length} de {activeStaff.length} activos</p>
+                </div>
+                <div className="bg-white rounded-lg p-2 border border-emerald-100">
+                  <p className="text-[8px] font-black text-emerald-600 uppercase">Proveedores Activos</p>
+                  <p className="text-[7px] text-emerald-500">{supplierAnalysis.filter(s => s.orderCount > 0).length} con órdenes</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Análisis de eficiencia de personal por proyecto */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-sm font-black text-primary uppercase tracking-tight">Eficiencia Personal por Proyecto</h3>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Progreso vs Costo de Personal (Progreso% / Costo Salarial en miles)</p>
+            </div>
+            {staffEfficiency.length === 0 ? (
+              <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin personal asignado a proyectos</div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={staffEfficiency.slice(0, 8).map(p => ({
+                    name: (p.name || '').substring(0, 12),
+                    Personal: p.staffCount,
+                    Progreso: p.progress || 0,
+                    Eficiencia: Math.round(p.efficiency * 10) / 10,
+                    CostoSalarial: Math.round(p.staffCost / 1000)
+                  }))} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
+                    <YAxis fontSize={9} axisLine={false} tickLine={false} />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
+                    <Bar dataKey="Personal" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="Progreso" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="Eficiencia" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={16} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+
+          {/* Análisis de proveedores y órdenes de compra */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <div className="mb-4">
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight">Top Proveedores</h3>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Por volumen de compras</p>
+              </div>
+              <div className="space-y-3">
+                {supplierAnalysis.slice(0, 5).map((supplier, i) => (
+                  <div key={supplier.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-slate-900 text-secondary flex items-center justify-center font-black text-[10px]">
+                        {i + 1}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black text-primary uppercase truncate">{supplier.name}</p>
+                        <p className="text-[7px] font-bold text-slate-400 uppercase">{supplier.orderCount} órdenes</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[9px] font-black text-slate-600">Q {Math.round(supplier.totalSpent/1000)}k</p>
+                      {supplier.pendingCount > 0 && (
+                        <p className="text-[7px] font-bold text-amber-600 uppercase">{supplier.pendingCount} pendientes</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+              <div className="mb-4">
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight">Completitud de Inventario</h3>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Stock actual vs presupuestado por proyecto</p>
+              </div>
+              <div className="space-y-3">
+                {inventoryByProject.slice(0, 5).map((project, i) => (
+                  <div key={project.id} className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[9px] font-black text-primary uppercase truncate max-w-[60%]">{project.name}</span>
+                      <span className={`text-[9px] font-black ${
+                        project.completeness >= 80 ? 'text-green-600' :
+                        project.completeness >= 50 ? 'text-amber-600' : 'text-red-500'
+                      }`}>{Math.round(project.completeness)}%</span>
+                    </div>
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${project.completeness}%` }}
+                        transition={{ duration: 0.8, delay: i * 0.1 }}
+                        className={`h-full rounded-full ${
+                          project.completeness >= 80 ? 'bg-green-500' :
+                          project.completeness >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                        }`}
+                      />
+                    </div>
+                    <div className="flex justify-between text-[7px] font-bold text-slate-400">
+                      <span>{project.inventoryItems} items</span>
+                      {project.criticalItems > 0 && (
+                        <span className="text-red-500">{project.criticalItems} críticos</span>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Matriz de conectividad entre módulos */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-sm font-black text-primary uppercase tracking-tight">Matriz de Conectividad</h3>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Relaciones entre módulos del sistema</p>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                {
+                  title: 'Staff ↔ Projects',
+                  value: `${activeStaff.filter(s => s.projectIds?.length > 0).length}/${activeStaff.length}`,
+                  desc: 'Personal asignado',
+                  color: 'bg-blue-50 border-blue-200 text-blue-600',
+                  icon: <Users size={14} />
+                },
+                {
+                  title: 'Suppliers ↔ Inventory',
+                  value: `${supplierAnalysis.filter(s => s.orderCount > 0).length}/${suppliers.length}`,
+                  desc: 'Proveedores activos',
+                  color: 'bg-purple-50 border-purple-200 text-purple-600',
+                  icon: <Truck size={14} />
+                },
+                {
+                  title: 'Inventory ↔ Projects',
+                  value: `${inventoryByProject.length}/${displayProjects.length}`,
+                  desc: 'Proyectos con inventario',
+                  color: 'bg-emerald-50 border-emerald-200 text-emerald-600',
+                  icon: <Package size={14} />
+                },
+                {
+                  title: 'Analytics ↔ All',
+                  value: '100%',
+                  desc: 'Conectividad completa',
+                  color: 'bg-secondary/10 border-secondary/20 text-secondary',
+                  icon: <BarChart3 size={14} />
+                }
+              ].map((connection, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: i * 0.1 }}
+                  className={`border rounded-xl p-4 ${connection.color}`}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    {connection.icon}
+                    <span className="text-[8px] font-black uppercase tracking-widest">{connection.title}</span>
+                  </div>
+                  <p className="text-xl font-black">{connection.value}</p>
+                  <p className="text-[7px] font-bold uppercase tracking-widest mt-1">{connection.desc}</p>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Tabla resumen de conectividad */}
+          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Resumen de Conectividad del Sistema</h3>
+            <table className="w-full text-left text-[9px]">
+              <thead>
+                <tr className="border-b border-slate-100">
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Módulo</th>
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Total Items</th>
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Conectados</th>
+                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">% Conectividad</th>
+                  <th className="py-2 font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  {
+                    module: 'Personal',
+                    total: activeStaff.length,
+                    connected: activeStaff.filter(s => s.projectIds?.length > 0).length,
+                    icon: <Users size={12} className="text-blue-500" />
+                  },
+                  {
+                    module: 'Proyectos',
+                    total: displayProjects.length,
+                    connected: displayProjects.filter(p => activeStaff.some(s => s.projectIds?.includes(p.id))).length,
+                    icon: <Building2 size={12} className="text-secondary" />
+                  },
+                  {
+                    module: 'Proveedores',
+                    total: suppliers.length,
+                    connected: supplierAnalysis.filter(s => s.orderCount > 0).length,
+                    icon: <Truck size={12} className="text-purple-500" />
+                  },
+                  {
+                    module: 'Inventario',
+                    total: inventory.length,
+                    connected: inventory.filter(i => i.projectId).length,
+                    icon: <Package size={12} className="text-emerald-500" />
+                  }
+                ].map((row, i) => {
+                  const percentage = row.total > 0 ? Math.round((row.connected / row.total) * 100) : 0;
+                  return (
+                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                      <td className="py-2 pr-4">
+                        <div className="flex items-center gap-2">
+                          {row.icon}
+                          <span className="font-black text-primary uppercase">{row.module}</span>
+                        </div>
+                      </td>
+                      <td className="py-2 pr-4 font-black text-slate-600 text-right">{row.total}</td>
+                      <td className="py-2 pr-4 font-black text-slate-600 text-right">{row.connected}</td>
+                      <td className="py-2 pr-4 font-black text-right">
+                        <span className={`px-2 py-0.5 rounded-full text-[8px] font-black ${
+                          percentage >= 80 ? 'bg-emerald-100 text-emerald-700' :
+                          percentage >= 50 ? 'bg-amber-100 text-amber-700' :
+                          'bg-red-100 text-red-600'
+                        }`}>{percentage}%</span>
+                      </td>
+                      <td className="py-2">
+                        <span className={`text-[8px] font-black uppercase ${
+                          percentage >= 80 ? 'text-emerald-600' :
+                          percentage >= 50 ? 'text-amber-600' :
+                          'text-red-500'
+                        }`}>
+                          {percentage >= 80 ? '✓ Óptimo' : percentage >= 50 ? '⚠ Mejorable' : '✗ Crítico'}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
