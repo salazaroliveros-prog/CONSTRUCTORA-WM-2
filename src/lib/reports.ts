@@ -104,18 +104,15 @@ const addHeader = (doc: jsPDF, title: string, subtitle?: string) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   
   // Fondo del header
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.rect(0, 0, pageWidth, 45, 'F');
   
   // Línea decorativa secundaria
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.rect(0, 45, pageWidth, 3, 'F');
   
   // Logo / Nombre empresa
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.text('CONSTRUCTORA WM/M&S', 15, 22);
@@ -123,13 +120,11 @@ const addHeader = (doc: jsPDF, title: string, subtitle?: string) => {
   // Slogan
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('CONSTRUYENDO EL FUTURO', 15, 32);
   
   // Título del documento
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
   doc.text(title.toUpperCase(), pageWidth - 15, 22, { align: 'right' });
@@ -151,15 +146,13 @@ const addFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
   const pageHeight = doc.internal.pageSize.getHeight();
   
   // Línea superior del footer
-  // @ts-ignore
-  doc.setDrawColor(...COLORS.gray);
+  setDraw(doc, COLORS.gray);
   doc.setLineWidth(0.5);
   doc.line(15, pageHeight - 20, pageWidth - 15, pageHeight - 20);
   
   // Texto del footer
   doc.setFontSize(7);
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.setFont('helvetica', 'normal');
   doc.text('Este documento es generado por el Sistema ERP CONSTRUCTORA WM/M&S', 15, pageHeight - 14);
   doc.text('Presupuesto sujeto a revisión según condiciones de mercado', 15, pageHeight - 10);
@@ -173,20 +166,17 @@ const addFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
 const addProjectInfo = (doc: jsPDF, project: Project, startY: number): number => {
   const pageWidth = doc.internal.pageSize.getWidth();
   
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.roundedRect(15, startY, pageWidth - 30, 35, 3, 3, 'F');
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('DATOS DEL PROYECTO', 20, startY + 10);
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   
   // Columna izquierda
   doc.text(`Proyecto: ${project.name}`, 20, startY + 18);
@@ -210,8 +200,7 @@ const addExecutiveSummary = (doc: jsPDF, project: Project, totals: ReturnType<ty
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('RESUMEN EJECUTIVO', 15, startY);
   
   startY += 8;
@@ -227,13 +216,12 @@ const addExecutiveSummary = (doc: jsPDF, project: Project, totals: ReturnType<ty
   boxes.forEach((box, i) => {
     const x = 15 + (i * (boxWidth + 5));
     
-    doc.setFillColor(...box.color);
+    setFill(doc, box.color);
     doc.roundedRect(x, startY, boxWidth, 22, 2, 2, 'F');
     
     doc.setFontSize(7);
     doc.setFont('helvetica', 'normal');
-    // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+    setTxt(doc, COLORS.white);
     doc.text(box.label, x + boxWidth / 2, startY + 8, { align: 'center' });
     
     doc.setFontSize(10);
@@ -260,8 +248,7 @@ export const generateBudgetPDF = (project: Project) => {
   // Desglose de costos
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('DESGLOSE DE COSTOS', 15, y + 5);
   
   autoTable(doc, {
@@ -342,13 +329,11 @@ export const generateBudgetPDF = (project: Project) => {
       }
       
       // Título del renglón
-      // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+      setFill(doc, COLORS.primary);
       doc.roundedRect(15, currentY, pageWidth - 30, 10, 2, 2, 'F');
       doc.setFontSize(8);
       doc.setFont('helvetica', 'bold');
-      // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+      setTxt(doc, COLORS.white);
       doc.text(`${item.code} - ${item.description}`, 20, currentY + 7);
       doc.text(`(${item.unit})`, pageWidth - 20, currentY + 7, { align: 'right' });
       
@@ -408,13 +393,11 @@ export const generateBudgetPDF = (project: Project) => {
       }
       
       // Título de categoría
-      // @ts-ignore
-      doc.setFillColor(...cat.color);
+      setFill(doc, cat.color);
       doc.roundedRect(15, matY, pageWidth - 30, 8, 1, 1, 'F');
       doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      // @ts-ignore
-      doc.setTextColor(...COLORS.white);
+      setTxt(doc, COLORS.white);
       doc.text(cat.label, 20, matY + 6);
       
       matY += 12;
@@ -453,8 +436,7 @@ export const generateBudgetPDF = (project: Project) => {
   
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('El presente presupuesto ha sido elaborado de acuerdo a los estándares de la industria de construcción', pageWidth / 2, signY, { align: 'center' });
   doc.text('y está sujeto a las condiciones especificadas en el contrato de obra.', pageWidth / 2, signY + 6, { align: 'center' });
   
@@ -465,13 +447,11 @@ export const generateBudgetPDF = (project: Project) => {
   const signBoxHeight = 45;
   
   // Firma Contratista
-  // @ts-ignore
-  doc.setDrawColor(...COLORS.gray);
+  setDraw(doc, COLORS.gray);
   doc.setLineWidth(0.3);
   doc.roundedRect(25, signY, signBoxWidth, signBoxHeight, 3, 3, 'S');
   doc.setFontSize(7);
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('CONSTRUCTORA WM/M&S', 25 + signBoxWidth / 2, signY + 10, { align: 'center' });
   doc.line(35, signY + 32, 25 + signBoxWidth - 10, signY + 32);
   doc.text('Firma y Sello', 25 + signBoxWidth / 2, signY + 38, { align: 'center' });
@@ -486,8 +466,7 @@ export const generateBudgetPDF = (project: Project) => {
   // Fecha de validez
   signY += signBoxHeight + 20;
   doc.setFontSize(8);
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text(`Presupuesto válido por 30 días a partir del ${fmtDate()}`, pageWidth / 2, signY, { align: 'center' });
   
   // Agregar footers a todas las páginas
@@ -538,13 +517,11 @@ export const generateBudgetPDFEjecutivo = (project: Project) => {
     let matY = (doc as any).lastAutoTable.finalY + 15;
     
     // Título
-    // @ts-ignore
-    doc.setFillColor(...COLORS.primary);
+    setFill(doc, COLORS.primary);
     doc.roundedRect(15, matY, pageWidth - 30, 10, 2, 2, 'F');
     doc.setFontSize(9);
     doc.setFont('helvetica', 'bold');
-    // @ts-ignore
-    doc.setTextColor(...COLORS.white);
+    setTxt(doc, COLORS.white);
     doc.text('RESUMEN DE MATERIALES', 20, matY + 7);
     
     matY += 15;
@@ -748,8 +725,7 @@ export const generateProgressReport = (project: Project, transactions: any[] = [
   // Indicadores de Avance
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('INDICADORES DE AVANCE', 15, y + 5);
   
   y += 12;
@@ -759,36 +735,30 @@ export const generateProgressReport = (project: Project, transactions: any[] = [
   const financialProgress = totals.directCost > 0 ? Math.min(100, (executedCost / totals.directCost) * 100) : 0;
   
   // Barra de progreso físico
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.roundedRect(15, y, pageWidth - 30, 20, 2, 2, 'F');
   
   doc.setFontSize(8);
   doc.setFont('helvetica', 'bold');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('Avance Físico:', 20, y + 8);
   doc.text(`${progress}%`, pageWidth - 25, y + 8, { align: 'right' });
   
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.roundedRect(20, y + 12, (pageWidth - 50) * (progress / 100), 5, 1, 1, 'F');
-  // @ts-ignore
-  doc.setDrawColor(...COLORS.gray);
+  setDraw(doc, COLORS.gray);
   doc.roundedRect(20, y + 12, pageWidth - 50, 5, 1, 1, 'S');
   
   y += 25;
   
   // Barra de progreso financiero
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.roundedRect(15, y, pageWidth - 30, 20, 2, 2, 'F');
   
   doc.text('Avance Financiero:', 20, y + 8);
   doc.text(`${financialProgress.toFixed(1)}%`, pageWidth - 25, y + 8, { align: 'right' });
   
-  // @ts-ignore
-  doc.setFillColor(...COLORS.primary);
+  setFill(doc, COLORS.primary);
   doc.roundedRect(20, y + 12, (pageWidth - 50) * (financialProgress / 100), 5, 1, 1, 'F');
   doc.roundedRect(20, y + 12, pageWidth - 50, 5, 1, 1, 'S');
   
@@ -797,8 +767,7 @@ export const generateProgressReport = (project: Project, transactions: any[] = [
   // Resumen financiero
   doc.setFontSize(10);
   doc.setFont('helvetica', 'bold');
-  // @ts-ignore
-  doc.setTextColor(...COLORS.white);
+  setTxt(doc, COLORS.white);
   doc.text('RESUMEN FINANCIERO', 15, y);
   
   autoTable(doc, {
