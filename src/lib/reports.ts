@@ -562,6 +562,108 @@ export const generateBudgetPDFEjecutivo = (project: Project) => {
   doc.save(`Cotizacion_Ejecutiva_${project.name.replace(/\s/g, '_')}.pdf`);
 };
 
+// ── Plantilla EJECUTIVA CLIENTE (solo resumen total + tiempo) ─────────────────
+export const generateBudgetPDFCliente = (project: Project) => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const totals = calculateProjectTotals(project);
+
+  addHeader(doc, 'PRESUPUESTO PARA CLIENTE', `Ref: ${project.id?.slice(0, 8) || 'NUEVO'}`);
+
+  let y = addProjectInfo(doc, project, 60);
+  
+  // Solo resumen ejecutivo (sin tabla de renglones)
+  y = addExecutiveSummary(doc, project, totals, y + 5);
+  
+  // Información adicional para el cliente
+  y += 15;
+  setFill(doc, COLORS.primary);
+  doc.roundedRect(15, y, pageWidth - 30, 12, 2, 2, 'F');
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'bold');
+  setTxt(doc, COLORS.white);
+  doc.text('RESUMEN FINAL', 20, y + 7);
+  
+  y += 20;
+  
+  // Cajas de resumen final
+  const boxWidth = (pageWidth - 45) / 2;
+  
+  // Caja 1: Total Presupuesto
+  setFill(doc, COLORS.success);
+  doc.roundedRect(15, y, boxWidth - 5, 25, 2, 2, 'F');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  setTxt(doc, COLORS.white);
+  doc.text('PRESUPUESTO TOTAL', 20, y + 8);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(fmtCurrency(totals.totalBudget), 20, y + 18);
+  
+  // Caja 2: Duración Estimada
+  setFill(doc, COLORS.accent);
+  doc.roundedRect(15 + boxWidth, y, boxWidth - 5, 25, 2, 2, 'F');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  setTxt(doc, COLORS.white);
+  doc.text('DURACIÓN ESTIMADA', 20 + boxWidth, y + 8);
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  doc.text(`${Math.ceil(totals.estimatedDays)} DÍAS`, 20 + boxWidth, y + 18);
+  
+  y += 40;
+  
+  // Condiciones del presupuesto
+  setFill(doc, COLORS.light);
+  doc.roundedRect(15, y, pageWidth - 30, 35, 2, 2, 'F');
+  setTxt(doc, COLORS.gray);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  doc.text('CONDICIONES DEL PRESUPUESTO:', 20, y + 8);
+  
+  doc.setFont('helvetica', 'normal');
+  const conditions = [
+    '• El presente presupuesto incluye materiales, mano de obra, impuestos y costos indirectos.',
+    '• La validez de este presupuesto es de 30 días a partir de la fecha de emisión.',
+    '• Los plazos de entrega están sujetos a disponibilidad de materiales y condiciones del sitio.',
+    '• Cualquier modificación en el alcance del proyecto requerirá una nueva cotización.',
+    '• El pago se realizará según el avance de obra con facturas correspondientes.',
+  ];
+  
+  conditions.forEach((cond, i) => {
+    doc.setFontSize(6);
+    doc.text(cond, 20, y + 16 + (i * 5));
+  });
+  
+  y += 55;
+  
+  // Bloque de firma
+  const signBoxWidth = 80;
+  const signBoxHeight = 40;
+  
+  // Firma Contratista
+  setDraw(doc, COLORS.gray);
+  doc.setLineWidth(0.3);
+  doc.roundedRect(25, y, signBoxWidth, signBoxHeight, 3, 3, 'S');
+  doc.setFontSize(7);
+  setTxt(doc, COLORS.white);
+  doc.text('CONSTRUCTORA WM/M&S', 25 + signBoxWidth / 2, y + 10, { align: 'center' });
+  doc.line(35, y + 30, 25 + signBoxWidth - 10, y + 30);
+  doc.text('Firma y Sello', 25 + signBoxWidth / 2, y + 36, { align: 'center' });
+  
+  // Firma Cliente
+  doc.roundedRect(pageWidth - 25 - signBoxWidth, y, signBoxWidth, signBoxHeight, 3, 3, 'S');
+  doc.text('CLIENTE', pageWidth - 25 - signBoxWidth / 2, y + 10, { align: 'center' });
+  doc.text(project.clientName || 'Sin especificar', pageWidth - 25 - signBoxWidth / 2, y + 18, { align: 'center' });
+  doc.line(pageWidth - 25 - signBoxWidth + 10, y + 30, pageWidth - 35, y + 30);
+  doc.text('Firma de Aceptación', pageWidth - 25 - signBoxWidth / 2, y + 36, { align: 'center' });
+  
+  // Agregar footers
+  addFooter(doc, 1, 1);
+  
+  doc.save(`Presupuesto_Cliente_${project.name.replace(/\s/g, '_')}.pdf`);
+};
+
 // ── Plantilla APU COMPLETO (análisis de precios unitarios por renglón) ────────
 export const generateBudgetPDFAPU = (project: Project) => {
   const doc = new jsPDF();
@@ -593,7 +695,7 @@ export const generateBudgetPDFAPU = (project: Project) => {
     if (y > 260) { addFooter(doc, pageNum, 99); doc.addPage(); pageNum++; addHeader(doc, 'APU — ÍNDICE', project.name); y = 60; }
   });
 
-  // Una página por renglón (APU detallado)
+  // Una página por renglón (APU detallado con materiales unitarios)
   project.items.forEach((item, idx) => {
     addFooter(doc, pageNum, 99); doc.addPage(); pageNum++;
     addHeader(doc, `APU ${idx + 1}/${project.items.length}`, project.name);
@@ -649,29 +751,43 @@ export const generateBudgetPDFAPU = (project: Project) => {
     cy = (doc as any).lastAutoTable.finalY + 4;
 
     // ─────────────────────────────────────────────────────────────────────
-    // MATERIALES CALCULADOS (cantidad total para el proyecto)
+    // MATERIALES UNITARIOS CALCULADOS (desglose por renglón)
     // ─────────────────────────────────────────────────────────────────────
     const materialsConfig = MATERIALS_BY_CATEGORY[item.category] || [];
     if (materialsConfig.length > 0) {
-      const calculatedMats = materialsConfig.map(m => [
-        m.materialName,
-        m.unit,
-        m.quantity.toFixed(3),
-        (m.quantity * item.projectQuantity).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 3 })
-      ]);
+      const calculatedMats = materialsConfig.map(m => {
+        const qty = m.quantity * item.projectQuantity;
+        // Buscar precio aproximado
+        const unitPrice = item.materials.reduce((sum, mat) => {
+          if (mat.name.toLowerCase().includes(m.materialName.toLowerCase())) {
+            return mat.price;
+          }
+          return sum;
+        }, 0);
+        return [
+          m.materialName,
+          m.unit,
+          m.quantity.toFixed(3),
+          qty.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 3 }),
+          fmtCurrency(unitPrice),
+          fmtCurrency(qty * unitPrice)
+        ];
+      });
       
       autoTable(doc, {
         startY: cy,
-        head: [['MATERIALES PROYECTO', 'Unid.', 'x Und', 'Cant. Total']],
+        head: [['MATERIALES UNITARIOS', 'Unid.', 'x Und', 'Cant. Total', 'P.Unit Q', 'Subtotal Q']],
         body: calculatedMats,
         theme: 'grid',
         headStyles: { fillColor: COLORS.success, fontSize: 7, fontStyle: 'bold' },
         styles: { fontSize: 6, cellPadding: 2 },
         columnStyles: {
-          0: { cellWidth: 80 },
-          1: { cellWidth: 20, halign: 'center' },
-          2: { cellWidth: 25, halign: 'right' },
-          3: { cellWidth: 30, halign: 'right', fontStyle: 'bold' }
+          0: { cellWidth: 65 },
+          1: { cellWidth: 18, halign: 'center' },
+          2: { cellWidth: 22, halign: 'right' },
+          3: { cellWidth: 28, halign: 'right', fontStyle: 'bold' },
+          4: { cellWidth: 25, halign: 'right' },
+          5: { cellWidth: 28, halign: 'right', fontStyle: 'bold' }
         },
         margin: { left: 15, right: 15 }
       });

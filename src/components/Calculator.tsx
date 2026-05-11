@@ -35,7 +35,7 @@ import {
   MATERIALS_BY_CATEGORY,
   MATERIAL_CATEGORIES
 } from '../constants';
-import { generateBudgetPDF, generateBudgetCSV, generateBudgetPDFEjecutivo, generateBudgetPDFAPU } from '../lib/reports';
+import { generateBudgetPDF, generateBudgetCSV, generateBudgetPDFEjecutivo, generateBudgetPDFAPU, generateBudgetPDFCliente } from '../lib/reports';
 import { APU_BY_TYPOLOGY, APUItem } from '../lib/apuLibrary';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -232,14 +232,40 @@ export default function CalculatorModule() {
   // CÁLCULO DE MATERIALES POR ÍTEM Y RESUMEN TOTAL
   // ──────────────────────────────────────────────────────────────────────────────
   
-  // Función para calcular materiales por cada renglón
+  // Función para calcular materiales por cada renglón (con cantidades totales)
   const calculateMaterialsPerItem = (item: ProjectItem) => {
     const category = item.category;
     const materialsConfig = MATERIALS_BY_CATEGORY[category] || MATERIALS_BY_CATEGORY['Varios'] || [];
     
     return materialsConfig.map(mat => ({
       ...mat,
-      totalQuantity: mat.quantity * item.projectQuantity
+      totalQuantity: mat.quantity * item.projectQuantity,
+      unitPrice: 0, // Se calculará en el PDF
+      unitTotal: 0  // Se calculará en el PDF
+    }));
+  };
+
+  // Función para calcular materiales por cada renglón (versión detallada para PDF)
+  const calculateDetailedMaterialsPerItem = (item: ProjectItem) => {
+    const category = item.category;
+    const materialsConfig = MATERIALS_BY_CATEGORY[category] || MATERIALS_BY_CATEGORY['Varios'] || [];
+    
+    return materialsConfig.map(mat => ({
+      ...mat,
+      totalQuantity: mat.quantity * item.projectQuantity,
+      // Calcular precio unitario basado en el costo del material en el renglón
+      unitPrice: item.materials.reduce((sum, m) => {
+        if (m.name.toLowerCase().includes(mat.materialName.toLowerCase())) {
+          return m.price;
+        }
+        return sum;
+      }, 0),
+      unitTotal: (mat.quantity * item.projectQuantity) * (item.materials.reduce((sum, m) => {
+        if (m.name.toLowerCase().includes(mat.materialName.toLowerCase())) {
+          return m.price;
+        }
+        return sum;
+      }, 0))
     }));
   };
 
@@ -316,7 +342,7 @@ export default function CalculatorModule() {
   }, [currentProject.items]);
 
   const [saving, setSaving] = useState(false);
-  const [pdfTemplate, setPdfTemplate] = useState<'completo' | 'ejecutivo' | 'apu'>('completo');
+  const [pdfTemplate, setPdfTemplate] = useState<'completo' | 'ejecutivo' | 'apu' | 'cliente'>('completo');
 
   // Cargar clientes para el selector
   const [clientList, setClientList] = useState<{ id: string; name: string }[]>([]);
@@ -591,11 +617,13 @@ export default function CalculatorModule() {
                <option value="completo">PDF Completo (4 páginas)</option>
                <option value="ejecutivo">PDF Ejecutivo (1 página)</option>
                <option value="apu">PDF APU Detallado</option>
+               <option value="cliente">PDF para Cliente (Resumen)</option>
              </select>
              <button
                onClick={() => {
                  if (pdfTemplate === 'ejecutivo') generateBudgetPDFEjecutivo(currentProject);
                  else if (pdfTemplate === 'apu') generateBudgetPDFAPU(currentProject);
+                 else if (pdfTemplate === 'cliente') generateBudgetPDFCliente(currentProject);
                  else generateBudgetPDF(currentProject);
                }}
                className="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-primary/90"
