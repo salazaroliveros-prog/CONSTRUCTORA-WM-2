@@ -7,7 +7,8 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { 
   BarChart3, TrendingUp, PieChart as PieChartIcon, Zap, Target,
   Download, Filter, DollarSign, Award, AlertTriangle, CheckCircle2,
-  ArrowUpRight, ArrowDownRight, Calendar, Layers
+  ArrowUpRight, ArrowDownRight, Calendar, Layers, Users, Package,
+  Truck, ShoppingCart, Building2, AlertCircle, TrendingDown
 } from 'lucide-react';
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -51,16 +52,24 @@ function calcItemCost(item: any) {
 export default function AnalyticsModule() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [transactions, setTransactions] = useState<any[]>([]);
+  const [staff, setStaff] = useState<any[]>([]);
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('ALL');
   const [exportTemplate, setExportTemplate] = useState<string>('modern');
   const [exportCsvTemplate, setExportCsvTemplate] = useState<string>('completo');
-  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'ranking'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'ranking' | 'connectivity'>('overview');
 
   useEffect(() => {
     const u1 = subscribeToCollection('projects', (data) => { setProjects(data as Project[]); setLoading(false); });
     const u2 = subscribeToCollection('transactions', (data) => setTransactions(data));
-    return () => { u1(); u2(); };
+    const u3 = subscribeToCollection('staff', (data) => setStaff(data));
+    const u4 = subscribeToCollection('suppliers', (data) => setSuppliers(data));
+    const u5 = subscribeToCollection('inventory', (data) => setInventory(data));
+    const u6 = subscribeToCollection('purchaseOrders', (data) => setPurchaseOrders(data));
+    return () => { u1(); u2(); u3(); u4(); u5(); u6(); };
   }, []);
 
   // Filtered data based on selected project
@@ -165,11 +174,45 @@ export default function AnalyticsModule() {
     return Object.entries(map).map(([name, v], i) => ({ name, ...v, color: COLORS[i % COLORS.length] }));
   }, [displayProjects]);
 
-  // ── KPIs financieros ────────────────────────────────────────────────────────
+  // ── KPIs financieros y operativos mejorados ────────────────────────────────────────────────────────
   const totalIngresos = transactions.filter(t => t.type === 'INGRESO').reduce((a, t) => a + Number(t.amount || 0), 0);
   const totalGastos = transactions.filter(t => t.type === 'GASTO').reduce((a, t) => a + Number(t.amount || 0), 0);
   const netoCaja = totalIngresos - totalGastos;
   const totalPresupuesto = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
+  
+  // Nuevas métricas cruzadas
+  const activeStaff = staff.filter(s => s.status === 'ACTIVO');
+  const totalSalaries = activeStaff.reduce((a, s) => a + Number(s.salary || 0), 0);
+  const criticalInventory = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0));
+  const pendingOrders = purchaseOrders.filter(po => po.status === 'PENDIENTE');
+  const totalPendingValue = pendingOrders.reduce((a, po) => a + Number(po.total || 0), 0);
+  
+  // Eficiencia de personal por proyecto
+  const staffEfficiency = displayProjects.map(p => {
+    const projectStaff = activeStaff.filter(s => s.projectIds?.includes(p.id));
+    const staffCost = projectStaff.reduce((a, s) => a + Number(s.salary || 0), 0);
+    const efficiency = p.budget > 0 && staffCost > 0 ? (p.progress || 0) / (staffCost / 1000) : 0;
+    return { ...p, staffCount: projectStaff.length, staffCost, efficiency };
+  }).filter(p => p.staffCount > 0);
+  
+  // Análisis de proveedores
+  const supplierAnalysis = suppliers.map(s => {
+    const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id);
+    const totalSpent = supplierOrders.reduce((a, po) => a + Number(po.total || 0), 0);
+    const avgOrderValue = supplierOrders.length > 0 ? totalSpent / supplierOrders.length : 0;
+    const pendingCount = supplierOrders.filter(po => po.status === 'PENDIENTE').length;
+    return { ...s, totalSpent, avgOrderValue, orderCount: supplierOrders.length, pendingCount };
+  }).sort((a, b) => b.totalSpent - a.totalSpent);
+  
+  // Análisis de inventario por proyecto
+  const inventoryByProject = displayProjects.map(p => {
+    const projectInventory = inventory.filter(i => i.projectId === p.id);
+    const totalBudgetedValue = projectInventory.reduce((a, i) => a + (i.budgetedQty || 0) * (i.budgetedCost || 0), 0);
+    const totalCurrentValue = projectInventory.reduce((a, i) => a + (i.stock || 0) * (i.budgetedCost || 0), 0);
+    const criticalItems = projectInventory.filter(i => (i.stock || 0) <= (i.minStock || 0));
+    const completeness = totalBudgetedValue > 0 ? (totalCurrentValue / totalBudgetedValue) * 100 : 0;
+    return { ...p, inventoryItems: projectInventory.length, totalBudgetedValue, totalCurrentValue, criticalItems: criticalItems.length, completeness };
+  }).filter(p => p.inventoryItems > 0);
 
   if (loading) {
     return (
@@ -188,9 +231,9 @@ export default function AnalyticsModule() {
           <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-end">
-          {/* Tabs */}
+          {/* Tabs - Agregando nueva pestaña de conectividad */}
           <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-            {([['overview','Resumen'],['trends','Tendencias'],['ranking','Ranking']] as const).map(([tab, label]) => (
+            {([['overview','Resumen'],['trends','Tendencias'],['ranking','Ranking'],['connectivity','Conectividad']] as const).map(([tab, label]) => (
               <button key={tab} type="button" onClick={() => setActiveTab(tab)}
                 className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                 {label}
@@ -235,21 +278,28 @@ export default function AnalyticsModule() {
         </div>
       </div>
 
-      {/* Financial KPI Strip */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* Financial KPI Strip - Mejorado con métricas cruzadas */}
+      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
         {[
           { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-purple-600', bg: 'bg-purple-50', trend: null },
-          { label: 'Ingresos Reales', value: `Q ${totalIngresos.toLocaleString('es-GT')}`, icon: <ArrowUpRight size={14}/>, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'up' },
-          { label: 'Gastos Reales', value: `Q ${totalGastos.toLocaleString('es-GT')}`, icon: <ArrowDownRight size={14}/>, color: 'text-red-600', bg: 'bg-red-50', trend: 'down' },
-          { label: 'Neto en Caja', value: `Q ${netoCaja.toLocaleString('es-GT')}`, icon: <DollarSign size={14}/>, color: netoCaja >= 0 ? 'text-emerald-600' : 'text-red-600', bg: netoCaja >= 0 ? 'bg-emerald-50' : 'bg-red-50', trend: netoCaja >= 0 ? 'up' : 'down' },
+          { label: 'Personal Activo', value: `${activeStaff.length}`, icon: <Users size={14}/>, color: 'text-blue-600', bg: 'bg-blue-50', trend: null, sub: `Q ${Math.round(totalSalaries/1000)}k salarios` },
+          { label: 'Stock Crítico', value: `${criticalInventory.length}`, icon: <Package size={14}/>, color: criticalInventory.length > 0 ? 'text-red-600' : 'text-green-600', bg: criticalInventory.length > 0 ? 'bg-red-50' : 'bg-green-50', trend: criticalInventory.length > 0 ? 'down' : 'up', sub: `de ${inventory.length} items` },
+          { label: 'OC Pendientes', value: `${pendingOrders.length}`, icon: <ShoppingCart size={14}/>, color: pendingOrders.length > 0 ? 'text-amber-600' : 'text-green-600', bg: pendingOrders.length > 0 ? 'bg-amber-50' : 'bg-green-50', trend: null, sub: `Q ${Math.round(totalPendingValue/1000)}k` },
+          { label: 'Ingresos Reales', value: `Q ${Math.round(totalIngresos/1000)}k`, icon: <ArrowUpRight size={14}/>, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'up' },
+          { label: 'Neto en Caja', value: `Q ${Math.round(netoCaja/1000)}k`, icon: <DollarSign size={14}/>, color: netoCaja >= 0 ? 'text-emerald-600' : 'text-red-600', bg: netoCaja >= 0 ? 'bg-emerald-50' : 'bg-red-50', trend: netoCaja >= 0 ? 'up' : 'down' },
         ].map((kpi, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-            className="bg-white rounded-xl border border-slate-100 p-3 flex items-center gap-3 shadow-sm">
-            <div className={`p-2 rounded-lg shrink-0 ${kpi.bg} ${kpi.color}`}>{kpi.icon}</div>
-            <div>
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{kpi.label}</p>
-              <p className="text-sm font-black text-primary">{kpi.value}</p>
+            className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col gap-2 shadow-sm">
+            <div className="flex items-center gap-2">
+              <div className={`p-1.5 rounded-lg shrink-0 ${kpi.bg} ${kpi.color}`}>{kpi.icon}</div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate">{kpi.label}</p>
+                <p className="text-sm font-black text-primary truncate">{kpi.value}</p>
+              </div>
             </div>
+            {kpi.sub && (
+              <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest truncate">{kpi.sub}</p>
+            )}
           </motion.div>
         ))}
       </div>

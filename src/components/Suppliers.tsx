@@ -442,6 +442,20 @@ export default function SuppliersModule() {
                     <p className="text-[7px] font-black text-amber-600 uppercase tracking-widest">Total Compras</p>
                     <p className="text-xs font-black text-amber-700">Q {supplierTotalSpent.toLocaleString('es-GT')}</p>
                   </div>
+                  <div className="bg-green-50 rounded-lg p-2.5 text-center">
+                    <p className="text-[7px] font-black text-green-600 uppercase tracking-widest">Promedio OC</p>
+                    <p className="text-xs font-black text-green-700">Q {supplierOCs.length > 0 ? Math.round(supplierTotalSpent / supplierOCs.length).toLocaleString('es-GT') : '0'}</p>
+                  </div>
+                  <div className="bg-purple-50 rounded-lg p-2.5 text-center">
+                    <p className="text-[7px] font-black text-purple-600 uppercase tracking-widest">Última Compra</p>
+                    <p className="text-xs font-black text-purple-700">
+                      {supplierOCs.length > 0 ? (() => {
+                        const lastOrder = supplierOCs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
+                        const daysSince = Math.floor((Date.now() - new Date(lastOrder.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+                        return daysSince === 0 ? 'Hoy' : daysSince === 1 ? 'Ayer' : `${daysSince}d`;
+                      })() : 'N/A'}
+                    </p>
+                  </div>
                 </div>
 
                 {/* Información de contacto */}
@@ -468,13 +482,28 @@ export default function SuppliersModule() {
 
                 {/* Historial de Órdenes de Compra */}
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Órdenes de Compra</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Órdenes de Compra</p>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[7px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                        {supplierOCs.length} total{supplierOCs.length !== 1 ? 'es' : ''}
+                      </span>
+                      {supplierOCs.filter(oc => oc.status === 'PENDIENTE').length > 0 && (
+                        <span className="text-[7px] font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full animate-pulse">
+                          {supplierOCs.filter(oc => oc.status === 'PENDIENTE').length} pendiente{supplierOCs.filter(oc => oc.status === 'PENDIENTE').length !== 1 ? 's' : ''}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                   {supplierOCs.length === 0 ? (
-                    <p className="text-[9px] text-slate-300 font-bold italic">Sin órdenes registradas</p>
+                    <div className="text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                      <ShoppingCart size={16} className="mx-auto mb-1 text-slate-300" />
+                      <p className="text-[9px] text-slate-300 font-bold italic">Sin órdenes registradas</p>
+                    </div>
                   ) : (
                     <div className="space-y-1.5">
                       {supplierOCs.map(oc => (
-                        <div key={oc.id} className="bg-slate-50 rounded-lg p-2">
+                        <div key={oc.id} className="bg-slate-50 rounded-lg p-2 hover:bg-slate-100 transition-all group">
                           <div className="flex items-center justify-between mb-1">
                             <span className="text-[9px] font-black text-primary uppercase truncate flex-1">{oc.projectName || 'Sin proyecto'}</span>
                             <span className={cn("text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full ml-1 shrink-0", OC_STATUS_COLORS[oc.status] || 'bg-slate-100 text-slate-600')}>
@@ -482,8 +511,29 @@ export default function SuppliersModule() {
                             </span>
                           </div>
                           <div className="flex items-center justify-between">
-                            <span className="text-[8px] text-slate-400 font-bold">{oc.createdAt ? new Date(oc.createdAt).toLocaleDateString('es-GT') : '--'}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[8px] text-slate-400 font-bold">{oc.createdAt ? new Date(oc.createdAt).toLocaleDateString('es-GT') : '--'}</span>
+                              {oc.items && oc.items.length > 0 && (
+                                <span className="text-[7px] font-bold text-slate-500 bg-white px-1.5 py-0.5 rounded-full">
+                                  {oc.items.length} item{oc.items.length !== 1 ? 's' : ''}
+                                </span>
+                              )}
+                            </div>
                             <span className="text-[9px] font-black text-secondary">Q {(oc.total || 0).toLocaleString('es-GT')}</span>
+                          </div>
+                          {/* Mostrar items de la OC al hacer hover */}
+                          <div className="mt-1 opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-20 overflow-hidden">
+                            <div className="text-[7px] text-slate-500 space-y-0.5 pt-1 border-t border-slate-200">
+                              {(oc.items || []).slice(0, 3).map((item, i) => (
+                                <div key={i} className="flex justify-between">
+                                  <span className="truncate">{item.materialName}</span>
+                                  <span>{item.qty} {item.unit}</span>
+                                </div>
+                              ))}
+                              {(oc.items || []).length > 3 && (
+                                <div className="text-center text-slate-400 italic">+{(oc.items || []).length - 3} más...</div>
+                              )}
+                            </div>
                           </div>
                         </div>
                       ))}
@@ -505,6 +555,11 @@ export default function SuppliersModule() {
                 <button type="button" onClick={() => { setEditSupplier(selectedSupplier); setEditForm({ name: selectedSupplier.name, category: selectedSupplier.category, contact: selectedSupplier.contact, email: selectedSupplier.email, rating: selectedSupplier.rating, status: selectedSupplier.status, address: selectedSupplier.address||'', nit: selectedSupplier.nit||'', website: selectedSupplier.website||'', paymentTerms: selectedSupplier.paymentTerms||'', notes: selectedSupplier.notes||'' }); }}
                   className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">
                   <Pencil size={11} /> Editar
+                </button>
+                <button type="button" title="Nueva orden de compra" 
+                  onClick={() => toast.info('Nueva OC', { description: 'Ve al módulo de Inventario > Órdenes de Compra para crear una nueva orden para este proveedor.' })}
+                  className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all">
+                  <ShoppingCart size={14} />
                 </button>
                 <button type="button" title="Eliminar proveedor" onClick={() => handleDelete(selectedSupplier.id)}
                   className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all">

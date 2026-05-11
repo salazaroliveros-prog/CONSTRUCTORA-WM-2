@@ -346,10 +346,20 @@ export default function CalculatorModule() {
 
   // Cargar clientes para el selector
   const [clientList, setClientList] = useState<{ id: string; name: string }[]>([]);
+  const [supplierList, setSupplierList] = useState<{ id: string; name: string; category: string }[]>([]);
+  const [isOCModalOpen, setIsOCModalOpen] = useState(false);
+  const [selectedSupplier, setSelectedSupplier] = useState('');
+  const [ocNotes, setOcNotes] = useState('');
+  const [generatingOC, setGeneratingOC] = useState(false);
+  
   useEffect(() => {
-    return subscribeToCollection('clients', (data: any[]) =>
+    const u1 = subscribeToCollection('clients', (data: any[]) =>
       setClientList(data.map(c => ({ id: c.id, name: c.name })))
     );
+    const u2 = subscribeToCollection('suppliers', (data: any[]) =>
+      setSupplierList(data.map(s => ({ id: s.id, name: s.name, category: s.category || 'GENERAL' })))
+    );
+    return () => { u1(); u2(); };
   }, []);
 
   const handleSaveProject = async () => {
@@ -374,6 +384,71 @@ export default function CalculatorModule() {
       toast.error('Error al guardar', { description: parseError(e) });
     } finally {
       setSaving(false);
+    }
+  };
+
+  const generatePurchaseOrder = async () => {
+    if (!currentProject.name || currentProject.items.length === 0) {
+      toast.error('Debe tener un presupuesto con renglones para generar OC');
+      return;
+    }
+    if (!selectedSupplier) {
+      toast.error('Seleccione un proveedor');
+      return;
+    }
+    
+    setGeneratingOC(true);
+    try {
+      // Extraer materiales del presupuesto
+      const materials: { materialName: string; unit: string; qty: number; unitPrice: number; total: number }[] = [];
+      
+      currentProject.items.forEach(item => {
+        item.materials.forEach(mat => {
+          const totalQty = mat.quantity * item.projectQuantity;
+          const existing = materials.find(m => m.materialName === mat.name && m.unit === mat.unit);
+          if (existing) {
+            existing.qty += totalQty;
+            existing.total = existing.qty * existing.unitPrice;
+          } else {
+            materials.push({
+              materialName: mat.name,
+              unit: mat.unit,
+              qty: totalQty,
+              unitPrice: mat.price,
+              total: totalQty * mat.price
+            });
+          }
+        });
+      });
+
+      const supplier = supplierList.find(s => s.id === selectedSupplier);
+      const totalOC = materials.reduce((sum, m) => sum + m.total, 0);
+
+      // Crear la orden de compra
+      await addDocument('purchaseOrders', {
+        projectId: 'temp-budget', // Temporal hasta que se guarde el proyecto
+        projectName: currentProject.name,
+        supplierId: selectedSupplier,
+        supplierName: supplier?.name || 'Proveedor',
+        status: 'PENDIENTE',
+        items: materials,
+        total: totalOC,
+        createdAt: new Date().toISOString().split('T')[0],
+        notes: ocNotes || `OC generada desde presupuesto: ${currentProject.name}`,
+      });
+
+      toast.success(`Orden de compra creada por Q ${totalOC.toLocaleString()}`, {
+        description: `${materials.length} materiales enviados a ${supplier?.name}`
+      });
+      
+      setIsOCModalOpen(false);
+      setSelectedSupplier('');
+      setOcNotes('');
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al generar OC', { description: parseError(e) });
+    } finally {
+      setGeneratingOC(false);
     }
   };
 
@@ -636,6 +711,13 @@ export default function CalculatorModule() {
              className="flex items-center gap-2 bg-white border border-slate-200 text-slate-600 px-5 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:bg-slate-50"
            >
              <FileDown size={14} /> EXPORTAR CSV
+           </button>
+           <button 
+             onClick={() => setIsOCModalOpen(true)}
+             disabled={currentProject.items.length === 0}
+             className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+           >
+             <ShoppingCart size={14} /> GENERAR OC
            </button>
            <button 
              onClick={handleSaveProject}

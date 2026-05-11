@@ -31,7 +31,8 @@ import {
   Box,
   Layers,
   Pencil,
-  PlusCircle
+  PlusCircle,
+  ShoppingCart
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line, Area, AreaChart, ReferenceLine } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
@@ -1041,29 +1042,167 @@ export default function ProjectsModule() {
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Users size={14} className="text-secondary" /> Equipo Asignado
-                  </h4>
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Users size={14} className="text-secondary" /> Equipo Asignado
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">
+                        {selectedProject.teamIds?.length || 0} miembro{(selectedProject.teamIds?.length || 0) !== 1 ? 's' : ''}
+                      </span>
+                      <button 
+                        onClick={() => toast.info('Gestión de equipo', { description: 'Ve al módulo de Personal para asignar/desasignar miembros del equipo a este proyecto.' })}
+                        className="text-[8px] font-black text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-2 py-1 rounded-lg transition-all uppercase tracking-widest"
+                      >
+                        Gestionar
+                      </button>
+                    </div>
+                  </div>
                   <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
                     {selectedProject.teamIds && selectedProject.teamIds.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {allStaff.filter(s => selectedProject.teamIds?.includes(s.id)).map(member => (
-                          <div key={member.id} className="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm">
-                            <div className="w-8 h-8 rounded-lg bg-slate-900 text-secondary flex items-center justify-center font-black text-[10px]">
+                          <div key={member.id} className="flex items-center gap-3 bg-white p-2 rounded-xl border border-slate-100 shadow-sm hover:shadow-md transition-all group">
+                            <div className="w-8 h-8 rounded-lg bg-slate-900 text-secondary flex items-center justify-center font-black text-[10px] group-hover:bg-secondary group-hover:text-primary transition-all">
                               {member.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                             </div>
-                            <div className="min-w-0">
-                              <p className="text-[10px] font-black text-primary uppercase truncate">{member.name}</p>
+                            <div className="min-w-0 flex-1">
+                              <p className="text-[10px] font-black text-primary uppercase truncate group-hover:text-secondary transition-colors">{member.name}</p>
                               <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest">{member.role}</p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-[8px] font-black text-slate-600">Q {Number(member.salary || 0).toLocaleString('es-GT')}</p>
+                              <p className="text-[6px] font-bold text-slate-400 uppercase">Salario</p>
                             </div>
                           </div>
                         ))}
                       </div>
                     ) : (
-                      <div className="text-center py-4">
-                        <p className="text-[9px] font-bold text-slate-400 uppercase italic">Sin personal asignado específicamente</p>
+                      <div className="text-center py-6">
+                        <Users size={24} className="mx-auto mb-2 text-slate-300" />
+                        <p className="text-[9px] font-bold text-slate-400 uppercase italic mb-2">Sin personal asignado específicamente</p>
+                        <button 
+                          onClick={() => toast.info('Asignar personal', { description: 'Ve al módulo de Personal para asignar miembros del equipo a este proyecto.' })}
+                          className="text-[8px] font-black text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-3 py-1.5 rounded-lg transition-all uppercase tracking-widest"
+                        >
+                          Asignar Personal
+                        </button>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Box size={14} className="text-secondary" /> Inventario del Proyecto
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">
+                        {(() => {
+                          const projectInventory = transactions.filter(t => t.projectId === selectedProject.id && t.itemId);
+                          return projectInventory.length;
+                        })()} items
+                      </span>
+                      <button 
+                        onClick={() => toast.info('Gestión de inventario', { description: 'Ve al módulo de Inventario y filtra por este proyecto para gestionar materiales.' })}
+                        className="text-[8px] font-black text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-2 py-1 rounded-lg transition-all uppercase tracking-widest"
+                      >
+                        Ver Inventario
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4">
+                    {(() => {
+                      // Calcular estadísticas de inventario del proyecto
+                      const projectMaterials = selectedProject.items?.reduce((acc: any[], item) => {
+                        (item.materials || []).forEach((m: any) => {
+                          const existing = acc.find(x => x.name === m.name);
+                          if (existing) {
+                            existing.budgetedQty += m.quantity * (item.projectQuantity || 1);
+                            existing.budgetedValue += m.price * m.quantity * (item.projectQuantity || 1);
+                          } else {
+                            acc.push({
+                              name: m.name,
+                              unit: m.unit || 'U',
+                              budgetedQty: m.quantity * (item.projectQuantity || 1),
+                              budgetedValue: m.price * m.quantity * (item.projectQuantity || 1),
+                              currentStock: 0 // Se actualizaría con datos reales del inventario
+                            });
+                          }
+                        });
+                        return acc;
+                      }, []) || [];
+                      
+                      const totalBudgetedValue = projectMaterials.reduce((acc, m) => acc + m.budgetedValue, 0);
+                      const topMaterials = projectMaterials.sort((a, b) => b.budgetedValue - a.budgetedValue).slice(0, 5);
+                      
+                      return (
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-3 gap-3">
+                            <div className="bg-white p-3 rounded-xl border border-slate-100 text-center">
+                              <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Materiales</p>
+                              <p className="text-lg font-black text-primary">{projectMaterials.length}</p>
+                              <p className="text-[6px] font-bold text-slate-400 uppercase">tipos</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-xl border border-slate-100 text-center">
+                              <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor Total</p>
+                              <p className="text-lg font-black text-primary">Q {Math.round(totalBudgetedValue/1000)}k</p>
+                              <p className="text-[6px] font-bold text-slate-400 uppercase">presupuestado</p>
+                            </div>
+                            <div className="bg-white p-3 rounded-xl border border-slate-100 text-center">
+                              <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado</p>
+                              <p className="text-lg font-black text-amber-600">Pendiente</p>
+                              <p className="text-[6px] font-bold text-slate-400 uppercase">compras</p>
+                            </div>
+                          </div>
+                          
+                          {topMaterials.length > 0 ? (
+                            <div className="space-y-2">
+                              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-200 pb-1">Principales Materiales</p>
+                              {topMaterials.map((material, idx) => (
+                                <div key={idx} className="flex items-center justify-between bg-white p-2 rounded-lg border border-slate-100">
+                                  <div className="min-w-0 flex-1">
+                                    <p className="text-[9px] font-black text-primary uppercase truncate">{material.name}</p>
+                                    <p className="text-[7px] font-bold text-slate-400 uppercase">{material.budgetedQty.toLocaleString()} {material.unit}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <p className="text-[8px] font-black text-slate-600">Q {material.budgetedValue.toLocaleString()}</p>
+                                    <p className="text-[6px] font-bold text-slate-400 uppercase">presupuesto</p>
+                                  </div>
+                                </div>
+                              ))}
+                              {projectMaterials.length > 5 && (
+                                <p className="text-[7px] font-bold text-slate-400 uppercase text-center pt-1">
+                                  +{projectMaterials.length - 5} materiales más
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-center py-6">
+                              <Box size={24} className="mx-auto mb-2 text-slate-300" />
+                              <p className="text-[9px] font-bold text-slate-400 uppercase italic mb-2">Sin materiales definidos en presupuesto</p>
+                              <p className="text-[7px] text-slate-400">Agrega renglones con materiales para ver el inventario requerido</p>
+                            </div>
+                          )}
+                          
+                          <div className="flex gap-2 pt-2 border-t border-slate-100">
+                            <button 
+                              onClick={() => toast.info('Generar inventario', { description: 'Ve al módulo de Inventario y usa "Generar desde Presupuesto" para crear los materiales de este proyecto.' })}
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-emerald-600 text-white rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all"
+                            >
+                              <Building2 size={10}/> Generar Stock
+                            </button>
+                            <button 
+                              onClick={() => toast.info('Crear orden de compra', { description: 'Ve al módulo de Inventario para crear órdenes de compra para este proyecto.' })}
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all"
+                            >
+                              <ShoppingCart size={10}/> Nueva OC
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 </div>
 

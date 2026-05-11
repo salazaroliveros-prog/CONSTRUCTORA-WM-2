@@ -488,25 +488,41 @@ export default function StaffModule() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Proyectos Asignados</p>
+                  <div className="flex items-center justify-between mb-2">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Proyectos Asignados</p>
+                    <span className="text-[7px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-full">
+                      {memberProjects.length} activo{memberProjects.length !== 1 ? 's' : ''}
+                    </span>
+                  </div>
                   {memberProjects.length === 0 ? (
-                    <p className="text-[9px] text-slate-300 font-bold italic">Sin proyectos asignados</p>
+                    <div className="text-center py-4 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                      <Building2 size={16} className="mx-auto mb-1 text-slate-300" />
+                      <p className="text-[9px] text-slate-300 font-bold italic">Sin proyectos asignados</p>
+                    </div>
                   ) : (
                     <div className="space-y-1.5">
                       {memberProjects.map(p => (
-                        <div key={p.id} className="bg-slate-50 rounded-lg p-2 flex items-center justify-between">
+                        <div key={p.id} className="bg-slate-50 rounded-lg p-2 flex items-center justify-between hover:bg-slate-100 transition-all group">
                           <div className="flex-1 min-w-0">
-                            <p className="text-[9px] font-black text-primary uppercase truncate">{p.name}</p>
+                            <div className="flex items-center gap-1.5 mb-1">
+                              <p className="text-[9px] font-black text-primary uppercase truncate">{p.name}</p>
+                              <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full",
+                                p.status === 'EJECUCION' ? "bg-secondary/20 text-secondary" :
+                                p.status === 'COTIZACION' ? "bg-blue-100 text-blue-600" :
+                                "bg-green-100 text-green-600")}>
+                                {p.status}
+                              </span>
+                            </div>
                             <div className="flex items-center gap-1 mt-0.5">
                               <div className="flex-1 bg-slate-200 rounded-full h-1">
-                                <div className="bg-secondary h-1 rounded-full" style={{ width: `${p.progress || 0}%` }} />
+                                <div className="bg-secondary h-1 rounded-full transition-all" style={{ width: `${p.progress || 0}%` }} />
                               </div>
                               <span className="text-[7px] font-black text-slate-500">{p.progress || 0}%</span>
                             </div>
                           </div>
                           <button type="button" title="Remover del proyecto"
                             onClick={() => handleToggleProject(selectedMember.id, p.id)}
-                            className="ml-2 p-1 rounded text-red-400 hover:bg-red-50 hover:text-red-600 transition-all shrink-0">
+                            className="ml-2 p-1 rounded text-red-400 hover:bg-red-50 hover:text-red-600 transition-all shrink-0 opacity-0 group-hover:opacity-100">
                             <X size={10} />
                           </button>
                         </div>

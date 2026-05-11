@@ -432,15 +432,21 @@ export default function InventoryModule() {
             {t.icon}{t.label}
           </button>
         ))}
-        {/* Filtro por proyecto */}
-        <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
-          className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary">
-          <option value="ALL">Todos los proyectos</option>
-          <option value="GENERAL">Sin proyecto</option>
-          {projects.filter(p => p.status === 'EJECUCION').map((p: any) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
+        {/* Filtro por proyecto mejorado */}
+        <div className="flex flex-col gap-1">
+          <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Proyecto</span>
+          <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
+            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary min-w-[160px]">
+            <option value="ALL">Todos los proyectos ({items.length})</option>
+            <option value="GENERAL">Sin proyecto ({items.filter(i => !i.projectId).length})</option>
+            {projects.filter(p => p.status === 'EJECUCION').map((p: any) => {
+              const projectItems = items.filter(i => i.projectId === p.id);
+              return (
+                <option key={p.id} value={p.id}>{p.name} ({projectItems.length})</option>
+              );
+            })}
+          </select>
+        </div>
         <button onClick={() => setIsGenModalOpen(true)}
           className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow">
           <Building2 size={13}/> Generar desde Presupuesto
@@ -791,6 +797,138 @@ export default function InventoryModule() {
           />
         </div>
       </div>
+
+      {/* Panel lateral de información de proyecto */}
+      {filterProject !== 'ALL' && filterProject !== 'GENERAL' && (() => {
+        const selectedProject = projects.find(p => p.id === filterProject);
+        const projectItems = items.filter(i => i.projectId === filterProject);
+        const totalBudgetedValue = projectItems.reduce((acc, i) => acc + (i.budgetedQty || 0) * (i.budgetedCost || 0), 0);
+        const totalCurrentValue = projectItems.reduce((acc, i) => acc + (i.stock || 0) * (i.budgetedCost || 0), 0);
+        const criticalProjectItems = projectItems.filter(i => (i.stock || 0) <= (i.minStock || 0));
+        const completionRate = totalBudgetedValue > 0 ? (totalCurrentValue / totalBudgetedValue) * 100 : 0;
+        
+        if (!selectedProject) return null;
+        
+        return (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-slate-900 text-secondary flex items-center justify-center">
+                  <Building2 size={18} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-black text-primary uppercase tracking-tight">{selectedProject.name}</h3>
+                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Inventario del Proyecto</p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setFilterProject('ALL')}
+                className="text-[8px] font-black text-slate-400 hover:text-secondary uppercase tracking-widest border-b border-slate-200 hover:border-secondary pb-0.5 transition-all"
+              >
+                Ver Todos
+              </button>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Items Proyecto</p>
+                <p className="text-lg font-black text-primary">{projectItems.length}</p>
+                <p className="text-[6px] font-bold text-slate-400 uppercase">materiales</p>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Crítico</p>
+                <p className={cn('text-lg font-black', criticalProjectItems.length > 0 ? 'text-red-500' : 'text-green-600')}>
+                  {criticalProjectItems.length}
+                </p>
+                <p className="text-[6px] font-bold text-slate-400 uppercase">items bajo mínimo</p>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor Presupuestado</p>
+                <p className="text-lg font-black text-primary">Q {Math.round(totalBudgetedValue/1000)}k</p>
+                <p className="text-[6px] font-bold text-slate-400 uppercase">total planificado</p>
+              </div>
+              <div className="bg-slate-50 p-3 rounded-xl">
+                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Completitud Stock</p>
+                <p className={cn('text-lg font-black', completionRate >= 80 ? 'text-green-600' : completionRate >= 50 ? 'text-amber-600' : 'text-red-500')}>
+                  {Math.round(completionRate)}%
+                </p>
+                <p className="text-[6px] font-bold text-slate-400 uppercase">stock vs presupuesto</p>
+              </div>
+            </div>
+            
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Progreso del Proyecto</span>
+                <span className="text-[9px] font-black text-secondary">{selectedProject.progress || 0}%</span>
+              </div>
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-secondary rounded-full transition-all duration-500" 
+                  style={{ width: `${selectedProject.progress || 0}%` }}
+                />
+              </div>
+              
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Completitud de Stock</span>
+                <span className={cn('text-[9px] font-black', completionRate >= 80 ? 'text-green-600' : 'text-amber-600')}>
+                  {Math.round(completionRate)}%
+                </span>
+              </div>
+              <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div 
+                  className={cn('h-full rounded-full transition-all duration-500', 
+                    completionRate >= 80 ? 'bg-green-500' : completionRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                  )} 
+                  style={{ width: `${completionRate}%` }}
+                />
+              </div>
+            </div>
+            
+            {criticalProjectItems.length > 0 && (
+              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertCircle size={12} className="text-red-500" />
+                  <span className="text-[8px] font-black text-red-600 uppercase tracking-widest">Materiales Críticos</span>
+                </div>
+                <div className="space-y-1">
+                  {criticalProjectItems.slice(0, 3).map(item => (
+                    <div key={item.id} className="flex justify-between items-center text-[8px]">
+                      <span className="font-bold text-red-700 uppercase truncate max-w-[60%]">{item.name}</span>
+                      <span className="font-black text-red-500">{item.stock}/{item.minStock} {item.unit}</span>
+                    </div>
+                  ))}
+                  {criticalProjectItems.length > 3 && (
+                    <p className="text-[7px] font-bold text-red-500 uppercase text-center pt-1">
+                      +{criticalProjectItems.length - 3} más
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="mt-4 flex gap-2">
+              <button 
+                onClick={() => {
+                  setSelectedProjectForGen(filterProject);
+                  setIsGenModalOpen(true);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all"
+              >
+                <Building2 size={11}/> Generar Faltantes
+              </button>
+              <button 
+                onClick={() => {
+                  setOcForm(prev => ({ ...prev, projectId: filterProject }));
+                  setIsOCModalOpen(true);
+                }}
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all"
+              >
+                <ShoppingCart size={11}/> Nueva OC
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Movement Modal */}
       <AnimatePresence>
