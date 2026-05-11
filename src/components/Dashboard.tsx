@@ -32,7 +32,6 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
-import GradientHeader from './ui/GradientHeader';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
 import { 
   BarChart, 
@@ -604,19 +603,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
     </div>
   ) : (
-    <div id="dashboard-container" className="grid grid-cols-12 auto-rows-min gap-3 pb-2 dashboard-expanded">
-      
-      {/* Enhanced Gradient Header */}
-      <div className="col-span-12">
-        <GradientHeader
-          title={selectedProjectId === 'ALL' ? 'Dashboard General' : 'Detalle del Proyecto'}
-          subtitle={selectedProjectId === 'ALL' ? 'Resumen ejecutivo de constructora WM' : `Proyecto: ${filteredProjects[0]?.name || 'Seleccionado'}`}
-          variant="ocean"
-          size="sm"
-          icon={<TrendingUp size={24} className="text-white" />}
-        />
-      </div>
-      
+    <div id="dashboard-container" className="flex flex-col gap-2 h-full min-h-0">
+
       {/* Accounting Modal */}
       <Modal 
         isOpen={isAccountingModalOpen} 
@@ -795,9 +783,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
 
       {/* KPI Ribbon */}
-      <div className="col-span-12">
-        {/* KPI Ribbon */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="shrink-0">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {[
             { label: selectedProjectId === 'ALL' ? 'Proyectos Activos' : 'Proyecto Seleccionado', value: filteredProjects.length, currency: false, icon: <Zap size={16} />, color: 'bg-blue-500', spark: null, pulse: executingProjects.length > 0, rings: { fisico: avgFisico, financiero: avgFinanciero }, onNavigate: () => setActiveTab?.('seguimiento') },
             { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-emerald-500' : 'bg-red-500', spark: sparkNet, sparkColor: netCash >= 0 ? '#34d399' : '#f87171', pulse: false },
@@ -810,18 +797,19 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
         </div>
       </div>
 
-      {/* Main Analysis Section */}
-      <section className="col-span-12 lg:col-span-9 grid grid-cols-1 gap-3">
+      {/* Main + Sidebar */}
+      <div className="flex gap-2 flex-1 min-h-0 overflow-y-auto">
+      <section className="flex-1 min-w-0 flex flex-col gap-2">
         {/* Row 1: Cash Flow & Expenses */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
            <div className={cn(cardClass, "md:col-span-2 rounded-xl p-3 text-left")}>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-1">
                 <div>
                   <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja' : 'Flujo del Proyecto'}</h2>
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Ingresos vs Gastos</p>
                 </div>
               </div>
-              <div className="chart-h-md w-full">
+              <div className="h-[160px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   {settings.graphType === 'bar' ? (
                     <ComposedChart data={chartData}>
@@ -878,13 +866,13 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
            </div>
 
            <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-              <div className="flex justify-between items-center mb-2">
+              <div className="flex justify-between items-center mb-1">
                 <div>
                   <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Gastos</h2>
                   <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Por Categoría</p>
                 </div>
               </div>
-              <div className="chart-h-md w-full flex flex-col items-center justify-center">
+              <div className="h-[160px] w-full flex flex-col items-center justify-center">
                 <div className="h-3/4 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -918,11 +906,11 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
         </div>
 
         {/* Row 2: Advanced Analytics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           {/* Radar Chart */}
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
             <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Rendimiento</h2>
-            <div className="chart-h-sm w-full">
+            <div className="h-[130px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
                   <PolarGrid stroke="var(--border)" />
@@ -936,7 +924,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
           {/* Gauge Charts */}
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
             <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Avances</h2>
-            <div className="flex justify-around items-center chart-h-sm">
+            <div className="flex justify-around items-center h-[130px]">
               <GaugeChart value={avgFisico} label="Físico" color="#10b981" />
               <GaugeChart value={avgFinanciero} label="Financiero" color="#3b82f6" />
             </div>
@@ -945,7 +933,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
           {/* Activity Heatmap */}
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
             <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Actividad</h2>
-            <div className="flex flex-col items-center justify-center chart-h-sm">
+            <div className="flex flex-col items-center justify-center h-[130px]">
               <ActivityHeatmap data={heatmapData} />
               <div className="flex items-center gap-3 mt-2">
                 <div className="flex items-center gap-1">
@@ -962,11 +950,11 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
         </div>
 
         {/* Row 3: Treemap & Progress Tracker */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
           {/* Treemap */}
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-2">Presupuesto por Proyecto</h2>
-            <div className="chart-h-sm w-full">
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Presupuesto por Proyecto</h2>
+            <div className="h-[130px] w-full">
               <ResponsiveContainer width="100%" height="100%">
                 <Treemap
                   data={treemapData}
@@ -1007,8 +995,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
           {/* Progress Tracker */}
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-2">Cronograma</h2>
-            <div className="space-y-2 overflow-y-auto max-h-[180px] pr-1">
+            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Cronograma</h2>
+            <div className="space-y-1.5 overflow-y-auto max-h-[130px] pr-1">
               {filteredProjects.length > 0 ? filteredProjects.slice(0, 6).map((p) => (
                 <div key={p.id} className="p-2 bg-slate-50 rounded-lg border border-slate-100">
                   <div className="flex justify-between text-[8px] font-black uppercase mb-1">
@@ -1035,11 +1023,11 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
         {/* Row 4: Transactions Table */}
         <div className={cn(cardClass, 'rounded-xl p-3 text-left')}>
-          <div className='flex items-center justify-between mb-2'>
+          <div className='flex items-center justify-between mb-1'>
             <h4 className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Movimientos Recientes</h4>
             <span className='text-[7px] font-bold text-slate-400'>{filteredTransactions.length} registros</span>
           </div>
-          <div className='overflow-auto max-h-48'>
+          <div className='overflow-auto max-h-36'>
             <table className='w-full text-left table-fixed'>
               <thead className='sticky top-0 bg-slate-50 z-10'>
                 <tr className='border-b border-slate-100'>
@@ -1072,9 +1060,9 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       </section>
 
       {/* Side Actions / Live Feed */}
-      <aside className="col-span-12 lg:col-span-3 space-y-4">
-         <div className={cn(cardClass, "rounded-2xl p-4 text-left relative overflow-hidden")}>
-            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Acciones Rápidas</h4>
+      <aside className="hidden lg:flex flex-col gap-2 w-64 shrink-0">
+         <div className={cn(cardClass, "rounded-2xl p-3 text-left relative overflow-hidden")}>
+            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Acciones Rápidas</h4>
             <div className="space-y-2">
                <button 
                  onClick={() => setIsAccountingModalOpen(true)}
@@ -1106,7 +1094,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </div>
          </div>
 
-         <div className="bg-slate-900 rounded-2xl p-4 text-left relative overflow-hidden">
+         <div className="bg-slate-900 rounded-2xl p-3 text-left relative overflow-hidden">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estatus Financiero</h4>
             <div className="space-y-4">
@@ -1142,6 +1130,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </p>
          </div>
       </aside>
+      </div>
 
       {/* Edit Transaction Modal */}
       {editTx && (
