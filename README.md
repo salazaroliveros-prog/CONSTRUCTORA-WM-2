@@ -106,7 +106,8 @@ npm run build
 ### Producción
 1. **Limpiar datos de prueba** usando "Limpiar Datos"
 2. **Configurar empresa** en Ajustes Visuales
-3. **Comenzar a ingresar datos reales**
+3. **Eliminar rutas de desarrollo**: Desactivar el acceso a `FirestoreTest.tsx` y el módulo de "Datos de Prueba".
+4. **Comenzar a ingresar datos reales**
 
 ## 🎨 Personalización
 

@@ -95,6 +95,13 @@ export function calculateCPM(tasks: GanttTask[]): GanttTask[] {
       if (deg === 0) queue.push(succ);
     });
   }
+
+  // Verificación de integridad: Si el orden topológico no incluye todas las tareas,
+  // significa que hay un ciclo (dependencia circular).
+  if (topoOrder.length < map.size) {
+    console.warn("Advertencia: Se detectó una dependencia circular. La ruta crítica puede ser inexacta.");
+  }
+
   // Incluir huérfanos (ciclos o desconectados)
   map.forEach((_, id) => { if (!topoOrder.includes(id)) topoOrder.push(id); });
 

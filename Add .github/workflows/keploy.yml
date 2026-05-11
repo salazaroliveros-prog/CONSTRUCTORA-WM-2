@@ -1,0 +1,29 @@
+name: Keploy Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  keploy-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install Keploy CLI
+        run: |
+          curl --silent -O -L https://keploy.io/ent/install.sh \
+            && source install.sh
+      - name: Run Keploy Test Suite
+        env:
+          KEPLOY_API_KEY: ${{ secrets.KEPLOY_API_KEY }}
+        run: |
+          export KEPLOY_API_KEY=XTWXmlNatoNsaTaV7Q== && keploy test-suite \
+            --app=e7ffe007-c682-4a42-928f-0758d1d08b8f \
+            --base-path https://github.com \
+            --cloud
