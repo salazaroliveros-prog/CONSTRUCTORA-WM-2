@@ -7,6 +7,25 @@ import { toast } from 'sonner';
 
 interface Message { id: string; role: 'user' | 'assistant'; content: string; }
 
+interface BudgetAlert {
+  id: string;
+  projectId: string;
+  projectName: string;
+  type: 'warning' | 'critical' | 'info';
+  message: string;
+  timestamp: string;
+}
+
+interface BudgetForecast {
+  projectId: string;
+  projectName: string;
+  currentBudget: number;
+  spentToDate: number;
+  projectedFinalCost: number;
+  variancePercentage: number;
+  riskLevel: 'low' | 'medium' | 'high';
+}
+
 // Minimal markdown: bold + line breaks
 function MiniMarkdown({ text }: { text: string }) {
   return (
@@ -43,6 +62,10 @@ const QUICK = [
   'Estado del inventario',
   'Flujo de caja del mes',
   'Proyectos en ejecución',
+  '🔍 Alertas de presupuesto',
+  '💡 Oportunidades de ahorro',
+  '📊 Pronóstico de costos',
+  '📋 Análisis de variación presupuestaria'
 ];
 
 export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: string) => void }) {
@@ -53,14 +76,51 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
   const [loading, setLoading] = useState(false);
   const [listening, setListening] = useState(false);
   const [context, setContext] = useState<Record<string, any>>({});
+  const [budgetAlerts, setBudgetAlerts] = useState<BudgetAlert[]>([]);
+  const [budgetForecasts, setBudgetForecasts] = useState<BudgetForecast[]>([]);
+  const [budgetHealth, setBudgetHealth] = useState<{
+    status: 'healthy' | 'warning' | 'critical';
+    percentage: number;
+    message: string;
+  } | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const recognitionRef = useRef<any>(null);
   
-  // Iniciar cerrado por defecto (solo pestaña visible)
+  // Iniciar cerrado por defecto (solo pestaña visible) - SOLO AL MONTAR
   useEffect(() => {
     setOpen(false);
   }, []);
+
+  // Initialize budget tracking when context loads
+  useEffect(() => {
+    if (!user || Object.keys(context).length === 0) return;
+    
+    const projects = context.projects || [];
+    if (projects.length === 0) return;
+    
+    const totalBudget = projects.reduce((sum: number, p: any) => sum + (p.presupuesto || 0), 0);
+    const totalSpent = projects.reduce((sum: number, p: any) => sum + (p.gastosActuales || 0), 0);
+    
+    if (totalBudget <= 0) return;
+    
+    const percentage = (totalSpent / totalBudget) * 100;
+    let status: 'healthy' | 'warning' | 'critical' = 'healthy';
+    let message = '';
+    
+    if (percentage >= 90) {
+      status = 'critical';
+      message = `Presupuesto crítico: ${percentage.toFixed(1)}% utilizado`;
+    } else if (percentage >= 75) {
+      status = 'warning';
+      message = `Presupuesto en alerta: ${percentage.toFixed(1)}% utilizado`;
+    } else {
+      status = 'healthy';
+      message = `Presupuesto saludable: ${percentage.toFixed(1)}% utilizado`;
+    }
+    
+    setBudgetHealth({ status, percentage, message });
+  }, [context, user]);
 
   // Load context
   useEffect(() => {
@@ -100,49 +160,67 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
     setListening(false);
   }, []);
 
-  const sendMessage = useCallback(async (text: string) => {
-    const msg = text.trim();
-    if (!msg || loading) return;
+   const sendMessage = useCallback(async (text: string) => {
+     const msg = text.trim();
+     if (!msg || loading) return;
 
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: msg };
-    const asstId = (Date.now() + 1).toString();
-    setMessages(prev => [...prev, userMsg, { id: asstId, role: 'assistant', content: '' }]);
-    setInput('');
-    setLoading(true);
-    abortRef.current = new AbortController();
+     const userMsg: Message = { id: Date.now().toString(), role: 'user', content: msg };
+     const asstId = (Date.now() + 1).toString();
+     setMessages(prev => [...prev, userMsg, { id: asstId, role: 'assistant', content: '' }]);
+     setInput('');
+     setLoading(true);
+     abortRef.current = new AbortController();
 
-    try {
-      const token = await user?.getIdToken();
-      if (!token) throw new Error('Sesión no válida');
+     try {
+       const token = await user?.getIdToken();
+       if (!token) throw new Error('Sesión no válida');
 
-      const res = await fetch('/api/ai-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        signal: abortRef.current.signal,
-        body: JSON.stringify({
-          messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
-          context,
-        }),
-      });
+       // Prepare enhanced context with budget data
+       const enhancedContext = {
+         ...context,
+         budgetAnalysis: {
+           alerts: budgetAlerts,
+           forecasts: budgetForecasts,
+           health: budgetHealth,
+           summary: {
+             totalProjects: context.projects?.length || 0,
+             totalBudget: context.projects?.reduce((sum, p) => sum + (p.presupuesto || 0), 0) || 0,
+             totalSpent: context.projects?.reduce((sum, p) => sum + (p.gastosActuales || 0), 0) || 0,
+             averageVariance: context.projects?.length > 0 
+               ? context.projects.reduce((sum, p) => sum + (((p.gastosActuales || 0) - (p.presupuesto || 0)) / (p.presupuesto || 1) * 100), 0) / context.projects.length
+               : 0
+           }
+         }
+       };
 
-      if (!res.ok) throw new Error(`Error ${res.status}`);
-      const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let acc = '';
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages(prev => prev.map(m => m.id === asstId ? { ...m, content: acc } : m));
-      }
-    } catch (e: any) {
-      if (e.name === 'AbortError') return;
-      toast.error('Error al conectar con la IA', { description: e.message });
-      setMessages(prev => prev.filter(m => m.id !== asstId));
-    } finally {
-      setLoading(false);
-    }
-  }, [messages, context, loading, user]);
+       const res = await fetch('/api/ai-report', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+         signal: abortRef.current.signal,
+         body: JSON.stringify({
+           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+           context: enhancedContext,
+         }),
+       });
+
+       if (!res.ok) throw new Error(`Error ${res.status}`);
+       const reader = res.body!.getReader();
+       const decoder = new TextDecoder();
+       let acc = '';
+       while (true) {
+         const { done, value } = await reader.read();
+         if (done) break;
+         acc += decoder.decode(value, { stream: true });
+         setMessages(prev => prev.map(m => m.id === asstId ? { ...m, content: acc } : m));
+       }
+     } catch (e: any) {
+       if (e.name === 'AbortError') return;
+       toast.error('Error al conectar con la IA', { description: e.message });
+       setMessages(prev => prev.filter(m => m.id !== asstId));
+     } finally {
+       setLoading(false);
+     }
+   }, [messages, context, loading, user, budgetAlerts, budgetForecasts, budgetHealth]);
 
   const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); sendMessage(input); };
 
@@ -158,9 +236,15 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
         title="Asistente IA"
       >
         <AnimatePresence mode="wait">
-          {open
-            ? <motion.div key="x" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}><X size={18} className="text-white" /></motion.div>
-            : <motion.div key="s" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}><Sparkles size={18} className="text-white" /></motion.div>
+          {open ? (
+            <motion.div key="x" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <X size={18} className="text-white" />
+            </motion.div>
+          ) : (
+            <motion.div key="s" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+              <Sparkles size={18} className="text-white" />
+            </motion.div>
+          )}
         </AnimatePresence>
         {/* Pulse ring */}
         {!open && (
@@ -190,10 +274,22 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
                 <div className="w-6 h-6 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
                   <Sparkles size={12} className="text-white" />
                 </div>
-                <div>
-                  <p className="text-[10px] font-black text-white uppercase tracking-widest">Asistente IA</p>
-                  <p className="text-[8px] text-purple-400 uppercase tracking-widest">Gemini 2.0 Flash</p>
-                </div>
+                 <div>
+                   <p className="text-[10px] font-black text-white uppercase tracking-widest">Asistente IA</p>
+                   <div className="flex items-center gap-1 mt-[2px]">
+                     <p className="text-[8px] text-purple-400 uppercase tracking-widest">Gemini 2.0 Flash</p>
+                     {budgetHealth && (
+                       <>
+                         <span className={`px-2 py-0.5 rounded text-[7px] font-bold 
+                           ${budgetHealth.status === 'healthy' ? 'bg-green-100 text-green-800' : 
+                             budgetHealth.status === 'warning' ? 'bg-yellow-100 text-yellow-800' : 
+                             'bg-red-100 text-red-800'}`}>
+                           {budgetHealth.message}
+                         </span>
+                       </>
+                     )}
+                   </div>
+                 </div>
               </div>
               <div className="flex items-center gap-1">
                 {messages.length > 0 && (
@@ -270,7 +366,7 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
                 <button type="button"
                   onClick={listening ? stopVoice : startVoice}
                   disabled={loading}
-                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 ${listening ? 'bg-red-400 animate-pulse' : 'hover:bg-white/8'}"
+                  className={`w-8 h-8 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 ${listening ? 'bg-red-400 animate-pulse' : 'hover:bg-white/8'}`}
                   style={!listening ? { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' } : {}}
                   title={listening ? 'Detener' : 'Hablar'}
                 >
