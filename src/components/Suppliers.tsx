@@ -102,6 +102,40 @@ export default function SuppliersModule() {
   const [filterStatus, setFilterStatus] = useState('Todos');
   const [filterRating, setFilterRating] = useState(0);
 
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedSupplierIds, setSelectedSupplierIds] = useState<Set<string>>(new Set());
+
+  const toggleSelectSupplier = (id: string) => {
+    setSelectedSupplierIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllSuppliers = () => {
+    if (selectedSupplierIds.size === currentItems.length) {
+      setSelectedSupplierIds(new Set());
+    } else {
+      setSelectedSupplierIds(new Set(currentItems.map(s => s.id)));
+    }
+  };
+
+  const handleBulkDeleteSuppliers = () => {
+    if (selectedSupplierIds.size === 0) return;
+    toast('¿Eliminar proveedores seleccionados?', {
+      description: `${selectedSupplierIds.size} proveedor(es) serán eliminados.`,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedSupplierIds) await deleteDocument('suppliers', id);
+          toast.success(`${selectedSupplierIds.size} proveedor(es) eliminados`);
+          setSelectedSupplierIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
   const cardPageSize = useAutoPageSize(160, 260, 4);
   const tablePageSize = useAutoPageSize(44, 220, 6);
   const pageSize = viewMode === 'table' ? tablePageSize : cardPageSize;
@@ -254,17 +288,21 @@ export default function SuppliersModule() {
             <option value={4}>4+ ESTRELLAS</option>
             <option value={5}>5 ESTRELLAS</option>
           </select>
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-            <button type="button" onClick={() => setViewMode('grid')} title="Cuadrícula"
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-              <LayoutGrid size={15} />
-            </button>
-            <button type="button" onClick={() => setViewMode('table')} title="Tabla"
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-              <List size={15} />
-            </button>
-          </div>
-          <div className="relative flex-1 md:w-52">
+           <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+             <button type="button" onClick={() => setViewMode('grid')} title="Cuadrícula"
+               className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+               <LayoutGrid size={15} />
+             </button>
+             <button type="button" onClick={() => setViewMode('table')} title="Tabla"
+               className={`p-1.5 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+               <List size={15} />
+             </button>
+           </div>
+              <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedSupplierIds(new Set()); }}
+                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                {bulkMode ? 'Cancelar' : 'Seleccionar'}
+              </button>
+           <div className="relative flex-1 md:w-52">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
             <input type="text" placeholder="BUSCAR PROVEEDOR..." value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)} title="Buscar proveedor"
@@ -291,13 +329,19 @@ export default function SuppliersModule() {
                   const isSelected = selectedSupplier?.id === s.id;
                   const ocCount = purchaseOrders.filter(o => o.supplierId === s.id || o.supplierName === s.name).length;
                   return (
-                    <motion.div key={s.id}
-                      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.25, delay: i * 0.04 }}
-                      onClick={() => setSelectedSupplier(isSelected ? null : s)}
-                      className={cn("group bg-white rounded-xl border p-3 hover:shadow-md transition-all cursor-pointer",
-                        isSelected ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100 hover:border-secondary/40")}>
-                      <div className="flex justify-between items-start mb-2">
+                     <motion.div key={s.id}
+                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                       transition={{ duration: 0.25, delay: i * 0.04 }}
+                       onClick={() => { if (bulkMode) { toggleSelectSupplier(s.id); } else { setSelectedSupplier(isSelected ? null : s); } }}
+                       className={cn("group bg-white rounded-xl border p-3 hover:shadow-md transition-all cursor-pointer relative",
+                         (isSelected || selectedSupplierIds.has(s.id)) ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100 hover:border-secondary/40")}>
+                       {bulkMode && (
+                         <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
+                           <input type="checkbox" checked={selectedSupplierIds.has(s.id)} onChange={() => toggleSelectSupplier(s.id)}
+                             className="w-4 h-4 accent-red-500 cursor-pointer" />
+                         </div>
+                       )}
+                       <div className={cn("flex justify-between items-start mb-2", bulkMode && "ml-6")}>
                         <div className={cn("p-2 rounded-lg", isSelected ? "bg-secondary text-primary" : "bg-slate-900 text-secondary")}>
                           <Truck size={14} />
                         </div>
@@ -334,9 +378,15 @@ export default function SuppliersModule() {
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
                 <div className="overflow-auto flex-1">
                   <table className="w-full text-left">
-                    <thead className="sticky top-0 bg-slate-50 z-10">
-                      <tr className="border-b border-slate-100">
-                        <th className="px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">Proveedor</th>
+                     <thead className="sticky top-0 bg-slate-50 z-10">
+                       <tr className="border-b border-slate-100">
+                       {bulkMode && (
+                         <th className="px-2 py-3 w-8">
+                           <input type="checkbox" checked={currentItems.length > 0 && selectedSupplierIds.size === currentItems.length}
+                             onChange={toggleSelectAllSuppliers} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                         </th>
+                       )}
+                         <th className="px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">Proveedor</th>
                         <th className="hidden sm:table-cell px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">Categoría</th>
                         <th className="hidden md:table-cell px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">Contacto</th>
                         <th className="hidden lg:table-cell px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">OC</th>
@@ -350,13 +400,19 @@ export default function SuppliersModule() {
                         const isSelected = selectedSupplier?.id === s.id;
                         const ocCount = purchaseOrders.filter(o => o.supplierId === s.id || o.supplierName === s.name).length;
                         return (
-                          <motion.tr key={s.id}
-                            initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.2, delay: i * 0.03 }}
-                            onClick={() => setSelectedSupplier(isSelected ? null : s)}
-                            className={cn("hover:bg-slate-50/50 transition-colors group cursor-pointer",
-                              isSelected && "bg-secondary/5 border-l-2 border-secondary")}>
-                            <td className="px-4 py-2.5">
+                           <motion.tr key={s.id}
+                             initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                             transition={{ duration: 0.2, delay: i * 0.03 }}
+                             onClick={() => { if (bulkMode) { toggleSelectSupplier(s.id); } else { setSelectedSupplier(isSelected ? null : s); } }}
+                             className={cn("hover:bg-slate-50/50 transition-colors group cursor-pointer",
+                               (isSelected || selectedSupplierIds.has(s.id)) && "bg-secondary/5 border-l-2 border-secondary")}>
+                             {bulkMode && (
+                               <td className="px-2 py-2.5 w-8" onClick={e => e.stopPropagation()}>
+                                 <input type="checkbox" checked={selectedSupplierIds.has(s.id)} onChange={() => toggleSelectSupplier(s.id)}
+                                   className="w-4 h-4 accent-red-500 cursor-pointer" />
+                               </td>
+                             )}
+                             <td className="px-4 py-2.5">
                               <div className="flex items-center gap-2">
                                 <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center shrink-0",
                                   isSelected ? "bg-secondary text-primary" : "bg-slate-900 text-secondary")}><Truck size={12} /></div>
@@ -387,9 +443,9 @@ export default function SuppliersModule() {
                           </motion.tr>
                         );
                       })}
-                      {filtered.length === 0 && (
-                        <tr><td colSpan={7} className="py-12 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proveedores registrados</td></tr>
-                      )}
+                       {filtered.length === 0 && (
+                         <tr><td colSpan={bulkMode ? 8 : 7} className="py-12 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proveedores registrados</td></tr>
+                       )}
                     </tbody>
                   </table>
                 </div>
@@ -756,8 +812,22 @@ export default function SuppliersModule() {
           </div>
           <button type="submit" className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
         </form>
-      </Modal>
-    </div>
-  );
-}
+       </Modal>
+
+      {bulkMode && selectedSupplierIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedSupplierIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeleteSuppliers}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedSupplierIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+     </div>
+   );
+ }
 

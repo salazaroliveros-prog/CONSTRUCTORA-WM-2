@@ -40,6 +40,39 @@ export default function ClientsModule() {
   const [form, setForm]               = useState(EMPTY_FORM);
   const [saving, setSaving]           = useState(false);
   const [filterStatus, setFilterStatus] = useState<'ALL' | 'ACTIVO' | 'INACTIVO'>('ALL');
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedClientIds, setSelectedClientIds] = useState<Set<string>>(new Set());
+
+  const toggleSelectClient = (id: string) => {
+    setSelectedClientIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllClients = () => {
+    if (selectedClientIds.size === currentItems.length) {
+      setSelectedClientIds(new Set());
+    } else {
+      setSelectedClientIds(new Set(currentItems.map(c => c.id)));
+    }
+  };
+
+  const handleBulkDeleteClients = () => {
+    if (selectedClientIds.size === 0) return;
+    toast('¿Eliminar clientes seleccionados?', {
+      description: `${selectedClientIds.size} cliente(s) serán eliminados.`,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedClientIds) await deleteDocument('clients', id);
+          toast.success(`${selectedClientIds.size} cliente(s) eliminados`);
+          setSelectedClientIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
 
   useEffect(() => {
     const u1 = subscribeToCollection('clients', d => { setClients(d); setLoading(false); });
@@ -145,6 +178,10 @@ export default function ClientsModule() {
           <option value="ACTIVO">Activos</option>
           <option value="INACTIVO">Inactivos</option>
         </select>
+        <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedClientIds(new Set()); }}
+          className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+          {bulkMode ? 'Cancelar' : 'Seleccionar'}
+        </button>
         <button onClick={openCreate}
           className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 active:scale-95 transition-all">
           <Plus size={14} /> Nuevo Cliente
@@ -169,13 +206,19 @@ export default function ClientsModule() {
               <motion.div key={c.id}
                 initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.03 }}
-                onClick={() => setSelected(prev => prev?.id === c.id ? null : c)}
+                onClick={() => { if (bulkMode) { toggleSelectClient(c.id); } else { setSelected(prev => prev?.id === c.id ? null : c); } }}
                 className={cn(
-                  'bg-white border rounded-xl p-3 cursor-pointer hover:shadow-md transition-all group',
-                  selected?.id === c.id ? 'border-blue-400 shadow-md' : 'border-slate-200'
+                  'bg-white border rounded-xl p-3 cursor-pointer hover:shadow-md transition-all group relative',
+                  selected?.id === c.id || selectedClientIds.has(c.id) ? 'border-blue-400 shadow-md' : 'border-slate-200'
                 )}
               >
-                <div className="flex items-center gap-3">
+                {bulkMode && (
+                  <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
+                    <input type="checkbox" checked={selectedClientIds.has(c.id)} onChange={() => toggleSelectClient(c.id)}
+                      className="w-4 h-4 accent-red-500 cursor-pointer" />
+                  </div>
+                )}
+                <div className={cn("flex items-center gap-3", bulkMode && "ml-7")}>
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center font-black text-[10px] shrink-0',
                     c.type === 'EMPRESA' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700')}>
                     {c.type === 'EMPRESA' ? <Building2 size={16} /> : c.name?.split(' ').map(n => n[0]).join('').substring(0, 2)}
@@ -392,6 +435,20 @@ export default function ClientsModule() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {bulkMode && selectedClientIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedClientIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeleteClients}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedClientIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

@@ -32,7 +32,8 @@ import {
   Layers,
   Pencil,
   PlusCircle,
-  ShoppingCart
+  ShoppingCart,
+  X
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line, Area, AreaChart, ReferenceLine } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
@@ -146,6 +147,39 @@ export default function ProjectsModule() {
   const [isEditing, setIsEditing] = useState(false);
   const [exportPdfTemplate, setExportPdfTemplate] = useState('modern');
   const [exportCsvTemplate, setExportCsvTemplate] = useState('completo');
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedProjectIds, setSelectedProjectIds] = useState<Set<string>>(new Set());
+
+  const toggleSelectProject = (id: string) => {
+    setSelectedProjectIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllProjects = () => {
+    if (selectedProjectIds.size === paginatedProjects.length) {
+      setSelectedProjectIds(new Set());
+    } else {
+      setSelectedProjectIds(new Set(paginatedProjects.map(p => p.id)));
+    }
+  };
+
+  const handleBulkDeleteProjects = () => {
+    if (selectedProjectIds.size === 0) return;
+    toast('¿Eliminar proyectos seleccionados?', {
+      description: `${selectedProjectIds.size} proyecto(s) serán eliminados.`,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedProjectIds) await deleteDocument('projects', id);
+          toast.success(`${selectedProjectIds.size} proyecto(s) eliminados`);
+          setSelectedProjectIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
 
   // Auto page size based on view mode
   const cardPageSize = useAutoPageSize(180, 300, 4);
@@ -449,9 +483,15 @@ export default function ProjectsModule() {
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      onClick={() => setSelectedProject(project)}
-      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect"
+      onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
+      className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect relative ${selectedProjectIds.has(project.id) ? "ring-2 ring-red-500" : ""}`}
     >
+      {bulkMode && (
+        <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
+          <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
+            className="w-4 h-4 accent-red-500 cursor-pointer" />
+        </div>
+      )}
       <div className="p-4 space-y-3 flex-1">
         <div className="flex justify-between items-start">
           <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform duration-300 icon-box icon-gradient-blue">
@@ -643,13 +683,17 @@ export default function ProjectsModule() {
              </div>
 
                <button 
-                onClick={() => setViewMode('kanban')}
-                title="Vista Kanban"
-                className={cn("p-2 rounded-lg transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
-               >
-                 <Layers size={18} />
-               </button>
-             <div className="flex flex-col gap-1 min-w-[140px]">
+                 onClick={() => setViewMode('kanban')}
+                 title="Vista Kanban"
+                 className={cn("p-2 rounded-lg transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+                >
+                  <Layers size={18} />
+                </button>
+              <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
+                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                {bulkMode ? 'Cancelar' : 'Seleccionar'}
+              </button>
+              <div className="flex flex-col gap-1 min-w-[140px]">
                <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
                  <Clock size={8} /> Estado
                </span>
@@ -688,6 +732,12 @@ export default function ProjectsModule() {
             <table className="w-full text-left">
               <thead>
                 <tr className="bg-slate-50/50 border-b border-slate-100">
+                  {bulkMode && (
+                    <th className="px-2 py-4 w-8">
+                      <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
+                        onChange={toggleSelectAllProjects} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                    </th>
+                  )}
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Proyecto</th>
                   <th className="hidden md:table-cell px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Cliente</th>
                   <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
@@ -701,9 +751,15 @@ export default function ProjectsModule() {
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.25, delay: i * 0.05 }}
-                    onClick={() => setSelectedProject(project)}
-                    className="group hover:bg-slate-50/10 transition-colors cursor-pointer"
+                    onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
+                    className={`group hover:bg-slate-50/10 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50 border-l-2 border-red-500" : ""}`}
                   >
+                    {bulkMode && (
+                      <td className="px-2 py-4 w-8" onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
+                          className="w-4 h-4 accent-red-500 cursor-pointer" />
+                      </td>
+                    )}
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shrink-0 group-hover:bg-slate-900 group-hover:text-secondary transition-all">
@@ -1480,6 +1536,20 @@ export default function ProjectsModule() {
           </motion.div>
         )}
       </Modal>
+
+      {bulkMode && selectedProjectIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedProjectIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeleteProjects}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedProjectIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }

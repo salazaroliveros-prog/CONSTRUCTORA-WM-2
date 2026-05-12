@@ -8,7 +8,7 @@ import {
   Users, Plus, Search, Trash2, LayoutGrid, List, HardHat, Pencil,
   X, Phone, Mail, CreditCard, DollarSign, Briefcase, ChevronRight,
   TrendingUp, Calendar, Award, Filter, Download, UserCheck, UserX,
-  Building2, BarChart2, CheckCircle2
+  Building2, BarChart2, CheckCircle2, Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -93,6 +93,11 @@ export default function StaffModule() {
   const [filterStatus, setFilterStatus] = useState<string>('Todos');
   const [filterProject, setFilterProject] = useState<string>('');
 
+  // Bulk select
+  const [selectedPersonalIds, setSelectedPersonalIds] = useState<Set<string>>(new Set());
+  const [selectedPayrollIds, setSelectedPayrollIds] = useState<Set<string>>(new Set());
+  const [bulkMode, setBulkMode] = useState(false);
+
   // Payroll state
   const [activeStaffTab, setActiveStaffTab] = useState<'personal' | 'planillas'>('personal');
   const [payrolls, setPayrolls] = useState<Payroll[]>([]);
@@ -102,6 +107,9 @@ export default function StaffModule() {
   });
   const [savingPayroll, setSavingPayroll] = useState(false);
   const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
+  const [editingPayroll, setEditingPayroll] = useState<Payroll | null>(null);
+  const [editingPayrollForm, setEditingPayrollForm] = useState<{ employees: PayrollEmployee[]; notes: string }>({ employees: [], notes: '' });
+  const [savingEditPayroll, setSavingEditPayroll] = useState(false);
 
   const cardPageSize = useAutoPageSize(140, 280, 4);
   const tablePageSize = useAutoPageSize(44, 220, 6);
@@ -125,6 +133,113 @@ export default function StaffModule() {
       action: { label: 'Eliminar', onClick: async () => { try { await deleteDocument('staff', id); if (selectedMember?.id === id) setSelectedMember(null); toast.success('Colaborador eliminado'); } catch (e: any) { toast.error('Error al eliminar', { description: parseError(e) }); } } },
       cancel: { label: 'Cancelar', onClick: () => {} }
     });
+  };
+
+  const toggleSelectPersonal = (id: string) => {
+    setSelectedPersonalIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllPersonal = () => {
+    if (selectedPersonalIds.size === currentItems.length) {
+      setSelectedPersonalIds(new Set());
+    } else {
+      setSelectedPersonalIds(new Set(currentItems.map(m => m.id)));
+    }
+  };
+
+  const handleBulkDeletePersonal = () => {
+    if (selectedPersonalIds.size === 0) return;
+    const desc = `${selectedPersonalIds.size} colaborador(es) serán eliminados.`;
+    toast('¿Eliminar seleccionados?', {
+      description: desc,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedPersonalIds) await deleteDocument('staff', id);
+          toast.success(`${selectedPersonalIds.size} colaborador(es) eliminados`);
+          setSelectedPersonalIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const toggleSelectPayroll = (id: string) => {
+    setSelectedPayrollIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllPayroll = () => {
+    if (selectedPayrollIds.size === payrolls.length) {
+      setSelectedPayrollIds(new Set());
+    } else {
+      setSelectedPayrollIds(new Set(payrolls.map(p => p.id)));
+    }
+  };
+
+  const handleBulkDeletePayroll = () => {
+    if (selectedPayrollIds.size === 0) return;
+    toast('¿Eliminar planillas seleccionadas?', {
+      description: `${selectedPayrollIds.size} planilla(s) serán eliminadas.`,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedPayrollIds) await deleteDocument('payrolls', id);
+          toast.success(`${selectedPayrollIds.size} planilla(s) eliminadas`);
+          setSelectedPayrollIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const handleDeletePayroll = (payrollId: string) => {
+    toast('¿Eliminar planilla?', {
+      description: 'Esta acción no se puede deshacer.',
+      action: { label: 'Eliminar', onClick: async () => {
+        try {
+          await deleteDocument('payrolls', payrollId);
+          if (selectedPayroll?.id === payrollId) setSelectedPayroll(null);
+          toast.success('Planilla eliminada');
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const openEditPayroll = (payroll: Payroll) => {
+    setEditingPayroll(payroll);
+    setEditingPayrollForm({ employees: JSON.parse(JSON.stringify(payroll.employees)), notes: payroll.notes || '' });
+  };
+
+  const saveEditPayroll = async () => {
+    if (!editingPayroll) return;
+    setSavingEditPayroll(true);
+    try {
+      const totalGross = editingPayrollForm.employees.reduce((a, e) => a + e.grossPay, 0);
+      const totalDeductions = editingPayrollForm.employees.reduce((a, e) => a + e.deductions, 0);
+      const totalBonuses = editingPayrollForm.employees.reduce((a, e) => a + e.bonuses, 0);
+      const totalNet = editingPayrollForm.employees.reduce((a, e) => a + e.netPay, 0);
+      await updateDocument('payrolls', editingPayroll.id, {
+        employees: editingPayrollForm.employees,
+        totalGross: Math.round(totalGross * 100) / 100,
+        totalDeductions: Math.round(totalDeductions * 100) / 100,
+        totalBonuses: Math.round(totalBonuses * 100) / 100,
+        totalNet: Math.round(totalNet * 100) / 100,
+        notes: editingPayrollForm.notes,
+      });
+      toast.success('Planilla actualizada');
+      setEditingPayroll(null);
+    } catch (e) {
+      toast.error('Error al actualizar', { description: parseError(e) });
+    } finally {
+      setSavingEditPayroll(false);
+    }
   };
 
   const handleCreate = (e: React.FormEvent) => {
@@ -389,6 +504,10 @@ export default function StaffModule() {
                   <List size={15} />
                 </button>
               </div>
+              <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedPersonalIds(new Set()); }}
+                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                {bulkMode ? 'Cancelar' : 'Seleccionar'}
+              </button>
               <div className="relative flex-1 md:w-52">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
                 <input type="text" placeholder="BUSCAR PERSONAL..." value={searchTerm}
@@ -405,10 +524,16 @@ export default function StaffModule() {
               </button>
             </>
           ) : (
-            <button type="button" onClick={() => setIsPayrollModalOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shrink-0">
-              <Plus size={14} /> Nueva Planilla
-            </button>
+            <>
+              <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedPayrollIds(new Set()); }}
+                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                {bulkMode ? 'Cancelar' : 'Seleccionar'}
+              </button>
+              <button type="button" onClick={() => setIsPayrollModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shrink-0">
+                <Plus size={14} /> Nueva Planilla
+              </button>
+            </>
           )}
         </div>
       </div>
@@ -431,10 +556,16 @@ export default function StaffModule() {
                     <motion.div key={m.id}
                       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.25, delay: i * 0.04 }}
-                      onClick={() => setSelectedMember(isSelected ? null : m)}
-                      className={cn("group bg-white border rounded-xl p-3 hover:shadow-md transition-all cursor-pointer",
+                      onClick={() => { if (bulkMode) { toggleSelectPersonal(m.id); } else { setSelectedMember(isSelected ? null : m); } }}
+                      className={cn("group bg-white border rounded-xl p-3 hover:shadow-md transition-all cursor-pointer relative",
                         isSelected ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100 hover:border-secondary/30")}>
-                      <div className="flex items-start gap-2.5">
+                      {bulkMode && (
+                        <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
+                          <input type="checkbox" checked={selectedPersonalIds.has(m.id)} onChange={() => toggleSelectPersonal(m.id)}
+                            className="w-4 h-4 accent-red-500 cursor-pointer" />
+                        </div>
+                      )}
+                      <div className={cn("flex items-start gap-2.5", bulkMode && "ml-6")}>
                         <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center font-black text-[11px] shrink-0 shadow-md",
                           isSelected ? "bg-secondary text-primary" : "bg-slate-900 text-secondary")}>
                           {initials}
@@ -482,6 +613,12 @@ export default function StaffModule() {
                   <table className="w-full text-left">
                     <thead className="sticky top-0 bg-slate-50 z-10">
                       <tr className="border-b border-slate-100">
+                        {bulkMode && (
+                          <th className="px-2 py-3 w-8">
+                            <input type="checkbox" checked={currentItems.length > 0 && selectedPersonalIds.size === currentItems.length}
+                              onChange={toggleSelectAllPersonal} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                          </th>
+                        )}
                         <th className="px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">Colaborador</th>
                         <th className="px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">Cargo</th>
                         <th className="hidden sm:table-cell px-4 py-3 text-[8px] font-black text-slate-400 uppercase tracking-widest">DPI / Cédula</th>
@@ -501,9 +638,15 @@ export default function StaffModule() {
                           <motion.tr key={m.id}
                             initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.2, delay: i * 0.03 }}
-                            onClick={() => setSelectedMember(isSelected ? null : m)}
+                            onClick={() => { if (bulkMode) { toggleSelectPersonal(m.id); } else { setSelectedMember(isSelected ? null : m); } }}
                             className={cn("hover:bg-slate-50/50 transition-colors group cursor-pointer",
-                              isSelected && "bg-secondary/5 border-l-2 border-secondary")}>
+                              (isSelected || selectedPersonalIds.has(m.id)) && "bg-secondary/5 border-l-2 border-secondary")}>
+                            {bulkMode && (
+                              <td className="px-2 py-2.5 w-8" onClick={e => e.stopPropagation()}>
+                                <input type="checkbox" checked={selectedPersonalIds.has(m.id)} onChange={() => toggleSelectPersonal(m.id)}
+                                  className="w-4 h-4 accent-red-500 cursor-pointer" />
+                              </td>
+                            )}
                             <td className="px-4 py-2.5">
                               <div className="flex items-center gap-2">
                                 <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center font-black text-[8px] shrink-0",
@@ -562,7 +705,34 @@ export default function StaffModule() {
           </div>
         </div>
 
-        {/* Side Panel - Perfil del colaborador */}
+        {bulkMode && activeStaffTab === 'personal' && selectedPersonalIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedPersonalIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeletePersonal}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedPersonalIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      {bulkMode && activeStaffTab === 'planillas' && selectedPayrollIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedPayrollIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeletePayroll}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedPayrollIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* Side Panel - Perfil del colaborador */}
         <AnimatePresence>
           {selectedMember && (
             <motion.div
@@ -751,14 +921,29 @@ export default function StaffModule() {
               </div>
             ) : (
               <div className="grid gap-2">
+                {bulkMode && payrolls.length > 0 && (
+                  <div className="flex items-center gap-2 px-1 py-1">
+                    <input type="checkbox" checked={selectedPayrollIds.size === payrolls.length && payrolls.length > 0}
+                      onChange={toggleSelectAllPayroll} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                      {selectedPayrollIds.size > 0 ? `${selectedPayrollIds.size} seleccionado(s)` : 'Seleccionar todo'}
+                    </span>
+                  </div>
+                )}
                 {payrolls.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(pay => {
                   const statusColor = pay.status === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' : pay.status === 'BORRADOR' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600';
                   return (
                     <div key={pay.id}
-                      onClick={() => setSelectedPayroll(selectedPayroll?.id === pay.id ? null : pay)}
-                      className={cn("bg-white border rounded-xl p-3 hover:shadow-md transition-all cursor-pointer",
+                      onClick={() => { if (bulkMode) { toggleSelectPayroll(pay.id); } else { setSelectedPayroll(selectedPayroll?.id === pay.id ? null : pay); } }}
+                      className={cn("bg-white border rounded-xl p-3 hover:shadow-md transition-all cursor-pointer relative",
                         selectedPayroll?.id === pay.id ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100")}>
-                      <div className="flex items-center justify-between">
+                      {bulkMode && (
+                        <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
+                          <input type="checkbox" checked={selectedPayrollIds.has(pay.id)} onChange={() => toggleSelectPayroll(pay.id)}
+                            className="w-4 h-4 accent-red-500 cursor-pointer" />
+                        </div>
+                      )}
+                      <div className={cn("flex items-center justify-between", bulkMode && "ml-6")}>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="text-[10px] font-black text-primary uppercase truncate">{pay.projectName}</span>
@@ -799,11 +984,21 @@ export default function StaffModule() {
                             </div>
                             <div className="flex gap-1">
                               {pay.status === 'BORRADOR' && (
-                                <button type="button" onClick={() => markPayrollAsPaid(pay)}
-                                  className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[8px] font-black uppercase hover:bg-emerald-200 transition-all">
-                                  Marcar Pagada
-                                </button>
+                                <>
+                                  <button type="button" onClick={(e) => { e.stopPropagation(); openEditPayroll(pay); }}
+                                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[8px] font-black uppercase hover:bg-blue-200 transition-all">
+                                    <Pencil size={10} className="inline mr-0.5" /> Editar
+                                  </button>
+                                  <button type="button" onClick={() => markPayrollAsPaid(pay)}
+                                    className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[8px] font-black uppercase hover:bg-emerald-200 transition-all">
+                                    Marcar Pagada
+                                  </button>
+                                </>
                               )}
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleDeletePayroll(pay.id); }}
+                                className="px-2 py-1 bg-red-100 text-red-600 rounded-lg text-[8px] font-black uppercase hover:bg-red-200 transition-all">
+                                <Trash2 size={10} className="inline" />
+                              </button>
                             </div>
                           </div>
                         </div>
@@ -1049,6 +1244,68 @@ export default function StaffModule() {
               </button>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Modal Editar Planilla */}
+      <Modal isOpen={!!editingPayroll} onClose={() => setEditingPayroll(null)} title={`Editar Planilla — ${editingPayroll?.projectName || ''}`}>
+        <div className="space-y-4 text-left">
+          <div className="space-y-2">
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Empleados</label>
+            <div className="space-y-1 max-h-60 overflow-y-auto">
+              {editingPayrollForm.employees.map((e, i) => (
+                <div key={i} className="bg-slate-50 rounded-lg p-2">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <span className="text-[9px] font-black text-slate-700">{e.name}</span>
+                      <span className="text-[7px] text-slate-400 ml-1">{e.role}</span>
+                    </div>
+                    <span className="text-[9px] font-black text-primary">Q {e.netPay.toLocaleString('es-GT')}</span>
+                  </div>
+                  <div className="flex items-center gap-2 mt-1">
+                    <label className="text-[7px] text-slate-500">Días:</label>
+                    <input type="number" min={1} max={30} value={e.daysWorked}
+                      onChange={ev => {
+                        const emps = [...editingPayrollForm.employees];
+                        const days = Math.min(30, Math.max(1, +ev.target.value || 1));
+                        emps[i] = { ...emps[i], daysWorked: days, grossPay: Math.round(emps[i].dailySalary * days * 100) / 100 };
+                        const gross = emps[i].grossPay;
+                        emps[i].igss = Math.round(gross * 0.0483 * 100) / 100;
+                        emps[i].irtra = Math.round(gross * 0.01 * 100) / 100;
+                        emps[i].intecap = Math.round(gross * 0.01 * 100) / 100;
+                        emps[i].deductions = Math.round((emps[i].igss + emps[i].irtra + emps[i].intecap) * 100) / 100;
+                        emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                        setEditingPayrollForm(f => ({ ...f, employees: emps }));
+                      }}
+                      className="w-14 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[8px] font-black text-center" />
+                    <label className="text-[7px] text-slate-500 ml-2">Bono:</label>
+                    <input type="number" min={0} value={e.bonuses}
+                      onChange={ev => {
+                        const emps = [...editingPayrollForm.employees];
+                        emps[i] = { ...emps[i], bonuses: +ev.target.value || 0 };
+                        emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                        setEditingPayrollForm(f => ({ ...f, employees: emps }));
+                      }}
+                      className="w-16 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[8px] font-black text-center" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
+            <textarea value={editingPayrollForm.notes} onChange={e => setEditingPayrollForm(f => ({ ...f, notes: e.target.value }))}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none resize-none" rows={2} />
+          </div>
+          <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px]">
+            <span className="font-black text-slate-500">
+              Total: <span className="text-primary">Q {editingPayrollForm.employees.reduce((a, e) => a + e.netPay, 0).toLocaleString('es-GT')}</span>
+            </span>
+            <button type="button" onClick={saveEditPayroll} disabled={savingEditPayroll}
+              className="px-4 py-2 bg-blue-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all">
+              {savingEditPayroll ? 'GUARDANDO...' : <><Save size={12} className="inline mr-1" />GUARDAR CAMBIOS</>}
+            </button>
+          </div>
         </div>
       </Modal>
     </div>

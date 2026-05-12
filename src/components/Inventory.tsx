@@ -4,10 +4,10 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Package, 
-  Search, 
-  Plus, 
+import {
+  Package,
+  Search,
+  Plus,
   X,
   ArrowUp, 
   ArrowDown, 
@@ -57,6 +57,86 @@ export default function InventoryModule() {
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingCell, setEditingCell] = useState<{id:string, field:string, value:string} | null>(null);
+
+  // Bulk select
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+
+  const toggleSelectItem = (id: string) => {
+    setSelectedItemIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllItems = () => {
+    if (selectedItemIds.size === paginatedItems.length) {
+      setSelectedItemIds(new Set());
+    } else {
+      setSelectedItemIds(new Set(paginatedItems.map(i => i.id)));
+    }
+  };
+
+  const handleBulkDeleteItems = () => {
+    if (selectedItemIds.size === 0) return;
+    toast('¿Eliminar items seleccionados?', {
+      description: `${selectedItemIds.size} item(s) serán eliminados.`,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedItemIds) await deleteDocument('inventory', id);
+          toast.success(`${selectedItemIds.size} item(s) eliminados`);
+          setSelectedItemIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const toggleSelectOrder = (id: string) => {
+    setSelectedOrderIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllOrders = () => {
+    if (selectedOrderIds.size === purchaseOrders.length) {
+      setSelectedOrderIds(new Set());
+    } else {
+      setSelectedOrderIds(new Set(purchaseOrders.map(o => o.id)));
+    }
+  };
+
+  const handleBulkDeleteOrders = () => {
+    if (selectedOrderIds.size === 0) return;
+    toast('¿Eliminar órdenes seleccionadas?', {
+      description: `${selectedOrderIds.size} orden(es) serán eliminadas.`,
+      action: { label: 'Eliminar Todo', onClick: async () => {
+        try {
+          for (const id of selectedOrderIds) await deleteDocument('purchaseOrders', id);
+          toast.success(`${selectedOrderIds.size} orden(es) eliminadas`);
+          setSelectedOrderIds(new Set());
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
+
+  const handleDeleteOrder = (orderId: string) => {
+    toast('¿Eliminar orden de compra?', {
+      description: 'Esta acción no se puede deshacer.',
+      action: { label: 'Eliminar', onClick: async () => {
+        try {
+          await deleteDocument('purchaseOrders', orderId);
+          toast.success('Orden eliminada');
+        } catch (e: any) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
 
   // Project stock & purchase orders
   const [projects, setProjects] = useState<any[]>([]);
@@ -468,10 +548,16 @@ export default function InventoryModule() {
           <Building2 size={13}/> Generar desde Presupuesto
         </button>
         {activeTab === 'orders' && (
-          <button onClick={() => setIsOCModalOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 transition-all shadow">
-            <Plus size={13}/> Nueva OC
-          </button>
+          <>
+            <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedOrderIds(new Set()); }}
+              className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+              {bulkMode ? 'Cancelar' : 'Seleccionar'}
+            </button>
+            <button onClick={() => setIsOCModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 transition-all shadow">
+              <Plus size={13}/> Nueva OC
+            </button>
+          </>
         )}
       </div>
 
@@ -649,6 +735,10 @@ export default function InventoryModule() {
               className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary transition-all uppercase tracking-widest placeholder:text-slate-300" 
             />
           </div>
+          <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedItemIds(new Set()); }}
+            className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shrink-0 ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+            {bulkMode ? 'Cancelar' : 'Seleccionar'}
+          </button>
           <div className="flex gap-1.5 w-full md:w-auto overflow-x-auto no-scrollbar scroll-smooth">
             {categories.map((cat) => (
               <button 
@@ -669,6 +759,12 @@ export default function InventoryModule() {
           <table className="w-full border-collapse">
             <thead>
               <tr className="bg-slate-50/50 text-left text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-b border-slate-100">
+                {bulkMode && (
+                  <th className="px-2 py-3 w-8">
+                    <input type="checkbox" checked={paginatedItems.length > 0 && selectedItemIds.size === paginatedItems.length}
+                      onChange={toggleSelectAllItems} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                  </th>
+                )}
                 <th className="px-4 py-3">Suministro</th>
                 <th className="hidden md:table-cell px-4 py-3">Categoría</th>
                 <th className="hidden lg:table-cell px-4 py-3">Renglón</th>
@@ -679,18 +775,24 @@ export default function InventoryModule() {
             </thead>
             <tbody className="divide-y divide-slate-50">
               {paginatedItems.map((item, i) => (
-                <motion.tr
-                  key={item.id}
-                  initial={{ opacity: 0, x: -8 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.25, delay: i * 0.04 }}
-                  className={cn(
-                    "hover:bg-slate-50/50 transition-all cursor-pointer group",
-                    selectedItem === item.id ? "bg-slate-50/80" : ""
-                  )}
-                  onClick={() => setSelectedItem(selectedItem === item.id ? null : item.id)}
-                >
-                  <td className="px-4 py-2.5">
+                  <motion.tr
+                    key={item.id}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.25, delay: i * 0.04 }}
+                    className={cn(
+                      "hover:bg-slate-50/50 transition-all cursor-pointer group",
+                      selectedItem === item.id || selectedItemIds.has(item.id) ? "bg-slate-50/80" : ""
+                    )}
+                    onClick={() => { if (bulkMode) { toggleSelectItem(item.id); } else { setSelectedItem(selectedItem === item.id ? null : item.id); } }}
+                  >
+                    {bulkMode && (
+                      <td className="px-2 py-2.5 w-8" onClick={e => e.stopPropagation()}>
+                        <input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleSelectItem(item.id)}
+                          className="w-4 h-4 accent-red-500 cursor-pointer" />
+                      </td>
+                    )}
+                    <td className="px-4 py-2.5">
                     <div className="flex items-center gap-2">
                        {item.iconUrl ? (
                           <img src={item.iconUrl} alt={item.name} className="w-8 h-8 rounded-lg object-cover" />
@@ -1104,9 +1206,26 @@ export default function InventoryModule() {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin ordenes de compra</p>
               <p className="text-[9px] text-slate-300 mt-1">Crea una nueva OC para solicitar materiales a proveedores</p>
             </div>
-          ) : purchaseOrders.map(order => (
-            <div key={order.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-              <div className="flex items-start justify-between gap-4 mb-3">
+          ) : (
+            <>
+              {bulkMode && purchaseOrders.length > 0 && (
+                <div className="flex items-center gap-2 px-1 py-1">
+                  <input type="checkbox" checked={selectedOrderIds.size === purchaseOrders.length && purchaseOrders.length > 0}
+                    onChange={toggleSelectAllOrders} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                    {selectedOrderIds.size > 0 ? `${selectedOrderIds.size} seleccionado(s)` : 'Seleccionar todo'}
+                  </span>
+                </div>
+              )}
+              {purchaseOrders.map(order => (
+            <div key={order.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm relative">
+              {bulkMode && (
+                <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
+                  <input type="checkbox" checked={selectedOrderIds.has(order.id)} onChange={() => toggleSelectOrder(order.id)}
+                    className="w-4 h-4 accent-red-500 cursor-pointer" />
+                </div>
+              )}
+              <div className={cn("flex items-start justify-between gap-4 mb-3", bulkMode && "ml-7")}>
                 <div>
                   <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">{order.projectName}</p>
                   <p className="text-sm font-black text-primary">{order.supplierName}</p>
@@ -1124,9 +1243,13 @@ export default function InventoryModule() {
                       <CheckCircle2 size={11}/> Recibir
                     </button>
                   )}
+                  <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
+                    className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all opacity-60 hover:opacity-100">
+                    <Trash2 size={11} />
+                  </button>
                 </div>
               </div>
-              <div className="space-y-1">
+              <div className={cn("space-y-1", bulkMode && "ml-7")}>
                 {order.items.map((oi, i) => (
                   <div key={i} className="flex justify-between items-center text-[9px] py-1 border-b border-slate-50 last:border-0">
                     <span className="font-bold text-slate-700">{oi.materialName} - {oi.qty} {oi.unit}</span>
@@ -1134,11 +1257,13 @@ export default function InventoryModule() {
                   </div>
                 ))}
               </div>
-              <div className="flex justify-end mt-2">
+              <div className={cn("flex justify-between items-center mt-2", bulkMode && "ml-7")}>
                 <span className="text-[10px] font-black text-primary">Total: Q {order.total.toLocaleString()}</span>
               </div>
             </div>
           ))}
+            </>
+          )}
         </div>
       )}
 
@@ -1312,6 +1437,33 @@ export default function InventoryModule() {
           </div>
         </div>
       </Modal>
+
+      {bulkMode && activeTab === 'stock' && selectedItemIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedItemIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeleteItems}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedItemIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
+      {bulkMode && activeTab === 'orders' && selectedOrderIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+          <span className="text-[9px] font-black uppercase tracking-widest">{selectedOrderIds.size} seleccionado(s)</span>
+          <button type="button" onClick={handleBulkDeleteOrders}
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            Eliminar
+          </button>
+          <button type="button" onClick={() => setSelectedOrderIds(new Set())}
+            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+            <X size={14} />
+          </button>
+        </div>
+      )}
     </div>
   );
 }
