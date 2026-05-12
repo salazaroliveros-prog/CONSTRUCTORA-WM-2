@@ -8,7 +8,6 @@ import { useEffect } from 'react';
 import Layout from './components/Layout';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
-import { ThemeProvider } from './contexts/ThemeContext';
 import { LogIn } from 'lucide-react';
 import { motion } from 'motion/react';
 import Logo from './components/Logo';
@@ -273,12 +272,10 @@ export default function App() {
   return (
     <AuthProvider>
       <SettingsProvider>
-        <ThemeProvider>
-          <ProjectFilterProvider>
-            <Toaster position="top-right" richColors />
-            <AppContent />
-          </ProjectFilterProvider>
-        </ThemeProvider>
+        <ProjectFilterProvider>
+          <Toaster position="top-right" richColors />
+          <AppContent />
+        </ProjectFilterProvider>
       </SettingsProvider>
     </AuthProvider>
   );

@@ -7,7 +7,7 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Building2, Calculator, LayoutDashboard, Users, ClipboardList,
   Package, Settings, Truck, Menu, X, Bell, Search, Maximize,
-  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, Sun, Moon, ChevronDown, Sparkles, Calendar
+  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, ChevronDown, Sparkles, Calendar
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -16,7 +16,6 @@ import { subscribeToCollection } from '../services/firestoreService';
 import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { ALL_MODULES } from '../contexts/SettingsContext';
-import { useTheme } from '../contexts/ThemeContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import Logo from './Logo';
 import TopBarClock from './TopBarClock';
@@ -45,7 +44,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
-  const { theme, toggleTheme } = useTheme();
   const { selectedProjectId, setSelectedProjectId, executingProjects, setExecutingProjects } = useProjectFilter();
 
   // Load data for global search + project filter
@@ -329,10 +327,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           </button>
 
           <TopBarClock />
-
-          <button onClick={toggleTheme} className="p-2 bg-slate-50 text-slate-500 hover:text-primary rounded-xl border border-slate-100 transition-all">
-            {theme === 'light' ? <Moon size={15} /> : <Sun size={15} />}
-          </button>
 
           {/* Notifications */}
           <div className="relative">
