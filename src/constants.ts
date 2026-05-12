@@ -2,6 +2,7 @@
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
+import { BudgetLine } from './lib/budgetData';
 
 export enum Typology {
   RESIDENCIAL = 'RESIDENCIAL',
@@ -53,6 +54,7 @@ export interface Project {
   location?: string;
   teamIds?: string[];
   items: ProjectItem[];
+  budgetTree?: BudgetLine[];
   directCosts: number;
   indirectCosts: number;
   administrativeCosts: number;
