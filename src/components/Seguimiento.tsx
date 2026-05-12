@@ -125,7 +125,7 @@ export default function Seguimiento() {
   })();
 
   return (
-    <div className="flex flex-col h-full p-3 gap-3 overflow-auto">
+    <div className="flex flex-col h-full p-3 gap-3 overflow-auto pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
         <div>

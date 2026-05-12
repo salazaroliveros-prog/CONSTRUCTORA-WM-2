@@ -19,6 +19,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { ALL_MODULES } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { useTheme } from '../contexts/ThemeContext';
+import { toast } from 'sonner';
 import Logo from './Logo';
 import TopBarClock from './TopBarClock';
 import AIFloatingButton from './AIFloatingButton';
@@ -149,7 +150,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           {/* Left: Company logo + name */}
           <div className="flex items-center gap-2">
             <Logo avatarUrl={user?.photoURL} className="w-8 h-8" />
-            <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] leading-tight truncate max-w-[100px]">{settings.companyName}</span>
+            <span className="text-[9px] font-black text-primary uppercase tracking-[0.3em] leading-tight truncate max-w-[150px] sm:max-w-[200px]">{settings.companyName}</span>
           </div>
 
           {/* Center: Global search (lg only) */}
@@ -168,7 +169,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
               )}
             />
             {globalResults.length > 0 && (
-              <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
+              <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overflow-hidden">
                 {globalResults.map((r, i) => (
                   <button key={i} onMouseDown={() => { setActiveTab(r.module); setGlobalSearch(''); }}
                     className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors">
@@ -185,25 +186,26 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
           {/* Right: Actions (theme, help, fullscreen, notifications, AI, avatar) */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto md:ml-0">
-            {/* Fullscreen toggle */}
-            <button
-              onClick={toggleFullScreen}
-              className="hidden sm:flex p-2 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
-              title="Pantalla completa"
-              aria-label="Activar o desactivar pantalla completa"
-            >
-              <Maximize size={15} />
-            </button>
+{/* Fullscreen toggle */}
+             <button
+               onClick={toggleFullScreen}
+               className="hidden sm:flex p-2 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+               title="Pantalla completa"
+               aria-label="Activar o desactivar pantalla completa"
+             >
+               <Maximize size={15} />
+             </button>
 
-            {/* Help */}
-            <button
-              className="hidden sm:flex p-2 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
-              title="Ayuda"
-              aria-label="Abrir ayuda"
-              type="button"
-            >
-              <HelpCircle size={15} />
-            </button>
+             {/* Help */}
+             <button
+               onClick={() => toast.info('Ayuda en construcción — Próximamente disponible')}
+               className="hidden sm:flex p-2 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+               title="Ayuda"
+               aria-label="Abrir ayuda"
+               type="button"
+             >
+               <HelpCircle size={15} />
+             </button>
 
             {/* Theme toggle */}
             <button
@@ -232,8 +234,8 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                     initial={{ opacity: 0, y: 8, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                    className={cn(
-                      "absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-50 border",
+className={cn(
+                       "absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-[51] border",
                       theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'
                     )}
                   >
@@ -284,14 +286,14 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-2 py-2 md:px-3 md:py-2 scroll-smooth bg-transparent min-h-0 pb-16 md:pb-2 flex flex-col">
+      <main className="flex-1 overflow-y-auto px-2 py-2 md:px-3 md:py-2 scroll-smooth bg-transparent min-h-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex flex-col">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>
       </main>
 
       {/* ── Bottom Navigation ─────────────────────────────────── */}
-      <nav className={cn("fixed bottom-0 left-0 right-0 z-50 safe-area-pb transition-colors",
+      <nav className={cn("fixed bottom-0 left-0 right-0 z-[49] safe-area-pb transition-colors",
         theme === 'dark'
           ? 'bg-slate-900/95 border-t border-slate-700'
           : 'bg-white/95 backdrop-blur-xl border-t border-slate-200'

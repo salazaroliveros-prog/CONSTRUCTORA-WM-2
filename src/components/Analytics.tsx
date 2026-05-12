@@ -223,7 +223,7 @@ export default function AnalyticsModule() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-3 p-3">
+    <div className="flex flex-col h-full gap-3 p-3 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div className="text-left">

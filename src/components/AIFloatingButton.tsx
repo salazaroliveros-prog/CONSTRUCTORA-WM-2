@@ -252,7 +252,7 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
       {variant === 'fab' && (
         <motion.button
           onClick={() => handleSetOpen(v => !v)}
-          className="fixed bottom-20 md:bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
+          className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
           style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}

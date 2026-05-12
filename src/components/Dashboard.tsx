@@ -597,7 +597,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
       <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
     </div>
   ) : (
-    <div id="dashboard-container" className="flex flex-col gap-2 h-full min-h-0">
+    <div id="dashboard-container" className="flex flex-col gap-2 h-full min-h-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
 
       {/* Accounting Modal */}
       <Modal 

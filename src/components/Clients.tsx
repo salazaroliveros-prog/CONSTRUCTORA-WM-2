@@ -148,7 +148,7 @@ export default function ClientsModule() {
   );
 
   return (
-    <div className="flex flex-col h-full gap-3 p-0 overflow-hidden">
+    <div className="flex flex-col h-full gap-3 p-0 overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-4 gap-3 shrink-0">

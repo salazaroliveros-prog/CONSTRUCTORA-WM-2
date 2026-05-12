@@ -53,7 +53,7 @@ export default function Settings() {
   ];
 
   return (
-    <div id="settings-container" className="max-w-4xl mx-auto space-y-8 pb-20">
+    <div id="settings-container" className="max-w-4xl mx-auto space-y-8 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       <header className="text-left mb-10">
         <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">Configuración Visual</h2>
         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Personaliza tu experiencia de gestión</p>

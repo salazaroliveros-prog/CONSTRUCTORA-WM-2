@@ -471,7 +471,7 @@ export default function InventoryModule() {
   }
 
   return (
-    <div id="warehouse-management" className="space-y-6 animate-in fade-in duration-500">
+    <div id="warehouse-management" className="space-y-6 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
           <div className="p-2 bg-slate-900 text-secondary rounded-lg shrink-0">

@@ -597,7 +597,7 @@ export default function ProjectsModule() {
   }
 
   return (
-    <div id="projects-dashboard" className="space-y-6 animate-in fade-in duration-500">
+    <div id="projects-dashboard" className="space-y-6 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="text-left">
           <h2 className="text-xl md:text-2xl font-black tracking-tight text-primary uppercase">Proyectos</h2>
