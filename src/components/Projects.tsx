@@ -652,11 +652,11 @@ export default function ProjectsModule() {
         });
 return (
            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-              {[
-                { icon: <Building2 size={12} className="text-blue-500 dark:text-blue-400" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700 dark:text-blue-300' },
-                { icon: <DollarSign size={12} className="text-amber-500 dark:text-amber-400" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700 dark:text-amber-300' },
-                { icon: <TrendingUp size={12} className="text-green-500 dark:text-green-400" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600 dark:text-red-400' : 'text-green-700 dark:text-green-300' },
-                { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600 dark:text-red-400' : 'text-green-700 dark:text-green-300' },
+               {[
+                { icon: <Building2 size={12} className="text-blue-500 dark:text-blue-400" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700 dark:text-white' },
+                { icon: <DollarSign size={12} className="text-amber-500 dark:text-amber-400" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700 dark:text-white' },
+                { icon: <TrendingUp size={12} className="text-green-500 dark:text-green-400" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600 dark:text-red-300' : 'text-green-700 dark:text-white' },
+                { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600 dark:text-red-300' : 'text-green-700 dark:text-white' },
               ].map(k => (
                 <div key={k.label} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 shadow-sm dark:shadow-slate-900/20">
                   <div className="flex items-center gap-1.5 mb-1.5">{k.icon}<span className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase">{k.label}</span></div>
