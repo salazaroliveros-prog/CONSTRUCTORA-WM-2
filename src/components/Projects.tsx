@@ -634,90 +634,90 @@ export default function ProjectsModule() {
           const expectedProgress = Math.min(100, (elapsed / total) * 100);
           return (p.progress || 0) < expectedProgress - 10;
         });
-        return (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              { icon: <Building2 size={14} className="text-blue-500" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700' },
-              { icon: <DollarSign size={14} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700' },
-              { icon: <TrendingUp size={14} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
-              { icon: <AlertCircle size={14} className={delayed.length > 0 ? 'text-red-500' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600' : 'text-green-700' },
-            ].map(k => (
-              <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">{k.icon}<span className="text-[8px] font-black text-slate-400 uppercase">{k.label}</span></div>
-                <p className={cn('text-xl font-black', k.color)}>{k.value}</p>
-                <p className="text-[8px] font-bold text-slate-400 uppercase mt-0.5 truncate">{k.sub}</p>
-              </div>
-            ))}
-          </div>
-        );
+return (
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+             {[
+               { icon: <Building2 size={12} className="text-blue-500" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700' },
+               { icon: <DollarSign size={12} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700' },
+               { icon: <TrendingUp size={12} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
+               { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600' : 'text-green-700' },
+             ].map(k => (
+               <div key={k.label} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
+                 <div className="flex items-center gap-1.5 mb-1.5">{k.icon}<span className="text-[7px] font-black text-slate-400 uppercase">{k.label}</span></div>
+                 <p className={cn('text-lg font-black', k.color)}>{k.value}</p>
+                 <p className="text-[7px] font-bold text-slate-400 uppercase mt-0.5 truncate">{k.sub}</p>
+               </div>
+             ))}
+           </div>
+         );
       })()}
 
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-4 md:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-           <div className="relative flex-1 w-full max-w-md">
-             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-             <input 
-              type="text" 
-              placeholder="BUSCAR PROYECTO..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary transition-all"
-             />
-           </div>
-           <div className="flex flex-wrap gap-3 w-full md:w-auto items-center">
-             <div className="flex bg-slate-100 p-1 rounded-xl">
-               <button 
-                onClick={() => setViewMode('table')}
-                title="Vista de Tabla"
-                className={cn("p-2 rounded-lg transition-all", viewMode === 'table' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
-               >
-                 <ListFilter size={18} />
-               </button>
-               <button 
-                onClick={() => setViewMode('grid')}
-                title="Vista de Cuadrícula"
-                className={cn("p-2 rounded-lg transition-all", viewMode === 'grid' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
-               >
-                 <LayoutGrid size={18} />
-               </button>
-             </div>
-
-               <button 
-                 onClick={() => setViewMode('kanban')}
-                 title="Vista Kanban"
-                 className={cn("p-2 rounded-lg transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+<div className="p-3 md:p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-3">
+            <div className="relative flex-1 w-full max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+              <input
+               type="text"
+               placeholder="BUSCAR PROYECTO..."
+               value={searchTerm}
+               onChange={(e) => setSearchTerm(e.target.value)}
+               className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-[9px] font-black uppercase focus:outline-none focus:border-secondary transition-all"
+              />
+            </div>
+            <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
+              <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                <button
+                 onClick={() => setViewMode('table')}
+                 title="Vista de Tabla"
+                 className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
                 >
-                  <Layers size={18} />
+                  <ListFilter size={15} />
                 </button>
-              <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
-                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
-                {bulkMode ? 'Cancelar' : 'Seleccionar'}
-              </button>
-              <div className="flex flex-col gap-1 min-w-[140px]">
-               <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
-                 <Clock size={8} /> Estado
-               </span>
-               <select 
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer"
-               >
-                 <option value="ALL">TODOS</option>
-                 <option value="COTIZACION">COTIZACIÓN</option>
-                 <option value="EJECUCION">EJECUCIÓN</option>
-                 <option value="FINALIZADO">FINALIZADO</option>
-               </select>
-             </div>
+                <button
+                 onClick={() => setViewMode('grid')}
+                 title="Vista de Cuadrícula"
+                 className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+                >
+                  <LayoutGrid size={15} />
+                </button>
+              </div>
 
-             <div className="flex flex-col gap-1 min-w-[140px]">
-               <span className="text-[7px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
-                 <Building2 size={8} /> Tipología
-               </span>
-               <select 
-                value={typologyFilter}
-                onChange={(e) => setTypologyFilter(e.target.value)}
-                className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer"
-               >
+                <button
+                  onClick={() => setViewMode('kanban')}
+                  title="Vista Kanban"
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+                >
+                  <Layers size={15} />
+                </button>
+               <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
+                 className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                 {bulkMode ? 'Cancelar' : 'Seleccionar'}
+               </button>
+               <div className="flex flex-col gap-0.5 min-w-[120px]">
+                <span className="text-[6px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                  <Clock size={7} /> Estado
+                </span>
+                <select
+                 value={statusFilter}
+                 onChange={(e) => setStatusFilter(e.target.value)}
+                 className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer"
+                >
+                  <option value="ALL">TODOS</option>
+                  <option value="COTIZACION">COTIZACIÓN</option>
+                  <option value="EJECUCION">EJECUCIÓN</option>
+                  <option value="FINALIZADO">FINALIZADO</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-0.5 min-w-[120px]">
+                <span className="text-[6px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                  <Building2 size={7} /> Tipología
+                </span>
+                <select
+                 value={typologyFilter}
+                 onChange={(e) => setTypologyFilter(e.target.value)}
+                 className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer"
+                >
                  <option value="ALL">TODAS</option>
                  {Object.values(Typology).map(t => (
                    <option key={t} value={t}>{t}</option>
@@ -727,98 +727,98 @@ export default function ProjectsModule() {
            </div>
         </div>
 
-        {viewMode === 'table' ? (
-          <div className="overflow-x-auto no-scrollbar">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="bg-slate-50/50 border-b border-slate-100">
-                  {bulkMode && (
-                    <th className="px-2 py-4 w-8">
-                      <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
-                        onChange={toggleSelectAllProjects} className="w-4 h-4 accent-red-500 cursor-pointer" />
-                    </th>
-                  )}
-                  <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Proyecto</th>
-                  <th className="hidden md:table-cell px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Cliente</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
-                  <th className="px-6 py-4 text-[9px] font-black text-slate-400 uppercase tracking-widest text-right">#</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-50">
-                {paginatedProjects.map((project, i) => (
-                  <motion.tr
-                    key={project.id}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.25, delay: i * 0.05 }}
-                    onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-                    className={`group hover:bg-slate-50/10 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50 border-l-2 border-red-500" : ""}`}
-                  >
-                    {bulkMode && (
-                      <td className="px-2 py-4 w-8" onClick={e => e.stopPropagation()}>
-                        <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
-                          className="w-4 h-4 accent-red-500 cursor-pointer" />
-                      </td>
-                    )}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shrink-0 group-hover:bg-slate-900 group-hover:text-secondary transition-all">
-                          <Building2 size={16} />
-                        </div>
-                        <div className="min-w-0">
-                          <p className="text-xs font-black text-primary uppercase tracking-tight truncate max-w-[150px] md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="hidden md:table-cell px-6 py-4">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-slate-900 uppercase truncate max-w-[150px]">{project.clientName}</span>
-                        <span className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">{project.typology}</span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-col gap-1.5 min-w-[80px] md:min-w-[120px]">
-                        <div className="flex justify-between items-center text-[8px] font-black uppercase tracking-widest">
-                          <span className={cn(
-                            project.status === 'EJECUCION' ? "text-secondary" :
-                            project.status === 'COTIZACION' ? "text-blue-500" :
-                            "text-green-500"
-                          )}>{project.status}</span>
-                          <span className="text-slate-400">{project.progress || 0}%</span>
-                        </div>
-                        <div className="h-1 bg-slate-100 rounded-full overflow-hidden w-full">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${project.progress || 0}%` }}
-                            className={cn(
-                              "h-full rounded-full",
-                              project.status === 'EJECUCION' ? "bg-slate-900" : "bg-slate-400"
-                            )}
-                          />
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <button 
-                          onClick={(e) => handleDelete(e, project.id)}
-                          className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                        <button className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-300 group-hover:text-secondary group-hover:bg-slate-900 transition-all">
-                          <ChevronRight size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+{viewMode === 'table' ? (
+           <div className="overflow-x-auto no-scrollbar">
+             <table className="w-full text-left">
+               <thead>
+                 <tr className="bg-slate-50/50 border-b border-slate-100">
+                   {bulkMode && (
+                     <th className="px-2 py-2 w-6">
+                       <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
+                         onChange={toggleSelectAllProjects} className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                     </th>
+                   )}
+                   <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Proyecto</th>
+                   <th className="hidden md:table-cell px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Cliente</th>
+                   <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                   <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">#</th>
+                 </tr>
+               </thead>
+               <tbody className="divide-y divide-slate-50">
+                 {paginatedProjects.map((project, i) => (
+                   <motion.tr
+                     key={project.id}
+                     initial={{ opacity: 0, x: -8 }}
+                     animate={{ opacity: 1, x: 0 }}
+                     transition={{ duration: 0.2, delay: i * 0.05 }}
+                     onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
+                     className={`group hover:bg-slate-50/50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50 border-l-2 border-red-500" : ""}`}
+                   >
+                     {bulkMode && (
+                       <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
+                         <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
+                           className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                       </td>
+                     )}
+                     <td className="px-4 py-2">
+                       <div className="flex items-center gap-2">
+                         <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shrink-0 group-hover:bg-slate-900 group-hover:text-secondary transition-all">
+                           <Building2 size={14} />
+                         </div>
+                         <div className="min-w-0">
+                           <p className="text-[8px] font-black text-primary uppercase tracking-tight truncate max-w-[120px] md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
+                           <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
+                         </div>
+                       </div>
+                     </td>
+                     <td className="hidden md:table-cell px-4 py-2">
+                       <div className="flex flex-col">
+                         <span className="text-[7px] font-black text-slate-900 uppercase truncate max-w-[120px]">{project.clientName}</span>
+                         <span className="text-[6px] font-bold text-slate-400 uppercase tracking-widest">{project.typology}</span>
+                       </div>
+                     </td>
+                     <td className="px-4 py-2">
+                       <div className="flex flex-col gap-1 min-w-[70px]">
+                         <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest">
+                           <span className={cn(
+                             project.status === 'EJECUCION' ? "text-secondary" :
+                             project.status === 'COTIZACION' ? "text-blue-500" :
+                             "text-green-500"
+                           )}>{project.status}</span>
+                           <span className="text-slate-400">{project.progress || 0}%</span>
+                         </div>
+                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
+                           <motion.div
+                             initial={{ width: 0 }}
+                             animate={{ width: `${project.progress || 0}%` }}
+                             className={cn(
+                               "h-full rounded-full",
+                               project.status === 'EJECUCION' ? "bg-slate-900" : "bg-slate-400"
+                             )}
+                           />
+                         </div>
+                       </div>
+                     </td>
+                     <td className="px-4 py-2 text-right">
+                       <div className="flex items-center justify-end gap-1">
+                         <button
+                           onClick={(e) => handleDelete(e, project.id)}
+                           className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
+                         >
+                           <Trash2 size={12} />
+                         </button>
+                         <button className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 group-hover:text-secondary group-hover:bg-slate-900 transition-all">
+                           <ChevronRight size={14} />
+                         </button>
+                       </div>
+                     </td>
+                   </motion.tr>
+                 ))}
+               </tbody>
+             </table>
+           </div>
+         ) : (
+           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
             {paginatedProjects.map((project, i) => (
               <motion.div
                 key={project.id}
