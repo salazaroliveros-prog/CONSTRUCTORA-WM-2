@@ -122,12 +122,20 @@ INSTRUCCIONES:
 - Los montos monetarios van en Quetzales (Q.)
 - Sé conciso pero completo`;
 
-  const result = streamText({
-    model: google('gemini-2.0-flash'),
-    system: systemPrompt,
-    messages: safeMessages,
-    maxOutputTokens: 2048,
-  });
+  try {
+    const modelName = 'gemini-2.0-flash';
+    const model = google(modelName);
+    const result = await streamText({
+      model,
+      system: systemPrompt,
+      messages: safeMessages,
+      maxOutputTokens: 2048,
+    });
 
-  return result.pipeTextStreamToResponse(res);
+    return result.pipeTextStreamToResponse(res);
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error('[ai-report] Error al invocar Gemini:', msg);
+    return res.status(500).json({ error: msg });
+  }
 }
