@@ -225,8 +225,7 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
             className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <motion.div animate={kpi.pulse ? { scale: [1, 1.15, 1] } : {}} transition={{ duration: 1.2, repeat: Infinity }}
-                className={`p-2 rounded-xl text-white ${kpi.color}`}>{kpi.icon}</motion.div>
+              <div className={`p-2 rounded-xl text-white ${kpi.color}`}>{kpi.icon}</div>
               <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{kpi.label}</span>
             </div>
             <p className="text-xl font-black text-primary">{kpi.value}</p>

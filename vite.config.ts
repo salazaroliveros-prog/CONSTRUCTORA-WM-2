@@ -21,11 +21,11 @@ export default defineConfig(({mode}) => {
     build: {
       rollupOptions: {
         output: {
-          manualChunks: {
-            'vendor-firebase': ['firebase/app', 'firebase/auth', 'firebase/firestore', 'firebase/storage'],
-            'vendor-charts': ['recharts'],
-            'vendor-pdf': ['jspdf', 'jspdf-autotable'],
-            'vendor-motion': ['motion'],
+          manualChunks(id: string) {
+            if (id.includes('firebase/')) return 'vendor-firebase';
+            if (id.includes('recharts')) return 'vendor-charts';
+            if (id.includes('jspdf')) return 'vendor-pdf';
+            if (id.includes('motion')) return 'vendor-motion';
           },
         },
       },

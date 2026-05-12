@@ -226,17 +226,10 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
 
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-1.5">
-          {/* Animated icon */}
-          <motion.div
-            animate={kpi.pulse ? { scale: [1, 1.12, 1] } : { rotate: [0, 0] }}
-            transition={kpi.pulse
-              ? { duration: 1.2, repeat: Infinity, ease: 'easeInOut' }
-              : { duration: 3, repeat: Infinity, ease: 'easeInOut', repeatType: 'reverse' }
-            }
-            className={cn("icon-box", kpi.color)}
-          >
+          {/* Icon with professional static gradient */}
+          <div className={cn("icon-box", kpi.color)}>
             {React.cloneElement(kpi.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
-          </motion.div>
+          </div>
           {/* Mini ring charts next to icon */}
           {kpi.rings && (
             <motion.div
@@ -1120,15 +1113,15 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
             </div>
          </div>
 
-         <div className="bg-secondary p-5 rounded-2xl text-primary text-left border-animated">
-            <div className="flex items-center gap-2 mb-3">
-               <Zap size={16} className="fill-current" />
-               <span className="text-[9px] font-black uppercase tracking-widest">Tip Constructivo</span>
-            </div>
-            <p className="text-[10px] font-black leading-relaxed uppercase tracking-tight">
-              Asegúrate de registrar cada factura inmediatamente para mantener el análisis de rentabilidad actualizado.
-            </p>
-         </div>
+         <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 p-5 rounded-2xl text-primary shadow-lg border-animated">
+             <div className="flex items-center gap-2 mb-3">
+                <Zap size={16} className="fill-current" />
+                <span className="text-[9px] font-black uppercase tracking-widest">Tip Constructivo</span>
+             </div>
+             <p className="text-[10px] font-black leading-relaxed uppercase tracking-tight">
+               Asegúrate de registrar cada factura inmediatamente para mantener el análisis de rentabilidad actualizado.
+             </p>
+          </div>
       </aside>
       </div>
 

@@ -77,16 +77,16 @@ export default function EffectsShowcase() {
           </div>
         </div>
 
-        {/* Tarjeta con borde animado */}
+        {/* Tarjeta con borde gradiente profesional */}
         <div className="border-animated glass-card p-6">
           <div className="flex items-center gap-4">
             <div className="icon-box icon-gradient-cyan">
               <Palette size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Borde Animado</h3>
+              <h3 className="font-bold text-lg">Borde Gradiente</h3>
               <p className="text-sm text-slate-600 dark:text-slate-400">
-                Borde giratorio continuo
+                Borde gradiente estático con glow en hover
               </p>
             </div>
           </div>
