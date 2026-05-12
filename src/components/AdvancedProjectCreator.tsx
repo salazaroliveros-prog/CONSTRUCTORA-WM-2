@@ -38,6 +38,7 @@ import {
 } from '../constants';
 import { generateBudgetPDF, generateBudgetCSV, generateBudgetPDFEjecutivo, generateBudgetPDFAPU, generateBudgetPDFCliente } from '../lib/reports';
 import { APU_BY_TYPOLOGY, APUItem } from '../lib/apuLibrary';
+import { itemsToBudgetTree } from '../utils/budgetConverter';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { toast } from 'sonner';
@@ -47,7 +48,7 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export default function CalculatorModule() {
+export default function AdvancedProjectCreator({ onComplete }: { onComplete?: () => void } = {}) {
   const [selectedTypology, setSelectedTypology] = useState<Typology>(Typology.RESIDENCIAL);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentProject, setCurrentProject] = useState<Project>({
@@ -370,6 +371,7 @@ export default function CalculatorModule() {
     }
     setSaving(true);
     try {
+      const budgetTree = itemsToBudgetTree(currentProject.items);
       const { id, ...projectData } = currentProject;
       const dataToSave = {
         ...projectData,
@@ -377,9 +379,11 @@ export default function CalculatorModule() {
         executed: 0,
         progress: 0,
         directCosts: totalDirect,
+        budgetTree, // Add hierarchical budget tree
       };
       await addDocument('projects', dataToSave);
-      toast.success('Cotización guardada como proyecto');
+      toast.success('Proyecto creado exitosamente');
+      if (onComplete) onComplete();
     } catch (e) {
       console.error(e);
       toast.error('Error al guardar', { description: parseError(e) });

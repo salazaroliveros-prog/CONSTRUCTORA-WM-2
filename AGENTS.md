@@ -8,14 +8,14 @@
 
 ## Architecture Notes
 - **SPA Routing**: Navigation via `?tab=` URL parameter (no router)
-- **16 Modules**: Lazy-loaded via `React.lazy` + `Suspense` (dashboard, calculator, execution, clients, inventory, projects, suppliers, staff, analytics, settings, seed, seguimiento, clean, ai, gantt, effects)
+- **15 Modules**: Lazy-loaded via `React.lazy` + `Suspense` (dashboard, execution, clients, inventory, projects, suppliers, staff, analytics, settings, seed, seguimiento, clean, ai, gantt, effects)
 - **Context Hierarchy**: AuthProvider → SettingsProvider → ThemeProvider → ProjectFilterProvider → Toaster
 - **Auth**: Firebase Google OAuth - ONLY `salazaroliveros@gmail.com` authorized
 - **Data Layer**: Firestore with ownerId filtering on ALL queries (`where('ownerId', '==', auth.currentUser.uid)`)
 - **CSS**: TailwindCSS v4 (`@import "tailwindcss"` - NOT `@tailwind` directives)
 - **Path Alias**: `@/*` maps to project root (`./*`)
 - **API**: Vercel serverless function at `api/ai-report.ts` with Firebase JWT verification + Gemini 2.0 Flash streaming
-- **Budget Engine**: Hierarchical structure with BudgetLine interface for tree-based budgeting, automatic recalculation, dynamic renglones. Key files: src/lib/budgetData.ts, src/components/BudgetTable.tsx, src/hooks/useBudget.ts
+- **Budget Engine**: Unified hierarchical budget management with advanced project creation interface. Hierarchical structure with BudgetLine interface for tree-based budgeting, automatic recalculation, dynamic renglones. Advanced features include waste factors, APU library, material breakdowns, and cost configurations. Key files: src/lib/budgetData.ts, src/components/BudgetTable.tsx, src/components/AdvancedProjectCreator.tsx, src/hooks/useBudget.ts, src/utils/budgetConverter.ts
 - **Environment**: Requires `GEMINI_API_KEY` env var for AI features
 
 ## Important Constraints

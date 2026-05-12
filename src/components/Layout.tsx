@@ -110,8 +110,8 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   const allMenuItems = [
     { id: 'dashboard',   label: 'Dashboard',              icon: <LayoutDashboard size={20} /> },
     { id: 'clients',     label: 'Clientes',               icon: <Users size={20} /> },
-    { id: 'projects',    label: 'Proyectos',              icon: <Building2 size={20} /> },
-    { id: 'calculator',  label: 'Presupuestos',           icon: <Calculator size={20} /> },
+    { id: 'projects',    label: 'Gestión de Proyectos',    icon: <Building2 size={20} /> },
+
     { id: 'execution',   label: 'Seguimiento',            icon: <ClipboardList size={20} /> },
     { id: 'seguimiento', label: 'Avance',                 icon: <TrendingUp size={20} /> },
     { id: 'gantt',       label: 'Gantt',                  icon: <Calendar size={20} /> },

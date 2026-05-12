@@ -39,7 +39,7 @@ import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineCh
 import { motion, AnimatePresence } from 'motion/react';
 import { Typology, Project, StaffMember, Client, Transaction } from '../constants';
 import { calcRealDuration } from '../lib/ganttCPM';
-import ProjectWizard from './ProjectWizard';
+import AdvancedProjectCreator from './AdvancedProjectCreator';
 import Modal from './ui/Modal';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -599,7 +599,7 @@ export default function ProjectsModule() {
           </div>
         </div>
         
-        <ProjectWizard onComplete={() => setView('list')} />
+        <AdvancedProjectCreator onComplete={() => setView('list')} />
       </div>
     );
   }

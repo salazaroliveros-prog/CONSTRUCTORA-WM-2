@@ -16,7 +16,7 @@ import { Toaster } from 'sonner';
 import { ProjectFilterProvider } from './contexts/ProjectFilterContext';
 
 const Dashboard = lazy(() => import('./components/Dashboard'));
-const CalculatorModule = lazy(() => import('./components/Calculator'));
+
 const ExecutionModule = lazy(() => import('./components/Execution'));
 const ClientsModule = lazy(() => import('./components/Clients'));
 const InventoryModule = lazy(() => import('./components/Inventory'));
@@ -31,7 +31,7 @@ const GanttChartModule = lazy(() => import('./components/GanttChart'));
 const EffectsShowcaseModule = lazy(() => import('./components/EffectsShowcase'));
 
 function AppContent() {
-  const validTabs = new Set(['dashboard', 'calculator', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seguimiento', 'ai', 'gantt', 'effects']);
+  const validTabs = new Set(['dashboard', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seguimiento', 'ai', 'gantt', 'effects']);
   const [activeTab, setActiveTab] = useState(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
     return tab && validTabs.has(tab) ? tab : 'dashboard';
@@ -194,8 +194,7 @@ function AppContent() {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard setActiveTab={handleSetActiveTab} />;
-      case 'calculator':
-        return <CalculatorModule />;
+
       case 'execution':
         return <ExecutionModule setActiveTab={handleSetActiveTab} />;
       case 'clients':
