@@ -5,6 +5,7 @@
 import React, { useState } from 'react';
 import { addDocument } from '../services/firestoreService';
 import { toast } from 'sonner';
+import { Typology } from '../constants';
 
 const today = new Date();
 const d = (offsetDays: number) => {
@@ -12,6 +13,127 @@ const d = (offsetDays: number) => {
   dt.setDate(dt.getDate() + offsetDays);
   return dt.toISOString().split('T')[0];
 };
+
+let _itemCounter = 0;
+function itemId() { return `seed_${++_itemCounter}`; }
+
+// ── HELPERS: generación de items de presupuesto por tipología ────────────────
+function resiItems(qtyScale = 1) { return [
+  { id: itemId(), code: '01.01', description: 'Excavación para cimientos', unit: 'M3', projectQuantity: Math.round(15 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 5, category: 'OBRA GRIS',
+    materials: [{ name: 'Mano de obra excavación', unit: 'HR', quantity: 8, price: 35 }, { name: 'Alquiler herramienta', unit: 'GL', quantity: 1, price: 250 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '01.02', description: 'Cimentación corrida 1:2:3', unit: 'M3', projectQuantity: Math.round(8 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 7, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 8.5, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.5, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.7, price: 140 }, { name: 'Hierro 3/8"', unit: 'VAR', quantity: 12, price: 35 }, { name: 'Alambre de amarre', unit: 'LB', quantity: 2, price: 8 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 12, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 12, price: 12.5 }] },
+  { id: itemId(), code: '01.03', description: 'Muro de block 15x20x40', unit: 'M2', projectQuantity: Math.round(85 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Block 15x20x40', unit: 'U', quantity: 12.5, price: 5.5 }, { name: 'Cemento UGC', unit: 'SACO', quantity: 0.3, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.02, price: 120 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2.5, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 2.5, price: 12.5 }] },
+  { id: itemId(), code: '01.04', description: 'Columna de concreto', unit: 'U', projectQuantity: Math.round(10 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 6, category: 'OBRA GRIS',
+    materials: [{ name: 'Hierro 1/2"', unit: 'VAR', quantity: 6, price: 55 }, { name: 'Cemento UGC', unit: 'SACO', quantity: 2, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.12, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.15, price: 140 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 4, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 4, price: 12.5 }] },
+  { id: itemId(), code: '01.05', description: 'Losa de entrepiso', unit: 'M2', projectQuantity: Math.round(35 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 8, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 3.5, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.08, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.1, price: 140 }, { name: 'Hierro 3/8"', unit: 'VAR', quantity: 4, price: 35 }, { name: 'Tabla de pino', unit: 'U', quantity: 6, price: 28 }, { name: 'Clavo 3"', unit: 'LB', quantity: 1.5, price: 6 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 4, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 8, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '01.06', description: 'Instalación eléctrica', unit: 'PTO', projectQuantity: Math.round(20 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 5, category: 'ELECTRICIDAD',
+    materials: [{ name: 'Cable THW #12', unit: 'M', quantity: 15, price: 4.5 }, { name: 'Tubería conduit 1/2"', unit: 'U', quantity: 2, price: 18 }, { name: 'Caja octogonal', unit: 'U', quantity: 1, price: 12 }, { name: 'Interruptor sencillo', unit: 'U', quantity: 1, price: 25 }, { name: 'Toma corriente', unit: 'U', quantity: 1, price: 28 }],
+    labor: [{ role: 'ELECTRICISTA', unit: 'HR', quantity: 2.5, price: 16 }] },
+  { id: itemId(), code: '01.07', description: 'Instalación hidráulica', unit: 'PTO', projectQuantity: Math.round(12 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 6, category: 'PLOMERÍA',
+    materials: [{ name: 'Tubería PVC 1/2"', unit: 'U', quantity: 3, price: 22 }, { name: 'Codo PVC 1/2"', unit: 'U', quantity: 4, price: 5 }, { name: 'Válvula compuerta', unit: 'U', quantity: 1, price: 45 }, { name: 'Cemento solvente', unit: 'U', quantity: 0.2, price: 35 }],
+    labor: [{ role: 'PLOMERO', unit: 'HR', quantity: 2, price: 15 }] },
+  { id: itemId(), code: '01.08', description: 'Piso cerámico 30x30', unit: 'M2', projectQuantity: Math.round(40 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 7, category: 'ACABADOS',
+    materials: [{ name: 'Azulejo 30x30 beige', unit: 'CAJA', quantity: 1.2, price: 85 }, { name: 'Cemento cola', unit: 'SACO', quantity: 0.3, price: 42 }, { name: 'Bochinche', unit: 'LB', quantity: 0.5, price: 6 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 2, price: 12.5 }] },
+  { id: itemId(), code: '01.09', description: 'Pintura interior látex', unit: 'M2', projectQuantity: Math.round(80 * qtyScale), selected: true, typology: Typology.RESIDENCIAL, durationDays: 5, category: 'ACABADOS',
+    materials: [{ name: 'Pintura blanca interior', unit: 'GL', quantity: 0.08, price: 110 }, { name: 'Sellador', unit: 'GL', quantity: 0.04, price: 85 }, { name: 'Lija para pared', unit: 'U', quantity: 0.5, price: 8 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 1.5, price: 12.5 }] },
+]};
+
+function comercialItems(qtyScale = 1) { return [
+  { id: itemId(), code: '02.01', description: 'Excavación masiva', unit: 'M3', projectQuantity: Math.round(80 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 8, category: 'OBRA GRIS',
+    materials: [{ name: 'Mano de obra excavación', unit: 'HR', quantity: 4, price: 35 }, { name: 'Alquiler maquinaria', unit: 'HR', quantity: 2, price: 350 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '02.02', description: 'Cimentación corrida', unit: 'M3', projectQuantity: Math.round(25 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 8.5, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.5, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.7, price: 140 }, { name: 'Hierro 1/2"', unit: 'VAR', quantity: 15, price: 55 }, { name: 'Alambre de amarre', unit: 'LB', quantity: 2.5, price: 8 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 10, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 12, price: 12.5 }] },
+  { id: itemId(), code: '02.03', description: 'Columna de concreto', unit: 'U', projectQuantity: Math.round(18 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 8, category: 'OBRA GRIS',
+    materials: [{ name: 'Hierro 3/4"', unit: 'VAR', quantity: 8, price: 85 }, { name: 'Cemento UGC', unit: 'SACO', quantity: 3, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.15, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.2, price: 140 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 3, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 6, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 6, price: 12.5 }] },
+  { id: itemId(), code: '02.04', description: 'Muro de block', unit: 'M2', projectQuantity: Math.round(200 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 12, category: 'OBRA GRIS',
+    materials: [{ name: 'Block 15x20x40', unit: 'U', quantity: 12.5, price: 5.5 }, { name: 'Cemento UGC', unit: 'SACO', quantity: 0.3, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.02, price: 120 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2.5, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 3, price: 12.5 }] },
+  { id: itemId(), code: '02.05', description: 'Losa de concreto', unit: 'M2', projectQuantity: Math.round(120 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 3.5, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.08, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.1, price: 140 }, { name: 'Hierro 3/8"', unit: 'VAR', quantity: 5, price: 35 }, { name: 'Malla electrosoldada', unit: 'M2', quantity: 1.05, price: 18 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 3, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 8, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '02.06', description: 'Instalación eléctrica comercial', unit: 'PTO', projectQuantity: Math.round(45 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 10, category: 'ELECTRICIDAD',
+    materials: [{ name: 'Cable THW #10', unit: 'M', quantity: 18, price: 6.5 }, { name: 'Tubería EMT 3/4"', unit: 'U', quantity: 3, price: 22 }, { name: 'Caja rectangular', unit: 'U', quantity: 1, price: 15 }, { name: 'Breaker 20A', unit: 'U', quantity: 1, price: 45 }],
+    labor: [{ role: 'ELECTRICISTA', unit: 'HR', quantity: 3, price: 16 }, { role: 'AYUDANTE', unit: 'HR', quantity: 2, price: 12.5 }] },
+  { id: itemId(), code: '02.07', description: 'Piso cerámico comercial', unit: 'M2', projectQuantity: Math.round(100 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 8, category: 'ACABADOS',
+    materials: [{ name: 'Cerámico 45x45', unit: 'CAJA', quantity: 1.2, price: 95 }, { name: 'Cemento cola', unit: 'SACO', quantity: 0.3, price: 42 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2.5, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 2, price: 12.5 }] },
+  { id: itemId(), code: '02.08', description: 'Acabados finos', unit: 'M2', projectQuantity: Math.round(60 * qtyScale), selected: true, typology: Typology.COMERCIAL, durationDays: 6, category: 'ACABADOS',
+    materials: [{ name: 'Pintura vinílica', unit: 'GL', quantity: 0.06, price: 95 }, { name: 'Estucado', unit: 'SACO', quantity: 0.15, price: 25 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2, price: 14 }] },
+]};
+
+function industrialItems(qtyScale = 1) { return [
+  { id: itemId(), code: '03.01', description: 'Excavación cimientos industriales', unit: 'M3', projectQuantity: Math.round(60 * qtyScale), selected: true, typology: Typology.INDUSTRIAL, durationDays: 6, category: 'OBRA GRIS',
+    materials: [{ name: 'Mano de obra excavación', unit: 'HR', quantity: 3, price: 35 }, { name: 'Alquiler maquinaria', unit: 'HR', quantity: 1.5, price: 400 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 6, price: 12.5 }] },
+  { id: itemId(), code: '03.02', description: 'Cimentación industrial', unit: 'M3', projectQuantity: Math.round(20 * qtyScale), selected: true, typology: Typology.INDUSTRIAL, durationDays: 8, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 9, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.5, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.7, price: 140 }, { name: 'Hierro 5/8"', unit: 'VAR', quantity: 12, price: 75 }, { name: 'Alambre de amarre', unit: 'LB', quantity: 3, price: 8 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 4, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 8, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '03.03', description: 'Muro de block industrial', unit: 'M2', projectQuantity: Math.round(350 * qtyScale), selected: true, typology: Typology.INDUSTRIAL, durationDays: 12, category: 'OBRA GRIS',
+    materials: [{ name: 'Block 20x20x40', unit: 'U', quantity: 12.5, price: 7 }, { name: 'Cemento UGC', unit: 'SACO', quantity: 0.35, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.025, price: 120 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2.5, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 3, price: 12.5 }] },
+  { id: itemId(), code: '03.04', description: 'Losa de concreto industrial', unit: 'M2', projectQuantity: Math.round(200 * qtyScale), selected: true, typology: Typology.INDUSTRIAL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 4, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.1, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.12, price: 140 }, { name: 'Malla electrosoldada 6x6', unit: 'M2', quantity: 1.05, price: 22 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 3, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 8, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '03.05', description: 'Cubierta metálica', unit: 'M2', projectQuantity: Math.round(180 * qtyScale), selected: true, typology: Typology.INDUSTRIAL, durationDays: 8, category: 'ESTRUCTURA METÁLICA',
+    materials: [{ name: 'Lámina galvanizada', unit: 'U', quantity: 2.5, price: 65 }, { name: 'Viga metálica IPR', unit: 'KG', quantity: 12, price: 18 }, { name: 'Tornillería galvanizada', unit: 'LB', quantity: 0.5, price: 12 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 3, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 3, price: 12.5 }] },
+  { id: itemId(), code: '03.06', description: 'Piso industrial epóxico', unit: 'M2', projectQuantity: Math.round(150 * qtyScale), selected: true, typology: Typology.INDUSTRIAL, durationDays: 7, category: 'ACABADOS',
+    materials: [{ name: 'Pintura epóxica', unit: 'GL', quantity: 0.1, price: 180 }, { name: 'Endurecedor de piso', unit: 'SACO', quantity: 0.2, price: 95 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 1.5, price: 14 }] },
+]};
+
+function civilItems(qtyScale = 1) { return [
+  { id: itemId(), code: '04.01', description: 'Excavación para estribos', unit: 'M3', projectQuantity: Math.round(120 * qtyScale), selected: true, typology: Typology.CIVIL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Mano de obra excavación', unit: 'HR', quantity: 5, price: 35 }, { name: 'Alquiler maquinaria pesada', unit: 'HR', quantity: 3, price: 450 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '04.02', description: 'Cimentación de puente', unit: 'M3', projectQuantity: Math.round(35 * qtyScale), selected: true, typology: Typology.CIVIL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 9, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.5, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.7, price: 140 }, { name: 'Hierro 1"', unit: 'VAR', quantity: 10, price: 145 }, { name: 'Alambre de amarre', unit: 'LB', quantity: 3, price: 8 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 6, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 12, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 12, price: 12.5 }] },
+  { id: itemId(), code: '04.03', description: 'Columna de puente', unit: 'U', projectQuantity: Math.round(6 * qtyScale), selected: true, typology: Typology.CIVIL, durationDays: 8, category: 'OBRA GRIS',
+    materials: [{ name: 'Hierro 1"', unit: 'VAR', quantity: 15, price: 145 }, { name: 'Hierro 3/8"', unit: 'VAR', quantity: 8, price: 35 }, { name: 'Cemento UGC', unit: 'SACO', quantity: 5, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.25, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.3, price: 140 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 5, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 10, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 10, price: 12.5 }] },
+  { id: itemId(), code: '04.04', description: 'Viga de concreto pretensado', unit: 'M', projectQuantity: Math.round(18 * qtyScale), selected: true, typology: Typology.CIVIL, durationDays: 10, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 6, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.15, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.2, price: 140 }, { name: 'Hierro 1/2"', unit: 'VAR', quantity: 10, price: 55 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 4, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 8, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 8, price: 12.5 }] },
+  { id: itemId(), code: '04.05', description: 'Barandal metálico', unit: 'M', projectQuantity: Math.round(24 * qtyScale), selected: true, typology: Typology.CIVIL, durationDays: 6, category: 'ESTRUCTURA METÁLICA',
+    materials: [{ name: 'Tubo metálico 2"', unit: 'U', quantity: 3, price: 85 }, { name: 'Pintura anticorrosiva', unit: 'GL', quantity: 0.05, price: 95 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 2, price: 14 }] },
+  { id: itemId(), code: '04.06', description: 'Superficie de rodadura', unit: 'M2', projectQuantity: Math.round(90 * qtyScale), selected: true, typology: Typology.CIVIL, durationDays: 5, category: 'OBRA GRIS',
+    materials: [{ name: 'Mezcla asfáltica', unit: 'TON', quantity: 0.15, price: 650 }, { name: 'Imprimación asfáltica', unit: 'GL', quantity: 0.05, price: 120 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 2, price: 12.5 }] },
+]};
+
+function publicaItems(qtyScale = 1) { return [
+  { id: itemId(), code: '05.01', description: 'Demolición de concreto existente', unit: 'M3', projectQuantity: Math.round(25 * qtyScale), selected: true, typology: Typology.PUBLICA, durationDays: 4, category: 'OBRA GRIS',
+    materials: [{ name: 'Mano de obra demolición', unit: 'HR', quantity: 6, price: 35 }, { name: 'Alquiler equipo', unit: 'GL', quantity: 1, price: 300 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 6, price: 12.5 }] },
+  { id: itemId(), code: '05.02', description: 'Piso de concreto estampado', unit: 'M2', projectQuantity: Math.round(120 * qtyScale), selected: true, typology: Typology.PUBLICA, durationDays: 8, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 3, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.08, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.1, price: 140 }, { name: 'Malla electrosoldada', unit: 'M2', quantity: 1.05, price: 18 }, { name: 'Colorante concreto', unit: 'LB', quantity: 0.1, price: 45 }],
+    labor: [{ role: 'MAESTRO DE OBRA', unit: 'HR', quantity: 3, price: 18 }, { role: 'ALBAÑIL', unit: 'HR', quantity: 6, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 6, price: 12.5 }] },
+  { id: itemId(), code: '05.03', description: 'Bancas de concreto', unit: 'U', projectQuantity: Math.round(15 * qtyScale), selected: true, typology: Typology.PUBLICA, durationDays: 4, category: 'OBRA GRIS',
+    materials: [{ name: 'Cemento UGC', unit: 'SACO', quantity: 1.5, price: 85 }, { name: 'Arena de río', unit: 'M3', quantity: 0.05, price: 120 }, { name: 'Piedrín 3/4"', unit: 'M3', quantity: 0.06, price: 140 }, { name: 'Hierro 3/8"', unit: 'VAR', quantity: 2, price: 35 }],
+    labor: [{ role: 'ALBAÑIL', unit: 'HR', quantity: 4, price: 14 }, { role: 'AYUDANTE', unit: 'HR', quantity: 4, price: 12.5 }] },
+  { id: itemId(), code: '05.04', description: 'Área verde y jardinería', unit: 'M2', projectQuantity: Math.round(80 * qtyScale), selected: true, typology: Typology.PUBLICA, durationDays: 5, category: 'OTROS',
+    materials: [{ name: 'Tierra negra', unit: 'M3', quantity: 0.1, price: 85 }, { name: 'Pastón', unit: 'M2', quantity: 1.05, price: 18 }],
+    labor: [{ role: 'AYUDANTE', unit: 'HR', quantity: 2, price: 12.5 }] },
+  { id: itemId(), code: '05.05', description: 'Iluminación exterior LED', unit: 'PTO', projectQuantity: Math.round(12 * qtyScale), selected: true, typology: Typology.PUBLICA, durationDays: 4, category: 'ELECTRICIDAD',
+    materials: [{ name: 'Luminaria LED exterior', unit: 'U', quantity: 1, price: 280 }, { name: 'Cable THW #12', unit: 'M', quantity: 20, price: 4.5 }, { name: 'Tubería conduit 1/2"', unit: 'U', quantity: 2, price: 18 }],
+    labor: [{ role: 'ELECTRICISTA', unit: 'HR', quantity: 2.5, price: 16 }] },
+]};
 
 // ── CLIENTES ──────────────────────────────────────────────
 const CLIENTS = [
@@ -65,7 +187,7 @@ const PROJECTS = [
     indirectCosts: 8,
     administrativeCosts: 5,
     personalCosts: 12,
-    items: [],
+    items: resiItems(1),
   },
   {
     name: 'Centro Comercial Inversiones — Zona 4',
@@ -81,7 +203,7 @@ const PROJECTS = [
     indirectCosts: 10,
     administrativeCosts: 6,
     personalCosts: 15,
-    items: [],
+    items: comercialItems(0.8),
   },
   {
     name: 'Puente Peatonal Mixco — Km 14',
@@ -97,7 +219,7 @@ const PROJECTS = [
     indirectCosts: 12,
     administrativeCosts: 7,
     personalCosts: 10,
-    items: [],
+    items: civilItems(0.9),
   },
   {
     name: 'Bodega Industrial Norte — Fase 2',
@@ -113,7 +235,7 @@ const PROJECTS = [
     indirectCosts: 9,
     administrativeCosts: 5,
     personalCosts: 11,
-    items: [],
+    items: industrialItems(0.7),
   },
   {
     name: 'Casa Castillo — San Lucas',
@@ -129,7 +251,7 @@ const PROJECTS = [
     indirectCosts: 8,
     administrativeCosts: 5,
     personalCosts: 12,
-    items: [],
+    items: resiItems(0.5),
   },
   // 1 EN EVALUACIÓN (COTIZACION)
   {
@@ -146,7 +268,7 @@ const PROJECTS = [
     indirectCosts: 10,
     administrativeCosts: 6,
     personalCosts: 13,
-    items: [],
+    items: comercialItems(0.3),
   },
   // 2 FINALIZADOS
   {
@@ -163,7 +285,7 @@ const PROJECTS = [
     indirectCosts: 8,
     administrativeCosts: 5,
     personalCosts: 10,
-    items: [],
+    items: resiItems(0.7),
   },
   {
     name: 'Parque Municipal Mixco — Remodelación',
@@ -196,10 +318,25 @@ const PROJECTS = [
     indirectCosts: 12,
     administrativeCosts: 8,
     personalCosts: 15,
-    items: [],
+    items: publicaItems(0.8),
+  },
+  {
+    name: 'Torre Oficinas Zona 10 — Fase 1',
+    clientName: 'Inversiones Comerciales S.A.',
+    typology: 'COMERCIAL',
+    status: 'PAUSADO',
+    startDate: d(-200),
+    endDate: d(180),
+    location: 'Zona 10, Guatemala City',
+    progress: 38,
+    budget: 3200000,
+    directCosts: 2100000,
+    indirectCosts: 12,
+    administrativeCosts: 8,
+    personalCosts: 15,
+    items: comercialItems(1.5),
   },
 ];
-
 // ── INVENTARIO ────────────────────────────────────────────
 const INVENTORY = [
   { name: 'Cemento UGC 4000 PSI (saco 42.5kg)', cat: 'Materiales', stock: 320, unit: 'sacos', location: 'Bodega A-1', minStock: 50 },

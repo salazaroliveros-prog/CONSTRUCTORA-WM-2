@@ -53,7 +53,7 @@ export default function InventoryModule() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [newItem, setNewItem] = useState<{name: string, cat: 'Materiales' | 'Herramientas' | 'EPP', stock: number, minStock: number, unit: string, location: string, iconUrl: string}>({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '' });
+  const [newItem, setNewItem] = useState<{name: string, cat: 'Materiales' | 'Herramientas' | 'EPP', stock: number, minStock: number, unit: string, location: string, iconUrl: string, expiryDate: string}>({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '', expiryDate: '' });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [editingCell, setEditingCell] = useState<{id:string, field:string, value:string} | null>(null);
@@ -632,8 +632,18 @@ export default function InventoryModule() {
             </div>
           </div>
           <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha de Vencimiento</label>
+            <input
+              type="date"
+              value={newItem.expiryDate}
+              min={new Date().toISOString().split('T')[0]}
+              onChange={e => setNewItem({...newItem, expiryDate: e.target.value})}
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
+            />
+          </div>
+          <div className="space-y-2">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ubicación Física</label>
-            <select 
+            <select
               value={newItem.location}
               onChange={e => setNewItem({...newItem, location: e.target.value})}
               className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"

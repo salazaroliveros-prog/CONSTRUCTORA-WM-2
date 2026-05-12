@@ -13,7 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { subscribeToCollection, addDocument, updateDocument, deleteDocument, checkUniqueField, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
@@ -110,6 +110,23 @@ export default function StaffModule() {
   const [editingPayroll, setEditingPayroll] = useState<Payroll | null>(null);
   const [editingPayrollForm, setEditingPayrollForm] = useState<{ employees: PayrollEmployee[]; notes: string }>({ employees: [], notes: '' });
   const [savingEditPayroll, setSavingEditPayroll] = useState(false);
+
+  // Validation
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+
+  const validateUniqueFields = async (data: any, excludeId?: string): Promise<boolean> => {
+    const errors: Record<string, string> = {};
+    if (data.documentId) {
+      const dpiExists = await checkUniqueField('staff', 'documentId', data.documentId, excludeId);
+      if (dpiExists) errors.documentId = 'Este DPI ya está registrado';
+    }
+    if (data.email) {
+      const emailExists = await checkUniqueField('staff', 'email', data.email.toLowerCase().trim(), excludeId);
+      if (emailExists) errors.email = 'Este email ya está registrado';
+    }
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
 
   const cardPageSize = useAutoPageSize(140, 280, 4);
   const tablePageSize = useAutoPageSize(44, 220, 6);
@@ -242,14 +259,22 @@ export default function StaffModule() {
     }
   };
 
-  const handleCreate = (e: React.FormEvent) => {
+  const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!member.name) return;
+    setValidationErrors({});
+    if (!(await validateUniqueFields(member))) {
+      return;
+    }
     toast('¿Registrar colaborador?', {
       description: member.name,
       action: { label: 'Guardar', onClick: async () => {
+        if (!(await validateUniqueFields(member))) {
+          toast.error('Error de validación', { description: Object.values(validationErrors).join('. ') });
+          return;
+        }
         setSaving(true);
-        try { await addDocument('staff', { ...member, status: 'Activo' }); setIsModalOpen(false); setMember({ name: '', role: '', salary: '', documentId: '', email: '', phone: '', hireDate: '' }); toast.success('Colaborador registrado'); }
+        try { await addDocument('staff', { ...member, status: 'Activo' }); setIsModalOpen(false); setMember({ name: '', role: '', salary: '', documentId: '', email: '', phone: '', hireDate: '' }); setValidationErrors({}); toast.success('Colaborador registrado'); }
         catch (error) { toast.error('Error al registrar', { description: parseError(error) }); }
         finally { setSaving(false); }
       }},
@@ -257,15 +282,26 @@ export default function StaffModule() {
     });
   };
 
-  const handleEditStaff = (e: React.FormEvent) => {
+  const handleEditStaff = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editMember) return;
+    setValidationErrors({});
+    if (!(await validateUniqueFields(editForm, editMember.id))) {
+      toast.error('Error de validación', { description: Object.values(validationErrors).join('. ') });
+      return;
+    }
     toast('Guardar cambios?', {
       description: editForm.name,
       action: { label: 'Confirmar', onClick: async () => {
+        // Re-validate before save (race condition protection)
+        if (!(await validateUniqueFields(editForm, editMember.id))) {
+          toast.error('Error de validación', { description: Object.values(validationErrors).join('. ') });
+          return;
+        }
         try {
           await updateDocument('staff', editMember.id, editForm);
           setEditMember(null);
+          setValidationErrors({});
           if (selectedMember?.id === editMember.id) setSelectedMember({ ...editMember, ...editForm });
           toast.success('Colaborador actualizado');
         } catch (err) { toast.error('Error', { description: parseError(err) }); }

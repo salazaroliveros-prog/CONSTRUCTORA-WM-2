@@ -135,6 +135,33 @@ export const updateDocument = async (collectionName: string, id: string, data: a
   }
 };
 
+/**
+ * Checks if a field value already exists in a collection (excluding a specific document)
+ * Useful for validating unique fields like DPI, email, etc.
+ */
+export const checkUniqueField = async (
+  collectionName: string,
+  field: string,
+  value: string | number,
+  excludeId?: string
+): Promise<boolean> => {
+  if (!auth.currentUser) return false;
+  try {
+    const q = query(
+      collection(db, collectionName),
+      where('ownerId', '==', auth.currentUser.uid),
+      where(field, '==', value)
+    );
+    const snapshot = await getDocs(q);
+    if (excludeId) {
+      return snapshot.docs.some(doc => doc.id !== excludeId);
+    }
+    return snapshot.docs.length > 0;
+  } catch {
+    return false;
+  }
+};
+
 export const deleteDocument = async (collectionName: string, id: string) => {
   try {
     await deleteDoc(doc(db, collectionName, id));

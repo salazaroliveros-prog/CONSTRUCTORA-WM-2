@@ -157,6 +157,7 @@ export interface WarehouseItem {
   location: string;
   minStock: number;
   lastEntry: string;
+  expiryDate?: string; // Fecha de vencimiento (YYYY-MM-DD)
   history: WarehouseMovement[];
   coordinates?: { x: number; y: number };
   iconUrl?: string;
