@@ -69,10 +69,28 @@ const QUICK = [
   '📋 Análisis de variación presupuestaria'
 ];
 
-export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: string) => void }) {
+interface AIFloatingButtonProps {
+  setActiveTab?: (t: string) => void;
+  variant?: 'fab' | 'inline';
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: controlledOpen, onOpenChange }: AIFloatingButtonProps) {
   const { user } = useAuth();
   const { settings } = useSettings();
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = variant === 'inline' ? (controlledOpen ?? false) : internalOpen;
+
+  const handleSetOpen = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    if (variant === 'inline') {
+      const next = typeof value === 'function' ? value(controlledOpen ?? false) : value;
+      onOpenChange?.(next);
+    } else {
+      setInternalOpen(value);
+    }
+  }, [variant, controlledOpen, onOpenChange]);
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -91,7 +109,7 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
   
   // Iniciar cerrado por defecto (solo pestaña visible) - SOLO AL MONTAR
   useEffect(() => {
-    setOpen(false);
+    handleSetOpen(false);
   }, []);
 
   // Initialize budget tracking when context loads
@@ -230,31 +248,33 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
 
   return (
     <>
-      {/* FAB button - Small tab by default */}
-      <motion.button
-        onClick={() => setOpen(v => !v)}
-        className="fixed bottom-20 md:bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
-        style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}
-        whileHover={{ scale: 1.02 }}
-        whileTap={{ scale: 0.98 }}
-        title="Asistente IA"
-      >
-        <AnimatePresence mode="wait">
-          {open ? (
-            <motion.div key="x" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <X size={18} className="text-white" />
-            </motion.div>
-          ) : (
-            <motion.div key="s" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
-              <Sparkles size={18} className="text-white" />
-            </motion.div>
+      {/* FAB button - only in fab variant */}
+      {variant === 'fab' && (
+        <motion.button
+          onClick={() => handleSetOpen(v => !v)}
+          className="fixed bottom-20 md:bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          title="Asistente IA"
+        >
+          <AnimatePresence mode="wait">
+            {open ? (
+              <motion.div key="x" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+                <X size={18} className="text-white" />
+              </motion.div>
+            ) : (
+              <motion.div key="s" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}>
+                <Sparkles size={18} className="text-white" />
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {/* Pulse ring */}
+          {!open && (
+            <span className="absolute inset-0 rounded-t-2xl animate-ping opacity-20" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }} />
           )}
-        </AnimatePresence>
-        {/* Pulse ring */}
-        {!open && (
-          <span className="absolute inset-0 rounded-t-2xl animate-ping opacity-20" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }} />
-        )}
-      </motion.button>
+        </motion.button>
+      )}
 
       {/* Chat panel */}
       <AnimatePresence>
@@ -264,10 +284,12 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="fixed bottom-24 md:bottom-16 right-6 z-[299] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className={variant === 'inline'
+              ? "absolute right-0 top-full mt-2 z-[299] w-[380px] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+              : "fixed bottom-24 md:bottom-16 right-6 z-[299] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"}
             style={{ 
-              maxHeight: 'calc(100dvh - 8rem)', 
-              height: 'calc(100dvh - 8rem)',
+              maxHeight: variant === 'inline' ? 'min(560px, calc(100dvh - 5rem))' : 'calc(100dvh - 8rem)', 
+              height: variant === 'inline' ? 'min(560px, calc(100dvh - 5rem))' : 'calc(100dvh - 8rem)',
               background: 'rgba(15,20,40,0.97)', 
               border: '1px solid rgba(139,92,246,0.3)' 
             }}
@@ -303,7 +325,7 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
                   </button>
                 )}
                 {setActiveTab && (
-                  <button onClick={() => { setOpen(false); setActiveTab('ai'); }}
+                  <button onClick={() => { handleSetOpen(false); setActiveTab('ai'); }}
                     className="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-purple-400 hover:bg-purple-500/20 transition-colors">
                     Abrir completo
                   </button>

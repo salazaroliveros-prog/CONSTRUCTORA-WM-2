@@ -8,6 +8,7 @@ import { useEffect } from 'react';
 import Layout from './components/Layout';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { LogIn } from 'lucide-react';
 import { motion } from 'motion/react';
 import Logo from './components/Logo';
@@ -24,15 +25,13 @@ const SuppliersModule = lazy(() => import('./components/Suppliers'));
 const StaffModule = lazy(() => import('./components/Staff'));
 const AnalyticsModule = lazy(() => import('./components/Analytics'));
 const SettingsModule = lazy(() => import('./components/Settings'));
-const SeedDataModule = lazy(() => import('./components/SeedData'));
 const SeguimientoModule = lazy(() => import('./components/Seguimiento'));
-const CleanDataModule = lazy(() => import('./components/CleanData'));
 const AIAssistantModule = lazy(() => import('./components/AIAssistant'));
 const GanttChartModule = lazy(() => import('./components/GanttChart'));
 const EffectsShowcaseModule = lazy(() => import('./components/EffectsShowcase'));
 
 function AppContent() {
-  const validTabs = new Set(['dashboard', 'calculator', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seed', 'seguimiento', 'clean', 'ai', 'gantt', 'effects']);
+  const validTabs = new Set(['dashboard', 'calculator', 'execution', 'clients', 'inventory', 'projects', 'suppliers', 'staff', 'analytics', 'settings', 'seguimiento', 'ai', 'gantt', 'effects']);
   const [activeTab, setActiveTab] = useState(() => {
     const tab = new URLSearchParams(window.location.search).get('tab');
     return tab && validTabs.has(tab) ? tab : 'dashboard';
@@ -213,10 +212,6 @@ function AppContent() {
         return <AnalyticsModule />;
       case 'settings':
         return <SettingsModule />;
-      case 'seed':
-        return <SeedDataModule />;
-      case 'clean':
-        return <CleanDataModule />;
       case 'ai':
         return <AIAssistantModule />;
       case 'seguimiento':
@@ -270,14 +265,16 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <ProjectFilterProvider>
-          <Toaster position="top-right" richColors />
-          <AppContent />
-        </ProjectFilterProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <ProjectFilterProvider>
+            <Toaster position="top-right" richColors />
+            <AppContent />
+          </ProjectFilterProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

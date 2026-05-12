@@ -7,7 +7,8 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Building2, Calculator, LayoutDashboard, Users, ClipboardList,
   Package, Settings, Truck, Menu, X, Bell, Search, Maximize,
-  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, ChevronDown, Sparkles, Calendar
+  HelpCircle, LogOut, BarChart3, Zap, HardHat, TrendingUp, ChevronDown, Sparkles, Calendar,
+  Sun, Moon
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
@@ -17,6 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useSettings } from '../contexts/SettingsContext';
 import { ALL_MODULES } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
+import { useTheme } from '../contexts/ThemeContext';
 import Logo from './Logo';
 import TopBarClock from './TopBarClock';
 import AIFloatingButton from './AIFloatingButton';
@@ -45,6 +47,8 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   const { user, signOut } = useAuth();
   const { settings } = useSettings();
   const { selectedProjectId, setSelectedProjectId, executingProjects, setExecutingProjects } = useProjectFilter();
+  const { theme, toggleTheme } = useTheme();
+  const [showAI, setShowAI] = useState(false);
 
   // Load data for global search + project filter
   useEffect(() => {
@@ -113,6 +117,9 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     return () => document.removeEventListener('mousedown', handler);
   }, [menuOpen]);
 
+  // Close AI panel on tab change
+  useEffect(() => { setShowAI(false); }, [activeTab]);
+
   const unreadCount = liveNotifications.filter(n => !readIds.includes(n.id)).length;
 
   const handleOpenNotifications = () => {
@@ -147,12 +154,10 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'ai',          label: 'Asistente IA',           icon: <Sparkles size={18} /> },
     { id: 'effects',     label: 'Efectos Visuales',       icon: <Zap size={18} /> },
     { id: 'settings',    label: 'Ajustes Visuales',       icon: <Settings size={18} /> },
-    { id: 'seed',        label: 'Datos de Prueba',        icon: <Zap size={18} /> },
-    { id: 'clean',       label: 'Limpiar Datos',          icon: <X size={18} /> },
   ];
 
   const menuItems = allMenuItems.filter(item =>
-    item.id === 'settings' || item.id === 'seed' || item.id === 'clean' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
+    item.id === 'settings' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
   );
 
   const activeItem = menuItems.find(m => m.id === activeTab);
@@ -326,6 +331,16 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             <HelpCircle size={15} />
           </button>
 
+          {/* Theme toggle */}
+          <button
+            onClick={toggleTheme}
+            className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+            title={theme === 'dark' ? 'Modo día' : 'Modo noche'}
+            aria-label="Cambiar modo día/noche"
+          >
+            {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+
           <TopBarClock />
 
           {/* Notifications */}
@@ -363,6 +378,24 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                 </motion.div>
               )}
             </AnimatePresence>
+          </div>
+
+          {/* AI Assistant */}
+          <div className="relative">
+            <button
+              onClick={() => setShowAI(v => !v)}
+              className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+              title="Asistente IA"
+              aria-label="Abrir asistente IA"
+            >
+              {showAI ? <X size={15} /> : <Sparkles size={15} className="text-purple-500" />}
+            </button>
+            <AIFloatingButton
+              variant="inline"
+              open={showAI}
+              onOpenChange={setShowAI}
+              setActiveTab={setActiveTab}
+            />
           </div>
 
           {/* Avatar */}
@@ -440,8 +473,6 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
       </footer>
 
-      {/* AI Floating Button — visible en todos los módulos excepto el propio módulo IA */}
-      {activeTab !== 'ai' && <AIFloatingButton setActiveTab={setActiveTab} />}
     </div>
   );
 }
