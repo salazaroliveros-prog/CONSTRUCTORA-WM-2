@@ -9,12 +9,14 @@ import {
   Monitor,
   Smartphone,
   Layers,
-  Check
+  Check,
+  Sparkles,
+  Key
 } from 'lucide-react';
 import { motion } from 'motion/react';
-import { useSettings, ThemeMode, GraphType, CardStyle, TransitionSpeed, TypographyStyle, Currency, ALL_MODULES } from '../contexts/SettingsContext';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useSettings, ThemeMode, GraphType, CardStyle, TransitionSpeed, TypographyStyle, Currency, ALL_MODULES } from '../contexts/SettingsContext';
 import FirestoreTest from './FirestoreTest';
 
 function cn(...inputs: ClassValue[]) {
@@ -292,6 +294,51 @@ export default function Settings() {
               ))}
             </div>
             <p className="text-[8px] text-slate-400 uppercase tracking-widest mt-3">Quetzal (Q) · Dólar ($) · Euro (€) · Libra (£)</p>
+          </div>
+        </section>
+
+        {/* Agente IA */}
+        <section className="md:col-span-2 space-y-4">
+          <div className="flex items-center gap-2">
+            <Sparkles size={18} className="text-secondary" />
+            <h3 className="text-xs font-black text-primary uppercase tracking-widest">Agente IA</h3>
+          </div>
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 space-y-5">
+            <div>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-3">Modelo Gemini</label>
+              <select
+                value={settings.aiModel}
+                onChange={e => updateSettings({ aiModel: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl text-[12px] font-bold text-primary border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
+              >
+                <option value="gemini-2.5-flash">Gemini 2.5 Flash — rápido y eficiente (actual)</option>
+                <option value="gemini-2.5-pro">Gemini 2.5 Pro — máxima calidad, análisis profundos</option>
+                <option value="gemini-2.0-flash">Gemini 2.0 Flash — estable y probado</option>
+                <option value="gemini-2.0-flash-lite">Gemini 2.0 Flash Lite — más rápido, menor costo</option>
+                <option value="gemini-1.5-pro">Gemini 1.5 Pro — calidad probada</option>
+                <option value="gemini-1.5-flash">Gemini 1.5 Flash — rápido y económico</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-3">
+                <div className="flex items-center gap-2">
+                  <Key size={12} />
+                  API Key de Gemini
+                </div>
+              </label>
+              <input
+                type="password"
+                value={settings.aiApiKey}
+                onChange={e => updateSettings({ aiApiKey: e.target.value })}
+                placeholder="AIzaSy..."
+                className="w-full px-4 py-3 rounded-xl text-[12px] text-primary border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 placeholder:text-slate-300 font-mono"
+              />
+              <p className="text-[8px] text-slate-400 mt-2 leading-relaxed">
+                Déjalo vacío para usar la variable de entorno <strong className="text-purple-600">GEMINI_API_KEY</strong> del servidor.
+                Si ingresas una clave aquí, sobrescribirá la del servidor para este navegador.
+                Obtén tu clave en <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-purple-600 underline">Google AI Studio</a>
+              </p>
+            </div>
           </div>
         </section>
 

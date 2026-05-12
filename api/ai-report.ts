@@ -99,14 +99,19 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(500).json({ error: 'GEMINI_API_KEY no está configurada' });
   }
 
-  const { messages, context } = req.body ?? {};
+  const { messages, context, modelName: clientModel, apiKey: clientKey } = req.body ?? {};
   const safeMessages = normalizeMessages(messages);
   if (safeMessages.length === 0) {
     return res.status(400).json({ error: 'No hay mensajes válidos para procesar' });
   }
 
+  const effectiveKey = clientKey || process.env.GEMINI_API_KEY;
+  if (!effectiveKey) {
+    return res.status(500).json({ error: 'No hay API Key de Gemini configurada. Configúrala en Ajustes → Agente IA' });
+  }
+
   const google = createGoogleGenerativeAI({
-    apiKey: process.env.GEMINI_API_KEY,
+    apiKey: effectiveKey,
   });
 
   const systemPrompt = `Eres el asistente de inteligencia artificial del Sistema ERP Constructora WM.
@@ -123,7 +128,7 @@ INSTRUCCIONES:
 - Sé conciso pero completo`;
 
   try {
-    const modelName = 'gemini-2.0-flash';
+    const modelName = clientModel || 'gemini-2.5-flash';
     const model = google(modelName);
     const result = await streamText({
       model,

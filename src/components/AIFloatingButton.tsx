@@ -193,15 +193,26 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
          }
        };
 
-       const res = await fetch('/api/ai-report', {
-         method: 'POST',
-         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-         signal: abortRef.current.signal,
-         body: JSON.stringify({
-           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
-           context: enhancedContext,
-         }),
-       });
+        // Read AI settings from localStorage (set in Settings → Agente IA)
+        let aiModel = 'gemini-2.5-flash';
+        let aiApiKey = '';
+        try {
+          const stored = JSON.parse(localStorage.getItem('app-visual-settings') || '{}');
+          aiModel = stored.aiModel || aiModel;
+          aiApiKey = stored.aiApiKey || '';
+        } catch {}
+
+        const res = await fetch('/api/ai-report', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+          signal: abortRef.current.signal,
+          body: JSON.stringify({
+            messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
+            context: enhancedContext,
+            modelName: aiModel,
+            apiKey: aiApiKey,
+          }),
+        });
 
        if (!res.ok) throw new Error(`Error ${res.status}`);
        const reader = res.body!.getReader();

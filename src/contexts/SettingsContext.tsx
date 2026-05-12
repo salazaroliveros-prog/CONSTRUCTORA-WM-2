@@ -21,6 +21,8 @@ interface AppSettings {
   companyLogo: string;
   currency: Currency;
   activeModules: string[];
+  aiModel: string;
+  aiApiKey: string;
 }
 
 const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','seguimiento','gantt','suppliers','inventory','analytics','staff','settings'];
@@ -39,6 +41,8 @@ const defaultSettings: AppSettings = {
   companyLogo: '/logo.webp',
   currency: 'Q',
   activeModules: ALL_MODULES,
+  aiModel: 'gemini-2.5-flash',
+  aiApiKey: '',
 };
 
 export { ALL_MODULES };

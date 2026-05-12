@@ -124,6 +124,15 @@ export default function AIAssistant() {
       const token = await user?.getIdToken();
       if (!token) throw new Error('Sesión no válida');
 
+      // Read AI settings from localStorage (set in Settings → Agente IA)
+      let aiModel = 'gemini-2.5-flash';
+      let aiApiKey = '';
+      try {
+        const stored = JSON.parse(localStorage.getItem('app-visual-settings') || '{}');
+        aiModel = stored.aiModel || aiModel;
+        aiApiKey = stored.aiApiKey || '';
+      } catch {}
+
       const res = await fetch('/api/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -131,6 +140,8 @@ export default function AIAssistant() {
         body: JSON.stringify({
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           context,
+          modelName: aiModel,
+          apiKey: aiApiKey,
         }),
       });
 
