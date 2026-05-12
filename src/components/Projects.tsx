@@ -60,7 +60,7 @@ function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-[120px]">
-      {label && <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>}
+      {label && <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
           <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
@@ -840,7 +840,7 @@ export default function ProjectsModule() {
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-2 h-2 rounded-full ${col.dot}`} />
                   <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">{col.label}</span>
-                  <span className="ml-auto text-[8px] font-black bg-white rounded-full px-2 py-0.5 text-slate-500">{filteredProjects.filter(p => p.status === col.id).length}</span>
+                   <span className="ml-auto text-[8px] font-black bg-white rounded-full px-2 py-0.5 text-slate-700">{filteredProjects.filter(p => p.status === col.id).length}</span>
                 </div>
                 {filteredProjects.filter(p => p.status === col.id).map((p, ki) => (
                   <motion.div
@@ -852,7 +852,7 @@ export default function ProjectsModule() {
                     className="bg-white rounded-xl p-3 shadow-sm border border-white hover:border-secondary cursor-pointer transition-all space-y-2"
                   >
                     <p className="text-[10px] font-black text-primary uppercase leading-tight">{p.name}</p>
-                    <p className="text-[8px] text-slate-400 font-bold uppercase">{p.clientName}</p>
+                     <p className="text-[8px] text-slate-600 font-bold uppercase">{p.clientName}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[8px] font-black text-secondary">Q {(p.budget || 0).toLocaleString()}</span>
                       <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">

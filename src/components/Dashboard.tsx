@@ -87,7 +87,7 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
           <span className="text-[8px] font-black" style={{ color }}>{value}%</span>
         </div>
       </div>
-      <span className="text-[6px] font-black text-slate-400 uppercase tracking-wide leading-none">{label}</span>
+       <span className="text-[6px] font-black text-slate-600 uppercase tracking-wide leading-none">{label}</span>
     </div>
   );
 }
@@ -134,7 +134,7 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
           {Math.round(value)}%
         </text>
       </svg>
-      <span className="text-[7px] font-black text-slate-500 uppercase tracking-widest -mt-1">{label}</span>
+       <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest -mt-1">{label}</span>
     </div>
   );
 }
@@ -256,7 +256,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
         )}
       </div>
 
-      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">{kpi.label}</p>
+      <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">{kpi.label}</p>
       <p className="text-base font-black text-primary leading-none">
         <AnimatedKpi value={kpi.value} currency={kpi.currency} />
       </p>
@@ -266,7 +266,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
         <div className="mt-1.5 h-6 w-full opacity-60">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={kpi.spark} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-              <Line type="monotone" dataKey="v" stroke={kpi.sparkColor || '#94a3b8'} strokeWidth={1.2} dot={false} isAnimationActive={true} />
+              <Line type="monotone" dataKey="v" stroke={kpi.sparkColor || 'color: var(--text-secondary)'} strokeWidth={1.2} dot={false} isAnimationActive={true} />
             </LineChart>
           </ResponsiveContainer>
         </div>

@@ -39,14 +39,14 @@ export default function Pagination({
   if (compact) {
     return (
       <div className={cn("flex items-center justify-between gap-2", className)}>
-        <div className="text-[8px] font-black text-slate-400 uppercase tracking-tight">
+        <div className="text-[8px] font-black text-slate-600 uppercase tracking-tight">
           {startIndex + 1}-{endIndex} / {totalItems}
         </div>
         <div className="flex items-center gap-1">
           <button
             onClick={onPrev}
             disabled={currentPage === 1}
-            className="p-1 rounded-md border border-slate-100 bg-white text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-md border border-slate-100 dark:border-slate-200 bg-white dark:bg-slate-900/80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronLeft size={12} />
           </button>
@@ -54,7 +54,7 @@ export default function Pagination({
           <button
             onClick={onNext}
             disabled={currentPage === totalPages}
-            className="p-1 rounded-md border border-slate-100 bg-white text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-md border border-slate-100 dark:border-slate-200 bg-white dark:bg-slate-900/80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronRight size={12} />
           </button>
@@ -64,8 +64,8 @@ export default function Pagination({
   }
 
   return (
-    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100", className)}>
-      <div className="text-[9px] font-black text-slate-400 uppercase tracking-widest">
+    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-slate-200", className)}>
+      <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
         Mostrando <span className="text-secondary">{startIndex + 1}-{endIndex}</span> de <span className="text-primary">{totalItems}</span> registros
       </div>
       
@@ -73,7 +73,7 @@ export default function Pagination({
         <button
           onClick={onPrev}
           disabled={currentPage === 1}
-          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-slate-200 bg-white dark:bg-slate-900/80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <ChevronLeft size={16} />
         </button>
@@ -85,9 +85,9 @@ export default function Pagination({
               onClick={() => onPage(page)}
               className={cn(
                 "w-7 h-7 rounded-lg text-[9px] font-black transition-all",
-                currentPage === page 
-                  ? "bg-slate-900 text-white shadow-lg" 
-                  : "text-slate-400 hover:bg-slate-100"
+                 currentPage === page 
+                   ? "bg-slate-900 text-white shadow-lg" 
+                   : "text-slate-600 hover:bg-slate-100"
               )}
             >
               {page}
@@ -98,7 +98,7 @@ export default function Pagination({
         <button
           onClick={onNext}
           disabled={currentPage === totalPages}
-          className="p-1.5 rounded-lg border border-slate-200 bg-white text-slate-400 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-slate-200 bg-white dark:bg-slate-900/80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <ChevronRight size={16} />
         </button>

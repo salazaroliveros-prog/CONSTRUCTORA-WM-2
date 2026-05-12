@@ -348,7 +348,7 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
                   <div className="grid grid-cols-2 gap-1 mt-1">
                     {QUICK.map((q, i) => (
                       <button key={i} onClick={() => sendMessage(q)} disabled={loading}
-                        className="text-left px-2 py-1.5 rounded-xl text-[9px] text-slate-400 hover:text-white transition-all disabled:opacity-40"
+                         className="text-left px-2 py-1.5 rounded-xl text-[9px] text-white hover:text-white transition-all disabled:opacity-40"
                         style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)' }}>
                         {q}
                       </button>
@@ -362,8 +362,8 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
                       style={msg.role === 'assistant' ? { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' } : {}}>
                       {msg.role === 'user' ? <User size={10} className="text-white" /> : <Bot size={10} className="text-white" />}
                     </div>
-                    <div className={`max-w-[80%] rounded-lg px-2.5 py-1.5 ${msg.role === 'user' ? 'bg-slate-700 text-white rounded-tr-sm' : 'rounded-tl-sm text-slate-200'}`}
-                      style={msg.role === 'assistant' ? { background: 'rgba(255,255,255,0.07)' } : {}}>
+                     <div className={`max-w-[80%] rounded-lg px-2.5 py-1.5 ${msg.role === 'user' ? 'bg-slate-700 text-white rounded-tr-sm' : 'rounded-tl-sm text-slate-200'}`}
+                       style={msg.role === 'assistant' ? { background: 'rgba(255,255,255,0.15)' } : {}}>
                       {msg.role === 'user'
                         ? <p className="text-[11px]">{msg.content}</p>
                         : msg.content
@@ -385,8 +385,8 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
                   onChange={e => setInput(e.target.value)}
                   placeholder={listening ? '🎤 Escuchando...' : 'Escribir...'}
                   disabled={loading || listening}
-                  className="flex-1 px-2 py-2 rounded-xl text-[11px] text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-400/50 disabled:opacity-50"
-                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
+                   className="flex-1 px-2 py-2 rounded-xl text-[11xs] text-white placeholder:text-slate-300 focus:outline-none focus:ring-1 focus:ring-purple-400/50 disabled:opacity-50"
+                   style={{ background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.15)' }}
                 />
                 {/* Mic button */}
                 <button type="button"

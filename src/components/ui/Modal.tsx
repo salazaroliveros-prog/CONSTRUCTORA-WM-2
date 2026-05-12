@@ -53,51 +53,51 @@ export default function Modal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Backdrop with glassmorphism */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            onClick={onClose}
-            className="absolute inset-0"
-            style={{
-              background: 'rgba(15, 23, 42, 0.4)',
-              backdropFilter: 'blur(8px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(8px) saturate(180%)',
-            }}
-          />
-          
-          {/* Modal Content */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, y: 24, filter: 'blur(10px)' }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              y: 0,
-              filter: 'blur(0px)',
-            }}
-            exit={{
-              opacity: 0,
-              scale: 0.92,
-              y: 24,
-              filter: 'blur(10px)',
-            }}
-            transition={{
-              type: 'spring',
-              stiffness: 320,
-              damping: 28,
-              mass: 0.9,
-            }}
-            className={`relative w-full ${sizeClasses[size]} ${
-              glassEffect
-                ? 'bg-white/70 backdrop-blur-2xl border border-white/40 shadow-2xl'
-                : 'bg-white rounded-3xl shadow-2xl border border-slate-100'
-            }`}
-            style={{
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.1) inset',
-            }}
-          >
+{/* Backdrop with glassmorphism */}
+           <motion.div
+             initial={{ opacity: 0 }}
+             animate={{ opacity: 1 }}
+             exit={{ opacity: 0 }}
+             transition={{ duration: 0.2 }}
+             onClick={onClose}
+             className="absolute inset-0"
+             style={{
+               background: 'rgba(15, 23, 42, 0.6)',
+               backdropFilter: 'blur(8px) saturate(180%)',
+               WebkitBackdropFilter: 'blur(8px) saturate(180%)',
+             }}
+           />
+
+           {/* Modal Content */}
+           <motion.div
+             initial={{ opacity: 0, scale: 0.92, y: 24, filter: 'blur(10px)' }}
+             animate={{
+               opacity: 1,
+               scale: 1,
+               y: 0,
+               filter: 'blur(0px)',
+             }}
+             exit={{
+               opacity: 0,
+               scale: 0.92,
+               y: 24,
+               filter: 'blur(10px)',
+             }}
+             transition={{
+               type: 'spring',
+               stiffness: 320,
+               damping: 28,
+               mass: 0.9,
+             }}
+             className={`relative w-full ${sizeClasses[size]} ${
+               glassEffect
+                 ? 'bg-white/70 backdrop-blur-2xl border border-white/40 shadow-2xl dark:bg-slate-900/80 dark:border-white/10'
+                 : 'bg-white rounded-3xl shadow-2xl border border-slate-100 dark:bg-slate-900 dark:border-slate-700'
+             }`}
+             style={{
+               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.1) inset',
+             }}
+           >
             {/* Decorative gradient orb */}
             <div
               className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-30 pointer-events-none"
@@ -107,14 +107,14 @@ export default function Modal({
               }}
             />
             
-            {/* Header */}
-            <div
-              className={`px-6 py-5 flex items-center justify-between ${
-                glassEffect
-                  ? 'bg-gradient-to-r from-white/60 to-white/30 border-b border-white/20'
-                  : 'border-b border-slate-50'
-              }`}
-            >
+{/* Header */}
+             <div
+               className={`px-6 py-5 flex items-center justify-between ${
+                 glassEffect
+                   ? 'bg-gradient-to-r from-white/60 to-white/30 border-b border-white/20 dark:from-slate-800/60 dark:to-slate-800/30 dark:border-white/10'
+                   : 'border-b border-slate-50 dark:border-slate-700'
+               }`}
+             >
               <div className="flex items-center gap-3">
                 {/* Accent bar */}
                 <div className="w-1 h-5 bg-secondary rounded-full" />

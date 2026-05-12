@@ -156,9 +156,12 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'settings',    label: 'Ajustes Visuales',       icon: <Settings size={18} /> },
   ];
 
-  const menuItems = allMenuItems.filter(item =>
-    item.id === 'settings' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
-  );
+const menuItems = allMenuItems.filter(item =>
+     item.id === 'settings' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
+   );
+
+   // Resolve the CSS var to an actual color string for dark mode
+   const resolvedPrimary = theme === 'dark' ? '#f1f5f9' : settings.primaryColor;
 
   const activeItem = menuItems.find(m => m.id === activeTab);
 
@@ -173,8 +176,10 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       )}
       style={{ '--primary': settings.primaryColor, '--secondary': settings.secondaryColor } as any}
     >
-      {/* ── Topbar ─────────────────────────────────────────────── */}
-      <header className="h-14 bg-white/80 backdrop-blur-md border-b border-slate-200 px-3 sm:px-5 flex items-center gap-2 z-30 shrink-0">
+{/* ── Topbar ─────────────────────────────────────────────── */}
+       <header className={cn("h-14 backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center gap-2 z-30 shrink-0 transition-colors",
+         theme === 'dark' ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/80 border-slate-200'
+       )}>
 
         {/* Menu trigger + active module label */}
         <div className="flex items-center gap-2 shrink-0" ref={menuRef}>
@@ -190,7 +195,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           {/* Active module chip */}
           <button
             onClick={() => setMenuOpen(v => !v)}
-            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-600 hover:border-secondary transition-all"
+            className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300 hover:border-secondary transition-all"
             aria-label="Abrir o cerrar menú"
           >
             {activeItem?.icon}
@@ -198,35 +203,35 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             <ChevronDown size={10} className={cn("transition-transform", menuOpen && "rotate-180")} />
           </button>
 
-          {/* Floating menu overlay */}
-          <AnimatePresence>
-            {menuOpen && (
-              <>
-                {/* Backdrop */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.18 }}
-                  className="fixed inset-0 z-40"
-                  style={{ background: 'rgba(15,23,42,0.15)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
-                  onClick={() => setMenuOpen(false)}
-                />
-                {/* Menu panel */}
-                <motion.div
-                  initial={{ opacity: 0, y: -12, scale: 0.95, filter: 'blur(8px)' }}
-                  animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: -8, scale: 0.96, filter: 'blur(6px)' }}
-                  transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
-                  className="absolute top-12 left-0 z-50 w-64 rounded-2xl p-2 overflow-hidden"
-                  style={{
-                    background: 'rgba(255,255,255,0.72)',
-                    backdropFilter: 'blur(24px) saturate(200%)',
-                    WebkitBackdropFilter: 'blur(24px) saturate(200%)',
-                    border: '1px solid rgba(255,255,255,0.55)',
-                    boxShadow: '0 20px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.8)'
-                  }}
-                >
+{/* Floating menu overlay */}
+           <AnimatePresence>
+             {menuOpen && (
+               <>
+                 {/* Backdrop */}
+                 <motion.div
+                   initial={{ opacity: 0 }}
+                   animate={{ opacity: 1 }}
+                   exit={{ opacity: 0 }}
+                   transition={{ duration: 0.18 }}
+                   className="fixed inset-0 z-40"
+                   style={{ background: 'rgba(15,23,42,0.2)', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }}
+                   onClick={() => setMenuOpen(false)}
+                 />
+                 {/* Menu panel */}
+                 <motion.div
+                   initial={{ opacity: 0, y: -12, scale: 0.95, filter: 'blur(8px)' }}
+                   animate={{ opacity: 1, y: 0, scale: 1, filter: 'blur(0px)' }}
+                   exit={{ opacity: 0, y: -8, scale: 0.96, filter: 'blur(6px)' }}
+                   transition={{ duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] }}
+                   className="absolute top-12 left-0 z-50 w-64 rounded-2xl p-2 overflow-hidden"
+                   style={{
+                     background: 'rgba(255,255,255,0.72)',
+                     backdropFilter: 'blur(24px) saturate(200%)',
+                     WebkitBackdropFilter: 'blur(24px) saturate(200%)',
+                     border: '1px solid rgba(255,255,255,0.55)',
+                     boxShadow: '0 20px 60px rgba(15,23,42,0.18), 0 4px 16px rgba(15,23,42,0.10), inset 0 1px 0 rgba(255,255,255,0.8)'
+                   }}
+                 >
                   {/* Logo */}
                   <div className="px-3 py-2 mb-1 border-b border-white/50">
                     <Logo avatarUrl={user?.photoURL} />
@@ -266,17 +271,21 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           </AnimatePresence>
         </div>
 
-        {/* Global search */}
-        <div className="hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-slate-400 w-52 relative group transition-all focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10">
-          <Search size={14} className="shrink-0 group-focus-within:text-secondary" />
-          <input
-            type="text"
-            placeholder="Buscar..."
-            value={globalSearch}
-            onChange={e => setGlobalSearch(e.target.value)}
-            onBlur={() => setTimeout(() => setGlobalSearch(''), 200)}
-            className="bg-transparent border-none focus:outline-none text-[9px] font-black w-full uppercase tracking-widest placeholder:text-slate-300"
-          />
+{/* Global search */}
+          <div className={cn("hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-slate-700 w-52 relative group transition-all focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10",
+            theme === 'dark' && 'dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300'
+          )}>
+           <Search size={14} className={cn("shrink-0 group-focus-within:text-secondary", theme === 'dark' && 'dark:text-slate-400')} />
+           <input
+             type="text"
+             placeholder="Buscar..."
+             value={globalSearch}
+             onChange={e => setGlobalSearch(e.target.value)}
+             onBlur={() => setTimeout(() => setGlobalSearch(''), 200)}
+             className={cn("bg-transparent border-none focus:outline-none text-[9px] font-black w-full uppercase tracking-widest placeholder:text-slate-300",
+               theme === 'dark' && 'placeholder:text-slate-500 text-slate-200'
+             )}
+           />
           {globalResults.length > 0 && (
             <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-50 overflow-hidden">
               {globalResults.map((r, i) => (
@@ -316,14 +325,14 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto md:ml-0">
           <button
             onClick={toggleFullScreen}
-            className="hidden sm:flex p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+            className="hidden sm:flex p-2 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
             title="Pantalla completa"
             aria-label="Activar o desactivar pantalla completa"
           >
             <Maximize size={15} />
           </button>
           <button
-            className="hidden sm:flex p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+            className="hidden sm:flex p-2 text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
             title="Ayuda"
             aria-label="Abrir ayuda"
             type="button"
@@ -343,34 +352,45 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
           <TopBarClock />
 
-          {/* Notifications */}
-          <div className="relative">
-            <button onClick={handleOpenNotifications} className="relative p-2 bg-slate-50 text-slate-500 hover:text-primary rounded-xl border border-slate-100 transition-all">
-              <Bell size={16} className="hover:rotate-12 transition-transform" />
-              {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-secondary border-2 border-white rounded-full animate-pulse" />}
-            </button>
+{/* Notifications */}
+           <div className="relative">
+             <button onClick={handleOpenNotifications} className={cn(
+               "relative p-2 rounded-xl border transition-all",
+               theme === 'dark'
+                 ? 'bg-slate-800 text-slate-300 hover:text-primary border-slate-700'
+                 : 'bg-slate-50 text-slate-700 hover:text-primary border-slate-100'
+             )}>
+               <Bell size={16} className="hover:rotate-12 transition-transform" />
+               {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-secondary border-2 border-white rounded-full animate-pulse" />}
+             </button>
             <AnimatePresence>
               {showNotifications && (
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.95 }}
-                  className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl p-4 z-50"
-                >
-                  <div className="flex justify-between items-center mb-3">
-                    <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Notificaciones</span>
-                    <span className="text-[8px] font-bold text-slate-300 uppercase">Todo leído</span>
-                  </div>
-                  <div className="space-y-3">
-                    {liveNotifications.length === 0 ? (
-                      <p className="text-[9px] text-slate-400 uppercase tracking-widest text-center py-3">Sin alertas activas</p>
-                    ) : liveNotifications.map(n => (
-                      <div key={n.id} onClick={() => { setActiveTab(n.module); setShowNotifications(false); }}
-                        className="flex gap-3 cursor-pointer p-1.5 -m-1.5 rounded-xl hover:bg-slate-50 transition-colors">
+className={cn(
+                     "absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-50 border",
+                     theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'
+                   )}
+                 >
+                   <div className="flex justify-between items-center mb-3">
+                     <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-600 dark:text-slate-300">Notificaciones</span>
+                     <span className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Todo leído</span>
+                   </div>
+<div className={cn("space-y-3",
+                       theme === 'dark' ? 'text-slate-300' : '')}>
+                      {liveNotifications.length === 0 ? (
+                        <p className={cn("text-[9px] uppercase tracking-widest text-center py-3",
+                          theme === 'dark' ? 'text-slate-400' : 'text-slate-600 dark:text-slate-300')}>Sin alertas activas</p>
+                      ) : liveNotifications.map(n => (
+                       <div key={n.id} onClick={() => { setActiveTab(n.module); setShowNotifications(false); }}
+                         className={cn("flex gap-3 cursor-pointer p-1.5 -m-1.5 rounded-xl transition-colors",
+                           theme === 'dark' ? 'hover:bg-slate-700' : 'hover:bg-slate-50')}>
                         <div className={cn("w-1 rounded-full shrink-0", n.type === 'error' ? "bg-red-500" : n.type === 'warning' ? "bg-amber-500" : "bg-blue-500")} />
                         <div className="min-w-0">
                           <p className="text-[10px] font-black text-primary leading-tight line-clamp-2">{n.text}</p>
-                          <p className="text-[8px] text-slate-400 font-bold uppercase mt-0.5 tracking-widest">Toca para ir al módulo</p>
+                           <p className="text-[8px] text-slate-600 dark:text-slate-300 font-bold uppercase mt-0.5 tracking-widest">Toca para ir al módulo</p>
                         </div>
                       </div>
                     ))}
@@ -380,11 +400,15 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             </AnimatePresence>
           </div>
 
-          {/* AI Assistant */}
-          <div className="relative">
-            <button
-              onClick={() => setShowAI(v => !v)}
-              className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
+{/* AI Assistant */}
+           <div className="relative">
+             <button
+               onClick={() => setShowAI(v => !v)}
+             className={cn("p-2 rounded-xl transition-all",
+               theme === 'dark'
+                 ? 'text-slate-400 hover:text-primary hover:bg-slate-700'
+                 : 'text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50'
+             )}
               title="Asistente IA"
               aria-label="Abrir asistente IA"
             >
@@ -402,7 +426,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
           <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
             <div className="hidden sm:block text-right">
               <p className="text-[9px] font-black text-primary uppercase leading-none truncate max-w-[90px]">{user?.displayName || 'Usuario'}</p>
-              <p className="text-[7px] font-bold text-slate-400 mt-0.5 tracking-widest uppercase">Admin</p>
+               <p className="text-[7px] font-bold text-slate-600 dark:text-slate-300 mt-0.5 tracking-widest uppercase">Admin</p>
             </div>
             <div className="w-8 h-8 rounded-xl shadow-lg border-2 border-white ring-1 ring-slate-200 overflow-hidden bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer active:scale-95 transition-transform">
               {user?.photoURL
@@ -423,55 +447,65 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         </div>
       </main>
 
-      {/* ── Mobile Bottom Navigation ─────────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 md:hidden bg-white/95 backdrop-blur-xl border-t border-slate-200 z-50 safe-area-pb">
-        <div className="flex justify-around items-center h-16 px-2">
-          {[
-            { id: 'dashboard', label: 'Inicio', icon: <LayoutDashboard size={20} /> },
-            { id: 'projects', label: 'Proyectos', icon: <Building2 size={20} /> },
-            { id: 'calculator', label: 'Presupuesto', icon: <Calculator size={20} /> },
-            { id: 'inventory', label: 'Stock', icon: <Package size={20} /> },
-            { id: 'analytics', label: 'Analisis', icon: <BarChart3 size={20} /> },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveTab(item.id)}
-              className={cn(
-                "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all active:scale-95",
-                activeTab === item.id 
-                  ? "text-secondary bg-secondary/10" 
-                  : "text-slate-400 hover:text-slate-600"
-              )}
-            >
+{/* ── Mobile Bottom Navigation ─────────────────────────── */}
+       <nav className={cn("fixed bottom-0 left-0 right-0 md:hidden z-50 safe-area-pb transition-colors",
+         theme === 'dark'
+           ? 'bg-slate-900/95 border-t border-slate-700'
+           : 'bg-white/95 backdrop-blur-xl border-t border-slate-200'
+       )}>
+         <div className="flex justify-around items-center h-16 px-2">
+{[
+             { id: 'dashboard', label: 'Inicio', icon: <LayoutDashboard size={20} /> },
+             { id: 'projects', label: 'Proyectos', icon: <Building2 size={20} /> },
+             { id: 'calculator', label: 'Presupuesto', icon: <Calculator size={20} /> },
+             { id: 'inventory', label: 'Stock', icon: <Package size={20} /> },
+             { id: 'analytics', label: 'Analisis', icon: <BarChart3 size={20} /> },
+           ].map((item) => (
+             <button
+               key={item.id}
+               onClick={() => setActiveTab(item.id)}
+               className={cn(
+                 "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all active:scale-95",
+                  activeTab === item.id
+                    ? "text-secondary bg-secondary/10"
+                    : theme === 'dark'
+                      ? "text-slate-300 hover:text-slate-100"
+                      : "text-slate-600 dark:text-slate-300 hover:text-slate-900"
+               )}
+             >
               <span className={cn(
                 "transition-transform",
                 activeTab === item.id && "scale-110"
               )}>
                 {item.icon}
               </span>
-              <span className={cn(
-                "text-[8px] font-black uppercase tracking-wide",
-                activeTab === item.id ? "text-secondary" : "text-slate-400"
-              )}>
+               <span className={cn(
+                 "text-[8px] font-black uppercase tracking-wide",
+                 activeTab === item.id ? "text-secondary" : "text-slate-600 dark:text-slate-300"
+               )}>
                 {item.label}
               </span>
-              {activeTab === item.id && (
-                <motion.div
-                  layoutId="mobileNav"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-secondary"
-                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                />
-              )}
-            </button>
-          ))}
-        </div>
-      </nav>
+{activeTab === item.id && (
+                 <motion.div
+                   layoutId="mobileNav"
+                   className="absolute bottom-1 w-1 h-1 rounded-full bg-secondary"
+                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                 />
+               )}
+             </button>
+           ))}
+         </div>
+       </nav>
 
-      {/* ── Footer (Desktop only) ─────────────────────────────── */}
-      <footer className="hidden md:flex h-7 bg-white text-slate-400 text-[7px] font-bold items-center justify-between px-4 border-t border-slate-100 uppercase tracking-widest shrink-0">
-        <span>© 2024 WM/M&S CONSTRUCTORA · Motor V2.4.1 PRO</span>
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
-      </footer>
+       {/* ── Footer (Desktop only) ─────────────────────────────── */}
+       <footer className={cn("hidden md:flex h-7 items-center justify-between px-4 uppercase tracking-widest shrink-0 transition-colors",
+         theme === 'dark'
+           ? 'bg-slate-900/80 border-t border-slate-700/50 text-slate-400'
+           : 'bg-white text-slate-600 dark:text-slate-300 border-t border-slate-100'
+       )}>
+         <span>© 2024 WM/M&S CONSTRUCTORA · Motor V2.4.1 PRO</span>
+         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
+       </footer>
 
     </div>
   );
