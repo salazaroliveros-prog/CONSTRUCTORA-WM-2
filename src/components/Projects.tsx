@@ -36,7 +36,7 @@ import {
 } from 'lucide-react';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell, LineChart, Line, Area, AreaChart, ReferenceLine } from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
-import { Typology, Project, StaffMember, Client } from '../constants';
+import { Typology, Project, StaffMember, Client, Transaction } from '../constants';
 import { calcRealDuration } from '../lib/ganttCPM';
 import ProjectWizard from './ProjectWizard';
 import Modal from './ui/Modal';
@@ -139,7 +139,7 @@ export default function ProjectsModule() {
   const [updatingProgress, setUpdatingProgress] = useState(false);
   const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
   const [allClients, setAllClients] = useState<Client[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<string | null>(null); // item.id being edited
   const [itemEditForm, setItemEditForm] = useState<any>({});

@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { subscribeToCollection } from '../services/firestoreService';
+import { Transaction } from '../constants';
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -50,7 +51,7 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
 
 export default function Seguimiento() {
   const [projects, setProjects] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
   const [selectedId, setSelectedId] = useState<string>('ALL');
 

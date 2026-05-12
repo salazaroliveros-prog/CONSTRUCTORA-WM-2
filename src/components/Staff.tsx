@@ -19,6 +19,7 @@ import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
 import Modal from './ui/Modal';
 import { toast } from 'sonner';
+import { Payroll, PayrollEmployee, Transaction } from '../constants';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
 
@@ -92,6 +93,16 @@ export default function StaffModule() {
   const [filterStatus, setFilterStatus] = useState<string>('Todos');
   const [filterProject, setFilterProject] = useState<string>('');
 
+  // Payroll state
+  const [activeStaffTab, setActiveStaffTab] = useState<'personal' | 'planillas'>('personal');
+  const [payrolls, setPayrolls] = useState<Payroll[]>([]);
+  const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
+  const [payrollForm, setPayrollForm] = useState<{ projectId: string; period: string; type: 'CAMPO' | 'ADMINISTRATIVO'; employees: PayrollEmployee[]; notes: string }>({
+    projectId: '', period: new Date().toISOString().slice(0, 7), type: 'CAMPO', employees: [], notes: ''
+  });
+  const [savingPayroll, setSavingPayroll] = useState(false);
+  const [selectedPayroll, setSelectedPayroll] = useState<Payroll | null>(null);
+
   const cardPageSize = useAutoPageSize(140, 280, 4);
   const tablePageSize = useAutoPageSize(44, 220, 6);
   const pageSize = viewMode === 'table' ? tablePageSize : cardPageSize;
@@ -99,7 +110,8 @@ export default function StaffModule() {
   useEffect(() => {
     const unsub1 = subscribeToCollection('staff', (data) => { setStaff(data); setLoading(false); });
     const unsub2 = subscribeToCollection('projects', (data) => setProjects(data));
-    return () => { unsub1(); unsub2(); };
+    const unsub3 = subscribeToCollection('payrolls', (data) => setPayrolls(data));
+    return () => { unsub1(); unsub2(); unsub3(); };
   }, []);
 
   const handleDelete = (id: string) => {
@@ -147,7 +159,106 @@ export default function StaffModule() {
     });
   };
 
-  // Asignar/desasignar personal a proyecto
+  // ── Planillas ─────────────────────────────────────────────────────────────
+  const calcPayrollEmployees = (projectId: string, type: 'CAMPO' | 'ADMINISTRATIVO') => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return [];
+    const memberIds = project.teamIds || [];
+    const projectStaff = staff.filter(s => memberIds.includes(s.id) && (s.status || 'Activo') === 'Activo');
+    return projectStaff.map(s => {
+      const baseSalary = Number(s.salary || 0);
+      const daysInMonth = 30;
+      const dailySalary = baseSalary / daysInMonth;
+      const daysWorked = daysInMonth;
+      const grossPay = dailySalary * daysWorked;
+      const igss = grossPay * 0.0483;
+      const irtra = grossPay * 0.01;
+      const intecap = grossPay * 0.01;
+      const deductions = igss + irtra + intecap;
+      const bonuses = 0;
+      const netPay = grossPay - deductions + bonuses;
+      return {
+        staffId: s.id,
+        name: s.name,
+        role: s.role,
+        baseSalary,
+        daysWorked,
+        dailySalary: Math.round(dailySalary * 100) / 100,
+        grossPay: Math.round(grossPay * 100) / 100,
+        igss: Math.round(igss * 100) / 100,
+        irtra: Math.round(irtra * 100) / 100,
+        intecap: Math.round(intecap * 100) / 100,
+        bonuses: 0,
+        deductions: Math.round(deductions * 100) / 100,
+        netPay: Math.round(netPay * 100) / 100,
+      };
+    });
+  };
+
+  const generatePayrollPreview = () => {
+    const emps = calcPayrollEmployees(payrollForm.projectId, payrollForm.type);
+    setPayrollForm(f => ({ ...f, employees: emps }));
+    if (emps.length === 0) toast.error('No hay personal activo asignado a este proyecto');
+    else toast.success(`Planilla precalculada: ${emps.length} empleado(s)`);
+  };
+
+  const createPayroll = async () => {
+    if (!payrollForm.projectId || payrollForm.employees.length === 0) {
+      toast.error('Selecciona un proyecto y genera la previsualización primero');
+      return;
+    }
+    setSavingPayroll(true);
+    try {
+      const totalGross = payrollForm.employees.reduce((a, e) => a + e.grossPay, 0);
+      const totalDeductions = payrollForm.employees.reduce((a, e) => a + e.deductions, 0);
+      const totalBonuses = payrollForm.employees.reduce((a, e) => a + e.bonuses, 0);
+      const totalNet = payrollForm.employees.reduce((a, e) => a + e.netPay, 0);
+      const project = projects.find(p => p.id === payrollForm.projectId);
+      await addDocument('payrolls', {
+        projectId: payrollForm.projectId,
+        projectName: project?.name || '',
+        period: payrollForm.period,
+        type: payrollForm.type,
+        employees: payrollForm.employees,
+        totalGross: Math.round(totalGross * 100) / 100,
+        totalDeductions: Math.round(totalDeductions * 100) / 100,
+        totalBonuses: Math.round(totalBonuses * 100) / 100,
+        totalNet: Math.round(totalNet * 100) / 100,
+        status: 'BORRADOR',
+        createdAt: new Date().toISOString(),
+        notes: payrollForm.notes,
+      });
+      toast.success('Planilla creada como BORRADOR');
+      setIsPayrollModalOpen(false);
+      setPayrollForm({ projectId: '', period: new Date().toISOString().slice(0, 7), type: 'CAMPO', employees: [], notes: '' });
+    } catch (e) {
+      toast.error('Error al crear planilla', { description: parseError(e) });
+    } finally {
+      setSavingPayroll(false);
+    }
+  };
+
+  const markPayrollAsPaid = async (payroll: Payroll) => {
+    toast('¿Marcar planilla como PAGADA?', {
+      description: `Q ${payroll.totalNet.toLocaleString('es-GT')} — Se registrará el gasto automáticamente.`,
+      action: { label: 'Pagar', onClick: async () => {
+        try {
+          await updateDocument('payrolls', payroll.id, { status: 'PAGADA', paidAt: new Date().toISOString() });
+          await addDocument('transactions', {
+            date: new Date().toISOString().split('T')[0],
+            amount: payroll.totalNet,
+            description: `Planilla ${payroll.type} — ${payroll.projectName} (${payroll.period})`,
+            type: 'GASTO',
+            category: payroll.type === 'CAMPO' ? 'Mano de Obra' : 'Personales',
+            projectId: payroll.projectId,
+            createdAt: new Date().toISOString(),
+          });
+          toast.success('Planilla pagada y gasto registrado');
+        } catch (e) { toast.error('Error', { description: parseError(e) }); }
+      }},
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
   const handleToggleProject = async (memberId: string, projectId: string) => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return;
@@ -229,62 +340,87 @@ export default function StaffModule() {
         <div className="flex items-center gap-3">
           <div className="p-2.5 bg-slate-900 text-secondary rounded-xl shrink-0"><HardHat size={18} /></div>
           <div className="text-left">
-            <h2 className="text-sm font-black text-primary tracking-widest uppercase leading-none">Recursos Humanos</h2>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{filtered.length} de {staff.length} colaboradores</p>
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-black text-primary tracking-widest uppercase leading-none">Recursos Humanos</h2>
+              <div className="flex bg-slate-100 p-0.5 rounded-lg">
+                <button type="button" onClick={() => setActiveStaffTab('personal')}
+                  className={`px-2 py-1 text-[7px] font-black uppercase rounded-md transition-all ${activeStaffTab === 'personal' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                  Personal
+                </button>
+                <button type="button" onClick={() => setActiveStaffTab('planillas')}
+                  className={`px-2 py-1 text-[7px] font-black uppercase rounded-md transition-all ${activeStaffTab === 'planillas' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                  Planillas
+                </button>
+              </div>
+            </div>
+            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">
+              {activeStaffTab === 'personal'
+                ? `${filtered.length} de ${staff.length} colaboradores`
+                : `${payrolls.length} planilla(s) registradas`}
+            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
-          {/* Filtro Rol */}
-          <select value={filterRole} onChange={e => setFilterRole(e.target.value)} title="Filtrar por cargo"
-            className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-            <option value="">TODOS LOS CARGOS</option>
-            {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-          </select>
-          {/* Filtro Estado */}
-          <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} title="Filtrar por estado"
-            className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-            <option value="Todos">TODOS</option>
-            <option value="Activo">ACTIVOS</option>
-            <option value="Inactivo">INACTIVOS</option>
-          </select>
-          {/* Filtro Proyecto */}
-          <select value={filterProject} onChange={e => setFilterProject(e.target.value)} title="Filtrar por proyecto"
-            className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-            <option value="">TODOS LOS PROYECTOS</option>
-            {projects.filter(p => p.status === 'EJECUCION').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-          </select>
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
-            <button type="button" onClick={() => setViewMode('grid')} title="Cuadrícula"
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-              <LayoutGrid size={15} />
+          {activeStaffTab === 'personal' ? (
+            <>
+              <select value={filterRole} onChange={e => setFilterRole(e.target.value)} title="Filtrar por cargo"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+                <option value="">TODOS LOS CARGOS</option>
+                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+              <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} title="Filtrar por estado"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+                <option value="Todos">TODOS</option>
+                <option value="Activo">ACTIVOS</option>
+                <option value="Inactivo">INACTIVOS</option>
+              </select>
+              <select value={filterProject} onChange={e => setFilterProject(e.target.value)} title="Filtrar por proyecto"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+                <option value="">TODOS LOS PROYECTOS</option>
+                {projects.filter(p => p.status === 'EJECUCION').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+              <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+                <button type="button" onClick={() => setViewMode('grid')} title="Cuadrícula"
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                  <LayoutGrid size={15} />
+                </button>
+                <button type="button" onClick={() => setViewMode('table')} title="Tabla"
+                  className={`p-1.5 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                  <List size={15} />
+                </button>
+              </div>
+              <div className="relative flex-1 md:w-52">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
+                <input type="text" placeholder="BUSCAR PERSONAL..." value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)} title="Buscar personal"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
+              </div>
+              <button type="button" onClick={() => exportStaffCSV(staff)} title="Exportar CSV"
+                className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-all">
+                <Download size={14} />
+              </button>
+              <button type="button" onClick={() => setIsModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shrink-0">
+                <Plus size={14} /> Nuevo
+              </button>
+            </>
+          ) : (
+            <button type="button" onClick={() => setIsPayrollModalOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shrink-0">
+              <Plus size={14} /> Nueva Planilla
             </button>
-            <button type="button" onClick={() => setViewMode('table')} title="Tabla"
-              className={`p-1.5 rounded-lg transition-all ${viewMode === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
-              <List size={15} />
-            </button>
-          </div>
-          <div className="relative flex-1 md:w-52">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={14} />
-            <input type="text" placeholder="BUSCAR PERSONAL..." value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)} title="Buscar personal"
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-          </div>
-          <button type="button" onClick={() => exportStaffCSV(staff)} title="Exportar CSV"
-            className="p-2 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-all">
-            <Download size={14} />
-          </button>
-          <button type="button" onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-1.5 px-3 py-2 bg-primary text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shrink-0">
-            <Plus size={14} /> Nuevo
-          </button>
+          )}
         </div>
       </div>
 
       {/* Main layout: list + side panel */}
       <div className="flex flex-1 min-h-0 gap-4">
-        <div className={cn("flex flex-col min-h-0 transition-all duration-300", selectedMember ? "flex-1" : "w-full")}>
-          <div className="flex-1 min-h-0 overflow-hidden">
-            {viewMode === 'grid' ? (
+        {activeStaffTab === 'personal' ? (
+          <>
+            <div className={cn("flex flex-col min-h-0 transition-all duration-300", selectedMember ? "flex-1" : "w-full")}>
+              {/* ... staff list (existing code from here to the closing of the personal tab block) ... */}
+              <div className="flex-1 min-h-0 overflow-hidden">
+                {viewMode === 'grid' ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 h-full content-start overflow-y-auto">
                 {currentItems.map((m, i) => {
                   const rc = getRoleColor(m.role);
@@ -551,6 +687,42 @@ export default function StaffModule() {
                     <p className="text-[9px] text-slate-600 bg-slate-50 rounded-lg p-2">{selectedMember.notes}</p>
                   </div>
                 )}
+                {/* Historial de Pagos */}
+                {(() => {
+                  const memberPayrolls = payrolls
+                    .filter(p => p.employees.some(e => e.staffId === selectedMember.id))
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .slice(0, 6);
+                  if (memberPayrolls.length === 0) return null;
+                  return (
+                    <div>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Historial de Pagos</p>
+                      <div className="space-y-1">
+                        {memberPayrolls.map(p => {
+                          const emp = p.employees.find(e => e.staffId === selectedMember.id);
+                          if (!emp) return null;
+                          return (
+                            <div key={p.id} className="bg-slate-50 rounded-lg p-2">
+                              <div className="flex justify-between items-center">
+                                <div>
+                                  <span className="text-[8px] font-black text-slate-700">{p.period}</span>
+                                  <span className={cn("text-[7px] font-black uppercase ml-1 px-1 py-0.5 rounded-full",
+                                    p.status === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}>
+                                    {p.status}
+                                  </span>
+                                </div>
+                                <span className="text-[9px] font-black text-primary">Q {emp.netPay.toLocaleString('es-GT')}</span>
+                              </div>
+                              <div className="text-[7px] text-slate-400 mt-0.5">
+                                {p.projectName} · {p.type} · {emp.daysWorked} días
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
               <div className="p-3 border-t border-slate-100 flex gap-2">
                 <button type="button" onClick={() => { setEditMember(selectedMember); setEditForm({ name: selectedMember.name, role: selectedMember.role, salary: String(selectedMember.salary), documentId: selectedMember.documentId, status: selectedMember.status || 'Activo', email: selectedMember.email||'', phone: selectedMember.phone||'', hireDate: selectedMember.hireDate||'', notes: selectedMember.notes||'' }); }}
@@ -565,6 +737,84 @@ export default function StaffModule() {
             </motion.div>
           )}
         </AnimatePresence>
+      </>
+    ) : (
+      <div className="w-full overflow-y-auto space-y-3">
+            {payrolls.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-16 opacity-40">
+                <DollarSign size={40} className="text-slate-300 mb-3" />
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sin planillas registradas</p>
+                <button type="button" onClick={() => setIsPayrollModalOpen(true)}
+                  className="mt-4 text-[9px] font-black text-emerald-600 border-b border-emerald-600 pb-0.5 uppercase tracking-widest">
+                  Crear Primera Planilla
+                </button>
+              </div>
+            ) : (
+              <div className="grid gap-2">
+                {payrolls.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(pay => {
+                  const statusColor = pay.status === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' : pay.status === 'BORRADOR' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600';
+                  return (
+                    <div key={pay.id}
+                      onClick={() => setSelectedPayroll(selectedPayroll?.id === pay.id ? null : pay)}
+                      className={cn("bg-white border rounded-xl p-3 hover:shadow-md transition-all cursor-pointer",
+                        selectedPayroll?.id === pay.id ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100")}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black text-primary uppercase truncate">{pay.projectName}</span>
+                            <span className={cn("text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full", statusColor)}>{pay.status}</span>
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[8px] text-slate-500 font-bold">{pay.type} · {pay.period}</span>
+                            <span className="text-[8px] text-slate-400">|</span>
+                            <span className="text-[8px] text-slate-500 font-bold">{pay.employees.length} empleado(s)</span>
+                          </div>
+                        </div>
+                        <div className="text-right shrink-0 ml-2">
+                          <p className="text-[10px] font-black text-primary">Q {pay.totalNet.toLocaleString('es-GT')}</p>
+                          <p className="text-[7px] text-slate-400">Ded: Q {pay.totalDeductions.toLocaleString('es-GT')}</p>
+                        </div>
+                      </div>
+                      {selectedPayroll?.id === pay.id && (
+                        <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
+                          <div className="max-h-40 overflow-y-auto space-y-1">
+                            {pay.employees.map((e, i) => (
+                              <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-2 py-1.5 text-[8px]">
+                                <div className="flex-1 min-w-0">
+                                  <span className="font-black text-slate-700 truncate block">{e.name}</span>
+                                  <span className="text-slate-400">{e.role}</span>
+                                </div>
+                                <div className="text-right shrink-0 ml-2">
+                                  <span className="font-black text-primary">Q {e.netPay.toLocaleString('es-GT')}</span>
+                                  <span className="text-slate-400 ml-1">(IGSS: Q {e.igss.toFixed(2)})</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center pt-1">
+                            <div className="text-[8px] text-slate-500">
+                              <span>Bruto: Q {pay.totalGross.toLocaleString('es-GT')}</span>
+                              <span className="ml-2">Bonos: Q {pay.totalBonuses.toLocaleString('es-GT')}</span>
+                              <span className="ml-2">Deducciones: Q {pay.totalDeductions.toLocaleString('es-GT')}</span>
+                            </div>
+                            <div className="flex gap-1">
+                              {pay.status === 'BORRADOR' && (
+                                <button type="button" onClick={() => markPayrollAsPaid(pay)}
+                                  className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[8px] font-black uppercase hover:bg-emerald-200 transition-all">
+                                  Marcar Pagada
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {/* Modal Crear */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Registrar Nuevo Colaborador">
@@ -689,6 +939,117 @@ export default function StaffModule() {
           </div>
           <button type="submit" className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
         </form>
+      </Modal>
+
+      {/* Modal Nueva Planilla */}
+      <Modal isOpen={isPayrollModalOpen} onClose={() => setIsPayrollModalOpen(false)} title="Nueva Planilla de Pago">
+        <div className="space-y-4 text-left">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
+              <select value={payrollForm.projectId} onChange={e => setPayrollForm(f => ({ ...f, projectId: e.target.value, employees: [] }))}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
+                <option value="">Seleccionar...</option>
+                {projects.filter(p => p.status === 'EJECUCION').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Período</label>
+              <input type="month" value={payrollForm.period} onChange={e => setPayrollForm(f => ({ ...f, period: e.target.value }))}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary" />
+            </div>
+          </div>
+          <div>
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Tipo</label>
+            <div className="flex gap-2">
+              {(['CAMPO', 'ADMINISTRATIVO'] as const).map(t => (
+                <button key={t} type="button" onClick={() => setPayrollForm(f => ({ ...f, type: t, employees: [] }))}
+                  className={cn("flex-1 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all",
+                    payrollForm.type === t
+                      ? 'bg-slate-900 text-white border-slate-900'
+                      : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50')}>
+                  {t === 'CAMPO' ? 'Personal de Campo' : 'Administrativo'}
+                </button>
+              ))}
+            </div>
+          </div>
+          {payrollForm.projectId && (
+            <div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Empleados</label>
+                <button type="button" onClick={generatePayrollPreview}
+                  className="text-[8px] font-black text-blue-600 uppercase hover:text-blue-800">
+                  {payrollForm.employees.length > 0 ? 'Recalcular' : 'Previsualizar'}
+                </button>
+              </div>
+              {payrollForm.employees.length === 0 ? (
+                <p className="text-[9px] text-slate-400 italic py-3 text-center">Selecciona proyecto, tipo y haz clic en "Previsualizar"</p>
+              ) : (
+                <div className="space-y-1 max-h-48 overflow-y-auto">
+                  {payrollForm.employees.map((e, i) => (
+                    <div key={i} className="bg-slate-50 rounded-lg p-2">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <span className="text-[9px] font-black text-slate-700">{e.name}</span>
+                          <span className="text-[7px] text-slate-400 ml-1">{e.role}</span>
+                        </div>
+                        <span className="text-[9px] font-black text-primary">Q {e.netPay.toLocaleString('es-GT')}</span>
+                      </div>
+                      <div className="flex gap-2 mt-1 text-[7px] text-slate-500">
+                        <span>Salario: Q {e.baseSalary.toLocaleString('es-GT')}</span>
+                        <span>IGSS: Q {e.igss.toFixed(2)}</span>
+                        <span>IRTRA: Q {e.irtra.toFixed(2)}</span>
+                        <span>INTECAP: Q {e.intecap.toFixed(2)}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <label className="text-[7px] text-slate-500">Días:</label>
+                        <input type="number" min={1} max={30} value={e.daysWorked}
+                          onChange={e => {
+                            const emps = [...payrollForm.employees];
+                            const days = Math.min(30, Math.max(1, +e.target.value || 1));
+                            emps[i] = { ...emps[i], daysWorked: days, grossPay: Math.round(emps[i].dailySalary * days * 100) / 100 };
+                            const gross = emps[i].grossPay;
+                            emps[i].igss = Math.round(gross * 0.0483 * 100) / 100;
+                            emps[i].irtra = Math.round(gross * 0.01 * 100) / 100;
+                            emps[i].intecap = Math.round(gross * 0.01 * 100) / 100;
+                            emps[i].deductions = Math.round((emps[i].igss + emps[i].irtra + emps[i].intecap) * 100) / 100;
+                            emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                            setPayrollForm(f => ({ ...f, employees: emps }));
+                          }}
+                          className="w-14 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[8px] font-black text-center" />
+                        <label className="text-[7px] text-slate-500 ml-2">Bono:</label>
+                        <input type="number" min={0} value={e.bonuses}
+                          onChange={e => {
+                            const emps = [...payrollForm.employees];
+                            emps[i] = { ...emps[i], bonuses: +e.target.value || 0 };
+                            emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                            setPayrollForm(f => ({ ...f, employees: emps }));
+                          }}
+                          className="w-16 bg-white border border-slate-200 rounded px-1.5 py-0.5 text-[8px] font-black text-center" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+          <div>
+            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
+            <textarea value={payrollForm.notes} onChange={e => setPayrollForm(f => ({ ...f, notes: e.target.value }))}
+              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none resize-none" rows={2} />
+          </div>
+          {payrollForm.employees.length > 0 && (
+            <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px]">
+              <span className="font-black text-slate-500">
+                Total: <span className="text-primary">Q {payrollForm.employees.reduce((a, e) => a + e.netPay, 0).toLocaleString('es-GT')}</span>
+              </span>
+              <button type="button" onClick={createPayroll} disabled={savingPayroll}
+                className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
+                {savingPayroll ? 'GUARDANDO...' : 'CREAR BORRADOR'}
+              </button>
+            </div>
+          )}
+        </div>
       </Modal>
     </div>
   );

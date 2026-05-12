@@ -30,6 +30,7 @@ import { toast } from 'sonner';
 import { subscribeToCollection, addDocument, updateDocument, getDocumentsForCollection, deleteDocument, parseError } from '../services/firestoreService';
 import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
+import { Transaction } from '../constants';
 import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
@@ -307,7 +308,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
   const { settings } = useSettings();
   const [projects, setProjects] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loaded, setLoaded] = useState({ projects: false, inventory: false, transactions: false });
   const [resetting, setResetting] = useState(false);
   const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);

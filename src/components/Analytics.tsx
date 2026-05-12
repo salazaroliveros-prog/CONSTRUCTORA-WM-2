@@ -19,7 +19,7 @@ import { motion } from 'motion/react';
 import { subscribeToCollection } from '../services/firestoreService';
 import { useCountUp } from '../hooks/useCountUp';
 import { generateProjectPDF, generateProjectCSV, PDF_TEMPLATES, CSV_TEMPLATES } from '../lib/exportUtils';
-import { Project } from '../constants';
+import { Project, Transaction } from '../constants';
 
 function AnimatedNum({ v }: { v: number }) { const n = useCountUp(v, 800); return <>{n}</>; }
 
@@ -51,7 +51,7 @@ function calcItemCost(item: any) {
 
 export default function AnalyticsModule() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const [transactions, setTransactions] = useState<any[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [staff, setStaff] = useState<any[]>([]);
   const [suppliers, setSuppliers] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
