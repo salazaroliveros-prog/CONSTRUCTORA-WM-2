@@ -329,7 +329,7 @@ export default function GanttChart() {
 
   // Handlers
   const handleProgressChange = useCallback((id: string, val: number) => {
-    const next: GanttConfig = { ...config, progress: { ...config.progress, [id]: val } };
+    const next: GanttConfig = { ...config, progress: { ...(config.progress ?? {}), [id]: val } };
     setConfig(next);
     persistConfig(next);
   }, [config, persistConfig]);
@@ -339,9 +339,9 @@ export default function GanttChart() {
     const next: GanttConfig = {
       ...config,
       overrides: {
-        ...config.overrides,
+        ...(config.overrides ?? {}),
         [editingId]: {
-          ...(config.overrides[editingId] ?? {}),
+          ...(config.overrides?.[editingId] ?? {}),
           duration:     editDuration,
           workers:      editWorkers,
           dependencies: editDeps,
@@ -362,7 +362,7 @@ export default function GanttChart() {
     const next: GanttConfig = {
       ...config,
       overrides: Object.fromEntries(
-        Object.entries(config.overrides).filter(([k]) => k !== id)
+        Object.entries(config.overrides ?? {}).filter(([k]) => k !== id)
       ),
     };
     setConfig(next);
@@ -972,13 +972,13 @@ export default function GanttChart() {
                                     setEditingId(task.id);
                                     setEditDuration(task.duration);
                                     setEditWorkers(task.workers);
-                                    setEditDeps(config.overrides[task.id]?.dependencies ?? task.dependencies);
+                                    setEditDeps(config.overrides?.[task.id]?.dependencies ?? task.dependencies);
                                   }}
                                   className="p-0.5 hover:bg-blue-100 rounded text-blue-500"
                                 >
                                   <Edit2 size={10} />
                                 </button>
-                                {config.overrides[task.id] && (
+                                {config.overrides?.[task.id] && (
                                   <button
                                     title="Restaurar valores originales"
                                     onClick={() => handleResetOverride(task.id)}
