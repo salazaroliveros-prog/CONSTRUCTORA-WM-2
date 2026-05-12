@@ -56,6 +56,11 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
   const bottomRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const recognitionRef = useRef<any>(null);
+  
+  // Iniciar cerrado por defecto (solo pestaña visible)
+  useEffect(() => {
+    setOpen(false);
+  }, []);
 
   // Load context
   useEffect(() => {
@@ -143,24 +148,23 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
 
   return (
     <>
-      {/* FAB button */}
+      {/* FAB button - Small tab by default */}
       <motion.button
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-6 right-6 z-[300] w-14 h-14 rounded-2xl shadow-2xl flex items-center justify-center"
+        className="fixed bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
         style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}
-        whileHover={{ scale: 1.08 }}
-        whileTap={{ scale: 0.94 }}
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
         title="Asistente IA"
       >
         <AnimatePresence mode="wait">
           {open
-            ? <motion.div key="x" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.15 }}><X size={22} className="text-white" /></motion.div>
-            : <motion.div key="s" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} transition={{ duration: 0.15 }}><Sparkles size={22} className="text-white" /></motion.div>
-          }
+            ? <motion.div key="x" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}><X size={18} className="text-white" /></motion.div>
+            : <motion.div key="s" initial={{ rotate: 0, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 0, opacity: 0 }} transition={{ duration: 0.15 }}><Sparkles size={18} className="text-white" /></motion.div>
         </AnimatePresence>
         {/* Pulse ring */}
         {!open && (
-          <span className="absolute inset-0 rounded-2xl animate-ping opacity-20" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }} />
+          <span className="absolute inset-0 rounded-t-2xl animate-ping opacity-20" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }} />
         )}
       </motion.button>
 
@@ -172,30 +176,35 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="fixed bottom-24 right-6 z-[299] w-[360px] max-w-[calc(100vw-1.5rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
-            style={{ height: 480, background: 'rgba(15,20,40,0.97)', border: '1px solid rgba(139,92,246,0.3)' }}
+            className="fixed bottom-16 right-6 z-[299] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            style={{ 
+              height: 'calc(100vh - 100px)', 
+              maxHeight: '500px',
+              background: 'rgba(15,20,40,0.97)', 
+              border: '1px solid rgba(139,92,246,0.3)' 
+            }}
           >
             {/* Header */}
             <div className="shrink-0 px-4 py-3 flex items-center justify-between border-b border-white/10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
-                  <Sparkles size={13} className="text-white" />
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
+                  <Sparkles size={12} className="text-white" />
                 </div>
                 <div>
-                  <p className="text-[11px] font-black text-white uppercase tracking-widest">Asistente IA</p>
+                  <p className="text-[10px] font-black text-white uppercase tracking-widest">Asistente IA</p>
                   <p className="text-[8px] text-purple-400 uppercase tracking-widest">Gemini 2.0 Flash</p>
                 </div>
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 {messages.length > 0 && (
                   <button onClick={() => { abortRef.current?.abort(); setMessages([]); setLoading(false); }}
-                    className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Nueva conversación">
-                    <RotateCcw size={12} />
+                    className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors" title="Nueva conversación">
+                    <RotateCcw size={10} />
                   </button>
                 )}
                 {setActiveTab && (
                   <button onClick={() => { setOpen(false); setActiveTab('ai'); }}
-                    className="px-2.5 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-purple-400 hover:bg-purple-500/20 transition-colors">
+                    className="px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest text-purple-400 hover:bg-purple-500/20 transition-colors">
                     Abrir completo
                   </button>
                 )}
@@ -203,21 +212,21 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
             </div>
 
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3">
+            <div className="flex-1 overflow-y-auto px-3 py-2 space-y-2">
               {messages.length === 0 ? (
-                <div className="space-y-3">
-                  <div className="flex gap-2.5">
-                    <div className="w-6 h-6 rounded-lg shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
-                      <Bot size={11} className="text-white" />
+                <div className="space-y-2">
+                  <div className="flex gap-2">
+                    <div className="w-5 h-5 rounded-lg shrink-0 flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
+                      <Bot size={10} className="text-white" />
                     </div>
-                    <div className="bg-white/8 rounded-xl rounded-tl-sm px-3 py-2.5">
-                      <p className="text-[11px] text-slate-300">¡Hola! Puedo generar informes y análisis de tu ERP. Escribe o usa el micrófono 🎤</p>
+                    <div className="bg-white/8 rounded-xl rounded-tl-sm px-2 py-2">
+                      <p className="text-[10px] text-slate-300">¡Hola! Puedo generar informes y análisis de tu ERP. Escribe o usa el micrófono 🎤</p>
                     </div>
                   </div>
-                  <div className="grid grid-cols-2 gap-1.5 mt-2">
+                  <div className="grid grid-cols-2 gap-1 mt-1">
                     {QUICK.map((q, i) => (
                       <button key={i} onClick={() => sendMessage(q)} disabled={loading}
-                        className="text-left px-2.5 py-2 rounded-xl text-[10px] text-slate-400 hover:text-white transition-all disabled:opacity-40"
+                        className="text-left px-2 py-1.5 rounded-xl text-[9px] text-slate-400 hover:text-white transition-all disabled:opacity-40"
                         style={{ background: 'rgba(139,92,246,0.12)', border: '1px solid rgba(139,92,246,0.2)' }}>
                         {q}
                       </button>
@@ -226,18 +235,18 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
                 </div>
               ) : (
                 messages.map(msg => (
-                  <div key={msg.id} className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <div className={`w-6 h-6 rounded-lg shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-slate-700' : ''}`}
+                  <div key={msg.id} className={`flex gap-1.5 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
+                    <div className={`w-5 h-5 rounded-lg shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-slate-700' : ''}`}
                       style={msg.role === 'assistant' ? { background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' } : {}}>
-                      {msg.role === 'user' ? <User size={11} className="text-white" /> : <Bot size={11} className="text-white" />}
+                      {msg.role === 'user' ? <User size={10} className="text-white" /> : <Bot size={10} className="text-white" />}
                     </div>
-                    <div className={`max-w-[82%] rounded-xl px-3 py-2 ${msg.role === 'user' ? 'bg-slate-700 text-white rounded-tr-sm' : 'rounded-tl-sm text-slate-200'}`}
+                    <div className={`max-w-[80%] rounded-lg px-2.5 py-1.5 ${msg.role === 'user' ? 'bg-slate-700 text-white rounded-tr-sm' : 'rounded-tl-sm text-slate-200'}`}
                       style={msg.role === 'assistant' ? { background: 'rgba(255,255,255,0.07)' } : {}}>
                       {msg.role === 'user'
-                        ? <p className="text-[12px]">{msg.content}</p>
+                        ? <p className="text-[11px]">{msg.content}</p>
                         : msg.content
-                          ? <><MiniMarkdown text={msg.content} /><div className="flex justify-end mt-1"><CopyBtn text={msg.content} /></div></>
-                          : <Loader2 size={12} className="animate-spin text-purple-400" />
+                          ? <><MiniMarkdown text={msg.content} /><div className="flex justify-end mt-0.5"><CopyBtn text={msg.content} /></div></>
+                          : <Loader2 size={10} className="animate-spin text-purple-400" />
                       }
                     </div>
                   </div>
@@ -247,31 +256,31 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
             </div>
 
             {/* Input */}
-            <div className="shrink-0 px-3 pb-3 pt-2 border-t border-white/10">
-              <form onSubmit={handleSubmit} className="flex gap-2">
+            <div className="shrink-0 px-2 pb-2 pt-1.5 border-t border-white/10">
+              <form onSubmit={handleSubmit} className="flex gap-1.5">
                 <input
                   value={input}
                   onChange={e => setInput(e.target.value)}
-                  placeholder={listening ? '🎤 Escuchando...' : 'Escribe o usa el micrófono...'}
+                  placeholder={listening ? '🎤 Escuchando...' : 'Escribir...'}
                   disabled={loading || listening}
-                  className="flex-1 px-3 py-2.5 rounded-xl text-[12px] text-white placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-purple-500/50 disabled:opacity-50"
-                  style={{ background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' }}
+                  className="flex-1 px-2 py-2 rounded-xl text-[11px] text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-purple-400/50 disabled:opacity-50"
+                  style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' }}
                 />
                 {/* Mic button */}
                 <button type="button"
                   onClick={listening ? stopVoice : startVoice}
                   disabled={loading}
-                  className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 ${listening ? 'bg-red-500 animate-pulse' : 'hover:bg-white/10'}`}
-                  style={!listening ? { background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.1)' } : {}}
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-all disabled:opacity-40 ${listening ? 'bg-red-400 animate-pulse' : 'hover:bg-white/8'}"
+                  style={!listening ? { background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)' } : {}}
                   title={listening ? 'Detener' : 'Hablar'}
                 >
-                  {listening ? <MicOff size={15} className="text-white" /> : <Mic size={15} className="text-purple-400" />}
+                  {listening ? <MicOff size={12} className="text-white" /> : <Mic size={12} className="text-purple-400" />}
                 </button>
                 {/* Send button */}
                 <button type="submit" disabled={loading || !input.trim()}
-                  className="w-10 h-10 rounded-xl flex items-center justify-center transition-all disabled:opacity-40"
+                  className="w-8 h-8 rounded-xl flex items-center justify-center transition-all disabled:opacity-40"
                   style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}>
-                  {loading ? <Loader2 size={15} className="animate-spin text-white" /> : <Send size={15} className="text-white" />}
+                  {loading ? <Loader2 size={12} className="animate-spin text-white" /> : <Send size={12} className="text-white" />}
                 </button>
               </form>
             </div>
