@@ -312,18 +312,67 @@ export default function Seguimiento() {
               <p className="text-[9px] font-black text-slate-400 uppercase">Genera stock desde presupuesto en el módulo de Bodega</p>
             </div>
           ) : (
-            <ResponsiveContainer width="100%" height={220} minHeight={160}>
-              <BarChart data={materialData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
-                <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
-                <Tooltip formatter={(v: any) => fmtQ(v)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
-                <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
-                <Bar dataKey="Presupuestado" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="Ejecutado" fill="#f43f5e" radius={[4, 4, 0, 0]} />
-                <Bar dataKey="En Bodega" fill="#10b981" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <>
+              <ResponsiveContainer width="100%" height={220} minHeight={160}>
+                <BarChart data={materialData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
+                  <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                  <Tooltip formatter={(v: any) => fmtQ(v)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
+                  <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
+                  <Bar dataKey="Presupuestado" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Ejecutado" fill="#f43f5e" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="En Bodega" fill="#10b981" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+
+              {/* Detalle por renglón */}
+              {selected && (() => {
+                const itemMap = new Map<string, { itemName: string; materials: { name: string; budgeted: number; stock: number; used: number; unit: string }[] }>();
+                const projItems = inventory.filter((i: any) => i.projectId === selected.id && i.budgetedQty != null && i.itemId);
+                for (const inv of projItems) {
+                  const key = inv.itemId || 'sin-renglon';
+                  if (!itemMap.has(key)) itemMap.set(key, { itemName: inv.itemName || 'Sin nombre', materials: [] });
+                  itemMap.get(key)!.materials.push({
+                    name: inv.name,
+                    budgeted: inv.budgetedQty || 0,
+                    stock: inv.stock || 0,
+                    used: inv.usedQty || 0,
+                    unit: inv.unit || 'U',
+                  });
+                }
+                if (itemMap.size === 0) return null;
+                return (
+                  <div className="mt-4">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Detalle por Renglón</p>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {Array.from(itemMap.entries()).map(([itemId, itemData]) => (
+                        <details key={itemId} className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
+                          <summary className="px-3 py-2 text-[9px] font-black text-slate-700 cursor-pointer hover:bg-slate-100 transition-all uppercase tracking-wider">
+                            {itemData.itemName}
+                          </summary>
+                          <div className="px-3 pb-2 pt-1 space-y-1">
+                            {itemData.materials.map((m, i) => {
+                              const pct = m.budgeted > 0 ? Math.round((m.used / m.budgeted) * 100) : 0;
+                              return (
+                                <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white rounded-lg px-2 py-1.5">
+                                  <span className="font-bold text-slate-700 truncate col-span-2">{m.name}</span>
+                                  <span className="text-slate-500 text-center">P: {m.budgeted} {m.unit}</span>
+                                  <span className="text-blue-600 text-center">B: {m.stock}</span>
+                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-emerald-600' : 'text-amber-600')}>
+                                    U: {m.used} ({pct}%)
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </details>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
+            </>
           )}
         </div>
 

@@ -40,6 +40,7 @@ interface PurchaseOrder {
   id: string;
   supplierId: string;
   supplierName: string;
+  projectId?: string;
   projectName: string;
   status: string;
   total: number;
@@ -87,6 +88,8 @@ export default function SuppliersModule() {
   const [searchTerm, setSearchTerm] = useState('');
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
+  const [projects, setProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
@@ -106,7 +109,9 @@ export default function SuppliersModule() {
   useEffect(() => {
     const u1 = subscribeToCollection('suppliers', (data) => { setSuppliers(data); setLoading(false); });
     const u2 = subscribeToCollection('purchaseOrders', (data) => setPurchaseOrders(data));
-    return () => { u1(); u2(); };
+    const u3 = subscribeToCollection('inventory', (data) => setInventory(data));
+    const u4 = subscribeToCollection('projects', (data) => setProjects(data));
+    return () => { u1(); u2(); u3(); u4(); };
   }, []);
 
   const handleDelete = (id: string) => {
@@ -541,6 +546,40 @@ export default function SuppliersModule() {
                   )}
                 </div>
 
+                {/* Materiales a Cotizar */}
+                {(() => {
+                  const projectIds = supplierOCs.map(oc => oc.projectId).filter(Boolean);
+                  const needed = inventory.filter(inv =>
+                    inv.projectId &&
+                    projectIds.includes(inv.projectId) &&
+                    (inv.stock || 0) < (inv.budgetedQty || 0)
+                  );
+                  if (needed.length === 0) return null;
+                  return (
+                    <div>
+                      <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Materiales por Cotizar</p>
+                      <div className="space-y-1 max-h-32 overflow-y-auto">
+                        {needed.slice(0, 10).map(inv => {
+                          const project = projects.find(p => p.id === inv.projectId);
+                          return (
+                            <div key={inv.id} className="bg-amber-50 rounded-lg px-2 py-1.5">
+                              <div className="flex justify-between items-center">
+                                <span className="text-[8px] font-black text-slate-700 truncate">{inv.name}</span>
+                                <span className="text-[7px] font-bold text-amber-700">
+                                  Faltan {(inv.budgetedQty || 0) - (inv.stock || 0)} {inv.unit}
+                                </span>
+                              </div>
+                              <div className="text-[7px] text-slate-500">
+                                {project?.name || inv.projectName} {inv.itemName ? `· ${inv.itemName}` : ''}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Notas */}
                 {selectedSupplier.notes && (
                   <div>
@@ -557,7 +596,7 @@ export default function SuppliersModule() {
                   <Pencil size={11} /> Editar
                 </button>
                 <button type="button" title="Nueva orden de compra" 
-                  onClick={() => toast.info('Nueva OC', { description: 'Ve al módulo de Inventario > Órdenes de Compra para crear una nueva orden para este proveedor.' })}
+                  onClick={() => { window.location.search = '?tab=inventory'; }}
                   className="px-3 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-all">
                   <ShoppingCart size={14} />
                 </button>

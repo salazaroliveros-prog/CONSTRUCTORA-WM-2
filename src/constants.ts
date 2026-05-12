@@ -118,12 +118,16 @@ export interface WarehouseItem {
   // Project-linked fields
   projectId?: string;
   projectName?: string;
+  itemId?: string;
+  itemName?: string;
   budgetedQty?: number;
   budgetedCost?: number;
   usedQty?: number;
 }
 
 export interface PurchaseOrderItem {
+  itemId?: string;
+  itemName?: string;
   materialName: string;
   unit: string;
   qty: number;
