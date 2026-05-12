@@ -15,6 +15,7 @@
 - **CSS**: TailwindCSS v4 (`@import "tailwindcss"` - NOT `@tailwind` directives)
 - **Path Alias**: `@/*` maps to project root (`./*`)
 - **API**: Vercel serverless function at `api/ai-report.ts` with Firebase JWT verification + Gemini 2.0 Flash streaming
+- **Budget Engine**: Hierarchical structure with BudgetLine interface for tree-based budgeting, automatic recalculation, dynamic renglones. Key files: src/lib/budgetData.ts, src/components/BudgetTable.tsx, src/hooks/useBudget.ts
 - **Environment**: Requires `GEMINI_API_KEY` env var for AI features
 
 ## Important Constraints
