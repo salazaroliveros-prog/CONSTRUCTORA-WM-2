@@ -278,9 +278,8 @@ export default function StaffModule() {
   const calcPayrollEmployees = (projectId: string, type: 'CAMPO' | 'ADMINISTRATIVO') => {
     const project = projects.find(p => p.id === projectId);
     if (!project) return [];
-    const memberIds = project.teamIds || [];
-    const projectStaff = staff.filter(s => memberIds.includes(s.id) && (s.status || 'Activo') === 'Activo');
-    return projectStaff.map(s => {
+    const activeStaff = staff.filter(s => (s.status || 'Activo') === 'Activo');
+    return activeStaff.map(s => {
       const baseSalary = Number(s.salary || 0);
       const daysInMonth = 30;
       const dailySalary = baseSalary / daysInMonth;
@@ -1233,17 +1232,19 @@ export default function StaffModule() {
             <textarea value={payrollForm.notes} onChange={e => setPayrollForm(f => ({ ...f, notes: e.target.value }))}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none resize-none" rows={2} />
           </div>
-          {payrollForm.employees.length > 0 && (
-            <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px]">
-              <span className="font-black text-slate-500">
-                Total: <span className="text-primary">Q {payrollForm.employees.reduce((a, e) => a + e.netPay, 0).toLocaleString('es-GT')}</span>
-              </span>
-              <button type="button" onClick={createPayroll} disabled={savingPayroll}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
-                {savingPayroll ? 'GUARDANDO...' : 'CREAR BORRADOR'}
-              </button>
-            </div>
-          )}
+          <div className="flex justify-between items-center pt-2 border-t border-slate-100 text-[10px]">
+            <span className="font-black text-slate-500">
+              {payrollForm.employees.length > 0 ? (
+                <>Total: <span className="text-primary">Q {payrollForm.employees.reduce((a, e) => a + e.netPay, 0).toLocaleString('es-GT')}</span></>
+              ) : (
+                <span className="text-slate-300">Sin empleados cargados</span>
+              )}
+            </span>
+            <button type="button" onClick={createPayroll} disabled={savingPayroll || payrollForm.employees.length === 0}
+              className="px-4 py-2 bg-emerald-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
+              {savingPayroll ? 'GUARDANDO...' : 'CREAR BORRADOR'}
+            </button>
+          </div>
         </div>
       </Modal>
 
