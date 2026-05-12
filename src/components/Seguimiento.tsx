@@ -41,10 +41,10 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[11px] font-black text-slate-700">{value}%</span>
+          <span className="text-[11px] font-black text-slate-700 dark:text-slate-200">{value}%</span>
         </div>
       </div>
-      <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center">{label}</span>
+      <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{label}</span>
     </div>
   );
 }
@@ -129,8 +129,8 @@ export default function Seguimiento() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
         <div>
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Módulo de Análisis</p>
-          <h1 className="text-sm font-black text-slate-900 uppercase tracking-tight">Seguimiento de Avance</h1>
+          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em]">Módulo de Análisis</p>
+          <h1 className="text-sm font-black text-slate-900 dark:text-slate-200 uppercase tracking-tight">Seguimiento de Avance</h1>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <select
@@ -165,9 +165,9 @@ export default function Seguimiento() {
             className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="p-1.5 rounded-lg text-white" style={{ background: k.color }}>{k.icon}</div>
-              <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{k.label}</p>
+              <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{k.label}</p>
             </div>
-            <p className="text-sm font-black text-slate-900">{k.value}</p>
+            <p className="text-sm font-black text-slate-900 dark:text-slate-200">{k.value}</p>
           </motion.div>
         ))}
       </div>
@@ -177,7 +177,7 @@ export default function Seguimiento() {
 
         {/* Ring charts per project */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Avance por Proyecto</p>
+          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Avance por Proyecto</p>
 
           {displayProjects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 opacity-40">
@@ -188,7 +188,7 @@ export default function Seguimiento() {
           ) : selected ? (
             /* Single project: two big rings centered */
             <div className="flex flex-col items-center gap-4">
-              <p className="text-[10px] font-black text-slate-700 uppercase truncate text-center">{selected.name}</p>
+              <p className="text-[10px] font-black text-slate-700 dark:text-slate-200 uppercase truncate text-center">{selected.name}</p>
               <div className="flex justify-center gap-8">
                 <RingChart value={displayProjects[0]?.fisico ?? 0} color="#f59e0b" label="Físico" size={100} />
                 <RingChart value={displayProjects[0]?.financiero ?? 0} color="#06b6d4" label="Financiero" size={100} />
@@ -196,11 +196,11 @@ export default function Seguimiento() {
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
                 <div className="bg-amber-50 rounded-xl p-2 text-center">
                   <p className="text-[7px] font-black text-amber-600 uppercase tracking-widest">Presupuesto</p>
-                  <p className="text-[11px] font-black text-slate-800">{fmtQ(displayProjects[0]?.budget || 0)}</p>
+                  <p className="text-[11px] font-black text-slate-800 dark:text-slate-200">{fmtQ(displayProjects[0]?.budget || 0)}</p>
                 </div>
                 <div className="bg-blue-50 rounded-xl p-2 text-center">
                   <p className="text-[7px] font-black text-blue-600 uppercase tracking-widest">Ejecutado</p>
-                  <p className="text-[11px] font-black text-slate-800">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
+                  <p className="text-[11px] font-black text-slate-800 dark:text-slate-200">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
               <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
@@ -220,7 +220,7 @@ export default function Seguimiento() {
                   <RingChart value={p.fisico} color="#f59e0b" label="Fís." size={56} />
                   <RingChart value={p.financiero} color="#3b82f6" label="Fin." size={56} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-[9px] font-black text-slate-700 uppercase truncate">{p.name}</p>
+                    <p className="text-[9px] font-black text-slate-700 dark:text-slate-200 uppercase truncate">{p.name}</p>
                     <p className="text-[8px] text-slate-400 font-bold">{p.clientName || 'S/N'}</p>
                     <div className={cn("mt-1 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full inline-block",
                       p.fisico >= p.financiero ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
@@ -236,7 +236,7 @@ export default function Seguimiento() {
 
         {/* Comparison bar chart */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Comparativa Físico vs Financiero</p>
+          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Comparativa Físico vs Financiero</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -252,7 +252,7 @@ export default function Seguimiento() {
 
         {/* Deviation chart */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Desviación (Físico − Financiero)</p>
+          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Desviación (Físico − Financiero)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={desvData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -268,7 +268,7 @@ export default function Seguimiento() {
 
         {/* Budget vs Cost area */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Presupuesto vs Costo Real (Q)</p>
+          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Presupuesto vs Costo Real (Q)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -286,7 +286,7 @@ export default function Seguimiento() {
 
         {/* Status pie */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Distribución por Estado</p>
+          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Distribución por Estado</p>
           <ResponsiveContainer width="100%" height={150}>
             <PieChart>
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value"
@@ -303,14 +303,14 @@ export default function Seguimiento() {
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2 xl:col-span-3">
           <div className="flex items-center justify-between mb-2">
             <div>
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Materiales: Presupuestado vs Ejecutado</p>
+              <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Materiales: Presupuestado vs Ejecutado</p>
               <p className="text-[8px] text-slate-300 mt-0.5">Costo de materiales presupuestados, consumidos y en bodega por proyecto</p>
             </div>
           </div>
           {materialData.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 opacity-40">
               <TrendingUp size={24} className="text-slate-300 mb-2" />
-              <p className="text-[9px] font-black text-slate-400 uppercase">Genera stock desde presupuesto en el módulo de Bodega</p>
+              <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase">Genera stock desde presupuesto en el módulo de Bodega</p>
             </div>
           ) : (
             <>
@@ -345,7 +345,7 @@ export default function Seguimiento() {
                 if (itemMap.size === 0) return null;
                 return (
                   <div className="mt-4">
-                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Detalle por Renglón</p>
+                    <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Detalle por Renglón</p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {Array.from(itemMap.entries()).map(([itemId, itemData]) => (
                         <details key={itemId} className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
