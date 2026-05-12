@@ -83,7 +83,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     if (!user) return;
     const u1 = subscribeToCollection('projects', (projects: any[]) => {
       const today = new Date();
-      const delayed = projects.filter(p => p.status === 'EJECUCION' && p.endDate && newDate(p.endDate) < today && (p.progress || 0) < 100);
+      const delayed = projects.filter(p => p.status === 'EJECUCION' && p.endDate && new Date(p.endDate) < today && (p.progress || 0) < 100);
       setLiveNotifications(prev => [
         ...prev.filter(n => !n.id.startsWith('proj-')),
         ...delayed.slice(0, 3).map(p => ({ id: `proj-${p.id}`, text: `Proyecto atrasado: ${p.name}`, type: 'warning', module: 'projects' }))
