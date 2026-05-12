@@ -7,6 +7,12 @@ function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+interface GridInfo {
+  cols: number;
+  rows: number;
+  pageSize: number;
+}
+
 interface PaginationProps {
   currentPage: number;
   totalPages: number;
@@ -18,28 +24,38 @@ interface PaginationProps {
   itemsPerPage: number;
   className?: string;
   compact?: boolean;
+  gridInfo?: GridInfo;
 }
 
-export default function Pagination({ 
-  currentPage, 
-  totalPages, 
-  onNext, 
-  onPrev, 
+export default function Pagination({
+  currentPage,
+  totalPages,
+  onNext,
+  onPrev,
   onPage,
   totalItems,
   startIndex,
   itemsPerPage,
   className,
-  compact = false
+  compact = false,
+  gridInfo
 }: PaginationProps) {
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
 
   if (totalPages <= 1) return null;
 
+  // Grid-aware label: show "6×4" badge when gridInfo is provided
+  const gridBadge = gridInfo && (
+    <span className="text-[6px] font-black text-slate-400 bg-slate-100 px-1 py-0.5 rounded-full mr-1">
+      {gridInfo.cols}×{gridInfo.rows}
+    </span>
+  );
+
   if (compact) {
     return (
       <div className={cn("flex items-center justify-between gap-2", className)}>
         <div className="text-[8px] font-black text-slate-600 uppercase tracking-tight">
+          {gridBadge}
           {startIndex + 1}-{endIndex} / {totalItems}
         </div>
         <div className="flex items-center gap-1">
