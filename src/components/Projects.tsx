@@ -658,35 +658,42 @@ return (
                { icon: <TrendingUp size={12} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
                { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600' : 'text-green-700' },
              ].map(k => (
-               <div key={k.label} className="bg-white border border-slate-200 rounded-lg p-3 shadow-sm">
-                 <div className="flex items-center gap-1.5 mb-1.5">{k.icon}<span className="text-[7px] font-black text-slate-400 uppercase">{k.label}</span></div>
-                 <p className={cn('text-lg font-black', k.color)}>{k.value}</p>
-                 <p className="text-[7px] font-bold text-slate-400 uppercase mt-0.5 truncate">{k.sub}</p>
-               </div>
+                <div key={k.label} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 shadow-sm dark:shadow-slate-900/20">
+                  <div className="flex items-center gap-1.5 mb-1.5">{k.icon}<span className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase">{k.label}</span></div>
+                  <p className={cn('text-lg font-black', k.color)}>{k.value}</p>
+                  <p className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 truncate">{k.sub}</p>
+                </div>
              ))}
            </div>
          );
       })()}
 
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-<div className="p-3 md:p-4 border-b border-slate-100 flex flex-col md:flex-row justify-between items-center gap-3">
-            <div className="relative flex-1 w-full max-w-md">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-              <input
-               type="text"
-               placeholder="BUSCAR PROYECTO..."
-               value={searchTerm}
-               onChange={(e) => setSearchTerm(e.target.value)}
-               className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-3 py-2 text-[9px] font-black uppercase focus:outline-none focus:border-secondary transition-all"
-              />
-            </div>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-slate-900/20 overflow-hidden">
+<div className="p-3 md:p-4 border-b border-slate-100 dark:border-slate-700 flex flex-col md:flex-row justify-between items-center gap-3">
+             <div className="relative flex-1 w-full max-w-md">
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
+               <input
+                type="text"
+                placeholder="BUSCAR PROYECTO..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg pl-10 pr-3 py-2 text-[9px] font-black uppercase focus:outline-none focus:border-secondary dark:focus:border-secondary transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 text-slate-900 dark:text-slate-200"
+               />
+             </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
-              <div className="flex bg-slate-100 p-0.5 rounded-lg">
-                <button
-                 onClick={() => setViewMode('table')}
-                 title="Vista de Tabla"
-                 className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
-                >
+               <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
+                 <button
+                  onClick={() => setViewMode('table')}
+                  title="Vista de Tabla"
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 shadow-sm dark:shadow-slate-900/50" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300")}
+                 >
+                   <ListFilter size={15} />
+                 </button>
+                 <button
+                  onClick={() => setViewMode('grid')}
+                  title="Vista de Cuadrícula"
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 shadow-sm dark:shadow-slate-900/50" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300")}
+                 >
                   <ListFilter size={15} />
                 </button>
                 <button
@@ -701,12 +708,12 @@ return (
                 <button
                   onClick={() => setViewMode('kanban')}
                   title="Vista Kanban"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-white text-slate-900 shadow-sm" : "text-slate-400 hover:text-slate-600")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-200 shadow-sm dark:shadow-slate-900/50" : "text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300")}
                 >
                   <Layers size={15} />
                 </button>
-               <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
-                 className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
+                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm dark:shadow-red-900/50' : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'}`}>
                  {bulkMode ? 'Cancelar' : 'Seleccionar'}
                </button>
                <div className="flex flex-col gap-0.5 min-w-[120px]">
@@ -760,16 +767,16 @@ return (
                    <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">#</th>
                  </tr>
                </thead>
-               <tbody className="divide-y divide-slate-50">
-                 {paginatedProjects.map((project, i) => (
-                   <motion.tr
-                     key={project.id}
-                     initial={{ opacity: 0, x: -8 }}
-                     animate={{ opacity: 1, x: 0 }}
-                     transition={{ duration: 0.2, delay: i * 0.05 }}
-                     onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-                     className={`group hover:bg-slate-50/50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50 border-l-2 border-red-500" : ""}`}
-                   >
+                <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
+                  {paginatedProjects.map((project, i) => (
+                    <motion.tr
+                      key={project.id}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.2, delay: i * 0.05 }}
+                      onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
+                      className={`group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50 dark:bg-red-900/20 border-l-2 border-red-500" : ""}`}
+                    >
                      {bulkMode && (
                        <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
                          <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
@@ -778,19 +785,19 @@ return (
                      )}
                      <td className="px-4 py-2">
                        <div className="flex items-center gap-2">
-                         <div className="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-primary border border-slate-200 shrink-0 group-hover:bg-slate-900 group-hover:text-secondary transition-all">
+                          <div className="w-7 h-7 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-primary border border-slate-200 dark:border-slate-600 shrink-0 group-hover:bg-slate-900 dark:group-hover:bg-slate-700 group-hover:text-secondary transition-all">
                            <Building2 size={14} />
                          </div>
                          <div className="min-w-0">
-                           <p className="text-[8px] font-black text-primary uppercase tracking-tight truncate max-w-[120px] md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
-                           <p className="text-[6px] text-slate-400 font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
+                            <p className="text-[8px] font-black text-primary uppercase tracking-tight truncate max-w-[120px] md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
+                            <p className="text-[6px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
                          </div>
                        </div>
                      </td>
                      <td className="hidden md:table-cell px-4 py-2">
                        <div className="flex flex-col">
-                         <span className="text-[7px] font-black text-slate-900 uppercase truncate max-w-[120px]">{project.clientName}</span>
-                         <span className="text-[6px] font-bold text-slate-400 uppercase tracking-widest">{project.typology}</span>
+                          <span className="text-[7px] font-black text-slate-900 dark:text-slate-200 uppercase truncate max-w-[120px]">{project.clientName}</span>
+                          <span className="text-[6px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{project.typology}</span>
                        </div>
                      </td>
                      <td className="px-4 py-2">
@@ -803,7 +810,7 @@ return (
                            )}>{project.status}</span>
                            <span className="text-slate-400">{project.progress || 0}%</span>
                          </div>
-                         <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full">
+                          <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden w-full">
                            <motion.div
                              initial={{ width: 0 }}
                              animate={{ width: `${project.progress || 0}%` }}
@@ -817,13 +824,13 @@ return (
                      </td>
                      <td className="px-4 py-2 text-right">
                        <div className="flex items-center justify-end gap-1">
-                         <button
-                           onClick={(e) => handleDelete(e, project.id)}
-                           className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100"
-                         >
-                           <Trash2 size={12} />
-                         </button>
-                         <button className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 group-hover:text-secondary group-hover:bg-slate-900 transition-all">
+                          <button
+                            onClick={(e) => handleDelete(e, project.id)}
+                            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 dark:text-slate-600 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            <Trash2 size={12} />
+                          </button>
+                          <button className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300 dark:text-slate-600 group-hover:text-secondary group-hover:bg-slate-900 dark:group-hover:bg-slate-700 transition-all">
                            <ChevronRight size={14} />
                          </button>
                        </div>
@@ -848,15 +855,15 @@ return (
         {viewMode === 'kanban' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
             {[
-              { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-slate-100 border-slate-200', dot: 'bg-slate-400' },
-              { id: 'EJECUCION', label: 'Ejecucion', color: 'bg-blue-50 border-blue-200', dot: 'bg-blue-500' },
-              { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-green-50 border-green-200', dot: 'bg-green-500' },
+              { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-slate-100 dark:bg-slate-800 border-slate-200 dark:border-slate-600', dot: 'bg-slate-400 dark:bg-slate-500' },
+              { id: 'EJECUCION', label: 'Ejecucion', color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-600', dot: 'bg-blue-500' },
+              { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-600', dot: 'bg-green-500' },
             ].map(col => (
               <div key={col.id} className={`rounded-2xl border p-4 space-y-3 ${col.color}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-2 h-2 rounded-full ${col.dot}`} />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">{col.label}</span>
-                   <span className="ml-auto text-[8px] font-black bg-white rounded-full px-2 py-0.5 text-slate-700">{filteredProjects.filter(p => p.status === col.id).length}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">{col.label}</span>
+                   <span className="ml-auto text-[8px] font-black bg-white dark:bg-slate-700 rounded-full px-2 py-0.5 text-slate-700 dark:text-slate-200">{filteredProjects.filter(p => p.status === col.id).length}</span>
                 </div>
                 {filteredProjects.filter(p => p.status === col.id).map((p, ki) => (
                   <motion.div
@@ -865,20 +872,20 @@ return (
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2, delay: ki * 0.07 }}
                     onClick={() => setSelectedProject(p)}
-                    className="bg-white rounded-xl p-3 shadow-sm border border-white hover:border-secondary cursor-pointer transition-all space-y-2"
+                    className="bg-white dark:bg-slate-800 rounded-xl p-3 shadow-sm dark:shadow-slate-900/20 border border-white dark:border-slate-700 hover:border-secondary cursor-pointer transition-all space-y-2"
                   >
                     <p className="text-[10px] font-black text-primary uppercase leading-tight">{p.name}</p>
-                     <p className="text-[8px] text-slate-600 font-bold uppercase">{p.clientName}</p>
+                     <p className="text-[8px] text-slate-600 dark:text-slate-300 font-bold uppercase">{p.clientName}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[8px] font-black text-secondary">Q {(p.budget || 0).toLocaleString()}</span>
-                      <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-slate-900 rounded-full" style={{ width: `${p.progress || 0}%` }} />
+                      <div className="w-16 h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-slate-900 dark:bg-slate-600 rounded-full" style={{ width: `${p.progress || 0}%` }} />
                       </div>
                     </div>
                   </motion.div>
                 ))}
                 {filteredProjects.filter(p => p.status === col.id).length === 0 && (
-                  <div className="text-center py-6 text-[8px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos</div>
+                  <div className="text-center py-6 text-[8px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest">Sin proyectos</div>
                 )}
               </div>
             ))}
@@ -919,10 +926,10 @@ return (
             exit={{ opacity: 0, scale: 0.95 }}
             className="space-y-8 text-left"
           >
-            <div className="border-b border-slate-100 pb-6 space-y-3">
+            <div className="border-b border-slate-100 dark:border-slate-700 pb-6 space-y-3">
               {/* Fila 1: icono + titulo + boton editar */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20">
+                <div className="w-12 h-12 bg-slate-900 dark:bg-slate-700 rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20 dark:shadow-slate-900/50">
                   <Building2 size={24} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -931,11 +938,11 @@ return (
                 </div>
                 {isEditing ? (
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-slate-100 text-slate-600 rounded-lg text-xs font-bold uppercase">Cancelar</button>
+                    <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold uppercase">Cancelar</button>
                     <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold uppercase">Guardar</button>
                   </div>
                 ) : (
-                  <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-slate-900 text-white rounded-lg text-xs font-bold uppercase">
+                  <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-xs font-bold uppercase">
                     <Settings2 size={14} /> Editar
                   </button>
                 )}
@@ -943,21 +950,15 @@ return (
               {/* Fila 2: controles de exportacion */}
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>
-                  <select value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer">
+                  <span className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Plantilla PDF</span>
+                  <select value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="h-8 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer text-slate-900 dark:text-slate-200">
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
                 <button onClick={() => { setTimeout(async () => { await generateProjectPDF(selectedProject, exportPdfTemplate); }, 50); }} className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
                   <Download size={12} /> PDF
                 </button>
-                <div className="flex flex-col gap-1">
-                  <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla CSV</span>
-                  <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer">
-                    {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                  </select>
-                </div>
-                <button onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-slate-900 text-white rounded-lg text-[8px] font-black uppercase hover:bg-slate-700 transition-all">
+                <button onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-[8px] font-black uppercase hover:bg-slate-700 dark:hover:bg-slate-600 transition-all">
                   <Download size={12} /> CSV
                 </button>
               </div>

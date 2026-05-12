@@ -28,7 +28,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove('dark');
     }
+    // Add smooth transition class
+    root.classList.add('theme-transition');
+    const timer = setTimeout(() => {
+      root.classList.remove('theme-transition');
+    }, 300);
     localStorage.setItem('wm-theme', theme);
+    return () => clearTimeout(timer);
   }, [theme]);
 
   const toggleTheme = () => setTheme(t => (t === 'light' ? 'dark' : 'light'));

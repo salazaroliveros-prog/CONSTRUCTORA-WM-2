@@ -130,23 +130,23 @@ function AppContent() {
   if (!user) {
     return (
       <div className="min-h-screen dark flex items-center justify-center p-6" style={{background:'radial-gradient(ellipse 60% 55% at 50% -5%, rgba(200,160,60,0.55) 0%, rgba(120,90,20,0.25) 40%, transparent 70%), linear-gradient(to bottom, #0a0c14 55%, #0d1a3a 75%, #0a2060 88%, #0d2878 100%)'}}>
-        <div className="max-w-md w-full bg-white rounded-3xl p-10 shadow-2xl flex flex-col items-center text-center space-y-10 animate-in fade-in zoom-in duration-500">
+        <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-3xl p-10 shadow-2xl flex flex-col items-center text-center space-y-10 animate-in fade-in zoom-in duration-500">
           <Logo />
           <div>
             <h1 className="text-2xl font-black text-primary uppercase tracking-tighter leading-tight italic">Sistema de Gestión<br/>Constructora</h1>
-            <p className="text-slate-400 font-bold uppercase text-[10px] tracking-[0.2em] mt-4">Sistema de Gestión de Obra Profesional</p>
+            <p className="text-slate-400 dark:text-slate-500 font-bold uppercase text-[10px] tracking-[0.2em] mt-4">Sistema de Gestión de Obra Profesional</p>
           </div>
-          
-          <button 
+
+          <button
             onClick={() => login()}
-            className="w-full flex items-center justify-center gap-4 bg-slate-900 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 transition-all group active:scale-95 shadow-xl shadow-slate-900/10"
+            className="w-full flex items-center justify-center gap-4 bg-slate-900 dark:bg-slate-700 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-slate-800 dark:hover:bg-slate-600 transition-all group active:scale-95 shadow-xl shadow-slate-900/10"
           >
             <LogIn size={20} className="group-hover:translate-x-1 transition-transform" />
             Acceder con Google
           </button>
-          
-          <div className="pt-4 border-t border-slate-100 w-full">
-            <p className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Desarrollado para alta eficiencia operativa</p>
+
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-700 w-full">
+            <p className="text-[9px] font-bold text-slate-300 dark:text-slate-600 uppercase tracking-widest">Desarrollado para alta eficiencia operativa</p>
           </div>
         </div>
       </div>

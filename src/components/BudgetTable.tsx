@@ -31,43 +31,43 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
 
       // Row for this line
       result.push(
-        <tr key={line.id} className="group hover:bg-slate-50/50 transition-colors">
+        <tr key={line.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
           <td style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}>
             <div className="flex items-center gap-2 py-2">
               {hasChildren ? (
                 <button
                   onClick={() => toggleExpand(line.id)}
-                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200"
+                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-700"
                 >
                   {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                 </button>
               ) : (
                 <span className="w-5 inline-block" />
               )}
-              <span className="text-[9px] font-black text-slate-700 uppercase">{line.code}</span>
-              <span className="text-[9px] font-bold text-slate-600 truncate max-w-[200px]">{line.description}</span>
+              <span className="text-[9px] font-black text-slate-700 dark:text-slate-200 uppercase">{line.code}</span>
+              <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[200px]">{line.description}</span>
             </div>
           </td>
-          <td className="text-[9px] text-slate-600 text-right">{line.unit}</td>
-          <td className="text-[9px] text-slate-600 text-right">
+          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">{line.unit}</td>
+          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">
             {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </td>
-          <td className="text-[9xs] text-slate-600 text-right">Q {line.materialCost.toLocaleString()}</td>
-          <td className="text-[9px] text-slate-600 text-right">Q {line.laborCost.toLocaleString()}</td>
-          <td className="text-[9px] font-bold text-slate-800 text-right">
+          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">Q {line.materialCost.toLocaleString()}</td>
+          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">Q {line.laborCost.toLocaleString()}</td>
+          <td className="text-[9px] font-bold text-slate-800 dark:text-slate-200 text-right">
             Q {(line.subtotal ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </td>
           {editingAllowed && (
             <td className="text-right">
               <button
                 onClick={() => toast.info('Editar línea no implementado aún')}
-                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200"
+                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700"
               >
                 <Pencil size={12} />
               </button>
               <button
                 onClick={() => toast.info('Eliminar línea no implementado aún')}
-                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-red-600"
+                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/20 text-red-600"
               >
                 <Trash2 size={12} />
               </button>
@@ -87,28 +87,28 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
       <table className="w-full text-left">
-        <thead className="bg-slate-50/50">
+        <thead className="bg-slate-50/50 dark:bg-slate-800/50">
           <tr>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Descripción / Código</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">Unidad</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">Cant.</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">Costo Mat. (Q.)</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">Costo Mano Obra (Q.)</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">Subtotal (Q.)</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descripción / Código</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Unidad</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Cant.</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Costo Mat. (Q.)</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Costo Mano Obra (Q.)</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Subtotal (Q.)</th>
             {editingAllowed && (
-              <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">Acciones</th>
+              <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Acciones</th>
             )}
           </tr>
         </thead>
         <tbody>{renderRows(lines, 0)}</tbody>
       </table>
       {editingAllowed && (
-        <div className="p-2 border-t border-slate-100 flex justify-end">
+        <div className="p-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
           <button
             onClick={onAddCustom}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 text-white text-[8px] font-black uppercase rounded-lg hover:bg-slate-800 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 dark:bg-slate-700 text-white text-[8px] font-black uppercase rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-all"
           >
             <Plus size={12} /> Agregar Renglón Personalizado
           </button>

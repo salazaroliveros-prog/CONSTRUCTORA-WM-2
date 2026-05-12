@@ -168,25 +168,21 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
            {/* Right: Search + Actions (pushed right to frame the centered branding) */}
            <div className="flex items-center gap-1 sm:gap-2 shrink-0">
              {/* Global search */}
-             <div className={cn("hidden lg:flex items-center gap-2 bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-xl text-slate-700 w-56 relative group transition-all focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10",
-               theme === 'dark' && 'dark:bg-slate-800 dark:border-slate-600 dark:text-slate-300'
-             )}>
-               <Search size={14} className={cn("shrink-0 group-focus-within:text-secondary", theme === 'dark' && 'dark:text-slate-400')} />
-               <input
-                 type="text"
-                 placeholder="Buscar..."
-                 value={globalSearch}
-                 onChange={e => setGlobalSearch(e.target.value)}
-                 onBlur={() => setTimeout(() => setGlobalSearch(''), 200)}
-                 className={cn("bg-transparent border-none focus:outline-none text-[9px] font-black w-full uppercase tracking-widest placeholder:text-slate-300",
-                   theme === 'dark' && 'placeholder:text-slate-500 text-slate-200'
-                 )}
-               />
-               {globalResults.length > 0 && (
-                 <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overflow-hidden">
-                   {globalResults.map((r, i) => (
-                     <button key={i} onMouseDown={() => { setActiveTab(r.module); setGlobalSearch(''); }}
-                       className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors">
+              <div className="hidden lg:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-300 w-56 relative group transition-all focus-within:border-secondary dark:focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10 dark:focus-within:ring-secondary/10">
+                <Search size={14} className="shrink-0 group-focus-within:text-secondary dark:group-focus-within:text-secondary" />
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={globalSearch}
+                  onChange={e => setGlobalSearch(e.target.value)}
+                  onBlur={() => setTimeout(() => setGlobalSearch(''), 200)}
+                  className="bg-transparent border-none focus:outline-none text-[9px] font-black w-full uppercase tracking-widest placeholder:text-slate-300 dark:placeholder:text-slate-500 text-slate-700 dark:text-slate-200"
+                />
+                {globalResults.length > 0 && (
+                  <div className="absolute top-full left-0 mt-2 w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl shadow-xl z-[60] overflow-hidden">
+                    {globalResults.map((r, i) => (
+                      <button key={i} onMouseDown={() => { setActiveTab(r.module); setGlobalSearch(''); }}
+                        className="w-full text-left px-3 py-2 hover:bg-slate-50 dark:hover:bg-slate-800 border-b border-slate-50 dark:border-slate-700 last:border-0 transition-colors text-slate-700 dark:text-slate-300">
                        <p className="text-[10px] font-black text-primary uppercase truncate">{r.label}</p>
                        <p className="text-[8px] text-slate-400 font-bold uppercase">{r.sub}</p>
                      </button>
@@ -217,23 +213,18 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
              </button>
 
              {/* Theme toggle */}
-             <button
-               onClick={toggleTheme}
-               className="p-2 text-slate-400 hover:text-primary hover:bg-slate-50 rounded-xl transition-all"
-               title={theme === 'dark' ? 'Modo día' : 'Modo noche'}
-               aria-label="Cambiar modo día/noche"
-             >
-               {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
-             </button>
+              <button
+                onClick={toggleTheme}
+                className="p-2 text-slate-400 dark:text-slate-500 hover:text-primary dark:hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700 rounded-xl transition-all"
+                title={theme === 'dark' ? 'Modo día' : 'Modo noche'}
+                aria-label="Cambiar modo día/noche"
+              >
+                {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
+              </button>
 
              {/* Notifications */}
              <div className="relative">
-               <button onClick={handleOpenNotifications} className={cn(
-                 "relative p-2 rounded-xl border transition-all",
-                 theme === 'dark'
-                   ? 'bg-slate-800 text-slate-300 hover:text-primary border-slate-700'
-                   : 'bg-slate-50 text-slate-700 hover:text-primary border-slate-100'
-               )}>
+                <button onClick={handleOpenNotifications} className="relative p-2 rounded-xl border transition-all bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:text-primary border-slate-100 dark:border-slate-700">
                  <Bell size={16} className="hover:rotate-12 transition-transform" />
                  {unreadCount > 0 && <span className="absolute top-1 right-1 w-2 h-2 bg-secondary border-2 border-white rounded-full animate-pulse" />}
                </button>
@@ -243,10 +234,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                      initial={{ opacity: 0, y: 8, scale: 0.95 }}
                      animate={{ opacity: 1, y: 0, scale: 1 }}
                      exit={{ opacity: 0, y: 8, scale: 0.95 }}
- className={cn(
-                       "absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-[51] border",
-                       theme === 'dark' ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'
-                     )}
+  className="absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-[51] border bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700"
                    >
                      {/* ...notification list (unchanged) */}
                    </motion.div>
@@ -256,16 +244,12 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
              {/* AI Assistant */}
              <div className="relative">
-               <button
-                 onClick={() => setShowAI(v => !v)}
-                 className={cn("p-2 rounded-xl transition-all",
-                   theme === 'dark'
-                     ? 'text-slate-400 hover:text-primary hover:bg-slate-700'
-                     : 'text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50'
-                 )}
-                 title="Asistente IA"
-                 aria-label="Abrir asistente IA"
-               >
+                <button
+                  onClick={() => setShowAI(v => !v)}
+                  className="p-2 rounded-xl transition-all text-slate-600 dark:text-slate-300 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-700"
+                  title="Asistente IA"
+                  aria-label="Abrir asistente IA"
+                >
                  {showAI ? <X size={15} /> : <Sparkles size={15} className="text-purple-500" />}
                </button>
                <AIFloatingButton
@@ -302,11 +286,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       </main>
 
       {/* ── Bottom Navigation ─────────────────────────────────── */}
-      <nav className={cn("fixed bottom-0 left-0 right-0 z-[49] safe-area-pb transition-colors",
-        theme === 'dark'
-          ? 'bg-slate-900/95 border-t border-slate-700'
-          : 'bg-white/95 backdrop-blur-xl border-t border-slate-200'
-      )}>
+      <nav className="fixed bottom-0 left-0 right-0 z-[49] safe-area-pb transition-colors bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700">
         <div className="flex justify-around items-center h-16 px-2">
           {menuItems.map((item) => (
             <button
@@ -315,10 +295,8 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
               className={cn(
                 "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all active:scale-95",
                 activeTab === item.id
-                  ? "text-secondary bg-secondary/10"
-                  : theme === 'dark'
-                    ? "text-slate-300 hover:text-slate-100"
-                    : "text-slate-600 dark:text-slate-300 hover:text-slate-900"
+                  ? "text-secondary bg-secondary/10 dark:bg-secondary/20"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
               )}
             >
               <span className={cn(
@@ -346,11 +324,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       </nav>
 
       {/* ── Footer (Desktop only) ─────────────────────────────── */}
-      <footer className={cn("hidden md:flex h-7 items-center justify-between px-4 uppercase tracking-widest shrink-0 transition-colors",
-        theme === 'dark'
-          ? 'bg-slate-900/80 border-t border-slate-700/50 text-slate-400'
-          : 'bg-white text-slate-600 dark:text-slate-300 border-t border-slate-100'
-      )}>
+      <footer className="hidden md:flex h-7 items-center justify-between px-4 uppercase tracking-widest shrink-0 transition-colors bg-white dark:bg-slate-900/80 border-t border-slate-100 dark:border-slate-700/50 text-slate-600 dark:text-slate-400">
         <span>© 2024 WM/M&S CONSTRUCTORA · Motor V2.4.1 PRO</span>
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
       </footer>
