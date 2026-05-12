@@ -22,7 +22,8 @@
 			"extensions": [
 				"Vue.volar",
 				"Oracle.mysql-shell-for-vs-code",
-				"keploy.keployio"
+				"keploy.keployio",
+				"kilocode.Kilo-Code"
 			]
 		}
 	}

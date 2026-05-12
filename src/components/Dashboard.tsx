@@ -208,7 +208,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       onMouseLeave={onMouseLeave}
       style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
       className="relative bg-white border border-slate-100 rounded-xl p-3 cursor-default will-change-transform overflow-hidden group
-                 hover:border-slate-200 hover:shadow-md shimmer-effect kpi-particles particle-effect"
+                 hover:border-slate-200 hover:shadow-md shimmer-effect"
     >
       {/* Color accent bar top */}
       <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
