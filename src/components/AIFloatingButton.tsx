@@ -3,6 +3,7 @@ import { Sparkles, X, Send, Mic, MicOff, Loader2, Bot, User, RotateCcw, Copy, Ch
 import { motion, AnimatePresence } from 'motion/react';
 import { subscribeToCollection } from '../services/firestoreService';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { toast } from 'sonner';
 
 interface Message { id: string; role: 'user' | 'assistant'; content: string; }
@@ -70,6 +71,7 @@ const QUICK = [
 
 export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: string) => void }) {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -193,15 +195,6 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
          }
        };
 
-        // Read AI settings from localStorage (set in Settings → Agente IA)
-        let aiModel = 'gemini-2.5-flash';
-        let aiApiKey = '';
-        try {
-          const stored = JSON.parse(localStorage.getItem('app-visual-settings') || '{}');
-          aiModel = stored.aiModel || aiModel;
-          aiApiKey = stored.aiApiKey || '';
-        } catch {}
-
         const res = await fetch('/api/ai-report', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -209,8 +202,8 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
           body: JSON.stringify({
             messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
             context: enhancedContext,
-            modelName: aiModel,
-            apiKey: aiApiKey,
+            modelName: settings.aiModel,
+            apiKey: settings.aiApiKey,
           }),
         });
 

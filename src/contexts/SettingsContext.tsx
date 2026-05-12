@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../lib/firebase';
+import { useAuth } from './AuthContext';
 
 export type ThemeMode = 'classic' | 'modern' | 'brutalist' | 'minimal';
 export type GraphType = 'bar' | 'line' | 'area';
@@ -55,42 +58,96 @@ interface SettingsContextType {
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
+const SYNC_DEBOUNCE = 800;
+
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
   const [settings, setSettings] = useState<AppSettings>(() => {
     const saved = localStorage.getItem('app-visual-settings');
-    return saved ? JSON.parse(saved) : defaultSettings;
+    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
   });
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
+  // Sync down from Firestore on mount (remote wins)
+  useEffect(() => {
+    if (!user || !navigator.onLine) return;
+    const syncDown = async () => {
+      try {
+        const ref = doc(db, 'userSettings', user.uid);
+        const snap = await getDoc(ref);
+        if (snap.exists()) {
+          const remote = snap.data() as Partial<AppSettings>;
+          const merged = { ...defaultSettings, ...remote };
+          setSettings(merged);
+          localStorage.setItem('app-visual-settings', JSON.stringify(merged));
+        }
+      } catch {
+        // Offline-first — localStorage is the fallback
+      }
+    };
+    syncDown();
+  }, [user]);
+
+  // Persist to localStorage instantly + debounced sync up to Firestore
   useEffect(() => {
     localStorage.setItem('app-visual-settings', JSON.stringify(settings));
 
-    // Inject dynamic CSS variables — only secondary (primary is handled by dark mode CSS)
+    // Inject dynamic CSS variables
     const root = document.documentElement;
     root.style.setProperty('--secondary', settings.secondaryColor);
-    // Store user's brand primary for light mode only
     root.style.setProperty('--brand-primary', settings.primaryColor);
 
-    // Apply themeMode class
     root.classList.remove('theme-modern', 'theme-classic', 'theme-brutalist', 'theme-minimal');
     root.classList.add(`theme-${settings.themeMode}`);
 
-    // Apply compact mode
     if (settings.compactMode) {
       root.classList.add('compact-mode');
     } else {
       root.classList.remove('compact-mode');
     }
 
-    // Apply card style as data attribute for CSS targeting
     root.setAttribute('data-card', settings.cardStyle);
 
-    // Apply font to body
     const body = document.body;
     body.classList.remove('font-inter', 'font-space', 'font-mono');
     if (settings.typography === 'inter') body.classList.add('font-inter');
     if (settings.typography === 'space') body.classList.add('font-space');
     if (settings.typography === 'mono') body.classList.add('font-mono');
-  }, [settings]);
+
+    // Debounced Firestore sync
+    if (!user) return;
+    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    syncTimerRef.current = setTimeout(async () => {
+      if (!navigator.onLine) return;
+      try {
+        const ref = doc(db, 'userSettings', user.uid);
+        await setDoc(ref, settings, { merge: true });
+      } catch {
+        // Will retry on next change or reconnect
+      }
+    }, SYNC_DEBOUNCE);
+
+    return () => {
+      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+    };
+  }, [settings, user]);
+
+  // Auto-sync when coming back online
+  useEffect(() => {
+    const onOnline = async () => {
+      if (!user) return;
+      try {
+        const ref = doc(db, 'userSettings', user.uid);
+        await setDoc(ref, settingsRef.current, { merge: true });
+      } catch {
+        // Offline-first — data is safe in localStorage
+      }
+    };
+    window.addEventListener('online', onOnline);
+    return () => window.removeEventListener('online', onOnline);
+  }, [user]);
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));

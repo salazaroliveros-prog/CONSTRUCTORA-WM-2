@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Bot, Send, Loader2, Sparkles, User, RotateCcw, Copy, Check } from 'lucide-react';
 import { subscribeToCollection } from '../services/firestoreService';
 import { useAuth } from '../contexts/AuthContext';
+import { useSettings } from '../contexts/SettingsContext';
 import { toast } from 'sonner';
 
 interface Message { id: string; role: 'user' | 'assistant'; content: string; }
@@ -89,6 +90,7 @@ function CopyButton({ text }: { text: string }) {
 // ── Main component ────────────────────────────────────────────────────────────
 export default function AIAssistant() {
   const { user } = useAuth();
+  const { settings } = useSettings();
   const [context, setContext] = useState<Record<string, any>>({});
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
@@ -124,15 +126,6 @@ export default function AIAssistant() {
       const token = await user?.getIdToken();
       if (!token) throw new Error('Sesión no válida');
 
-      // Read AI settings from localStorage (set in Settings → Agente IA)
-      let aiModel = 'gemini-2.5-flash';
-      let aiApiKey = '';
-      try {
-        const stored = JSON.parse(localStorage.getItem('app-visual-settings') || '{}');
-        aiModel = stored.aiModel || aiModel;
-        aiApiKey = stored.aiApiKey || '';
-      } catch {}
-
       const res = await fetch('/api/ai-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -140,8 +133,8 @@ export default function AIAssistant() {
         body: JSON.stringify({
           messages: [...messages, userMsg].map(m => ({ role: m.role, content: m.content })),
           context,
-          modelName: aiModel,
-          apiKey: aiApiKey,
+          modelName: settings.aiModel,
+          apiKey: settings.aiApiKey,
         }),
       });
 
