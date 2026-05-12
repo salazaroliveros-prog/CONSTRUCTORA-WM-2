@@ -366,15 +366,15 @@ export default function AnalyticsModule() {
           <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-2">
             {selectedProject ? 'Estado del Proyecto' : 'Composición de Portafolio'}
           </h4>
-          <div className="chart-h-sm w-full relative">
-            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+          <div className="chart-h-md w-full relative">
+            <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
                   data={pieData.filter(d => d.value > 0)}
                   cx="50%"
                   cy="50%"
-                  innerRadius={70}
-                  outerRadius={90}
+                  innerRadius={65}
+                  outerRadius={80}
                   paddingAngle={8}
                   dataKey="value"
                 >
@@ -444,8 +444,8 @@ export default function AnalyticsModule() {
         {rentabilidadData.length === 0 ? (
           <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
         ) : (
-          <div className="chart-h-sm">
-            <ResponsiveContainer width="100%" height="100%" minHeight={180}>
+          <div className="chart-h-md">
+            <ResponsiveContainer width="100%" height="100%">
               <BarChart data={rentabilidadData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
@@ -479,11 +479,11 @@ export default function AnalyticsModule() {
             <h3 className="text-sm font-black text-primary uppercase tracking-tight">Desglose por Renglón</h3>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Materiales vs Mano de Obra por renglón (Q)</p>
           </div>
-          <div className="chart-h-sm">
+          <div className="chart-h-md">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={itemsBreakdown} margin={{ top: 5, right: 10, left: 10, bottom: 40 }}>
+              <BarChart data={itemsBreakdown} margin={{ top: 5, right: 10, left: 10, bottom: 30 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis dataKey="name" fontSize={8} axisLine={false} tickLine={false} angle={-30} textAnchor="end" />
+                <XAxis dataKey="name" fontSize={8} axisLine={false} tickLine={false} angle={-25} textAnchor="end" />
                 <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
@@ -540,7 +540,7 @@ export default function AnalyticsModule() {
             {monthlyTrends.every(m => m.Ingresos === 0 && m.Gastos === 0) ? (
               <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin transacciones registradas</div>
             ) : (
-              <div className="chart-h-sm">
+              <div className="chart-h-md">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                     <defs>
@@ -596,10 +596,10 @@ export default function AnalyticsModule() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
                 <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Proyectos por Tipología</h3>
-                <div className="chart-h-sm">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie data={typologyData} cx="50%" cy="50%" outerRadius={80} dataKey="count" paddingAngle={4}>
+          <div className="chart-h-md">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie data={typologyData} cx="50%" cy="50%" outerRadius={70} dataKey="count" paddingAngle={4}>
                         {typologyData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                       </Pie>
                       <Tooltip content={<CustomTooltip />} />
@@ -679,7 +679,7 @@ export default function AnalyticsModule() {
             {projectRanking.length === 0 ? (
               <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
             ) : (
-              <div className="chart-h-sm">
+              <div className="chart-h-md">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={projectRanking.slice(0,8).map(p=>({ name:(p.name||'').substring(0,12), Margen: Math.round(p.margen) }))}
                     layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
@@ -907,7 +907,7 @@ export default function AnalyticsModule() {
             {staffEfficiency.length === 0 ? (
               <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin personal asignado a proyectos</div>
             ) : (
-              <div className="chart-h-sm">
+              <div className="chart-h-md">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={staffEfficiency.slice(0, 8).map(p => ({
                     name: (p.name || '').substring(0, 12),

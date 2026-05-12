@@ -233,7 +233,7 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
       {/* FAB button - Small tab by default */}
       <motion.button
         onClick={() => setOpen(v => !v)}
-        className="fixed bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
+        className="fixed bottom-20 md:bottom-6 right-6 z-[300] w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center"
         style={{ background: 'linear-gradient(135deg, #8b5cf6, #6366f1)' }}
         whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -264,10 +264,10 @@ export default function AIFloatingButton({ setActiveTab }: { setActiveTab?: (t: 
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.95 }}
             transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
-            className="fixed bottom-16 right-6 z-[299] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
+            className="fixed bottom-24 md:bottom-16 right-6 z-[299] w-[320px] max-w-[calc(100vw-2rem)] rounded-2xl shadow-2xl overflow-hidden flex flex-col"
             style={{ 
-              height: 'calc(100vh - 100px)', 
-              maxHeight: '500px',
+              maxHeight: 'calc(100dvh - 8rem)', 
+              height: 'calc(100dvh - 8rem)',
               background: 'rgba(15,20,40,0.97)', 
               border: '1px solid rgba(139,92,246,0.3)' 
             }}
