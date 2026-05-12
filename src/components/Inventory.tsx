@@ -331,7 +331,7 @@ export default function InventoryModule() {
       }
       await addDocument('inventory', { ...newItem, iconUrl, lastEntry: new Date().toISOString().split('T')[0] });
       setIsCreateModalOpen(false);
-      setNewItem({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '' });
+      setNewItem({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '', expiryDate: '' });
       setIconFile(null);
       toast.success("Material registrado");
     } catch (e) {

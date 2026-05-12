@@ -1156,7 +1156,7 @@ export default function ProjectsModule() {
                     <div className="flex items-center gap-2">
                       <span className="text-[8px] font-bold text-slate-400 uppercase">
                         {(() => {
-                          const projectInventory = transactions.filter(t => t.projectId === selectedProject.id && t.itemId);
+                          const projectInventory = transactions.filter(t => t.projectId === selectedProject.id);
                           return projectInventory.length;
                         })()} items
                       </span>

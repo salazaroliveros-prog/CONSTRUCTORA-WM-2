@@ -68,7 +68,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   });
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const syncTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sync down from Firestore on mount (remote wins)
   useEffect(() => {

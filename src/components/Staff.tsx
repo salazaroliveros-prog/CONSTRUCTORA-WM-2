@@ -740,7 +740,7 @@ export default function StaffModule() {
           </div>
         </div>
 
-        {bulkMode && activeStaffTab === 'personal' && selectedPersonalIds.size > 0 && (
+        {bulkMode && selectedPersonalIds.size > 0 && activeStaffTab === 'personal' && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedPersonalIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeletePersonal}
