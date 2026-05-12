@@ -223,9 +223,9 @@ export default function AnalyticsModule() {
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="flex flex-col h-full gap-3 p-3">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div className="text-left">
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-primary uppercase">Analíticas</h2>
           <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
@@ -306,7 +306,7 @@ export default function AnalyticsModule() {
 
       {/* Tab: OVERVIEW (contenido original) */}
       {activeTab === 'overview' && (<>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 text-left">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 text-left">
         {[
           { label: 'Proyectos', value: displayProjects.length, label2: 'Total Registrados', icon: <BarChart3 className="text-primary w-5 h-5" /> },
           { label: 'Cotizado', value: stats.cotizados.length, label2: 'En espera', icon: <Zap className="text-secondary w-5 h-5" /> },
@@ -318,7 +318,7 @@ export default function AnalyticsModule() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             key={i}
-            className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"
+            className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"
           >
             <div className="flex justify-between items-start">
               <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
@@ -333,7 +333,7 @@ export default function AnalyticsModule() {
       </div>
 
       {/* Budget total */}
-      <div className="bg-slate-900 rounded-2xl p-4 md:p-6 text-white text-left flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div className="bg-slate-900 rounded-2xl p-3 text-white text-left flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div>
           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
             {selectedProject ? `Presupuesto: ${selectedProject.name}` : 'Presupuesto Total Portafolio'}
@@ -360,13 +360,13 @@ export default function AnalyticsModule() {
       </div>
 
       {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Pie chart */}
-        <div className="bg-white p-6 md:p-8 rounded-3xl border border-slate-200 shadow-sm text-left">
-          <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-6">
+        <div className="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm text-left">
+          <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-2">
             {selectedProject ? 'Estado del Proyecto' : 'Composición de Portafolio'}
           </h4>
-          <div className="chart-h-lg w-full relative">
+          <div className="chart-h-sm w-full relative">
             <ResponsiveContainer width="100%" height="100%" minHeight={180}>
               <PieChart>
                 <Pie
@@ -394,8 +394,8 @@ export default function AnalyticsModule() {
         </div>
 
         {/* Radial / System health */}
-        <div className="bg-slate-900 rounded-3xl p-6 md:p-8 text-white text-left">
-          <div className="flex justify-between items-start mb-8">
+        <div className="bg-slate-900 rounded-3xl p-3 text-white text-left">
+          <div className="flex justify-between items-start mb-2">
             <div>
               <h4 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-1">Estado del Sistema</h4>
               <p className="text-xl font-black uppercase tracking-tight text-secondary">Salud Operativa</p>
@@ -419,7 +419,7 @@ export default function AnalyticsModule() {
               </RadialBarChart>
             </ResponsiveContainer>
           </div>
-          <div className="grid grid-cols-3 gap-2 mt-2">
+          <div className="grid grid-cols-3 gap-1 mt-1">
             {[
               { label: 'Carga', val: displayProjects.length, max: 20, color: 'bg-blue-400' },
               { label: 'Cierre', val: stats.finalizados.length, max: displayProjects.length || 1, color: 'bg-emerald-400' },
@@ -436,15 +436,15 @@ export default function AnalyticsModule() {
       </div>
 
       {/* Rentabilidad chart */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-        <div className="mb-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+        <div className="mb-2">
           <h3 className="text-sm font-black text-primary uppercase tracking-tight">Rentabilidad por Proyecto</h3>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Presupuesto vs Costo Real vs Utilidad (Q)</p>
         </div>
         {rentabilidadData.length === 0 ? (
-          <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
+          <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
         ) : (
-          <div className="h-64">
+          <div className="chart-h-sm">
             <ResponsiveContainer width="100%" height="100%" minHeight={180}>
               <BarChart data={rentabilidadData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -460,7 +460,7 @@ export default function AnalyticsModule() {
           </div>
         )}
         {rentabilidadData.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
             {rentabilidadData.map((p, i) => (
               <div key={i} className="bg-slate-50 rounded-xl p-3">
                 <p className="text-[8px] font-black text-slate-400 uppercase truncate">{p.name}</p>
@@ -474,12 +474,12 @@ export default function AnalyticsModule() {
 
       {/* Per-project items breakdown (only when a project is selected) */}
       {selectedProject && itemsBreakdown.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div className="mb-4">
+        <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="mb-2">
             <h3 className="text-sm font-black text-primary uppercase tracking-tight">Desglose por Renglón</h3>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Materiales vs Mano de Obra por renglón (Q)</p>
           </div>
-          <div className="h-72">
+          <div className="chart-h-sm">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={itemsBreakdown} margin={{ top: 5, right: 10, left: 10, bottom: 40 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -527,10 +527,10 @@ export default function AnalyticsModule() {
 
       {/* ── TAB: TENDENCIAS ─────────────────────────────────────────────────── */}
       {activeTab === 'trends' && (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-3">
           {/* Área de ingresos vs gastos por mes */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <div className="mb-4 flex items-center justify-between">
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="mb-2 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-primary uppercase tracking-tight">Flujo de Caja Mensual</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ingresos vs Gastos — últimos 6 meses</p>
@@ -538,9 +538,9 @@ export default function AnalyticsModule() {
               <Calendar size={18} className="text-slate-300" />
             </div>
             {monthlyTrends.every(m => m.Ingresos === 0 && m.Gastos === 0) ? (
-              <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin transacciones registradas</div>
+              <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin transacciones registradas</div>
             ) : (
-              <div className="h-64">
+              <div className="chart-h-sm">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                     <defs>
@@ -567,12 +567,12 @@ export default function AnalyticsModule() {
           </div>
 
           {/* Neto mensual en barras */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <div className="mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="mb-2">
               <h3 className="text-sm font-black text-primary uppercase tracking-tight">Neto Mensual</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Resultado neto por mes (Ingresos − Gastos)</p>
             </div>
-            <div className="h-48">
+            <div className="chart-h-sm">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
@@ -593,10 +593,10 @@ export default function AnalyticsModule() {
 
           {/* Distribución por tipología */}
           {typologyData.length > 0 && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Proyectos por Tipología</h3>
-                <div className="h-52">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Proyectos por Tipología</h3>
+                <div className="chart-h-sm">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie data={typologyData} cx="50%" cy="50%" outerRadius={80} dataKey="count" paddingAngle={4}>
@@ -608,9 +608,9 @@ export default function AnalyticsModule() {
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-                <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Presupuesto por Tipología</h3>
-                <div className="space-y-3">
+              <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+                <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Presupuesto por Tipología</h3>
+                <div className="space-y-2">
                   {typologyData.map((t, i) => (
                     <div key={i}>
                       <div className="flex items-center justify-between mb-1">
@@ -635,8 +635,8 @@ export default function AnalyticsModule() {
           )}
 
           {/* Tabla resumen mensual */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
-            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Resumen Mensual</h3>
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Resumen Mensual</h3>
             <table className="w-full text-left text-[9px]">
               <thead>
                 <tr className="border-b border-slate-100">
@@ -669,17 +669,17 @@ export default function AnalyticsModule() {
 
       {/* ── TAB: RANKING ────────────────────────────────────────────────────── */}
       {activeTab === 'ranking' && (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-3">
           {/* Gráfico de barras ranking */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <div className="mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="mb-2">
               <h3 className="text-sm font-black text-primary uppercase tracking-tight">Ranking de Rentabilidad</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proyectos ordenados por margen de utilidad</p>
             </div>
             {projectRanking.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
+              <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
             ) : (
-              <div className="h-64">
+              <div className="chart-h-sm">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={projectRanking.slice(0,8).map(p=>({ name:(p.name||'').substring(0,12), Margen: Math.round(p.margen) }))}
                     layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
@@ -699,8 +699,8 @@ export default function AnalyticsModule() {
           </div>
 
           {/* Tabla ranking completa */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
-            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Tabla de Rentabilidad Completa</h3>
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Tabla de Rentabilidad Completa</h3>
             {projectRanking.length === 0 ? (
               <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest text-center py-8">Sin datos</p>
             ) : (
@@ -772,8 +772,8 @@ export default function AnalyticsModule() {
 
           {/* Alertas de proyectos en riesgo */}
           {projectRanking.filter(p => p.margen < 0).length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
+              <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle size={16} className="text-red-500" />
                 <h3 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Proyectos en Riesgo Financiero</h3>
               </div>
@@ -790,8 +790,8 @@ export default function AnalyticsModule() {
 
           {/* Top performers */}
           {projectRanking.filter(p => p.margen >= 20).length > 0 && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+              <div className="flex items-center gap-2 mb-2">
                 <Award size={16} className="text-emerald-600" />
                 <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Proyectos de Alto Rendimiento (≥20% margen)</h3>
               </div>
@@ -810,12 +810,12 @@ export default function AnalyticsModule() {
 
       {/* ── TAB: CONECTIVIDAD ──────────────────────────────────────────────── */}
       {activeTab === 'connectivity' && (
-        <div className="space-y-6">
+        <div className="flex flex-col gap-3">
           {/* Alertas inteligentes del sistema */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Alertas críticas */}
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
+              <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle size={16} className="text-red-500" />
                 <h3 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Alertas Críticas</h3>
               </div>
@@ -848,8 +848,8 @@ export default function AnalyticsModule() {
             </div>
 
             {/* Recomendaciones */}
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3">
+              <div className="flex items-center gap-2 mb-2">
                 <CheckCircle2 size={16} className="text-blue-500" />
                 <h3 className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Recomendaciones</h3>
               </div>
@@ -876,8 +876,8 @@ export default function AnalyticsModule() {
             </div>
 
             {/* Métricas de conectividad */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
-              <div className="flex items-center gap-2 mb-3">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+              <div className="flex items-center gap-2 mb-2">
                 <Building2 size={16} className="text-emerald-500" />
                 <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Estado General</h3>
               </div>
@@ -899,15 +899,15 @@ export default function AnalyticsModule() {
           </div>
 
           {/* Análisis de eficiencia de personal por proyecto */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <div className="mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="mb-2">
               <h3 className="text-sm font-black text-primary uppercase tracking-tight">Eficiencia Personal por Proyecto</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Progreso vs Costo de Personal (Progreso% / Costo Salarial en miles)</p>
             </div>
             {staffEfficiency.length === 0 ? (
-              <div className="h-48 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin personal asignado a proyectos</div>
+              <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin personal asignado a proyectos</div>
             ) : (
-              <div className="h-64">
+              <div className="chart-h-sm">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={staffEfficiency.slice(0, 8).map(p => ({
                     name: (p.name || '').substring(0, 12),
@@ -931,15 +931,15 @@ export default function AnalyticsModule() {
           </div>
 
           {/* Análisis de proveedores y órdenes de compra */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="mb-4">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+            <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+              <div className="mb-2">
                 <h3 className="text-sm font-black text-primary uppercase tracking-tight">Top Proveedores</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Por volumen de compras</p>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {supplierAnalysis.slice(0, 5).map((supplier, i) => (
-                  <div key={supplier.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-3">
+                  <div key={supplier.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-2">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-lg bg-slate-900 text-secondary flex items-center justify-center font-black text-[10px]">
                         {i + 1}
@@ -961,11 +961,11 @@ export default function AnalyticsModule() {
             </div>
 
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-              <div className="mb-4">
+              <div className="mb-2">
                 <h3 className="text-sm font-black text-primary uppercase tracking-tight">Completitud de Inventario</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Stock actual vs presupuestado por proyecto</p>
               </div>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {inventoryByProject.slice(0, 5).map((project, i) => (
                   <div key={project.id} className="space-y-2">
                     <div className="flex items-center justify-between">
@@ -999,12 +999,12 @@ export default function AnalyticsModule() {
           </div>
 
           {/* Matriz de conectividad entre módulos */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <div className="mb-4">
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="mb-2">
               <h3 className="text-sm font-black text-primary uppercase tracking-tight">Matriz de Conectividad</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Relaciones entre módulos del sistema</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
                 {
                   title: 'Staff ↔ Projects',
@@ -1040,7 +1040,7 @@ export default function AnalyticsModule() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  className={`border rounded-xl p-4 ${connection.color}`}
+                  className={`border rounded-xl p-3 ${connection.color}`}
                 >
                   <div className="flex items-center gap-2 mb-2">
                     {connection.icon}
@@ -1054,8 +1054,8 @@ export default function AnalyticsModule() {
           </div>
 
           {/* Tabla resumen de conectividad */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm overflow-x-auto">
-            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-4">Resumen de Conectividad del Sistema</h3>
+          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
+            <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Resumen de Conectividad del Sistema</h3>
             <table className="w-full text-left text-[9px]">
               <thead>
                 <tr className="border-b border-slate-100">

@@ -125,18 +125,18 @@ export default function Seguimiento() {
   })();
 
   return (
-    <div className="flex flex-col h-full p-4 gap-4 overflow-auto">
+    <div className="flex flex-col h-full p-3 gap-3 overflow-auto">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
         <div>
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em]">Módulo de Análisis</p>
-          <h1 className="text-base font-black text-slate-900 uppercase tracking-tight">Seguimiento de Avance</h1>
+          <h1 className="text-sm font-black text-slate-900 uppercase tracking-tight">Seguimiento de Avance</h1>
         </div>
         <div className="flex gap-2 w-full md:w-auto">
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
-            className="flex-1 md:w-64 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-amber-400 shadow-sm"
+            className="flex-1 md:w-56 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black uppercase focus:outline-none focus:border-amber-400 shadow-sm"
           >
             <option value="ALL">TODOS LOS PROYECTOS EN EJECUCION</option>
             {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -154,7 +154,7 @@ export default function Seguimiento() {
       </div>
 
       {/* KPI Summary Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         {[
           { label: 'Avance Físico Prom.', value: `${avgFisico}%`, color: '#f59e0b', icon: <TrendingUp size={14} /> },
           { label: 'Avance Financiero Prom.', value: `${avgFinanciero}%`, color: '#3b82f6', icon: <TrendingDown size={14} /> },
@@ -162,8 +162,8 @@ export default function Seguimiento() {
           { label: 'Costo Acumulado', value: fmtQ(totalCostAll), color: totalCostAll > totalBudget ? '#ef4444' : '#10b981', icon: <AlertTriangle size={14} /> },
         ].map((k, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-            className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-            <div className="flex items-center gap-2 mb-2">
+            className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+            <div className="flex items-center gap-2 mb-1">
               <div className="p-1.5 rounded-lg text-white" style={{ background: k.color }}>{k.icon}</div>
               <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{k.label}</p>
             </div>
@@ -173,11 +173,11 @@ export default function Seguimiento() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 flex-1" style={{ gridAutoRows: 'minmax(auto, 1fr)' }}>
 
         {/* Ring charts per project */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-4">Avance por Proyecto</p>
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Avance por Proyecto</p>
 
           {displayProjects.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 opacity-40">
@@ -235,9 +235,9 @@ export default function Seguimiento() {
         </div>
 
         {/* Comparison bar chart */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Comparativa Físico vs Financiero</p>
-          <ResponsiveContainer width="100%" height={220}>
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Comparativa Físico vs Financiero</p>
+          <ResponsiveContainer width="100%" height={150}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
@@ -251,9 +251,9 @@ export default function Seguimiento() {
         </div>
 
         {/* Deviation chart */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Desviación (Físico − Financiero)</p>
-          <ResponsiveContainer width="100%" height={220}>
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Desviación (Físico − Financiero)</p>
+          <ResponsiveContainer width="100%" height={150}>
             <BarChart data={desvData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
@@ -267,9 +267,9 @@ export default function Seguimiento() {
         </div>
 
         {/* Budget vs Cost area */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Presupuesto vs Costo Real (Q)</p>
-          <ResponsiveContainer width="100%" height={200}>
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Presupuesto vs Costo Real (Q)</p>
+          <ResponsiveContainer width="100%" height={150}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
@@ -285,9 +285,9 @@ export default function Seguimiento() {
         </div>
 
         {/* Status pie */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
-          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Distribución por Estado</p>
-          <ResponsiveContainer width="100%" height={200}>
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Distribución por Estado</p>
+          <ResponsiveContainer width="100%" height={150}>
             <PieChart>
               <Pie data={pieData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value"
                 label={({ name, value }) => `${name}: ${value}`} labelLine={false}
@@ -300,8 +300,8 @@ export default function Seguimiento() {
         </div>
 
         {/* Materials: Budgeted vs Executed vs In Stock */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2 xl:col-span-3">
-          <div className="flex items-center justify-between mb-3">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2 xl:col-span-3">
+          <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Materiales: Presupuestado vs Ejecutado</p>
               <p className="text-[8px] text-slate-300 mt-0.5">Costo de materiales presupuestados, consumidos y en bodega por proyecto</p>
@@ -314,7 +314,7 @@ export default function Seguimiento() {
             </div>
           ) : (
             <>
-              <ResponsiveContainer width="100%" height={220} minHeight={160}>
+              <ResponsiveContainer width="100%" height={150} minHeight={120}>
                 <BarChart data={materialData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
