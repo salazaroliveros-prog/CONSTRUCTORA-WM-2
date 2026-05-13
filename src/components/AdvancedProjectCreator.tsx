@@ -27,6 +27,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
+import { MARKET_LEVELS, SLAB_TYPOLOGIES, MarketLevel, SlabTypology, applyMarketParameters } from '../lib/marketParams';
 import {
   Typology,
   DEFAULT_WORK_ITEMS,
@@ -51,6 +52,8 @@ function cn(...inputs: ClassValue[]) {
 export default function AdvancedProjectCreator({ onComplete }: { onComplete?: () => void } = {}) {
   const [selectedTypology, setSelectedTypology] = useState<Typology>(Typology.RESIDENCIAL);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedMarketLevel, setSelectedMarketLevel] = useState<MarketLevel>(MARKET_LEVELS[1]); // Moderate by default
+  const [selectedSlabType, setSelectedSlabType] = useState<SlabTypology>(SLAB_TYPOLOGIES[0]); // Solid slab by default
   const [currentProject, setCurrentProject] = useState<Project>({
     id: 'temp-id',
     name: 'Nuevo Proyecto',
@@ -330,7 +333,8 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
     return { materialsTotal, laborTotal, wasteAmount, indirectCost, adminCost, personalCost };
   }, [currentProject.items, totalDirect, wasteFactors, currentProject.indirectCosts, currentProject.administrativeCosts, currentProject.personalCosts]);
 
-  const totalBudget = totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100);
+  const baseBudget = totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100);
+  const totalBudget = applyMarketParameters(baseBudget, selectedMarketLevel, selectedSlabType);
   
   // Costo por m2
   const costPerM2 = areaTotal > 0 ? totalBudget / areaTotal : 0;
@@ -380,6 +384,10 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
         progress: 0,
         directCosts: totalDirect,
         budgetTree, // Add hierarchical budget tree
+        marketLevel: selectedMarketLevel,
+        slabType: selectedSlabType,
+        area: areaTotal,
+        costPerSqm: areaTotal > 0 ? totalBudget / areaTotal : 0,
       };
       await addDocument('projects', dataToSave);
       toast.success('Proyecto creado exitosamente');
@@ -539,9 +547,52 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                      className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-secondary"
                    />
                  </div>
-               </div>
+                </div>
 
-               <div className="flex gap-4 items-end">
+                {/* Market Level and Slab Type Selection */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-blue-800 dark:text-blue-200 uppercase tracking-widest block ml-1 flex items-center gap-1">
+                      <Gauge size={12} /> Nivel de Mercado
+                    </label>
+                    <select
+                      value={selectedMarketLevel.id}
+                      onChange={(e) => {
+                        const level = MARKET_LEVELS.find(l => l.id === e.target.value);
+                        if (level) setSelectedMarketLevel(level);
+                      }}
+                      className="w-full bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
+                    >
+                      {MARKET_LEVELS.map(level => (
+                        <option key={level.id} value={level.id}>
+                          {level.name} - Q. {level.costPerSqm.recommended.toLocaleString()}/m²
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[8px] text-blue-600 dark:text-blue-300 mt-1">{selectedMarketLevel.description}</p>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-blue-800 dark:text-blue-200 uppercase tracking-widest block ml-1 flex items-center gap-1">
+                      <BarChart3 size={12} /> Tipo de Losa/Cubierta
+                    </label>
+                    <select
+                      value={selectedSlabType.id}
+                      onChange={(e) => {
+                        const slabType = SLAB_TYPOLOGIES.find(s => s.id === e.target.value);
+                        if (slabType) setSelectedSlabType(slabType);
+                      }}
+                      className="w-full bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
+                    >
+                      {SLAB_TYPOLOGIES.map(slab => (
+                        <option key={slab.id} value={slab.id}>{slab.name}</option>
+                      ))}
+                    </select>
+                    <p className="text-[8px] text-blue-600 dark:text-blue-300 mt-1">{selectedSlabType.description}</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 items-end">
                  <div className="space-y-1 flex-1">
                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block ml-1">Tipología</label>
                    <select 

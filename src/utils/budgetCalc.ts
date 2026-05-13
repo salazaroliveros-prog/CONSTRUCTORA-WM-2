@@ -2,6 +2,105 @@
 
 import { BudgetLine } from '../lib/budgetData';
 
+// Engineering calculation constants for Guatemala construction
+export const ENGINEERING_CONSTANTS = {
+  // Steel reinforcement ratios (as percentage of concrete volume)
+  steelRatios: {
+    foundation: 0.015, // 1.5% for foundations
+    columns: 0.025,   // 2.5% for columns
+    beams: 0.020,     // 2.0% for beams
+    slabs: 0.012,     // 1.2% for slabs
+  },
+  // Waste factors
+  wasteFactors: {
+    concrete: 1.03,   // 3% waste
+    steel: 1.05,      // 5% waste
+    formwork: 1.02,   // 2% waste
+    general: 1.10,    // 10% general waste
+  },
+  // Material densities (kg/m³)
+  densities: {
+    concrete: 2400,
+    steel: 7850,
+  },
+  // Steel diameters commonly used (mm)
+  steelDiameters: [6, 8, 10, 12, 16, 20, 25],
+};
+
+/**
+ * Calculate quantity based on dimensions for dynamic computation types
+ */
+export function calculateDynamicQuantity(line: BudgetLine): number {
+  if (line.computationType !== 'dynamic' || !line.dimensions) {
+    return line.qty; // Return existing qty if not dynamic
+  }
+
+  const dims = line.dimensions;
+  let volume = 0;
+
+  // Calculate volume based on description/type
+  if (line.description.toLowerCase().includes('cimentación') || line.description.toLowerCase().includes('zapata')) {
+    // Foundation/Zapata: length × width × depth
+    volume = (dims.length || 0) * (dims.width || 0) * (dims.height || 0);
+    line.unit = 'm³'; // Update unit
+  } else if (line.description.toLowerCase().includes('columna')) {
+    // Column: cross-section × height
+    const crossSection = (dims.width || 0) * (dims.height || 0); // width × height as cross-section
+    volume = crossSection * (dims.length || 0); // length as height
+    line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('solera')) {
+    // Solera: width × height × length
+    volume = (dims.width || 0) * (dims.height || 0) * (dims.length || 0);
+    line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('losa')) {
+    // Slab: area × thickness
+    const area = (dims.length || 0) * (dims.width || 0);
+    volume = area * (dims.thickness || 0.15); // Default 15cm thickness
+    line.unit = 'm³';
+  }
+
+  // Apply waste factor
+  const wasteFactor = line.wasteFactor || ENGINEERING_CONSTANTS.wasteFactors.concrete;
+  return volume * wasteFactor;
+}
+
+/**
+ * Calculate steel reinforcement automatically
+ */
+export function calculateSteelReinforcement(line: BudgetLine): { diameter: number; length: number; weight: number } {
+  let volume = line.qty;
+  let steelRatio = 0.015; // Default 1.5%
+
+  // Determine steel ratio based on element type
+  if (line.description.toLowerCase().includes('columna')) {
+    steelRatio = ENGINEERING_CONSTANTS.steelRatios.columns;
+  } else if (line.description.toLowerCase().includes('viga')) {
+    steelRatio = ENGINEERING_CONSTANTS.steelRatios.beams;
+  } else if (line.description.toLowerCase().includes('losa')) {
+    steelRatio = ENGINEERING_CONSTANTS.steelRatios.slabs;
+  } else if (line.description.toLowerCase().includes('cimentación') || line.description.toLowerCase().includes('zapata')) {
+    steelRatio = ENGINEERING_CONSTANTS.steelRatios.foundation;
+  }
+
+  // Calculate steel volume
+  const steelVolume = volume * steelRatio;
+
+  // Determine optimal diameter (simplified logic)
+  let diameter = 12; // Default 12mm
+  if (volume > 10) diameter = 16; // Larger elements use bigger bars
+  if (volume > 50) diameter = 20;
+
+  // Calculate total length (simplified - in reality this would be more complex)
+  const barLength = Math.sqrt(volume) * 10; // Rough estimation
+  const weight = steelVolume * ENGINEERING_CONSTANTS.densities.steel;
+
+  return {
+    diameter,
+    length: barLength * (line.wasteFactor || ENGINEERING_CONSTANTS.wasteFactors.steel),
+    weight: weight * (line.wasteFactor || ENGINEERING_CONSTANTS.wasteFactors.steel)
+  };
+}
+
 /**
  * Calculate the totals for a budget line and its children recursively.
  * This function mutates the line objects by adding calculated fields:
@@ -13,6 +112,18 @@ import { BudgetLine } from '../lib/budgetData';
  */
 export function calculateBudget(lines: BudgetLine[]): BudgetLine[] {
   lines.forEach(line => {
+    // Calculate dynamic quantity if needed
+    if (line.computationType === 'dynamic') {
+      line.qty = calculateDynamicQuantity(line);
+    }
+
+    // Calculate steel reinforcement if applicable
+    if (line.description.toLowerCase().includes('acero') || line.description.toLowerCase().includes('refuerzo')) {
+      const steel = calculateSteelReinforcement(line);
+      // Update material performance based on calculated steel
+      line.materialPerf = steel.weight / line.qty; // kg per unit
+    }
+
     // Calculate material and labor totals for this line based on its own qty and performance.
     const materialTotal = line.qty * line.materialCost * (line.materialPerf ?? 1);
     const laborTotal = line.qty * line.laborCost * (line.laborPerf ?? 1);

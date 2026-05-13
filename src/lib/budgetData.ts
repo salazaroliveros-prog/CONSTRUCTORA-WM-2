@@ -14,31 +14,148 @@ export interface BudgetLine {
   order: number; // chronological order for sorting
   children: BudgetLine[]; // sub-lines (for material and labor breakdown)
 
+  // New: Dynamic computation fields for engineering calculations
+  computationType?: 'fixed' | 'dynamic'; // Whether qty is fixed or calculated from dimensions
+  dimensions?: {
+    length?: number; // Largo (m)
+    width?: number;  // Ancho (m)
+    height?: number; // Alto/Profundidad (m)
+    diameter?: number; // Diámetro (m) for circular elements
+    thickness?: number; // Espesor (m)
+  };
+  wasteFactor?: number; // Factor de desperdicio (e.g., 1.05 for 5% waste)
+
+  // New: Material specifications for automatic calculations
+  materialSpecs?: {
+    concreteGrade?: string; // e.g., "f'c 210 kg/cm²"
+    steelType?: string; // e.g., "A36", "A42"
+    steelDiameter?: number; // Diámetro de acero (mm)
+    formworkType?: string; // Tipo de encofrado
+  };
+
   // Calculated fields (not stored, computed by the engine)
   materialTotal?: number;
   laborTotal?: number;
   subtotal?: number;
 }
 
-// Default budget data: 40 critical lines, chronologically ordered and by typology.
-// In a real app, this could be fetched from a backend or a more extensive library.
-// For now, we provide a sample structure.
+// Default budget data: Critical lines with dynamic computations
+// Updated for Guatemala market with engineering calculations
 export const defaultBudget: BudgetLine[] = [
-  // Example structure (to be expanded to 40 lines)
   {
-    id: 'line_1',
+    id: 'foundation_001',
     code: '01-01-001',
-    description: 'Estructura - Cimentaciones',
-    unit: 'm²',
-    qty: 100,
-    materialCost: 150, // Q. per kg of steel? Adjust as needed.
-    laborCost: 80, // Q. per hour
-    materialPerf: 0.5, // kg of steel per m²
-    laborPerf: 2.0, // hours per m²
+    description: 'Cimentación - Excavación y Relleno',
+    unit: 'm³',
+    qty: 0, // Will be calculated dynamically
+    materialCost: 25,
+    laborCost: 15,
+    materialPerf: 1,
+    laborPerf: 0.5,
     order: 1,
-    children: [], // Will be filled with sublines for materials and labor
+    computationType: 'dynamic',
+    dimensions: { length: 0, width: 0, height: 0 },
+    wasteFactor: 1.05,
+    children: []
   },
-  // ... more lines would be added here to reach 40
+  {
+    id: 'foundation_002',
+    code: '01-01-002',
+    description: 'Cimentación - Concreto f\'c 210',
+    unit: 'm³',
+    qty: 0,
+    materialCost: 450,
+    laborCost: 35,
+    materialPerf: 1,
+    laborPerf: 0.3,
+    order: 2,
+    computationType: 'dynamic',
+    dimensions: { length: 0, width: 0, height: 0 },
+    wasteFactor: 1.03,
+    materialSpecs: { concreteGrade: "f'c 210 kg/cm²" },
+    children: []
+  },
+  {
+    id: 'foundation_003',
+    code: '01-01-003',
+    description: 'Cimentación - Acero de Refuerzo',
+    unit: 'kg',
+    qty: 0,
+    materialCost: 8.50,
+    laborCost: 2.50,
+    materialPerf: 1,
+    laborPerf: 0.1,
+    order: 3,
+    computationType: 'dynamic',
+    wasteFactor: 1.05,
+    materialSpecs: { steelType: "A36", steelDiameter: 12 },
+    children: []
+  },
+  {
+    id: 'columns_001',
+    code: '01-02-001',
+    description: 'Columnas - Concreto f\'c 250',
+    unit: 'm³',
+    qty: 0,
+    materialCost: 480,
+    laborCost: 40,
+    materialPerf: 1,
+    laborPerf: 0.25,
+    order: 4,
+    computationType: 'dynamic',
+    dimensions: { width: 0, height: 0, length: 0 }, // width=base, height=side, length=altura
+    wasteFactor: 1.03,
+    materialSpecs: { concreteGrade: "f'c 250 kg/cm²" },
+    children: []
+  },
+  {
+    id: 'columns_002',
+    code: '01-02-002',
+    description: 'Columnas - Acero Longitudinal',
+    unit: 'kg',
+    qty: 0,
+    materialCost: 9.00,
+    laborCost: 3.00,
+    materialPerf: 1,
+    laborPerf: 0.15,
+    order: 5,
+    computationType: 'dynamic',
+    wasteFactor: 1.05,
+    materialSpecs: { steelType: "A42", steelDiameter: 16 },
+    children: []
+  },
+  {
+    id: 'slab_001',
+    code: '01-03-001',
+    description: 'Losa - Concreto f\'c 210',
+    unit: 'm³',
+    qty: 0,
+    materialCost: 450,
+    laborCost: 35,
+    materialPerf: 1,
+    laborPerf: 0.2,
+    order: 6,
+    computationType: 'dynamic',
+    dimensions: { length: 0, width: 0, thickness: 0.15 },
+    wasteFactor: 1.03,
+    materialSpecs: { concreteGrade: "f'c 210 kg/cm²" },
+    children: []
+  },
+  {
+    id: 'slab_002',
+    code: '01-03-002',
+    description: 'Losa - Malla Electrosoldada',
+    unit: 'm²',
+    qty: 0,
+    materialCost: 25,
+    laborCost: 5,
+    materialPerf: 1,
+    laborPerf: 0.1,
+    order: 7,
+    computationType: 'dynamic',
+    wasteFactor: 1.05,
+    children: []
+  }
 ];
 
 // Note: In a production system, the defaultBudget would be loaded from a JSON file or API.

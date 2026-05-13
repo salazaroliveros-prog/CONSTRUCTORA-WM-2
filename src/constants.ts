@@ -63,6 +63,19 @@ export interface Project {
   budget: number;
   attachments?: string[];
   ganttConfig?: { overrides?: Record<string, any>; progress?: Record<string, number> };
+  // New: Market and engineering parameters
+  marketLevel?: {
+    id: string;
+    name: string;
+    costPerSqm: { min: number; max: number; recommended: number };
+  };
+  slabType?: {
+    id: string;
+    name: string;
+    description: string;
+  };
+  area?: number;
+  costPerSqm?: number;
 }
 
 export interface StaffMember {

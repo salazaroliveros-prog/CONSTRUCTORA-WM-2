@@ -50,7 +50,13 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
           </td>
           <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">{line.unit}</td>
           <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">
-            {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            {line.computationType === 'dynamic' ? (
+              <span className="text-blue-600 dark:text-blue-400 font-medium">
+                {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} (calc)
+              </span>
+            ) : (
+              line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })
+            )}
           </td>
           <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">Q {line.materialCost.toLocaleString()}</td>
           <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">Q {line.laborCost.toLocaleString()}</td>
@@ -60,7 +66,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
           {editingAllowed && (
             <td className="text-right">
               <button
-                onClick={() => toast.info('Editar línea no implementado aún')}
+                onClick={() => setExpanded(prev => ({ ...prev, [line.id + '_edit']: !prev[line.id + '_edit'] }))}
                 className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700"
               >
                 <Pencil size={12} />
@@ -75,6 +81,130 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
           )}
         </tr>
       );
+
+      // Edit row for dynamic computations
+      if (editingAllowed && expanded[line.id + '_edit']) {
+        result.push(
+          <tr key={line.id + '_edit'} className="bg-blue-50 dark:bg-blue-900/20 border-t border-blue-200 dark:border-blue-700">
+            <td colSpan={editingAllowed ? 7 : 6} style={{ paddingLeft: `${depth * 1.5 + 2}rem` }}>
+              <div className="py-3 space-y-3">
+                <h4 className="text-[10px] font-black text-blue-800 dark:text-blue-200 uppercase tracking-widest">
+                  Dimensiones para {line.description}
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {line.description.toLowerCase().includes('cimentación') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.width || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.width = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Profundidad (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.height || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.height = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {line.description.toLowerCase().includes('columna') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Base (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.width || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.width = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Altura (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  <div>
+                    <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Factor Desperdicio</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="1"
+                      max="2"
+                      value={line.wasteFactor || 1.0}
+                      onChange={(e) => {
+                        const updated = { ...line };
+                        updated.wasteFactor = parseFloat(e.target.value) || 1.0;
+                        onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                      }}
+                      className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <button
+                      onClick={() => setExpanded(prev => ({ ...prev, [line.id + '_edit']: false }))}
+                      className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-[8px] font-black uppercase rounded"
+                    >
+                      Aplicar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+        );
+      }
 
       // If expanded and has children, render children recursively
       if (isExpanded && hasChildren) {
