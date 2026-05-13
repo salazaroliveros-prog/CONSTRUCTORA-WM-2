@@ -254,7 +254,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
   );
 
   return (
-    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
+    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
 
 {/* KPI Strip */}
        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
@@ -284,7 +284,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
              <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">{filtered.length} de {suppliers.length} registros</p>
            </div>
          </div>
-         <div className="flex flex-wrap gap-1.5 w-full md:w-auto items-center">
+          <div className="flex flex-wrap gap-1.5 w-full md:w-auto items-center overflow-x-auto">
            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} title="Filtrar por categoría"
              className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
              <option value="">TODAS LAS CATEGORÍAS</option>
@@ -339,7 +339,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
         <div className={cn("flex flex-col min-h-0 transition-all duration-300", selectedSupplier ? "flex-1" : "w-full")}>
           <div className="flex-1 min-h-0 overflow-hidden">
 {viewMode === 'grid' ? (
-                <div className="grid grid-cols-6 gap-2 h-full content-start overflow-y-auto">
+                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 h-full content-start overflow-y-auto">
                   {currentItems.map((s, i) => {
                     const isSelected = selectedSupplier?.id === s.id;
                     const ocCount = purchaseOrders.filter(o => o.supplierId === s.id || o.supplierName === s.name).length;
@@ -363,7 +363,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                              <Truck size={11} />
                            </div>
                            <h3 className="text-[9px] font-black text-primary uppercase truncate flex-1 group-hover:text-secondary transition-colors">{s.name}</h3>
-                           <span className={cn("px-1 py-0.5 rounded-full text-[6px] font-black uppercase shrink-0",
+                            <span className={cn("px-1 py-0.5 rounded-full text-[7px] sm:text-[6px] font-black uppercase shrink-0",
                              s.status === 'Activo' ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-600")}>
                              {s.status || 'Activo'}
                            </span>
@@ -458,7 +458,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                                  : <span className="text-[7px] text-slate-300 font-bold">—</span>}
                              </td>
                              <td className="px-3 py-2 text-center">
-                               <span className={cn("px-1 py-0.5 rounded-full text-[6px] font-black uppercase",
+                                <span className={cn("px-1 py-0.5 rounded-full text-[7px] sm:text-[6px] font-black uppercase",
                                  s.status === 'Activo' ? "bg-emerald-100 text-emerald-700" : "bg-orange-100 text-orange-600")}>
                                  {s.status || 'Activo'}
                                </span>
@@ -499,8 +499,8 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                animate={{ opacity: 1, x: 0, width: 280 }}
                exit={{ opacity: 0, x: 40, width: 0 }}
                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-               className="shrink-0 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col"
-               style={{ minWidth: 250, maxWidth: 280 }}>
+                className="shrink-0 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
+                style={{ minWidth: 200, maxWidth: 320 }}>
                {/* Header */}
                <div className="bg-slate-900 p-3 relative">
                  <button type="button" title="Cerrar panel" onClick={() => setSelectedSupplier(null)}
@@ -516,7 +516,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                      <p className="text-[7px] font-bold text-slate-400 uppercase mt-0.5">{selectedSupplier.category || 'General'}</p>
                      <div className="flex items-center gap-0.5 mt-0.5">
                        <StarRating value={Number(selectedSupplier.rating || 5)} onChange={v => handleRatingChange(selectedSupplier, v)} />
-                       <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full ml-0.5",
+                        <span className={cn("text-[7px] sm:text-[6px] font-black uppercase px-1 py-0.5 rounded-full ml-0.5",
                          selectedSupplier.status === 'Activo' ? "bg-emerald-500/20 text-emerald-300" : "bg-orange-500/20 text-orange-300")}>
                          {selectedSupplier.status}
                        </span>
@@ -529,19 +529,19 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                  {/* KPIs del proveedor */}
                  <div className="grid grid-cols-2 gap-1.5">
                    <div className="bg-blue-50 rounded-md p-1.5 text-center">
-                     <p className="text-[6px] font-black text-blue-600 uppercase tracking-widest">Órdenes</p>
+                      <p className="text-[7px] sm:text-[6px] font-black text-blue-600 uppercase tracking-widest">Órdenes</p>
                      <p className="text-sm font-black text-blue-700">{supplierOCs.length}</p>
                    </div>
                    <div className="bg-amber-50 rounded-md p-1.5 text-center">
-                     <p className="text-[6px] font-black text-amber-600 uppercase tracking-widest">Total Compras</p>
+                      <p className="text-[7px] sm:text-[6px] font-black text-amber-600 uppercase tracking-widest">Total Compras</p>
                      <p className="text-sm font-black text-amber-700">Q {supplierTotalSpent.toLocaleString('es-GT')}</p>
                    </div>
                    <div className="bg-green-50 rounded-md p-1.5 text-center">
-                     <p className="text-[6px] font-black text-green-600 uppercase tracking-widest">Promedio OC</p>
+                      <p className="text-[7px] sm:text-[6px] font-black text-green-600 uppercase tracking-widest">Promedio OC</p>
                      <p className="text-sm font-black text-green-700">Q {supplierOCs.length > 0 ? Math.round(supplierTotalSpent / supplierOCs.length).toLocaleString('es-GT') : '0'}</p>
                    </div>
                    <div className="bg-purple-50 rounded-md p-1.5 text-center">
-                     <p className="text-[6px] font-black text-purple-600 uppercase tracking-widest">Última Compra</p>
+                      <p className="text-[7px] sm:text-[6px] font-black text-purple-600 uppercase tracking-widest">Última Compra</p>
                      <p className="text-sm font-black text-purple-700">
                        {supplierOCs.length > 0 ? (() => {
                          const lastOrder = supplierOCs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];

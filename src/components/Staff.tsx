@@ -464,7 +464,7 @@ export default function StaffModule() {
   );
 
   return (
-    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500">
+    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
@@ -510,7 +510,7 @@ export default function StaffModule() {
              </p>
            </div>
          </div>
-         <div className="flex flex-wrap gap-1.5 w-full md:w-auto items-center">
+          <div className="flex flex-wrap gap-1.5 w-full md:w-auto items-center overflow-x-auto">
           {activeStaffTab === 'personal' ? (
             <>
 <select value={filterRole} onChange={e => setFilterRole(e.target.value)} title="Filtrar por cargo"
@@ -775,8 +775,8 @@ export default function StaffModule() {
 animate={{ opacity: 1, x: 0, width: 280 }}
                exit={{ opacity: 0, x: 40, width: 0 }}
                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-               className="shrink-0 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden flex flex-col"
-               style={{ minWidth: 240, maxWidth: 280 }}>
+                className="shrink-0 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
+                style={{ minWidth: 200, maxWidth: 320 }}>
                <div className="bg-slate-900 p-3 relative">
                  <button type="button" title="Cerrar panel" onClick={() => setSelectedMember(null)}
                    className="absolute top-2 right-2 p-0.5 rounded-md text-slate-400 hover:text-white hover:bg-white/10 transition-all">
