@@ -124,11 +124,9 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     item.id === 'settings' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
   );
 
-  // Mobile navigation: prioritize essential modules
+  // Mobile navigation: all modules with horizontal scroll
   const mobileMenuItems = menuItems
-    .filter(item => settings.activeModules?.includes(item.id) ?? true)
-    .sort((a, b) => (a.priority || 4) - (b.priority || 4))
-    .slice(0, 7);
+    .filter(item => item.id === 'settings' || item.id === 'ai' || (settings.activeModules?.includes(item.id) ?? true));
 
   const activeItem = menuItems.find(m => m.id === activeTab);
 
@@ -275,7 +273,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
        {/* ── Bottom Navigation ─────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-[49] bg-white/90 backdrop-blur-2xl border-t border-slate-200/60">
-          <div className="flex items-stretch justify-around h-14 max-w-lg mx-auto">
+          <div className="flex items-stretch justify-start h-14 overflow-x-auto overflow-y-hidden no-scrollbar gap-0.5 px-1">
             {mobileMenuItems.map((item) => {
               const isActive = activeTab === item.id;
               return (
@@ -283,7 +281,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={cn(
-                    "relative flex flex-col items-center justify-center gap-0.5 flex-1 py-1.5 transition-all duration-200",
+                    "relative flex flex-col items-center justify-center gap-0.5 min-w-[3.25rem] flex-shrink-0 py-1 transition-all duration-200",
                     isActive
                       ? "text-secondary"
                       : "text-slate-400 hover:text-slate-600 active:scale-90"
