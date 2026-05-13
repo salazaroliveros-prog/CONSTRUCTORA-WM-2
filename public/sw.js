@@ -1,5 +1,5 @@
-const CACHE_NAME = 'wm-erp-v8';
-const STATIC_CACHE = 'wm-static-v8';
+const CACHE_NAME = 'wm-erp-v9';
+const STATIC_CACHE = 'wm-static-v9';
 
 // Assets to cache for offline use
 const STATIC_ASSETS = [
