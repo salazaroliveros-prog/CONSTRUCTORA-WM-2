@@ -265,7 +265,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
          </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-4 scroll-smooth bg-transparent min-h-0 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex flex-col">
+      <main className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-4 scroll-smooth bg-transparent min-h-0 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] flex flex-col">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>
@@ -310,13 +310,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
               );
             })}
           </div>
-        </nav>
-
-      {/* ── Footer (Desktop only) ─────────────────────────────── */}
-      <footer className="hidden md:flex h-7 items-center justify-between px-4 uppercase tracking-widest shrink-0 transition-colors bg-white border-t border-slate-100 text-slate-600">
-        <span>© 2024 WM/M&S CONSTRUCTORA · Motor V2.4.1 PRO</span>
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> En línea</span>
-      </footer>
+      </nav>
     </div>
   );
 }
