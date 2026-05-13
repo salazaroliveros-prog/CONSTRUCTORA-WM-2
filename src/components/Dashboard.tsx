@@ -22,7 +22,9 @@ import {
    AlertTriangle,
    Pencil,
    Trash2,
-   HardHat
+   HardHat,
+   Calendar,
+   Printer
  } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../utils/cn';
@@ -312,6 +314,13 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
   const [resetLoading, setResetLoading] = useState(false);
   const { selectedProjectId, setSelectedProjectId, executingProjects: ctxExecutingProjects, setExecutingProjects } = useProjectFilter();
   const [selectedYear, setSelectedYear] = useState<string>('todos');
+  const [reportDateFrom, setReportDateFrom] = useState(() => {
+    const d = new Date(); d.setMonth(d.getMonth() - 1); return d.toISOString().split('T')[0];
+  });
+  const [reportDateTo, setReportDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+  const [reportProjectId, setReportProjectId] = useState<string>('ALL');
+  const [generating, setGenerating] = useState(false);
+  const reportCaptureRef = useRef<HTMLDivElement>(null);
 
   const [accountingForm, setAccountingForm] = useState({
     type: 'Salida' as 'Entrada' | 'Salida',
@@ -504,6 +513,124 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
         };
       });
     })();
+
+  const generateReport = async () => {
+    setGenerating(true);
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const target = reportCaptureRef.current;
+      if (!target) { toast.error('Error al generar reporte'); setGenerating(false); return; }
+
+      // Populate report data
+      const projList = reportProjectId === 'ALL' ? projects : projects.filter(p => p.id === reportProjectId);
+      const from = new Date(reportDateFrom);
+      const to = new Date(reportDateTo);
+      const txRange = transactions.filter(t => t.date && new Date(t.date) >= from && new Date(t.date) <= to);
+      const income = txRange.filter(t => t.type === 'INGRESO').reduce((a, t) => a + (t.amount || 0), 0);
+      const expenses = txRange.filter(t => t.type === 'GASTO').reduce((a, t) => a + (t.amount || 0), 0);
+
+      // Build hidden report HTML
+      target.innerHTML = `
+        <div style="font-family:Inter,sans-serif;padding:30px;color:#0f172a;background:#fff;width:780px">
+          <div style="text-align:center;border-bottom:2px solid #f59e0b;padding-bottom:16px;margin-bottom:20px">
+            <h1 style="font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;margin:0">${settings.companyName}</h1>
+            <p style="font-size:9px;color:#64748b;margin:4px 0 0">Reporte de Gestión · ${reportDateFrom} al ${reportDateTo}</p>
+            <p style="font-size:9px;color:#64748b;margin:2px 0 0">${reportProjectId === 'ALL' ? 'Todos los proyectos' : (projects.find(p => p.id === reportProjectId)?.name || 'Proyecto específico')}</p>
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:20px">
+            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Ingresos</p>
+              <p style="font-size:18px;font-weight:900;color:#10b981;margin:4px 0">Q${income.toLocaleString()}</p>
+            </div>
+            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Gastos</p>
+              <p style="font-size:18px;font-weight:900;color:#ef4444;margin:4px 0">Q${expenses.toLocaleString()}</p>
+            </div>
+            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Neto</p>
+              <p style="font-size:18px;font-weight:900;color:${income - expenses >= 0 ? '#10b981' : '#ef4444'};margin:4px 0">Q${(income - expenses).toLocaleString()}</p>
+            </div>
+            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Proyectos</p>
+              <p style="font-size:18px;font-weight:900;color:#0f172a;margin:4px 0">${projList.length}</p>
+            </div>
+          </div>
+          <div style="display:flex;gap:12px;margin-bottom:20px">
+            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;min-height:160px">
+              <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Transacciones por Categoría</p>
+              <div id="report-pie" style="height:140px;display:flex;align-items:center;justify-content:center;gap:12px;">
+                ${entryCategories.filter(c => txRange.filter(t => t.category === c).length > 0).slice(0,5).map((cat, i) => {
+                  const val = txRange.filter(t => t.category === cat).reduce((a, t) => a + (t.amount || 0), 0);
+                  const colors = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#f43f5e'];
+                  return `<div style="display:flex;align-items:center;gap:4px;font-size:7px"><div style="width:8px;height:8px;border-radius:2px;background:${colors[i%5]}"></div>${cat}</div>`;
+                }).join('')}
+              </div>
+            </div>
+            <div style="flex:2;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+              <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Proyectos — Estado de Cuentas</p>
+              <table style="width:100%;font-size:7px;border-collapse:collapse">
+                <thead><tr style="border-bottom:1px solid #e2e8f0">
+                  <th style="text-align:left;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Proyecto</th>
+                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Presupuesto</th>
+                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Avance</th>
+                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Ingresos</th>
+                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Gastos</th>
+                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Neto</th>
+                </tr></thead>
+                <tbody>${projList.slice(0, 15).map(p => {
+                  const pin = txRange.filter(t => t.type === 'INGRESO' && t.projectId === p.id).reduce((a, t) => a + (t.amount || 0), 0);
+                  const pout = txRange.filter(t => t.type === 'GASTO' && t.projectId === p.id).reduce((a, t) => a + (t.amount || 0), 0);
+                  return `<tr style="border-bottom:1px solid #f1f5f9">
+                    <td style="padding:3px 6px;font-weight:700">${p.name || '—'}</td>
+                    <td style="padding:3px 6px;text-align:right;font-family:monospace">Q${(p.budget || 0).toLocaleString()}</td>
+                    <td style="padding:3px 6px;text-align:right">${p.progress || 0}%</td>
+                    <td style="padding:3px 6px;text-align:right;font-family:monospace;color:#10b981">Q${pin.toLocaleString()}</td>
+                    <td style="padding:3px 6px;text-align:right;font-family:monospace;color:#ef4444">Q${pout.toLocaleString()}</td>
+                    <td style="padding:3px 6px;text-align:right;font-family:monospace;color:${pin - pout >= 0 ? '#10b981' : '#ef4444'}">Q${(pin - pout).toLocaleString()}</td>
+                  </tr>`;
+                }).join('')}</tbody>
+              </table>
+              ${projList.length > 15 ? `<p style="font-size:7px;color:#94a3b8;text-align:center;margin-top:4px">Mostrando 15 de ${projList.length} proyectos</p>` : ''}
+            </div>
+          </div>
+          <div style="font-size:6px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px">
+            Generado el ${new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · WM/M&S Constructora ERP
+          </div>
+        </div>
+      `;
+      target.style.display = 'block';
+      target.style.position = 'fixed';
+      target.style.left = '-9999px';
+      target.style.top = '0';
+
+      const canvas = await (await import('html2canvas')).default(target, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfW = 210;
+      const pdfH = (canvas.height * pdfW) / canvas.width;
+      let heightLeft = pdfH;
+      let position = 0;
+      const pageH = 297;
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH);
+      heightLeft -= pageH;
+      while (heightLeft > 0) {
+        position = heightLeft - pdfH;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfW, pdfH);
+        heightLeft -= pageH;
+      }
+
+      target.style.display = 'none';
+      pdf.save(`reporte-${reportDateFrom}-al-${reportDateTo}.pdf`);
+      toast.success('Reporte generado exitosamente');
+    } catch (e) {
+      console.error(e);
+      toast.error('Error al generar reporte');
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4', '#fb923c', '#a3e635'];
 
@@ -757,8 +884,37 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
         </div>
       )}
 
+      {/* Hidden report capture */}
+      <div ref={reportCaptureRef} style={{ display: 'none' }} />
 
-      {/* KPI Ribbon */}
+      {/* Filter Bar */}
+      <div className="flex flex-wrap items-center gap-2 shrink-0">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)}
+            className="text-[9px] font-bold bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary max-w-[180px]"
+          >
+            <option value="ALL">Todos los proyectos</option>
+            {projects.filter(p => p.status === 'EJECUCION').map(p => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <div className="flex items-center gap-1 text-[8px] text-slate-400">
+            <Calendar size={12} />
+            <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
+              className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
+            />
+            <span className="text-slate-300">—</span>
+            <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
+              className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
+            />
+          </div>
+        </div>
+        <button onClick={generateReport} disabled={generating}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-[8px] font-black uppercase tracking-widest hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
+        >
+          {generating ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</> : <><Printer size={12} /> Reporte</>}
+        </button>
+      </div>
       <div className="shrink-0">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {[
