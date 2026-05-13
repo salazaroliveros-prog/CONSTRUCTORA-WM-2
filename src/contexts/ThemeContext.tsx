@@ -1,10 +1,8 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-
-type Theme = 'light' | 'dark';
+import React, { createContext, useContext } from 'react';
 
 interface ThemeContextValue {
-  theme: Theme;
-  setTheme: (t: Theme) => void;
+  theme: 'light';
+  setTheme: (t: 'light') => void;
   toggleTheme: () => void;
 }
 
@@ -15,32 +13,8 @@ const ThemeContext = createContext<ThemeContextValue>({
 });
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = localStorage.getItem('wm-theme') as Theme | null;
-    if (saved === 'light' || saved === 'dark') return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
-    }
-    // Add smooth transition class
-    root.classList.add('theme-transition');
-    const timer = setTimeout(() => {
-      root.classList.remove('theme-transition');
-    }, 300);
-    localStorage.setItem('wm-theme', theme);
-    return () => clearTimeout(timer);
-  }, [theme]);
-
-  const toggleTheme = () => setTheme(t => (t === 'light' ? 'dark' : 'light'));
-
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: 'light', setTheme: () => {}, toggleTheme: () => {} }}>
       {children}
     </ThemeContext.Provider>
   );
