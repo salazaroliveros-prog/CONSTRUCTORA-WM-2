@@ -10,9 +10,10 @@
 - **SPA Routing**: Navigation via `?tab=` URL parameter (no router)
 - **15 Modules**: Lazy-loaded via `React.lazy` + `Suspense` (dashboard, execution, clients, inventory, projects, suppliers, staff, analytics, settings, seed, seguimiento, clean, ai, gantt, effects)
 - **Context Hierarchy**: AuthProvider → SettingsProvider → ThemeProvider → ProjectFilterProvider → Toaster
+- **Theme System**: 3 dynamic themes (minimalist, cyberpunk, soft) managed by SettingsContext. Themes control CSS vars (bg, text, shadows, radius, chart colors) via `.theme-*` class on `<html>`. Settings syncs to localStorage (`app-visual-settings`) and Firestore (`userSettings/{uid}`). ThemeContext is standalone (legacy, overridden by SettingsProvider).
 - **Auth**: Firebase Google OAuth - ONLY `salazaroliveros@gmail.com` authorized
 - **Data Layer**: Firestore with ownerId filtering on ALL queries (`where('ownerId', '==', auth.currentUser.uid)`)
-- **CSS**: TailwindCSS v4 (`@import "tailwindcss"` - NOT `@tailwind` directives)
+- **CSS**: TailwindCSS v4 (`@import "tailwindcss"` - NOT `@tailwind` directives). All theme vars in `src/index.css` with CSS custom properties.
 - **Path Alias**: `@/*` maps to project root (`./*`)
 - **API**: Vercel serverless function at `api/ai-report.ts` with Firebase JWT verification + Gemini 2.0 Flash streaming
 - **Budget Engine**: Unified hierarchical budget management with advanced project creation interface. Key files: src/lib/budgetData.ts, src/components/BudgetTable.tsx, src/components/AdvancedProjectCreator.tsx, src/hooks/useBudget.ts, src/utils/budgetConverter.ts
@@ -31,6 +32,13 @@
 - **BUILD FLAG**: `npm run build` uses non-standard `--configLoader runner`
 - **TS CONFIG**: `noEmit: true`, `paths: {"@/*": ["./*"]}`, `useDefineForClassFields: false`
 - **HMR**: Can be disabled via `DISABLE_HMR=true` env var (used in AI studio)
+
+## Settings Module
+- Located at `src/components/Settings.tsx` (loaded via react-lazy in App)
+- Manages: theme mode (minimalist/cyberpunk/soft), card style (elevated/flat/glass/bordered), typography (inter/space/mono), transition speed, compact mode, company info, currency, active modules, AI model config
+- All settings persist to both localStorage (`app-visual-settings`) and Firestore (`userSettings/{uid}`) with 800ms debounce
+- On reconnect (online event), settings auto-sync to Firestore
+- The `useCardClass()` hook returns Tailwind card classes based on cardStyle setting
 
 ## File Conventions
 - **License Headers**: Apache-2.0 SPDX identifier on many files

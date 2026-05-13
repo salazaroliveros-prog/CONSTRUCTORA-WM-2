@@ -21,11 +21,10 @@ import FirestoreTest from './FirestoreTest';
 export default function Settings() {
   const { settings, updateSettings, resetSettings } = useSettings();
 
-  const themes: { id: ThemeMode; label: string; desc: string }[] = [
-    { id: 'modern', label: 'Moderno', desc: 'Limpio y equilibrado' },
-    { id: 'classic', label: 'Clásico', desc: 'Estilo tradicional industrial' },
-    { id: 'brutalist', label: 'Brutalista', desc: 'Bordes fuertes y tipografía bold' },
-    { id: 'minimal', label: 'Minimalista', desc: 'Escalas de grises y aire sutil' },
+  const themes: { id: ThemeMode; label: string; desc: string; swatches: string[] }[] = [
+    { id: 'minimalist', label: 'Minimalista', desc: 'Limpio, profesional y tipográfico', swatches: ['#0f172a', '#3b82f6', '#f0f2f5', '#94a3b8'] },
+    { id: 'cyberpunk', label: 'Cyberpunk', desc: 'Alto contraste, neones y profundidad', swatches: ['#00ffff', '#ff00ff', '#07070d', '#e0e0f0'] },
+    { id: 'soft', label: 'Soft Orgánico', desc: 'Pastel, redondeado y degradados suaves', swatches: ['#8b5cf6', '#f472b6', '#f8f3ee', '#a78bfa'] },
   ];
 
   const graphTypes: { id: GraphType; label: string; icon: React.ReactNode }[] = [
@@ -63,7 +62,7 @@ export default function Settings() {
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Tema y Marca</h3>
           </div>
           
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             {themes.map((theme) => (
               <button
                 key={theme.id}
@@ -71,13 +70,23 @@ export default function Settings() {
                 className={cn(
                   "p-4 rounded-2xl border text-left transition-all group relative overflow-hidden",
                   settings.themeMode === theme.id 
-                    ? "border-primary bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02]" 
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300"
+                    ? "border-primary bg-primary text-white shadow-xl shadow-primary/20 scale-[1.02] ring-2 ring-secondary/30" 
+                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:shadow-md"
                 )}
               >
                 {settings.themeMode === theme.id && (
-                  <div className="absolute top-2 right-2 text-secondary"><Check size={14} /></div>
+                  <div className="absolute top-2 right-2 text-secondary z-10"><Check size={14} /></div>
                 )}
+                {/* Color swatches */}
+                <div className="flex gap-1 mb-3">
+                  {theme.swatches.map((color, i) => (
+                    <div
+                      key={i}
+                      className="w-5 h-5 rounded-full border border-white/30 shadow-sm"
+                      style={{ backgroundColor: color }}
+                    />
+                  ))}
+                </div>
                 <p className="text-[10px] font-black uppercase tracking-widest">{theme.label}</p>
                 <p className={cn("text-[8px] font-bold mt-1 uppercase opacity-60", settings.themeMode === theme.id ? "text-slate-300" : "text-slate-400")}>{theme.desc}</p>
               </button>

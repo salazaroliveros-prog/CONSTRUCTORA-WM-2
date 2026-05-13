@@ -3,7 +3,7 @@ import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import { useAuth } from './AuthContext';
 
-export type ThemeMode = 'classic' | 'modern' | 'brutalist' | 'minimal';
+export type ThemeMode = 'minimalist' | 'cyberpunk' | 'soft';
 export type GraphType = 'bar' | 'line' | 'area';
 export type CardStyle = 'flat' | 'elevated' | 'glass' | 'bordered';
 export type TransitionSpeed = 'none' | 'fast' | 'normal' | 'slow';
@@ -33,7 +33,7 @@ const ALL_MODULES = ['dashboard','clients','projects','calculator','execution','
 const defaultSettings: AppSettings = {
   primaryColor: '#0F172A',
   secondaryColor: '#FBBF24',
-  themeMode: 'modern',
+  themeMode: 'minimalist',
   graphType: 'bar',
   cardStyle: 'elevated',
   transitionSpeed: 'normal',
@@ -99,7 +99,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     root.style.setProperty('--secondary', settings.secondaryColor);
     root.style.setProperty('--brand-primary', settings.primaryColor);
 
-    root.classList.remove('theme-modern', 'theme-classic', 'theme-brutalist', 'theme-minimal');
+    root.classList.remove('theme-minimalist', 'theme-cyberpunk', 'theme-soft');
     root.classList.add(`theme-${settings.themeMode}`);
 
     if (settings.compactMode) {
