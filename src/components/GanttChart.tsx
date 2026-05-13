@@ -661,7 +661,7 @@ export default function GanttChart() {
   const ticks = Array.from({ length: Math.ceil(maxDuration / tickEvery) + 1 }, (_, i) => i * tickEvery);
 
   return (
-    <div className="h-full flex flex-col p-4 gap-3 overflow-hidden">
+    <div className="h-full flex flex-col p-4 gap-3 overflow-hidden overflow-x-hidden">
 
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3 shrink-0">

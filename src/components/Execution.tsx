@@ -212,7 +212,7 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
 
 
   return (
-    <div className="space-y-6 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div className="space-y-6 overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

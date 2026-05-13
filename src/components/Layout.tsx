@@ -114,7 +114,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'inventory',   label: 'Stock',                  labelMobile: 'Invent.',  icon: <Package size={18} />,        iconMobile: <Package size={16} />, priority: 1 },
     { id: 'staff',       label: 'Recursos Humanos',       labelMobile: 'Personal', icon: <HardHat size={18} />,        iconMobile: <HardHat size={16} />, priority: 1 },
     { id: 'clients',     label: 'Clientes',               labelMobile: 'Clientes', icon: <Users size={18} />,           iconMobile: <Users size={16} />, priority: 2 },
-    { id: 'execution',   label: 'Seguimiento',            labelMobile: 'Seguim.',  icon: <ClipboardList size={18} />,  iconMobile: <ClipboardList size={16} />, priority: 2 },
+    { id: 'execution',   label: 'Bitácora',              labelMobile: 'Bitácora', icon: <ClipboardList size={18} />,  iconMobile: <ClipboardList size={16} />, priority: 2 },
     { id: 'seguimiento', label: 'Avance',                 labelMobile: 'Avance',   icon: <TrendingUp size={18} />,     iconMobile: <TrendingUp size={16} />, priority: 2 },
     { id: 'analytics',   label: 'Analíticas',             labelMobile: 'Anal.',    icon: <BarChart3 size={18} />,      iconMobile: <BarChart3 size={16} />, priority: 3 },
     { id: 'gantt',       label: 'Gantt',                  labelMobile: 'Gantt',    icon: <Calendar size={18} />,       iconMobile: <Calendar size={16} />, priority: 3 },
