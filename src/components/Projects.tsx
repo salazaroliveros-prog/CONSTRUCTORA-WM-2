@@ -500,7 +500,7 @@ export default function ProjectsModule() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-      className={`bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect relative ${selectedProjectIds.has(project.id) ? "ring-2 ring-red-500" : ""}`}
+      className={`bg-white dark:bg-slate-900 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm dark:shadow-slate-900/20 overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect relative ${selectedProjectIds.has(project.id) ? "ring-2 ring-red-500" : ""}`}
     >
       {bulkMode && (
         <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
@@ -513,7 +513,7 @@ export default function ProjectsModule() {
           <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform duration-300 icon-box icon-gradient-blue">
             <Building2 size={20} />
           </div>
-          <div className="flex flex-col items-end">
+          <div className="flex flex-col items-end sm:items-end">
             <span className={cn(
               "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest",
               project.status === 'EJECUCION' ? "bg-secondary text-primary" :
@@ -527,7 +527,7 @@ export default function ProjectsModule() {
         </div>
 
         <div className="space-y-0.5">
-          <h3 className="text-xs font-black text-primary uppercase tracking-tight line-clamp-1 group-hover:text-secondary transition-colors italic">{project.name}</h3>
+          <h3 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-tight line-clamp-1 group-hover:text-secondary transition-colors italic">{project.name}</h3>
           <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest truncate">{project.clientName}</p>
         </div>
 
@@ -542,7 +542,7 @@ export default function ProjectsModule() {
               <div className="w-1 h-1 rounded-full bg-secondary animate-pulse" />
             </div>
           </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden w-full relative">
+          <div className="h-1.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden w-full relative">
             <motion.div 
               initial={{ width: 0 }}
               animate={{ width: `${project.progress || 0}%` }}
@@ -651,17 +651,17 @@ export default function ProjectsModule() {
           return (p.progress || 0) < expectedProgress - 10;
         });
 return (
-           <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                {[
                 { icon: <Building2 size={12} className="text-blue-500 dark:text-blue-400" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700 dark:text-white' },
                 { icon: <DollarSign size={12} className="text-amber-500 dark:text-amber-400" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700 dark:text-white' },
                 { icon: <TrendingUp size={12} className="text-green-500 dark:text-green-400" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600 dark:text-red-300' : 'text-green-700 dark:text-white' },
                 { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600 dark:text-red-300' : 'text-green-700 dark:text-white' },
               ].map(k => (
-                <div key={k.label} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-3 shadow-sm dark:shadow-slate-900/20">
-                  <div className="flex items-center gap-1.5 mb-1.5">{k.icon}<span className="text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase">{k.label}</span></div>
-                  <p className={cn('text-lg font-black', k.color)}>{k.value}</p>
-                  <p className="text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 truncate">{k.sub}</p>
+                <div key={k.label} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-2 sm:p-3 shadow-sm dark:shadow-slate-900/20">
+                  <div className="flex items-center gap-1 mb-1">{k.icon}<span className="text-[6px] sm:text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase">{k.label}</span></div>
+                  <p className={cn('text-base sm:text-lg font-black', k.color)}>{k.value}</p>
+                  <p className="text-[6px] sm:text-[7px] font-bold text-slate-400 dark:text-slate-500 uppercase mt-0.5 truncate">{k.sub}</p>
                 </div>
               ))}
            </div>
@@ -751,8 +751,8 @@ return (
         </div>
 
 {viewMode === 'table' ? (
-           <div className="overflow-x-auto no-scrollbar">
-             <table className="w-full text-left">
+            <div className="overflow-x-auto no-scrollbar">
+              <table className="w-full text-left min-w-[480px] sm:min-w-[600px]">
                <thead>
                  <tr className="bg-slate-50/50 border-b border-slate-100">
                    {bulkMode && (
@@ -762,7 +762,7 @@ return (
                      </th>
                    )}
                    <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Proyecto</th>
-                   <th className="hidden md:table-cell px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Cliente</th>
+                    <th className="hidden sm:table-cell px-2 sm:px-4 py-2 text-[6px] sm:text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Cliente</th>
                    <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Estado</th>
                    <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">#</th>
                  </tr>
@@ -789,12 +789,12 @@ return (
                            <Building2 size={14} />
                          </div>
                          <div className="min-w-0">
-                            <p className="text-[8px] font-black text-primary uppercase tracking-tight truncate max-w-[120px] md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
+                            <p className="text-[7px] sm:text-[8px] font-black text-primary uppercase tracking-tight truncate max-w-[80px] sm:max-w-[120px] md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
                             <p className="text-[6px] text-slate-400 dark:text-slate-500 font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
                          </div>
                        </div>
                      </td>
-                     <td className="hidden md:table-cell px-4 py-2">
+                      <td className="hidden sm:table-cell px-2 sm:px-4 py-2">
                        <div className="flex flex-col">
                           <span className="text-[7px] font-black text-slate-900 dark:text-slate-200 uppercase truncate max-w-[120px]">{project.clientName}</span>
                           <span className="text-[6px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{project.typology}</span>
@@ -841,7 +841,7 @@ return (
              </table>
            </div>
          ) : (
-           <div className="p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-4">
+            <div className="p-2 sm:p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-4">
             {paginatedProjects.map((project, i) => (
               <motion.div
                 key={project.id}
@@ -933,8 +933,8 @@ return (
                   <Building2 size={24} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-xl font-black text-primary uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
-                  <p className="text-[9px] font-black text-secondary tracking-[0.2em] uppercase truncate">ID: {selectedProject.id?.toUpperCase()}</p>
+                  <h2 className="text-lg sm:text-xl font-black text-primary uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
+                  <p className="text-[8px] sm:text-[9px] font-black text-secondary tracking-[0.2em] uppercase truncate">ID: {selectedProject.id?.toUpperCase()}</p>
                 </div>
                 {isEditing ? (
                   <div className="flex gap-2 shrink-0">
@@ -955,7 +955,7 @@ return (
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
-                <button onClick={() => { setTimeout(async () => { await generateProjectPDF(selectedProject, exportPdfTemplate); }, 50); }} className="h-8 flex items-center gap-1.5 px-3 bg-secondary text-primary rounded-lg text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
+                <button onClick={() => { setTimeout(async () => { await generateProjectPDF(selectedProject, exportPdfTemplate); }, 50); }} className="h-8 flex items-center gap-1 px-2 sm:px-3 bg-secondary text-primary rounded-lg text-[7px] sm:text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
                   <Download size={12} /> PDF
                 </button>
                 <button onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-slate-900 dark:bg-slate-700 text-white rounded-lg text-[8px] font-black uppercase hover:bg-slate-700 dark:hover:bg-slate-600 transition-all">
@@ -964,7 +964,7 @@ return (
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {isEditing && (
                 <div className="col-span-2 md:col-span-4 bg-amber-50 border border-amber-200 rounded-2xl p-5 space-y-4">
                   <p className="text-[9px] font-black text-amber-700 uppercase tracking-widest">Modo Edicion</p>
@@ -1026,7 +1026,7 @@ return (
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 space-y-6">
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-slate-900 uppercase tracking-[0.2em] flex items-center gap-2">
@@ -1479,7 +1479,7 @@ return (
                 </h4>
                 <div className="bg-slate-900 rounded-3xl p-6 text-white shadow-xl shadow-slate-900/40 overflow-hidden">
                    <p className="text-[8px] font-black text-slate-500 uppercase tracking-widest mb-1">Presupuesto Ejecutable</p>
-                   <p className="text-xl font-black text-secondary tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">Q {(selectedProject.budget || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="text-lg sm:text-xl font-black text-secondary tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">Q {(selectedProject.budget || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
                    
                    <div className="space-y-8">
                      <div>

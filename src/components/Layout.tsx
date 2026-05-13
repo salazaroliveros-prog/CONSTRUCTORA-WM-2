@@ -108,20 +108,20 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   };
 
   const allMenuItems = [
-    { id: 'dashboard',   label: 'Dashboard',              icon: <LayoutDashboard size={20} /> },
-    { id: 'clients',     label: 'Clientes',               icon: <Users size={20} /> },
-    { id: 'projects',    label: 'Gestión de Proyectos',    icon: <Building2 size={20} /> },
+    { id: 'dashboard',   label: 'Inicio',                 labelMobile: 'Inicio',   icon: <LayoutDashboard size={18} />, iconMobile: <LayoutDashboard size={16} /> },
+    { id: 'clients',     label: 'Clientes',               labelMobile: 'Clientes', icon: <Users size={18} />,           iconMobile: <Users size={16} /> },
+    { id: 'projects',    label: 'Gestión de Proyectos',    labelMobile: 'Proyectos',icon: <Building2 size={18} />,       iconMobile: <Building2 size={16} /> },
 
-    { id: 'execution',   label: 'Seguimiento',            icon: <ClipboardList size={20} /> },
-    { id: 'seguimiento', label: 'Avance',                 icon: <TrendingUp size={20} /> },
-    { id: 'gantt',       label: 'Gantt',                  icon: <Calendar size={20} /> },
-    { id: 'suppliers',   label: 'Proveedores',            icon: <Truck size={20} /> },
-    { id: 'inventory',   label: 'Stock',                  icon: <Package size={20} /> },
-    { id: 'analytics',   label: 'Analíticas',             icon: <BarChart3 size={20} /> },
-    { id: 'staff',       label: 'Recursos',               icon: <HardHat size={20} /> },
-    { id: 'ai',          label: 'Asistente IA',           icon: <Sparkles size={20} /> },
-    { id: 'effects',     label: 'Efectos',                icon: <Zap size={20} /> },
-    { id: 'settings',    label: 'Ajustes',                icon: <Settings size={20} /> },
+    { id: 'execution',   label: 'Seguimiento',            labelMobile: 'Seguim.',  icon: <ClipboardList size={18} />,  iconMobile: <ClipboardList size={16} /> },
+    { id: 'seguimiento', label: 'Avance',                 labelMobile: 'Avance',   icon: <TrendingUp size={18} />,     iconMobile: <TrendingUp size={16} /> },
+    { id: 'gantt',       label: 'Gantt',                  labelMobile: 'Gantt',    icon: <Calendar size={18} />,       iconMobile: <Calendar size={16} /> },
+    { id: 'suppliers',   label: 'Proveedores',            labelMobile: 'Prov.',    icon: <Truck size={18} />,          iconMobile: <Truck size={16} /> },
+    { id: 'inventory',   label: 'Stock',                  labelMobile: 'Stock',    icon: <Package size={18} />,        iconMobile: <Package size={16} /> },
+    { id: 'analytics',   label: 'Analíticas',             labelMobile: 'Anal.',    icon: <BarChart3 size={18} />,      iconMobile: <BarChart3 size={16} /> },
+    { id: 'staff',       label: 'Recursos',               labelMobile: 'RRHH',     icon: <HardHat size={18} />,        iconMobile: <HardHat size={16} /> },
+    { id: 'ai',          label: 'Asistente IA',           labelMobile: 'IA',       icon: <Sparkles size={18} />,       iconMobile: <Sparkles size={16} /> },
+    { id: 'effects',     label: 'Efectos',                labelMobile: 'Fx',       icon: <Zap size={18} />,            iconMobile: <Zap size={16} /> },
+    { id: 'settings',    label: 'Ajustes',                labelMobile: 'Conf.',    icon: <Settings size={18} />,       iconMobile: <Settings size={16} /> },
   ];
 
   const menuItems = allMenuItems.filter(item =>
@@ -144,29 +144,29 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       style={{ '--primary': settings.primaryColor, '--secondary': settings.secondaryColor } as any}
     >
 {/* ── Topbar ─────────────────────────────────────────────── */}
-         <header className={cn("h-[4.25rem] backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors",
+          <header className={cn("h-16 sm:h-[4.25rem] backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors",
            theme === 'dark' ? 'bg-slate-900/80 border-slate-700/50' : 'bg-white/80 border-slate-200'
          )}>
-           {/* Left: Logo */}
-           <div className="flex items-center shrink-0">
-             <Logo avatarUrl={user?.photoURL} className="w-8 h-8" />
-           </div>
+            {/* Left: Logo */}
+            <div className="flex items-center shrink-0">
+              <Logo avatarUrl={user?.photoURL} className="w-7 h-7 sm:w-8 sm:h-8" />
+            </div>
 
-           {/* Center: Branding — absolutely centered for maximum visual impact */}
-           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none select-none">
-             <span className="text-lg sm:text-xl font-black text-primary uppercase tracking-[0.12em] leading-tight">
-               {settings.companyName}
-             </span>
-             <span className="text-[10px] sm:text-xs font-semibold text-amber-500 tracking-[0.2em] uppercase mt-0.5">
-               edificando el futuro
-             </span>
-           </div>
+            {/* Center: Branding — absolutely centered for maximum visual impact */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none select-none">
+              <span className="text-base sm:text-lg md:text-xl font-black text-primary uppercase tracking-[0.12em] leading-tight">
+                {settings.companyName}
+              </span>
+              <span className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-amber-500 tracking-[0.2em] uppercase mt-0.5">
+                edificando el futuro
+              </span>
+            </div>
 
            {/* Spacer */}
            <div className="flex-1" />
 
-           {/* Right: Search + Actions (pushed right to frame the centered branding) */}
-           <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+            {/* Right: Search + Actions (pushed right to frame the centered branding) */}
+            <div className="flex items-center gap-1 sm:gap-2 shrink-0 hidden sm:flex">
              {/* Global search */}
               <div className="hidden lg:flex items-center gap-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 px-3 py-1.5 rounded-xl text-slate-700 dark:text-slate-300 w-56 relative group transition-all focus-within:border-secondary dark:focus-within:border-secondary focus-within:ring-2 focus-within:ring-secondary/10 dark:focus-within:ring-secondary/10">
                 <Search size={14} className="shrink-0 group-focus-within:text-secondary dark:group-focus-within:text-secondary" />
@@ -279,7 +279,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
          </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-2 py-2 md:px-3 md:py-2 scroll-smooth bg-transparent min-h-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex flex-col">
+      <main className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-4 scroll-smooth bg-transparent min-h-0 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex flex-col">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>
@@ -287,13 +287,13 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
       {/* ── Bottom Navigation ─────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-[49] safe-area-pb transition-colors bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700">
-        <div className="flex justify-around items-center h-16 px-2">
-          {menuItems.map((item) => (
+        <div className="flex justify-around items-center h-14 px-1 max-w-screen-sm mx-auto">
+          {menuItems.slice(0, 5).map((item, index) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-1 py-2 px-3 rounded-xl transition-all active:scale-95",
+                "flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all active:scale-95 min-w-0 flex-1",
                 activeTab === item.id
                   ? "text-secondary bg-secondary/10 dark:bg-secondary/20"
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
@@ -303,18 +303,18 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                 "transition-transform",
                 activeTab === item.id && "scale-110"
               )}>
-                {item.icon}
+                {item.iconMobile || item.icon}
               </span>
               <span className={cn(
-                "text-[8px] font-black uppercase tracking-wide",
+                "text-[7px] font-bold uppercase tracking-wide leading-tight",
                 activeTab === item.id ? "text-secondary" : "text-slate-600 dark:text-slate-300"
               )}>
-                {item.label}
+                {item.labelMobile || item.label}
               </span>
               {activeTab === item.id && (
                 <motion.div
                   layoutId="mobileNav"
-                  className="absolute bottom-1 w-1 h-1 rounded-full bg-secondary"
+                  className="absolute bottom-0.5 w-1 h-0.5 rounded-full bg-secondary"
                   transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 />
               )}
