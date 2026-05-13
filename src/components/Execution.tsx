@@ -264,7 +264,7 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
                   return (
                     <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
                       <td className="px-4 py-3">
-                        <p className="text-[10px] font-black text-primary uppercase truncate max-w-[140px]">{p.name}</p>
+                             <p className="text-[10px] font-black text-primary uppercase truncate max-w-[120px] sm:max-w-[140px]">{p.name}</p>
                         <p className="text-[7px] font-bold text-slate-400 uppercase">{p.clientName}</p>
                       </td>
                       <td className="px-4 py-3">

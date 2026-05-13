@@ -522,7 +522,7 @@ export default function ProjectsModule() {
             )}>
               {project.status}
             </span>
-            <span className="text-[6px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Cód: {project.id.slice(-6).toUpperCase()}</span>
+            <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Cód: {project.id.slice(-6).toUpperCase()}</span>
           </div>
         </div>
 
@@ -721,9 +721,9 @@ return (
                   <Clock size={7} /> Estado
                 </span>
                 <select
-                 value={statusFilter}
-                 onChange={(e) => setStatusFilter(e.target.value)}
-                 className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-[120px]"
                 >
                   <option value="ALL">TODOS</option>
                   <option value="COTIZACION">COTIZACIÓN</option>
@@ -737,9 +737,9 @@ return (
                   <Building2 size={7} /> Tipología
                 </span>
                 <select
-                 value={typologyFilter}
-                 onChange={(e) => setTypologyFilter(e.target.value)}
-                 className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer"
+                  value={typologyFilter}
+                  onChange={(e) => setTypologyFilter(e.target.value)}
+                  className="h-8 bg-white border border-slate-200 rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-[120px]"
                 >
                  <option value="ALL">TODAS</option>
                  {Object.values(Typology).map(t => (

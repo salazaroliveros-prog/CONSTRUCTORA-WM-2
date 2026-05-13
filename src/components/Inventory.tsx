@@ -520,7 +520,7 @@ export default function InventoryModule() {
       </div>
 
       {/* Tabs: Stock / Ordenes de Compra */}
-      <div className="flex flex-wrap gap-2 items-center">
+      <div className="flex flex-wrap gap-2 items-center overflow-x-auto">
         {[{ id: 'stock', label: 'Stock / Bodega', icon: <Package size={13}/> }, { id: 'orders', label: 'Ordenes de Compra', icon: <ShoppingCart size={13}/> }].map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id as any)}
             className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',

@@ -88,7 +88,7 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
           <span className="text-[8px] font-black" style={{ color }}>{value}%</span>
         </div>
       </div>
-       <span className="text-[6px] font-black text-slate-600 uppercase tracking-wide leading-none">{label}</span>
+       <span className="text-[7px] sm:text-[6px] font-black text-slate-600 uppercase tracking-wide leading-none">{label}</span>
     </div>
   );
 }
@@ -100,10 +100,10 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
   const r = 60;
   const x1 = 70 + r * Math.cos((180 - angle) * Math.PI / 180);
   const y1 = 70 - r * Math.sin((180 - angle) * Math.PI / 180);
-  
+
   return (
     <div className="flex flex-col items-center">
-      <svg width={100} height={60} viewBox="0 0 140 85">
+      <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-[100px]">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="#ef4444" />
@@ -168,7 +168,7 @@ function ActivityHeatmap({ data }: { data: { date: string; value: number }[] }) 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: idx * 0.005, duration: 0.2 }}
-                className="w-3 h-3 rounded-sm cursor-pointer hover:ring-2 hover:ring-slate-400 transition-all"
+                className="w-4 h-4 rounded-sm cursor-pointer hover:ring-2 hover:ring-slate-400 transition-all"
                 style={{ backgroundColor: getColor(value) }}
                 title={`${data[idx]?.date || ''}: ${value} actividades`}
               />
@@ -249,7 +249,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
         {/* Trend badge */}
         {trend !== null && (
           <span className={cn(
-            "text-[6px] font-black uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
+            "text-[7px] sm:text-[6px] font-black uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
             trend > 0 ? "bg-emerald-50 text-emerald-600" : trend < 0 ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400"
           )}>
             {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}
@@ -933,11 +933,11 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
               <div className="flex items-center gap-3 mt-2">
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 rounded-sm bg-slate-200" />
-                  <span className="text-[6px] font-bold text-slate-400 uppercase">Baja</span>
+                  <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 uppercase">Baja</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 rounded-sm bg-emerald-500" />
-                  <span className="text-[6px] font-bold text-slate-400 uppercase">Alta</span>
+                  <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 uppercase">Alta</span>
                 </div>
               </div>
             </div>

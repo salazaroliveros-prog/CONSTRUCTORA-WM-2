@@ -151,7 +151,7 @@ export default function ClientsModule() {
     <div className="flex flex-col h-full gap-3 p-0 overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
 
       {/* ── KPIs ── */}
-      <div className="grid grid-cols-4 gap-3 shrink-0">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
         {[
           { icon: <Users size={14} className="text-blue-500" />,      label: 'Clientes Activos',  value: kpis.active,                color: 'text-blue-700' },
           { icon: <Building2 size={14} className="text-amber-500" />, label: 'Con Proyectos',     value: kpis.withProj,              color: 'text-amber-700' },
@@ -166,7 +166,7 @@ export default function ClientsModule() {
       </div>
 
       {/* ── Toolbar ── */}
-      <div className="flex items-center gap-2 shrink-0">
+      <div className="flex items-center gap-2 shrink-0 flex-wrap">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, email o NIT..."
@@ -192,7 +192,7 @@ export default function ClientsModule() {
       <div className="flex-1 min-h-0 flex gap-3 overflow-hidden">
 
         {/* Lista */}
-        <div className={cn('flex flex-col gap-2 overflow-y-auto', selected ? 'w-80 shrink-0' : 'flex-1')}>
+        <div className={cn('flex flex-col gap-2 overflow-y-auto', selected ? 'w-64 sm:w-80 shrink-0' : 'flex-1')}>
           {currentItems.length === 0 && (
             <div className="py-16 text-center opacity-20">
               <Users size={40} className="mx-auto mb-3" />
