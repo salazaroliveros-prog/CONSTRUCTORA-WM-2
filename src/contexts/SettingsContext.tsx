@@ -173,10 +173,14 @@ export const useSettings = () => {
 export const useCardClass = () => {
   const { settings } = useSettings();
   switch (settings.cardStyle) {
-    case 'flat':     return 'bg-slate-50 border border-slate-100 shadow-none';
-    case 'glass':    return 'bg-white/55 backdrop-blur-md border border-white/35 shadow-xl';
-    case 'bordered': return 'bg-white border-2 border-slate-900 shadow-none';
+    case 'glass':
+      return 'bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.11)] transition-all duration-300';
+    case 'bordered':
+      return 'bg-white/90 border-2 border-slate-900/80 shadow-[0_2px_12px_rgba(0,0,0,0.05)]';
+    case 'flat':
+      return 'bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-[0_1px_6px_rgba(0,0,0,0.04)]';
     case 'elevated':
-    default:         return 'bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow';
+    default:
+      return 'bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] transition-all duration-300';
   }
 };
