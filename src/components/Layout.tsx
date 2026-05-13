@@ -130,6 +130,29 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
   const activeItem = menuItems.find(m => m.id === activeTab);
 
+  // Fullscreen on launch — Enter fullscreen on first click, exit with Escape
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const fullscreenInitRef = useRef(false);
+  useEffect(() => {
+    const onFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
+    document.addEventListener('fullscreenchange', onFullscreenChange);
+    // Enter fullscreen on first user interaction (click/tap anywhere)
+    const onFirstInteraction = () => {
+      if (fullscreenInitRef.current) return;
+      fullscreenInitRef.current = true;
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    };
+    window.addEventListener('click', onFirstInteraction, { once: true });
+    window.addEventListener('touchstart', onFirstInteraction, { once: true });
+    return () => {
+      document.removeEventListener('fullscreenchange', onFullscreenChange);
+      window.removeEventListener('click', onFirstInteraction);
+      window.removeEventListener('touchstart', onFirstInteraction);
+    };
+  }, []);
+
   return (
     <div
       id="app-root"
