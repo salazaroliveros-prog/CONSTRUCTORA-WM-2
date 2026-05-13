@@ -37,7 +37,7 @@ const fmtDate = (date?: string) => {
 };
 
 // Calcular totales del proyecto
-const calculateProjectTotals = (project: Project) => {
+export const calculateProjectTotals = (project: Project) => {
   const directCost = project.items.reduce((acc, item) => {
     const matSum = item.materials.reduce((m, mat) => m + (mat.price * mat.quantity), 0);
     const labSum = item.labor.reduce((l, lab) => l + (lab.price * lab.quantity), 0);
@@ -860,8 +860,8 @@ export const generateProgressReport = (project: Project, transactions: any[] = [
   doc.text('Avance Físico:', 20, y + 8);
   doc.text(`${progress}%`, pageWidth - 25, y + 8, { align: 'right' });
   
-  setFill(doc, COLORS.primary);
-  doc.roundedRect(20, y + 12, (pageWidth - 50) * (progress / 100), 5, 1, 1, 'F');
+  setFill(doc, COLORS.accent);
+  doc.roundedRect(20, y + 12, (pageWidth - 50) * Math.min(progress, 100) / 100, 5, 1, 1, 'F');
   setDraw(doc, COLORS.gray);
   doc.roundedRect(20, y + 12, pageWidth - 50, 5, 1, 1, 'S');
   
@@ -874,8 +874,10 @@ export const generateProgressReport = (project: Project, transactions: any[] = [
   doc.text('Avance Financiero:', 20, y + 8);
   doc.text(`${financialProgress.toFixed(1)}%`, pageWidth - 25, y + 8, { align: 'right' });
   
-  setFill(doc, COLORS.primary);
-  doc.roundedRect(20, y + 12, (pageWidth - 50) * (financialProgress / 100), 5, 1, 1, 'F');
+  const progressColor = financialProgress > 100 ? COLORS.danger : COLORS.success;
+  setFill(doc, progressColor);
+  doc.roundedRect(20, y + 12, (pageWidth - 50) * Math.min(financialProgress, 100) / 100, 5, 1, 1, 'F');
+  setDraw(doc, COLORS.gray);
   doc.roundedRect(20, y + 12, pageWidth - 50, 5, 1, 1, 'S');
   
   y += 30;
@@ -886,12 +888,20 @@ export const generateProgressReport = (project: Project, transactions: any[] = [
   setTxt(doc, COLORS.white);
   doc.text('RESUMEN FINANCIERO', 15, y);
   
+  const executedIndirect = executedCost * ((project.indirectCosts || 15) / 100);
+  const executedAdmin = executedCost * ((project.administrativeCosts || 5) / 100);
+  const executedPersonal = executedCost * ((project.personalCosts || 10) / 100);
+  const executedTotal = executedCost + executedIndirect + executedAdmin + executedPersonal;
+
   autoTable(doc, {
     startY: y + 5,
     head: [['Concepto', 'Presupuestado', 'Ejecutado', 'Diferencia']],
     body: [
       ['Costo Directo', fmtCurrency(totals.directCost), fmtCurrency(executedCost), fmtCurrency(totals.directCost - executedCost)],
-      ['Presupuesto Total', fmtCurrency(totals.totalBudget), fmtCurrency(executedCost * 1.3), fmtCurrency(totals.totalBudget - executedCost * 1.3)],
+      ['Costos Indirectos', fmtCurrency(totals.indirectCost), fmtCurrency(executedIndirect), fmtCurrency(totals.indirectCost - executedIndirect)],
+      ['Gastos Administrativos', fmtCurrency(totals.adminCost), fmtCurrency(executedAdmin), fmtCurrency(totals.adminCost - executedAdmin)],
+      ['Gastos de Personal', fmtCurrency(totals.personalCost), fmtCurrency(executedPersonal), fmtCurrency(totals.personalCost - executedPersonal)],
+      ['Presupuesto Total', fmtCurrency(totals.totalBudget), fmtCurrency(executedTotal), fmtCurrency(totals.totalBudget - executedTotal)],
     ],
     theme: 'striped',
     headStyles: { fillColor: COLORS.primary, fontStyle: 'bold', fontSize: 8 },

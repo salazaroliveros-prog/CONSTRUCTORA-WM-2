@@ -24,8 +24,10 @@ const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'
 function RingChart({ value, color, label, size = 80 }: { value: number; color: string; label: string; size?: number }) {
   const r = (size / 2) - 8;
   const circ = 2 * Math.PI * r;
-  const dash = (value / 100) * circ;
-  const trackColor = document.documentElement.classList.contains('dark') ? '#4a6080' : '#e2e8f0';
+  const pct = Math.min(value, 100);
+  const dash = (pct / 100) * circ;
+  const trackColor = '#e2e8f0';
+  const isOver = value > 100;
   return (
     <div className="flex flex-col items-center gap-1">
       <div className="relative" style={{ width: size, height: size }}>
@@ -33,7 +35,7 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
           <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={6} />
           <motion.circle
             cx={size/2} cy={size/2} r={r} fill="none"
-            stroke={color} strokeWidth={6} strokeLinecap="round"
+            stroke={isOver ? '#ef4444' : color} strokeWidth={6} strokeLinecap="round"
             strokeDasharray={circ}
             initial={{ strokeDashoffset: circ }}
             animate={{ strokeDashoffset: circ - dash }}
@@ -72,8 +74,9 @@ export default function Seguimiento() {
     const txIncome  = transactions.filter(t => t.projectId === p.id && t.type === 'INGRESO').reduce((a: number, t: any) => a + (t.amount || 0), 0);
     const totalCost  = txExpense;
     const budget     = p.budget || 1;
-    const financiero = pct((totalCost / budget) * 100);
-    const fisico     = pct(p.progress || 0);
+    const financieroRaw = (totalCost / budget) * 100;
+    const financiero = Math.round(financieroRaw);
+    const fisico = pct(p.progress || 0);
     return { ...p, totalCost, financiero, fisico, txIncome, txExpense };
   });
 
@@ -94,13 +97,18 @@ export default function Seguimiento() {
   }));
 
   // Budget vs cost area
-  const areaData = displayProjects.map(p => ({
-    name: p.name?.slice(0, 14) || 'Proyecto',
-    Presupuesto: p.budget || 0,
-    'Costo Real': p.totalCost || 0,
-    Ingresos: p.txIncome || 0,
-    Egresos: p.txExpense || 0,
-  }));
+  const areaData = displayProjects.map(p => {
+    const indirectRate = ((p.indirectCosts || 15) + (p.administrativeCosts || 5) + (p.personalCosts || 10)) / 100;
+    const totalCostWithIndirect = (p.totalCost || 0) * (1 + indirectRate);
+    return {
+      name: p.name?.slice(0, 14) || 'Proyecto',
+      Presupuesto: p.budget || 0,
+      'Costo Directo': p.totalCost || 0,
+      'Costo Total': Math.round(totalCostWithIndirect),
+      Ingresos: p.txIncome || 0,
+      Egresos: p.txExpense || 0,
+    };
+  });
 
   // Pie: status distribution
   const statusMap: Record<string, number> = {};
@@ -268,7 +276,7 @@ export default function Seguimiento() {
 
         {/* Budget vs Cost area */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2">
-          <p className="text-[9px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2">Presupuesto vs Costo Real (Q)</p>
+          <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Presupuesto vs Costos (Q)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
@@ -277,7 +285,8 @@ export default function Seguimiento() {
               <Tooltip formatter={(v: any) => fmtQ(v)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
               <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
               <Bar dataKey="Presupuesto" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="Costo Real" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Costo Directo" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="Costo Total" fill="#ef4444" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Ingresos" fill="#3b82f6" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Egresos" fill="#f59e0b" radius={[4, 4, 0, 0]} />
             </BarChart>

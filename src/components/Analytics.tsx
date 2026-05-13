@@ -19,6 +19,7 @@ import { motion } from 'motion/react';
 import { subscribeToCollection } from '../services/firestoreService';
 import { useCountUp } from '../hooks/useCountUp';
 import { generateProjectPDF, generateProjectCSV, PDF_TEMPLATES, CSV_TEMPLATES } from '../lib/exportUtils';
+import { calculateProjectTotals } from '../lib/reports';
 import { Project, Transaction } from '../constants';
 
 function AnimatedNum({ v }: { v: number }) { const n = useCountUp(v, 800); return <>{n}</>; }
@@ -90,7 +91,8 @@ export default function AnalyticsModule() {
   const rentabilidadData = displayProjects
     .filter(p => p.budget > 0)
     .map(p => {
-      const costoReal = (p.directCosts || 0) * (1 + ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100);
+      const totals = calculateProjectTotals(p);
+      const costoReal = totals.totalBudget;
       const utilidad = (p.budget || 0) - costoReal;
       return {
         name: (p.name || "").substring(0, 14),
@@ -142,7 +144,7 @@ export default function AnalyticsModule() {
       const key = t.date.substring(0, 7);
       if (!months[key]) return;
       if (t.type === 'INGRESO') months[key].Ingresos += Number(t.amount || 0);
-      else months[key].Gastos += Number(t.amount || 0);
+      else if (t.type === 'GASTO') months[key].Gastos += Number(t.amount || 0);
     });
     return Object.values(months).map(m => ({ ...m, Neto: m.Ingresos - m.Gastos }));
   }, [transactions]);
@@ -152,7 +154,8 @@ export default function AnalyticsModule() {
     displayProjects
       .filter(p => p.budget > 0)
       .map(p => {
-        const costoReal = (p.directCosts || 0) * (1 + ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100);
+        const totals = calculateProjectTotals(p);
+        const costoReal = totals.totalBudget;
         const utilidad = (p.budget || 0) - costoReal;
         const margen = p.budget > 0 ? (utilidad / p.budget) * 100 : 0;
         return { ...p, costoReal, utilidad, margen };
@@ -583,7 +586,7 @@ export default function AnalyticsModule() {
                     fill="#10b981"
                     label={false}>
                     {monthlyTrends.map((entry, index) => (
-                      <Cell key={index} fill={entry.Neto >= 0 ? '#10b981' : '#ef4444'} />
+                      <Cell key={index} fill={entry.Neto > 0 ? '#10b981' : entry.Neto < 0 ? '#ef4444' : '#94a3b8'} />
                     ))}
                   </Bar>
                 </BarChart>
