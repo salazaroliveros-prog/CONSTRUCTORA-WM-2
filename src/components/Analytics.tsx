@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @license
  * SPDX-License-Identifier: Apache-2.0
  */
@@ -230,7 +230,7 @@ export default function AnalyticsModule() {
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div className="text-left">
-          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-primary dark:text-slate-200 uppercase">Analíticas</h2>
+          <h2 className="text-2xl md:text-3xl font-black tracking-tight text-primary  uppercase">Analíticas</h2>
           <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-end overflow-x-auto">
@@ -390,8 +390,8 @@ export default function AnalyticsModule() {
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8 text-center">
-              <span className="text-3xl font-black text-primary dark:text-slate-200 leading-none">{displayProjects.length}</span>
-              <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mt-1">Proyectos</span>
+              <span className="text-3xl font-black text-primary  leading-none">{displayProjects.length}</span>
+              <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest mt-1">Proyectos</span>
             </div>
           </div>
         </div>
@@ -400,7 +400,7 @@ export default function AnalyticsModule() {
         <div className="bg-slate-900 rounded-3xl p-3 text-white text-left">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h4 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] mb-1">Estado del Sistema</h4>
+              <h4 className="text-[11px] font-black text-slate-400  uppercase tracking-[0.2em] mb-1">Estado del Sistema</h4>
               <p className="text-xl font-black uppercase tracking-tight text-secondary">Salud Operativa</p>
             </div>
             <BarChart3 size={24} className="text-secondary" />
@@ -441,7 +441,7 @@ export default function AnalyticsModule() {
       {/* Rentabilidad chart */}
       <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
         <div className="mb-2">
-          <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Rentabilidad por Proyecto</h3>
+          <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Rentabilidad por Proyecto</h3>
           <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Presupuesto vs Costo Real vs Utilidad (Q)</p>
         </div>
         {rentabilidadData.length === 0 ? (
@@ -479,7 +479,7 @@ export default function AnalyticsModule() {
       {selectedProject && itemsBreakdown.length > 0 && (
         <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
           <div className="mb-2">
-            <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Desglose por Renglón</h3>
+            <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Desglose por Renglón</h3>
             <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Materiales vs Mano de Obra por renglón (Q)</p>
           </div>
           <div className="chart-h-md">
@@ -535,7 +535,7 @@ export default function AnalyticsModule() {
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
             <div className="mb-2 flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Flujo de Caja Mensual</h3>
+                <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Flujo de Caja Mensual</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ingresos vs Gastos — últimos 6 meses</p>
               </div>
               <Calendar size={18} className="text-slate-300" />
@@ -572,7 +572,7 @@ export default function AnalyticsModule() {
           {/* Neto mensual en barras */}
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
-              <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Neto Mensual</h3>
+              <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Neto Mensual</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Resultado neto por mes (Ingresos − Gastos)</p>
             </div>
             <div className="chart-h-sm">
@@ -598,7 +598,7 @@ export default function AnalyticsModule() {
           {typologyData.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
-                <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight mb-2">Proyectos por Tipología</h3>
+                <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Proyectos por Tipología</h3>
           <div className="chart-h-md">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -612,7 +612,7 @@ export default function AnalyticsModule() {
                 </div>
               </div>
               <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
-                <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight mb-2">Presupuesto por Tipología</h3>
+                <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Presupuesto por Tipología</h3>
                 <div className="space-y-2">
                   {typologyData.map((t, i) => (
                     <div key={i}>
@@ -639,7 +639,7 @@ export default function AnalyticsModule() {
 
           {/* Tabla resumen mensual */}
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
-            <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight mb-2">Resumen Mensual</h3>
+            <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Resumen Mensual</h3>
             <table className="w-full text-left text-[9px]">
               <thead>
                 <tr className="border-b border-slate-100">
@@ -676,7 +676,7 @@ export default function AnalyticsModule() {
           {/* Gráfico de barras ranking */}
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
-              <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Ranking de Rentabilidad</h3>
+              <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Ranking de Rentabilidad</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proyectos ordenados por margen de utilidad</p>
             </div>
             {projectRanking.length === 0 ? (
@@ -703,7 +703,7 @@ export default function AnalyticsModule() {
 
           {/* Tabla ranking completa */}
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
-            <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight mb-2">Tabla de Rentabilidad Completa</h3>
+            <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Tabla de Rentabilidad Completa</h3>
             {projectRanking.length === 0 ? (
               <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest text-center py-8">Sin datos</p>
             ) : (
@@ -904,7 +904,7 @@ export default function AnalyticsModule() {
           {/* Análisis de eficiencia de personal por proyecto */}
           <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
-              <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Eficiencia Personal por Proyecto</h3>
+              <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Eficiencia Personal por Proyecto</h3>
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Progreso vs Costo de Personal (Progreso% / Costo Salarial en miles)</p>
             </div>
             {staffEfficiency.length === 0 ? (
@@ -937,7 +937,7 @@ export default function AnalyticsModule() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
               <div className="mb-2">
-                <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Top Proveedores</h3>
+                <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Top Proveedores</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Por volumen de compras</p>
               </div>
               <div className="space-y-2">
@@ -965,7 +965,7 @@ export default function AnalyticsModule() {
 
             <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
               <div className="mb-2">
-                <h3 className="text-sm font-black text-primary dark:text-slate-200 uppercase tracking-tight">Completitud de Inventario</h3>
+                <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Completitud de Inventario</h3>
                 <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Stock actual vs presupuestado por proyecto</p>
               </div>
               <div className="space-y-2">

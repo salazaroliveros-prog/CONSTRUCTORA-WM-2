@@ -586,7 +586,7 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                 </div>
 
                 {/* Market Level and Slab Type Selection */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl border border-blue-200 dark:border-blue-700">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50   rounded-xl border border-blue-200 dark:border-blue-700">
                   <div className="space-y-1">
                     <label className="text-[10px] font-black text-blue-800 dark:text-blue-200 uppercase tracking-widest block ml-1 flex items-center gap-1">
                       <Gauge size={12} /> Nivel de Mercado
@@ -597,7 +597,7 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                         const level = MARKET_LEVELS.find(l => l.id === e.target.value);
                         if (level) setSelectedMarketLevel(level);
                       }}
-                      className="w-full bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
+                      className="w-full bg-white  border border-blue-300 dark:border-blue-600 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
                     >
                       {MARKET_LEVELS.map(level => (
                         <option key={level.id} value={level.id}>
@@ -618,7 +618,7 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                         const slabType = SLAB_TYPOLOGIES.find(s => s.id === e.target.value);
                         if (slabType) setSelectedSlabType(slabType);
                       }}
-                      className="w-full bg-white dark:bg-slate-800 border border-blue-300 dark:border-blue-600 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
+                      className="w-full bg-white  border border-blue-300 dark:border-blue-600 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-500"
                     >
                       {SLAB_TYPOLOGIES.map(slab => (
                         <option key={slab.id} value={slab.id}>{slab.name}</option>
@@ -660,7 +660,7 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                 </div>
 
                 {/* Market Parameters Impact Summary */}
-                <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl border border-green-200 dark:border-green-700 p-4">
+                <div className="bg-gradient-to-r from-green-50 to-blue-50   rounded-xl border border-green-200 dark:border-green-700 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <TrendingUp size={16} className="text-green-600" />
                     <h4 className="text-[10px] font-black text-green-800 dark:text-green-200 uppercase tracking-widest">
@@ -668,22 +668,22 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                     </h4>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                    <div className="bg-white  rounded-lg p-2">
                       <p className="text-[8px] font-bold text-slate-500 uppercase">Nivel Mercado</p>
                       <p className="text-[10px] font-black text-green-600">{selectedMarketLevel.name}</p>
                       <p className="text-[7px] text-slate-400">Q{selectedMarketLevel.costPerSqm.recommended}/m²</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                    <div className="bg-white  rounded-lg p-2">
                       <p className="text-[8px] font-bold text-slate-500 uppercase">Tipo Losa</p>
                       <p className="text-[10px] font-black text-blue-600">{selectedSlabType.name}</p>
                       <p className="text-[7px] text-slate-400">{selectedSlabType.costMultipliers.material}x material</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                    <div className="bg-white  rounded-lg p-2">
                       <p className="text-[8px] font-bold text-slate-500 uppercase">Área Proyecto</p>
                       <p className="text-[10px] font-black text-purple-600">{areaTotal || 0} m²</p>
                       <p className="text-[7px] text-slate-400">Total construido</p>
                     </div>
-                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                    <div className="bg-white  rounded-lg p-2">
                       <p className="text-[8px] font-bold text-slate-500 uppercase">Costo Final</p>
                       <p className="text-[10px] font-black text-secondary">Q{costPerM2.toFixed(0)}/m²</p>
                       <p className="text-[7px] text-slate-400">Aplicando factores</p>
@@ -691,8 +691,8 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                   </div>
                   <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-700">
                     <div className="flex justify-between text-[8px] font-bold">
-                      <span className="text-slate-600 dark:text-slate-300">Costo Base:</span>
-                      <span className="text-slate-800 dark:text-slate-200">Q{(totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100)).toLocaleString()}</span>
+                      <span className="text-slate-600 ">Costo Base:</span>
+                      <span className="text-slate-800 ">Q{(totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100)).toLocaleString()}</span>
                     </div>
                     <div className="flex justify-between text-[8px] font-bold mt-1">
                       <span className="text-green-600">+ Parámetros Mercado:</span>

@@ -183,7 +183,7 @@ export default function ClientsModule() {
           {bulkMode ? 'Cancelar' : 'Seleccionar'}
         </button>
         <button onClick={openCreate}
-                     className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 dark:bg-slate-800 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 active:scale-95 transition-all">
+                     className="flex items-center gap-1.5 px-4 py-2 bg-slate-900  text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 active:scale-95 transition-all">
           <Plus size={14} /> Nuevo Cliente
         </button>
       </div>

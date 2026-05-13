@@ -31,25 +31,25 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
 
       // Row for this line
       result.push(
-        <tr key={line.id} className="group hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
+        <tr key={line.id} className="group hover:bg-slate-50/50 /50 transition-colors">
           <td style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}>
             <div className="flex items-center gap-2 py-2">
               {hasChildren ? (
                 <button
                   onClick={() => toggleExpand(line.id)}
-                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 dark:hover:bg-slate-700"
+                  className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 "
                 >
                   {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
                 </button>
               ) : (
                 <span className="w-5 inline-block" />
               )}
-              <span className="text-[9px] font-black text-slate-700 dark:text-slate-200 uppercase">{line.code}</span>
-              <span className="text-[9px] font-bold text-slate-600 dark:text-slate-300 truncate max-w-[200px]">{line.description}</span>
+              <span className="text-[9px] font-black text-slate-700  uppercase">{line.code}</span>
+              <span className="text-[9px] font-bold text-slate-600  truncate max-w-[200px]">{line.description}</span>
             </div>
           </td>
-          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">{line.unit}</td>
-          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">
+          <td className="text-[9px] text-slate-600  text-right">{line.unit}</td>
+          <td className="text-[9px] text-slate-600  text-right">
             {line.computationType === 'dynamic' ? (
               <span className="text-blue-600 dark:text-blue-400 font-medium">
                 {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} (calc)
@@ -58,16 +58,16 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
               line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })
             )}
           </td>
-          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">Q {line.materialCost.toLocaleString()}</td>
-          <td className="text-[9px] text-slate-600 dark:text-slate-300 text-right">Q {line.laborCost.toLocaleString()}</td>
-          <td className="text-[9px] font-bold text-slate-800 dark:text-slate-200 text-right">
+          <td className="text-[9px] text-slate-600  text-right">Q {line.materialCost.toLocaleString()}</td>
+          <td className="text-[9px] text-slate-600  text-right">Q {line.laborCost.toLocaleString()}</td>
+          <td className="text-[9px] font-bold text-slate-800  text-right">
             Q {(line.subtotal ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
           </td>
           {editingAllowed && (
             <td className="text-right">
               <button
                 onClick={() => setExpanded(prev => ({ ...prev, [line.id + '_edit']: !prev[line.id + '_edit'] }))}
-                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700"
+                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 "
               >
                 <Pencil size={12} />
               </button>
@@ -95,7 +95,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('cimentación') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Largo (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -106,11 +106,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Ancho (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -121,11 +121,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.width = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Profundidad (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Profundidad (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -136,7 +136,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.height = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -144,7 +144,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('columna') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Base (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Base (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -155,11 +155,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.width = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Altura (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Altura (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -170,7 +170,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -178,7 +178,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('solera') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Ancho (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -189,11 +189,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.width = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Alto (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Alto (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -204,11 +204,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.height = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Longitud (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Longitud (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -219,7 +219,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -227,7 +227,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('zapata') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Largo (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -238,11 +238,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Ancho (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -253,11 +253,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.width = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Profundidad (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Profundidad (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -268,7 +268,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.height = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -276,7 +276,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('carretera') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Largo (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -287,11 +287,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Ancho (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -302,11 +302,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.width = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Espesor (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Espesor (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -317,7 +317,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.thickness = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -325,7 +325,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('puente') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Sección Base (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Sección Base (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -336,11 +336,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.width = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Sección Alto (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Sección Alto (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -351,11 +351,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.height = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Altura (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Altura (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -366,7 +366,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -374,7 +374,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('fachada') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Largo (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -385,11 +385,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Alto (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Alto (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -400,7 +400,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.height = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
@@ -408,7 +408,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                   {line.description.toLowerCase().includes('cerramientos') && (
                     <>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Longitud (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Longitud (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -419,11 +419,11 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.length = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                       <div>
-                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Altura (m)</label>
+                        <label className="text-[8px] font-bold text-slate-600  uppercase">Altura (m)</label>
                         <input
                           type="number"
                           step="0.01"
@@ -434,13 +434,13 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                             updated.dimensions.height = parseFloat(e.target.value) || 0;
                             onUpdate(lines.map(l => l.id === line.id ? updated : l));
                           }}
-                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                         />
                       </div>
                     </>
                   )}
                   <div>
-                    <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Factor Desperdicio</label>
+                    <label className="text-[8px] font-bold text-slate-600  uppercase">Factor Desperdicio</label>
                     <input
                       type="number"
                       step="0.01"
@@ -452,7 +452,7 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                         updated.wasteFactor = parseFloat(e.target.value) || 1.0;
                         onUpdate(lines.map(l => l.id === line.id ? updated : l));
                       }}
-                      className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                      className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300  rounded bg-white  text-slate-900 "
                     />
                   </div>
                   <div className="flex items-end">
@@ -481,28 +481,28 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+    <div className="bg-white  rounded-xl border border-slate-200  overflow-hidden">
       <table className="w-full text-left">
-        <thead className="bg-slate-50/50 dark:bg-slate-800/50">
+        <thead className="bg-slate-50/50 /50">
           <tr>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Descripción / Código</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Unidad</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Cant.</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Costo Mat. (Q.)</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Costo Mano Obra (Q.)</th>
-            <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Subtotal (Q.)</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest">Descripción / Código</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest text-right">Unidad</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest text-right">Cant.</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest text-right">Costo Mat. (Q.)</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest text-right">Costo Mano Obra (Q.)</th>
+            <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest text-right">Subtotal (Q.)</th>
             {editingAllowed && (
-              <th className="px-4 py-2 text-[7px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-right">Acciones</th>
+              <th className="px-4 py-2 text-[7px] font-black text-slate-400  uppercase tracking-widest text-right">Acciones</th>
             )}
           </tr>
         </thead>
         <tbody>{renderRows(lines, 0)}</tbody>
       </table>
       {editingAllowed && (
-        <div className="p-2 border-t border-slate-100 dark:border-slate-700 flex justify-end">
+        <div className="p-2 border-t border-slate-100  flex justify-end">
           <button
             onClick={onAddCustom}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 dark:bg-slate-700 text-white text-[8px] font-black uppercase rounded-lg hover:bg-slate-800 dark:hover:bg-slate-600 transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900  text-white text-[8px] font-black uppercase rounded-lg hover:bg-slate-800  transition-all"
           >
             <Plus size={12} /> Agregar Renglón Personalizado
           </button>

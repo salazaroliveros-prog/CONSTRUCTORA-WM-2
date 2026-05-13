@@ -71,7 +71,7 @@ function fmtQ(n: number) {
 function MiniRing({ value, color, label }: { value: number; color: string; label: string }) {
   const r = 16; const circ = 2 * Math.PI * r;
   const dash = Math.min(value / 100, 1) * circ;
-  const trackColor = document.documentElement.classList.contains('dark') ? '#4a6080' : '#e2e8f0';
+  const trackColor = '#e2e8f0';
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div className="relative" style={{ width: 40, height: 40 }}>
@@ -446,11 +446,12 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
   const avgFisico = filteredProjects.length
     ? Math.round(filteredProjects.reduce((a, p) => a + (p.progress || 0), 0) / filteredProjects.length)
     : 0;
+  // Financial progress: use real transaction expenses vs budget (consistent with Seguimiento)
   const avgFinanciero = filteredProjects.length
     ? Math.round(filteredProjects.reduce((a, p) => {
-        const dc = p.directCosts || 0;
-        const total = dc + dc * ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100;
-        return a + Math.min(100, total / (p.budget || 1) * 100);
+        const txExpense = transactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((s: number, t: any) => s + (t.amount || 0), 0);
+        const budget = p.budget || 1;
+        return a + Math.round((txExpense / budget) * 100);
       }, 0) / filteredProjects.length)
     : 0;
 
@@ -471,60 +472,42 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
   const sparkExp = sparkWeeks.map(d => ({ v: d.exp }));
   const sparkNet = sparkWeeks.map(d => ({ v: d.v }));
 
-  // Pie Chart Data: Expenses by Category
-  const expenseByCategory = selectedProjectId !== 'ALL' ? [
-    { name: 'Costo Directo', value: filteredProjects.reduce((acc, p) => acc + (p.directCosts || 0), 0) },
-    { name: 'Indirectos', value: filteredProjects.reduce((acc, p) => acc + ((p.directCosts || 0) * (p.indirectCosts || 0) / 100), 0) },
-    { name: 'Administrativo', value: filteredProjects.reduce((acc, p) => acc + ((p.directCosts || 0) * (p.administrativeCosts || 0) / 100), 0) },
-    { name: 'Personal', value: filteredProjects.reduce((acc, p) => acc + ((p.directCosts || 0) * (p.personalCosts || 0) / 100), 0) }
-  ].filter(cat => cat.value > 0) : exitCategories.map(cat => ({
-    name: cat,
-    value: transactions.filter(t => t.type === 'GASTO' && t.category === cat).reduce((acc, t) => acc + (t.amount || 0), 0)
-  })).filter(cat => cat.value > 0);
+  // Pie Chart Data: Expenses by Category — use real transactions
+  const expenseByCategory = (() => {
+    const txSource = selectedProjectId !== 'ALL'
+      ? filteredTransactions.filter(t => t.type === 'GASTO')
+      : transactions.filter(t => t.type === 'GASTO');
+    const cats = selectedProjectId !== 'ALL' ? [...exitCategories, 'Indirectos', 'Administrativo', 'Personal'] : exitCategories;
+    return cats.map(cat => ({
+      name: cat,
+      value: txSource.filter(t => t.category === cat).reduce((acc, t) => acc + (t.amount || 0), 0)
+    })).filter(cat => cat.value > 0);
+  })();
 
-  // Cash flow chart: when project selected, show project cost breakdown by month;
-  // when ALL, show global transactions by month
-  const chartData = (() => {
-    const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-    const currentMonthIndex = new Date().getMonth();
-    const lastMonths = [
-      (currentMonthIndex - 2 + 12) % 12,
-      (currentMonthIndex - 1 + 12) % 12,
-      currentMonthIndex
-    ];
+  // Cash flow chart: when project selected, show project transactions by month;
+    // when ALL, show global transactions by month
+    const chartData = (() => {
+      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+      const currentMonthIndex = new Date().getMonth();
+      const lastMonths = [
+        (currentMonthIndex - 2 + 12) % 12,
+        (currentMonthIndex - 1 + 12) % 12,
+        currentMonthIndex
+      ];
 
-    if (selectedProjectId !== 'ALL' && filteredProjects.length > 0) {
-      // Project selected: show budget vs direct cost vs indirect cost breakdown
-      const p = filteredProjects[0];
-      const directCost = p.directCosts || 0;
-      const indirectCost = directCost * (p.indirectCosts || 0) / 100;
-      const adminCost = directCost * (p.administrativeCosts || 0) / 100;
-      const personalCost = directCost * (p.personalCosts || 0) / 100;
-      const totalCost = directCost + indirectCost + adminCost + personalCost;
-      // Distribute across last 3 months proportionally by progress
-      const progress = (p.progress || 0) / 100;
-      return lastMonths.map((monthIdx, i) => {
-        const weight = i === 2 ? progress : i === 1 ? Math.min(progress, 0.6) : Math.min(progress, 0.3);
+      return lastMonths.map(monthIdx => {
+        const monthTx = filteredTransactions.filter(t => {
+          if (!t.date) return false;
+          const d = new Date(t.date);
+          return d.getMonth() === monthIdx && d.getFullYear() === new Date().getFullYear();
+        });
         return {
           name: months[monthIdx],
-          ingresos: Math.round((p.budget || 0) * weight),
-          gastos: Math.round(totalCost * weight)
+          ingresos: monthTx.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0),
+          gastos: monthTx.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0)
         };
       });
-    }
-
-    return lastMonths.map(monthIdx => {
-      const monthTx = filteredTransactions.filter(t => {
-        const d = new Date(t.date);
-        return d.getMonth() === monthIdx;
-      });
-      return {
-        name: months[monthIdx],
-        ingresos: monthTx.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0),
-        gastos: monthTx.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0)
-      };
-    });
-  })();
+    })();
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4', '#fb923c', '#a3e635'];
 
