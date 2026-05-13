@@ -273,7 +273,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
        {/* ── Bottom Navigation ─────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-[49] bg-white/90 backdrop-blur-2xl border-t border-slate-200/60">
-          <div className="flex items-stretch justify-start h-14 overflow-x-auto overflow-y-hidden no-scrollbar gap-0.5 px-1">
+          <div className="flex items-stretch h-14 overflow-x-auto overflow-y-hidden no-scrollbar justify-start md:justify-center md:overflow-visible md:mx-auto md:max-w-screen-xl gap-0.5 md:gap-0 px-1">
             {mobileMenuItems.map((item) => {
               const isActive = activeTab === item.id;
               return (
@@ -281,7 +281,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                   key={item.id}
                   onClick={() => setActiveTab(item.id)}
                   className={cn(
-                    "relative flex flex-col items-center justify-center gap-0.5 min-w-[3.25rem] flex-shrink-0 py-1 transition-all duration-200",
+                    "relative flex flex-col items-center justify-center gap-0.5 min-w-[3.25rem] flex-shrink-0 md:flex-1 md:min-w-0 py-1 transition-all duration-200",
                     isActive
                       ? "text-secondary"
                       : "text-slate-400 hover:text-slate-600 active:scale-90"
