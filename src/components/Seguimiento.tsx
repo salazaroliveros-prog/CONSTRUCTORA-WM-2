@@ -44,7 +44,7 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
           <span className="text-[11px] font-black text-slate-700 dark:text-slate-200">{value}%</span>
         </div>
       </div>
-      <span className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{label}</span>
+      <span className="text-[9px] sm:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest text-center">{label}</span>
     </div>
   );
 }
@@ -165,7 +165,7 @@ export default function Seguimiento() {
             className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="p-1.5 rounded-lg text-white" style={{ background: k.color }}>{k.icon}</div>
-              <p className="text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{k.label}</p>
+              <p className="text-[9px] sm:text-[8px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">{k.label}</p>
             </div>
             <p className="text-sm font-black text-slate-900 dark:text-slate-200">{k.value}</p>
           </motion.div>
@@ -408,9 +408,9 @@ export default function Seguimiento() {
                     }}
                   />
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-[7px] font-black text-white drop-shadow-sm">
-                      {item.start.split('-')[1]}/{item.start.split('-')[2]} - {item.end.split('-')[1]}/{item.end.split('-')[2]}
-                    </span>
+                  <span className="text-[8px] sm:text-[7px] font-black text-white drop-shadow-sm">
+                    {item.start.split('-')[1]}/{item.start.split('-')[2]} - {item.end.split('-')[1]}/{item.end.split('-')[2]}
+                  </span>
                   </div>
                 </div>
               </div>

@@ -223,16 +223,16 @@ export default function AnalyticsModule() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-3 p-3 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div className="flex flex-col h-full gap-3 p-3 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))] overflow-x-hidden">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div className="text-left">
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-primary dark:text-slate-200 uppercase">Analíticas</h2>
           <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
         </div>
-        <div className="flex flex-wrap gap-2 w-full md:w-auto items-end">
+        <div className="flex flex-wrap gap-2 w-full md:w-auto items-end overflow-x-auto">
           {/* Tabs - Agregando nueva pestaña de conectividad */}
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+          <div className="flex bg-slate-100 p-1 rounded-xl gap-1 overflow-x-auto">
             {([['overview','Resumen'],['trends','Tendencias'],['ranking','Ranking'],['connectivity','Conectividad']] as const).map(([tab, label]) => (
               <button key={tab} type="button" onClick={() => setActiveTab(tab)}
                 className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
@@ -279,7 +279,7 @@ export default function AnalyticsModule() {
       </div>
 
       {/* Financial KPI Strip - Mejorado con métricas cruzadas */}
-      <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         {[
           { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-purple-600', bg: 'bg-purple-50', trend: null },
           { label: 'Personal Activo', value: `${activeStaff.length}`, icon: <Users size={14}/>, color: 'text-blue-600', bg: 'bg-blue-50', trend: null, sub: `Q ${Math.round(totalSalaries/1000)}k salarios` },
@@ -298,7 +298,7 @@ export default function AnalyticsModule() {
               </div>
             </div>
             {kpi.sub && (
-              <p className="text-[6px] font-bold text-slate-400 uppercase tracking-widest truncate">{kpi.sub}</p>
+              <p className="text-[7px] sm:text-[6px] font-bold text-slate-400 uppercase tracking-widest truncate">{kpi.sub}</p>
             )}
           </motion.div>
         ))}

@@ -279,7 +279,7 @@ export default function Settings() {
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Moneda</h3>
           </div>
           <div className="bg-white p-6 rounded-3xl border border-slate-200">
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(['Q', '$', '€', '£'] as Currency[]).map(c => (
                 <button
                   key={c}
