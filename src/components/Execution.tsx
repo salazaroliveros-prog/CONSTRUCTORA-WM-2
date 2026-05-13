@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ClipboardList, Package, CheckCircle2, TrendingUp, BarChart2,
   ChevronDown, ChevronRight, Save, Plus, Trash2, Filter,
@@ -6,16 +6,15 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Project, WarehouseItem } from '../constants';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
+import { fmtQ } from '../utils/format';
+import { toast } from 'sonner';
+import { useAuth } from '../contexts/AuthContext';
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
-import { toast } from 'sonner';
-import { useAuth } from '../contexts/AuthContext';
-
-function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
-function fmtQ(n: number) { return 'Q ' + Math.round(n).toLocaleString('es-GT'); }
+import { sanitizeString, sanitizeEmail } from '../utils/sanitize';
+import { trackCRUD, trackEvent, trackExport } from '../utils/logger';
 
 const LOG_TYPES = [
   { id: 'AVANCE',    label: 'Avance Físico',   color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -136,29 +135,30 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
   };
 
   // Agregar entrada de bitácora con contexto completo
-  const handleAddLog = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!logMsg.trim()) return;
-    setSavingLog(true);
-    const proj = projects.find(p => p.id === logProjectId);
-    const item = allItems.find((i: any) => i.id === logItemId);
-    try {
-      await addDocument('logs', {
-        msg: logMsg,
-        type: logType,
-        projectId:   logProjectId || null,
-        projectName: proj?.name || null,
-        itemId:      logItemId || null,
-        itemName:    item?.description || null,
-        author:      user?.displayName || user?.email || 'Sistema',
-        createdAt:   new Date().toISOString(),
-      });
-      setLogMsg('');
-      toast.success('Entrada registrada en bitácora');
-    } catch (err) {
-      toast.error('Error al registrar', { description: parseError(err) });
-    } finally { setSavingLog(false); }
-  };
+const handleAddLog = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!logMsg.trim()) return;
+     setSavingLog(true);
+     const proj = projects.find(p => p.id === logProjectId);
+     const item = allItems.find((i: any) => i.id === logItemId);
+     try {
+       await addDocument('logs', {
+         msg: sanitizeString(logMsg),
+         type: logType,
+         projectId:   logProjectId || null,
+         projectName: sanitizeString(proj?.name) || null,
+         itemId:      logItemId || null,
+         itemName:    sanitizeString(item?.description) || null,
+         author:      user?.displayName || user?.email || 'Sistema',
+         createdAt:   new Date().toISOString(),
+       });
+       setLogMsg('');
+       toast.success('Entrada registrada en bitácora');
+       trackCRUD('create', 'log');
+     } catch (err) {
+       toast.error('Error al registrar', { description: parseError(err) });
+     } finally { setSavingLog(false); }
+   };
 
   // Eliminar entrada de bitácora
   const handleDeleteLog = (id: string) => {
@@ -307,7 +307,10 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
             <h3 className="text-[10px] font-black uppercase tracking-widest text-secondary">Bitácora de Obra</h3>
             <div className="flex items-center gap-2">
               <span className="text-[7px] text-slate-500 font-bold">{filteredLogs.length} entradas</span>
-              <button type="button" onClick={() => exportLogsCSV(filteredLogs, filterProject !== 'ALL' ? (projects.find(p => p.id === filterProject)?.name ?? 'General') : 'General')}
+              <button type="button" onClick={() => {
+                 exportLogsCSV(filteredLogs, filterProject !== 'ALL' ? (projects.find(p => p.id === filterProject)?.name ?? 'General') : 'General');
+                 trackExport('csv', 'bitacora');
+               }}
                 className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-secondary transition-colors" title="Exportar CSV">
                 <FileDown size={13} />
               </button>

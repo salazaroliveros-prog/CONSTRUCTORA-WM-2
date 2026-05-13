@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
+import { fmtQ } from '../utils/format';
 import {
   Calendar, Clock, AlertTriangle, Edit2, Save, X,
   TrendingUp, Activity, ChevronDown, ChevronRight, DollarSign, Printer, Download
@@ -14,9 +14,6 @@ import { subscribeToCollection, updateDocument } from '../services/firestoreServ
 import {
   GanttTask, GanttConfig, buildTasksFromItems, daysSinceStart, fmtDate, addDays
 } from '../lib/ganttCPM';
-
-function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
-function fmtQ(n: number) { return 'Q ' + Math.round(n).toLocaleString('es-GT'); }
 
 const EMPTY_CONFIG: GanttConfig = { overrides: {}, progress: {} };
 
@@ -52,7 +49,7 @@ function TaskTooltip({ task, startDate, expectedProgress }: {
 }
 
 // ── Barra de una tarea ────────────────────────────────────────────────────────
-function TaskBar({
+const TaskBar = React.memo(function TaskBar({
   task, maxDuration, startDate, onProgressChange, todayDay
 }: {
   task: GanttTask;
@@ -178,13 +175,12 @@ function TaskBar({
           title={`Avance: ${task.progress}%`}
         />
       )}
-    </div>
-  );
-}
+     </div>
+    );
+});
 
+// ── Modo de vista y estado de tarea ───────────────────────────────────────────
 type ViewMode = 'compact' | 'expanded' | 'detailed';
-
-// ── Calcula el estado real de una tarea según avance esperado vs real ───────────
 type TaskStatus = 'done' | 'on-track' | 'at-risk' | 'delayed' | 'pending';
 
 function calcTaskStatus(task: GanttTask, todayDay: number): TaskStatus {

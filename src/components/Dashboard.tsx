@@ -25,8 +25,8 @@ import {
    HardHat
  } from 'lucide-react';
 import { motion } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
+import { fmtQ } from '../utils/format';
 import { toast } from 'sonner';
 import { subscribeToCollection, addDocument, updateDocument, getDocumentsForCollection, deleteDocument, parseError } from '../services/firestoreService';
 import { useSettings } from '../contexts/SettingsContext';
@@ -35,6 +35,7 @@ import { Transaction } from '../constants';
 import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
+import { trackCRUD, trackEvent } from '../utils/logger';
 import { 
   BarChart, 
   Bar, 
@@ -59,14 +60,6 @@ import {
   Radar,
   Treemap
 } from 'recharts';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
-
-function fmtQ(n: number) {
-  return 'Q. ' + n.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 function MiniRing({ value, color, label }: { value: number; color: string; label: string }) {
   const r = 16; const circ = 2 * Math.PI * r;
@@ -330,8 +323,8 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
     projectId: ''
   });
 
-  const entryCategories = ['Aporte Cliente', 'Anticipo de Obra', 'Pago por Avance', 'Pago Final', 'Anteproyecto', 'Estudios y Diseno', 'Agrimensura', 'Cuantificacion', 'Venta de Material', 'Devolucion de Proveedor', 'Subvencion / Subsidio', 'Prestamo / Financiamiento', 'Otros Ingresos'];
-  const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'Sub-contratos', 'Administrativo', 'Personales', 'Hogar'];
+const entryCategories = ['Aporte Cliente', 'Anticipo de Obra', 'Pago por Avance', 'Pago Final', 'Anteproyecto', 'Estudios y Diseno', 'Agrimensura', 'Cuantificacion', 'Venta de Material', 'Devolucion de Proveedor', 'Subvencion / Subsidio', 'Prestamo / Financiamiento', 'Otros Ingresos'];
+const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'Sub-contratos', 'Administrativo', 'Personales', 'Hogar'];
 
   useEffect(() => {
     const unsubProjects = subscribeToCollection('projects', (data) => {

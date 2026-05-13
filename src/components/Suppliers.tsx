@@ -3,23 +3,22 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Truck, Plus, Search, Star, Phone, Mail, Trash2, LayoutGrid, List, Pencil,
   X, Globe, CreditCard, Clock, ShoppingCart, TrendingUp, Download,
   Package, CheckCircle2, AlertCircle, ChevronRight, DollarSign, BarChart2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
 import Modal from './ui/Modal';
 import { toast } from 'sonner';
-
-function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
+import { sanitizeString, sanitizeEmail, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
+import { trackCRUD, trackEvent } from '../utils/logger';
 
 interface Supplier {
   id: string;

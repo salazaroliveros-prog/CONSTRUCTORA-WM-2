@@ -15,8 +15,15 @@
 - **CSS**: TailwindCSS v4 (`@import "tailwindcss"` - NOT `@tailwind` directives)
 - **Path Alias**: `@/*` maps to project root (`./*`)
 - **API**: Vercel serverless function at `api/ai-report.ts` with Firebase JWT verification + Gemini 2.0 Flash streaming
-- **Budget Engine**: Unified hierarchical budget management with advanced project creation interface. Hierarchical structure with BudgetLine interface for tree-based budgeting, automatic recalculation, dynamic renglones. Advanced features include waste factors, APU library, material breakdowns, and cost configurations. Key files: src/lib/budgetData.ts, src/components/BudgetTable.tsx, src/components/AdvancedProjectCreator.tsx, src/hooks/useBudget.ts, src/utils/budgetConverter.ts
+- **Budget Engine**: Unified hierarchical budget management with advanced project creation interface. Key files: src/lib/budgetData.ts, src/components/BudgetTable.tsx, src/components/AdvancedProjectCreator.tsx, src/hooks/useBudget.ts, src/utils/budgetConverter.ts
 - **Environment**: Requires `GEMINI_API_KEY` env var for AI features
+
+## Type Gotchas
+- **Project.status** is a union literal: `"EJECUCION" | "FINALIZADO" | "PAUSADO" | "COTIZACION"` — not `string`. Constructing a `fullProject` for PDF export with `...project` spread brings `status: string`, which breaks type checking. Use `as any` on PDF calls (generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente from `src/lib/reports`).
+- **Cost fields**: Use `totals.indirectCost` / `totals.adminCost` — not `costBreakdown.*` (removed).
+- **Format function**: `fmtQ` from `src/utils/format` — not `formatQ`.
+- **Error parsing**: `parseError` from `src/utils/parseError`.
+- **Missing imports** in ProjectBuilder.tsx when editing: `BudgetTable` (default export from `./BudgetTable`), `fmtQ`, `parseError`.
 
 ## Important Constraints
 - **NO TESTS**: No test framework configured (vitest/jest/cypress/playwright)
@@ -28,11 +35,11 @@
 ## File Conventions
 - **License Headers**: Apache-2.0 SPDX identifier on many files
 - **Language**: All-Spanish UI, currency in Quetzales (Q.)
-- **Imports**: 
+- **Imports**:
   - Motion: `from 'motion/react'` (not framer-motion)
   - Firebase: Modular v9+ syntax
   - Lucide: Individual icon imports from `lucide-react`
-- **Components**: 
+- **Components**:
   - Layout: `src/components/Layout.tsx` (contains responsive drawer, navbar, mobile nav)
   - UI primitives: `src/components/ui/` (Animations, GradientHeader, Modal, Pagination)
 

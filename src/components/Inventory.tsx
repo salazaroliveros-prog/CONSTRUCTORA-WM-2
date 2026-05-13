@@ -3,18 +3,18 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Package,
   Search,
   Plus,
   X,
-  ArrowUp, 
-  ArrowDown, 
-  MapPin, 
-  History, 
-  ShieldCheck, 
-  Wrench, 
+  ArrowUp,
+  ArrowDown,
+  MapPin,
+  History,
+  ShieldCheck,
+  Wrench,
   Layers,
   ChevronRight,
   Info,
@@ -29,19 +29,15 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WarehouseItem, PurchaseOrder, PurchaseOrderItem } from '../constants';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
 import { toast } from 'sonner';
-
 import Modal from './ui/Modal';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { sanitizeString, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
+import { trackCRUD, trackEvent } from '../utils/logger';
 
 export default function InventoryModule() {
   const [items, setItems] = useState<WarehouseItem[]>([]);
@@ -216,33 +212,34 @@ export default function InventoryModule() {
     }
   };
 
-  const createPurchaseOrder = async () => {
-    const project = projects.find(p => p.id === ocForm.projectId);
-    const supplier = suppliers.find(s => s.id === ocForm.supplierId);
-    if (!project || !supplier || ocForm.items.length === 0) {
-      toast.error('Completa todos los campos y agrega al menos un material');
-      return;
-    }
-    try {
-      const total = ocForm.items.reduce((a, i) => a + i.total, 0);
-      await addDocument('purchaseOrders', {
-        projectId: project.id,
-        projectName: project.name,
-        supplierId: supplier.id,
-        supplierName: supplier.name,
-        status: 'PENDIENTE',
-        items: ocForm.items,
-        total,
-        createdAt: new Date().toISOString().split('T')[0],
-        notes: ocForm.notes,
-      });
-      toast.success('Orden de compra creada');
-      setIsOCModalOpen(false);
-      setOcForm({ projectId: '', selectedItemId: '', supplierId: '', notes: '', items: [] });
-    } catch (e) {
-      toast.error('Error al crear OC', { description: parseError(e) });
-    }
-  };
+const createPurchaseOrder = async () => {
+     const project = projects.find(p => p.id === ocForm.projectId);
+     const supplier = suppliers.find(s => s.id === ocForm.supplierId);
+     if (!project || !supplier || ocForm.items.length === 0) {
+       toast.error('Completa todos los campos y agrega al menos un material');
+       return;
+     }
+     try {
+       const total = ocForm.items.reduce((a, i) => a + i.total, 0);
+       await addDocument('purchaseOrders', {
+         projectId: project.id,
+         projectName: sanitizeString(project.name),
+         supplierId: supplier.id,
+         supplierName: sanitizeString(supplier.name),
+         status: 'PENDIENTE',
+         items: ocForm.items,
+         total,
+         createdAt: new Date().toISOString().split('T')[0],
+         notes: sanitizeString(ocForm.notes),
+       });
+       toast.success('Orden de compra creada');
+       setIsOCModalOpen(false);
+       setOcForm({ projectId: '', selectedItemId: '', supplierId: '', notes: '', items: [] });
+       trackCRUD('create', 'purchase-order');
+     } catch (e) {
+       toast.error('Error al crear OC', { description: parseError(e) });
+     }
+   };
 
   const receiveOrder = async (order: PurchaseOrder) => {
     try {

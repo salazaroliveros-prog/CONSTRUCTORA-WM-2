@@ -69,6 +69,14 @@ export function calcRealDuration(
 }
 
 // ── CPM con ordenamiento topológico (Kahn) ────────────────────────────────────
+/**
+ * Calculates the Critical Path Method (CPM) for a set of project tasks.
+ * Performs forward pass (early start/finish) and backward pass (late start/finish)
+ * to determine float, critical path, and schedule constraints.
+ *
+ * @param tasks - Array of GanttTask objects with duration and dependency information
+ * @returns A new array of GanttTask objects updated with CPM calculations (earlyStart, earlyFinish, lateStart, lateFinish, slack, isCritical)
+ */
 export function calculateCPM(tasks: GanttTask[]): GanttTask[] {
   if (!tasks.length) return [];
   const map = new Map<string, GanttTask>(tasks.map(t => [t.id, { ...t }]));

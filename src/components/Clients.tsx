@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users, Search, Plus, Trash2, Pencil, X, Building2,
   Phone, Mail, MapPin, FileText, TrendingUp, CheckCircle2,
@@ -6,15 +6,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Client } from '../constants';
+import { cn } from '../utils/cn';
+import { fmtQ } from '../utils/format';
+import { toast } from 'sonner';
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
-import { toast } from 'sonner';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
-function fmtQ(n: number) { return 'Q ' + Math.round(n).toLocaleString('es-GT'); }
+import { sanitizeString, sanitizeEmail, sanitizePhone, sanitizeNIT } from '../utils/sanitize';
+import { trackCRUD, trackEvent } from '../utils/logger';
 
 type ClientForm = {
   name: string;
@@ -112,23 +111,34 @@ export default function ClientsModule() {
     setEditMode(true); setShowForm(true);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim()) return;
-    setSaving(true);
-    try {
-      if (editMode && selected) {
-        await updateDocument('clients', selected.id, form);
-        setSelected(prev => prev ? { ...prev, ...form } : null);
-        toast.success('Cliente actualizado');
-      } else {
-        await addDocument('clients', { ...form, projects: [] });
-        toast.success('Cliente registrado');
-      }
-      setShowForm(false);
-    } catch (err) { toast.error('Error', { description: parseError(err) }); }
-    finally { setSaving(false); }
-  };
+const handleSubmit = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if (!form.name.trim()) return;
+     setSaving(true);
+     try {
+       const sanitizedForm = {
+         ...form,
+         name: sanitizeString(form.name),
+         email: sanitizeEmail(form.email),
+         phone: sanitizePhone(form.phone),
+         address: sanitizeString(form.address),
+         nit: sanitizeNIT(form.nit),
+         notes: sanitizeString(form.notes),
+       };
+       if (editMode && selected) {
+         await updateDocument('clients', selected.id, sanitizedForm);
+         setSelected(prev => prev ? { ...prev, ...sanitizedForm } : null);
+         toast.success('Cliente actualizado');
+         trackCRUD('update', 'client', selected.id);
+       } else {
+         await addDocument('clients', { ...sanitizedForm, projects: [] });
+         toast.success('Cliente registrado');
+         trackCRUD('create', 'client');
+       }
+       setShowForm(false);
+     } catch (err) { toast.error('Error', { description: parseError(err) }); }
+     finally { setSaving(false); }
+   };
 
   const handleDelete = (c: Client) => {
     toast(`¿Eliminar a ${c.name}?`, {

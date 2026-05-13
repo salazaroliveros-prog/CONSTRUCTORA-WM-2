@@ -8,7 +8,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { Project, MATERIALS_BY_CATEGORY } from '../constants';
 
-// Colores corporativos
+/** Corporate color palette as RGB tuples */
 const COLORS = {
   primary:   [15, 23, 42]    as [number, number, number],
   secondary: [245, 158, 11]  as [number, number, number],
@@ -22,12 +22,32 @@ const COLORS = {
   gray:      [100, 116, 139] as [number, number, number],
 };
 
-// Helper para formatear moneda
+/**
+ * Formatter for currency values in Quetzales.
+ * @param n - Numeric amount
+ * @returns Formatted currency string with Q prefix
+ */
 const fmtCurrency = (n: number) => `Q ${n.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
-// Helpers para evitar spread de tuplas en jsPDF
+/**
+ * Helper to set fill color on a jsPDF document.
+ * @param doc - jsPDF instance
+ * @param c - RGB color tuple
+ */
 const setFill = (doc: jsPDF, c: [number, number, number]) => doc.setFillColor(c[0], c[1], c[2]);
+
+/**
+ * Helper to set text color on a jsPDF document.
+ * @param doc - jsPDF instance
+ * @param c - RGB color tuple
+ */
 const setTxt  = (doc: jsPDF, c: [number, number, number]) => doc.setTextColor(c[0], c[1], c[2]);
+
+/**
+ * Helper to set draw/line color on a jsPDF document.
+ * @param doc - jsPDF instance
+ * @param c - RGB color tuple
+ */
 const setDraw = (doc: jsPDF, c: [number, number, number]) => doc.setDrawColor(c[0], c[1], c[2]);
 
 // Helper para fecha formateada
@@ -233,10 +253,15 @@ const addExecutiveSummary = (doc: jsPDF, project: Project, totals: ReturnType<ty
 };
 
 // Generar PDF de Presupuesto Ejecutivo
-export const generateBudgetPDF = (project: Project) => {
+export const generateBudgetPDF = (project: Project, overrides?: { totalBudget?: number }) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const totals = calculateProjectTotals(project);
+  let totals = calculateProjectTotals(project);
+
+  // Aplicar overrides si se proporcionan
+  if (overrides?.totalBudget !== undefined) {
+    totals = { ...totals, totalBudget: overrides.totalBudget };
+  }
   
   // Página 1 - Portada y Resumen
   addHeader(doc, 'PRESUPUESTO DE OBRA', `Ref: ${project.id?.slice(0, 8) || 'NUEVO'}`);

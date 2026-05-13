@@ -2,6 +2,25 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import ErrorBoundary from './components/ErrorBoundary';
+
+// Global error handler for uncaught exceptions
+window.addEventListener('error', (event) => {
+  console.error('Global uncaught error:', event.error);
+  // Here you could send to an error logging service (Sentry, etc.)
+  if (process.env.NODE_ENV === 'production') {
+    // In production, you'd report to your error tracking service
+    // Example: Sentry.captureException(event.error);
+  }
+});
+
+// Global unhandled promise rejection handler
+window.addEventListener('unhandledrejection', (event) => {
+  console.error('Unhandled promise rejection:', event.reason);
+  if (process.env.NODE_ENV === 'production') {
+    // Report to error tracking service
+  }
+});
 
 // Enhanced Service Worker Registration for PWA
 if ('serviceWorker' in navigator) {
@@ -46,6 +65,13 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary
+      onError={(error, errorInfo) => {
+        // Report to error logging service here
+        console.error('Error caught by boundary:', error, errorInfo);
+      }}
+    >
+      <App />
+    </ErrorBoundary>
   </StrictMode>,
 );

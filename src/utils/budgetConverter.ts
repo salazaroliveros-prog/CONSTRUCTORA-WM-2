@@ -1,26 +1,38 @@
-// src/utils/budgetConverter.ts
-import { ProjectItem } from '../constants';
+/**
+ * Conversores entre BudgetItem y BudgetLine
+ * Mejorados para preservar toda la información de dimensiones y configuraciones
+ */
+
+import { BudgetItem } from '../types/budget';
 import { BudgetLine } from '../lib/budgetData';
 
 /**
- * Convierte un arreglo de ProjectItem (legacy) a un árbol de BudgetLine.
- * Cada ProjectItem se transforma en una línea padre. Sus materiales y mano de obra
- * se convierten en líneas hijas.
+ * Convierte un arreglo de BudgetItem a un árbol de BudgetLine.
+ * Preserva: dimensions, wasteFactor, typology, durationDays, category, computationType
  */
-export function itemsToBudgetTree(items: ProjectItem[]): BudgetLine[] {
+export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
   return items.map(item => {
+    const hasDimensions = !!item.dimensions && Object.keys(item.dimensions).length > 0;
+    const computationType: 'fixed' | 'dynamic' = item.computationType || (hasDimensions ? 'dynamic' : 'fixed');
+
     const parentLine: BudgetLine = {
       id: item.id,
       code: item.code,
       description: item.description,
       unit: item.unit,
       qty: item.projectQuantity,
-      materialCost: 0, // Los costos están en los hijos
+      materialCost: 0,
       laborCost: 0,
       materialPerf: 1,
       laborPerf: 1,
-      order: 0, // No hay orden definido; se podría mantener un índice
+      order: 0,
       children: [],
+      computationType,
+      dimensions: item.dimensions,
+      wasteFactor: item.wasteFactor,
+      typology: item.typology,
+      durationDays: item.durationDays,
+      category: item.category,
     };
 
     // Materiales como hijos
@@ -30,7 +42,7 @@ export function itemsToBudgetTree(items: ProjectItem[]): BudgetLine[] {
       code: `${item.code}-M${idx + 1}`,
       description: mat.name,
       unit: mat.unit,
-      qty: mat.quantity, // Cantidad total ya que el precio es unitario
+      qty: mat.quantity * item.projectQuantity, // Cantidad total para el proyecto
       materialCost: mat.price,
       laborCost: 0,
       materialPerf: 1,
@@ -46,7 +58,7 @@ export function itemsToBudgetTree(items: ProjectItem[]): BudgetLine[] {
       code: `${item.code}-L${idx + 1}`,
       description: lab.role,
       unit: lab.unit,
-      qty: lab.quantity,
+      qty: lab.quantity * item.projectQuantity, // Cantidad total para el proyecto
       materialCost: 0,
       laborCost: lab.price,
       materialPerf: 1,
@@ -61,26 +73,28 @@ export function itemsToBudgetTree(items: ProjectItem[]): BudgetLine[] {
 }
 
 /**
- * Convierte un árbol de BudgetLine de vuelta a un arreglo de ProjectItem (legacy).
- * Cada línea padre se convierte en un ProjectItem, y sus hijos se agrupan en materiales y mano de obra.
+ * Convierte un árbol de BudgetLine a un arreglo de BudgetItem.
+ * Preserva: dimensions, wasteFactor, typology, durationDays, category, computationType
  */
-export function budgetTreeToItems(tree: BudgetLine[]): ProjectItem[] {
+export function budgetTreeToItems(tree: BudgetLine[]): BudgetItem[] {
   return tree.map(line => {
     const children = line.children || [];
     const materialChildren = children.filter(child => child.materialCost > 0 && child.laborCost === 0);
     const laborChildren = children.filter(child => child.laborCost > 0 && child.materialCost === 0);
 
+    const baseQty = line.qty || 1;
+
     const materials = materialChildren.map(child => ({
       name: child.description,
       unit: child.unit,
-      quantity: child.qty,
+      quantity: child.qty / baseQty,
       price: child.materialCost,
     }));
 
     const labor = laborChildren.map(child => ({
       role: child.description,
       unit: child.unit,
-      quantity: child.qty,
+      quantity: child.qty / baseQty,
       price: child.laborCost,
     }));
 
@@ -89,13 +103,16 @@ export function budgetTreeToItems(tree: BudgetLine[]): ProjectItem[] {
       code: line.code,
       description: line.description,
       unit: line.unit,
-      typology: 'RESIDENCIAL' as any, // TODO: determinar tipología; por ahora placeholder
-      durationDays: 1,
-      category: 'PERSONALIZADO',
+      typology: line.typology || 'RESIDENCIAL',
+      durationDays: line.durationDays || 1,
+      category: line.category || 'PERSONALIZADO',
       projectQuantity: line.qty,
       selected: true,
       materials,
       labor,
+      dimensions: line.dimensions,
+      wasteFactor: line.wasteFactor,
+      computationType: line.computationType,
     };
   });
 }

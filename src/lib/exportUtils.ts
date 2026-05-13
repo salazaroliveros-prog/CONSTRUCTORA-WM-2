@@ -2,6 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Papa from 'papaparse';
 import { Project } from '../constants';
+import { fmtQ } from '../utils/format';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -41,10 +42,6 @@ const FOOTER_SLOGAN = 'Calidad y Confianza en cada obra.';
 const FOOTER_ADDRESS = 'Municipio de Quesada';
 const FOOTER_PHONES = '55606172 - 40601526';
 const FOOTER_EMAILS = 'salazaroliveros@gmail.com, multiserviciosdeguatemal@gmail.com';
-
-function fmtQ(n: number) {
-  return 'Q ' + n.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

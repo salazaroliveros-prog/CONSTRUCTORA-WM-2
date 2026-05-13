@@ -41,9 +41,8 @@ import { Typology, Project, StaffMember, Client, Transaction } from '../constant
 import { calcRealDuration } from '../lib/ganttCPM';
 import AdvancedProjectCreator from './AdvancedProjectCreator';
 import Modal from './ui/Modal';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-import { subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock } from '../services/firestoreService';
+import { cn } from '../utils/cn';
+import {subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
@@ -54,9 +53,8 @@ import { Users, MapPin, CalendarDays, DollarSign, TrendingDown } from 'lucide-re
 import { BudgetLine } from '../lib/budgetData';
 import { itemsToBudgetTree } from '../utils/budgetConverter';
 
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { sanitizeString } from '../utils/sanitize';
+import { trackCRUD, trackEvent } from '../utils/logger';
 
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
@@ -235,17 +233,17 @@ export default function ProjectsModule() {
     totalItems
   } = usePagination<Project>(filteredProjects, pageSize);
 
-  const handleSaveEdit = () => {
-    if (!selectedProject || !Object.keys(editForm).length) return;
-    toast('¿Guardar cambios del proyecto?', {
-      description: selectedProject.name,
-      action: { label: 'Guardar', onClick: async () => {
-        try { await updateDocument('projects', selectedProject.id, editForm); const updated = { ...selectedProject, ...editForm }; setSelectedProject(updated); setIsEditing(false); setEditForm({}); if (editForm.status === 'EJECUCION' && selectedProject.status !== 'EJECUCION') { const created = await generateProjectStock(updated); if (created > 0) toast.info(created + ' materiales agregados al inventario'); } toast.success('Proyecto actualizado', { description: 'Cambios guardados' }); }
-        catch (error) { toast.error('Error al guardar', { description: parseError(error) }); }
-      }},
-      cancel: { label: 'Cancelar', onClick: () => {} }
-    });
-  };
+const handleSaveEdit = () => {
+     if (!selectedProject || !Object.keys(editForm).length) return;
+     toast('¿Guardar cambios del proyecto?', {
+       description: sanitizeString(selectedProject.name),
+       action: { label: 'Guardar', onClick: async () => {
+         try { await updateDocument('projects', selectedProject.id, editForm); const updated = { ...selectedProject, ...editForm }; setSelectedProject(updated); setIsEditing(false); setEditForm({}); if (editForm.status === 'EJECUCION' && selectedProject.status !== 'EJECUCION') { const created = await generateProjectStock(updated); if (created > 0) toast.info(created + ' materiales agregados al inventario'); } toast.success('Proyecto actualizado', { description: 'Cambios guardados' }); trackCRUD('update', 'project', selectedProject.id); }
+         catch (error) { toast.error('Error al guardar', { description: parseError(error) }); }
+       }},
+       cancel: { label: 'Cancelar', onClick: () => {} }
+     });
+   };
 
   const handleUpdateProject = async (updates: Partial<Project>) => {
     if (!selectedProject) return;
@@ -410,37 +408,38 @@ export default function ProjectsModule() {
     return { directCosts, budget };
   };
 
-  const addItem = async () => {
-    if (!selectedProject) return;
-    if (!newItemForm.code || !newItemForm.description) {
-      toast.error('Código y descripción son requeridos');
-      return;
-    }
-    const newItem = {
-      id: `item_${Date.now()}`,
-      code: newItemForm.code,
-      description: newItemForm.description,
-      unit: newItemForm.unit,
-      projectQuantity: newItemForm.projectQuantity,
-      selected: true,
-      typology: selectedProject.typology,
-      durationDays: 1,
-      category: 'PERSONALIZADO',
-      materials: newItemForm.materials,
-      labor: newItemForm.labor,
-    };
-    const updatedItems = [...selectedProject.items, newItem];
-    const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
-    try {
-      await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
-      setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
-      setAddingItem(false);
-      setNewItemForm({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
-      toast.success('Renglon agregado', { description: `Presupuesto actualizado: Q ${budget.toLocaleString()}` });
-    } catch (err) {
-      toast.error('Error al agregar renglon', { description: parseError(err) });
-    }
-  };
+const addItem = async () => {
+     if (!selectedProject) return;
+     if (!newItemForm.code || !newItemForm.description) {
+       toast.error('Código y descripción son requeridos');
+       return;
+     }
+     const newItem = {
+       id: `item_${Date.now()}`,
+       code: sanitizeString(newItemForm.code),
+       description: sanitizeString(newItemForm.description),
+       unit: newItemForm.unit,
+       projectQuantity: newItemForm.projectQuantity,
+       selected: true,
+       typology: selectedProject.typology,
+       durationDays: 1,
+       category: 'PERSONALIZADO',
+       materials: newItemForm.materials,
+       labor: newItemForm.labor,
+     };
+     const updatedItems = [...selectedProject.items, newItem];
+     const { directCosts, budget } = calcBudget(updatedItems, selectedProject);
+     try {
+       await updateDocument('projects', selectedProject.id, { items: updatedItems, directCosts, budget });
+       setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
+       setAddingItem(false);
+       setNewItemForm({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
+       toast.success('Renglon agregado', { description: `Presupuesto actualizado: Q ${budget.toLocaleString()}` });
+       trackCRUD('create', 'project-item', selectedProject.id);
+     } catch (err) {
+       toast.error('Error al agregar renglon', { description: parseError(err) });
+     }
+   };
 
   useEffect(() => {
     const unsub = subscribeToCollection('projects', (data) => {
@@ -495,80 +494,80 @@ export default function ProjectsModule() {
 
 
 
-  const ProjectCard = ({ project }: { project: any; [key: string]: any }) => (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-      className={`bg-white  rounded-xl sm:rounded-2xl border border-slate-200  shadow-sm dark:shadow-slate-900/20 overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect relative ${selectedProjectIds.has(project.id) ? "ring-2 ring-red-500" : ""}`}
-    >
-      {bulkMode && (
-        <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
-          <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
-            className="w-4 h-4 accent-red-500 cursor-pointer" />
-        </div>
-      )}
-      <div className="p-4 space-y-3 flex-1">
-        <div className="flex justify-between items-start">
-          <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform duration-300 icon-box icon-gradient-blue">
-            <Building2 size={20} />
-          </div>
-          <div className="flex flex-col items-end sm:items-end">
-            <span className={cn(
-              "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest",
-              project.status === 'EJECUCION' ? "bg-secondary text-primary" :
-              project.status === 'COTIZACION' ? "bg-blue-500 text-white" :
-              "bg-green-500 text-white"
-            )}>
-              {project.status}
-            </span>
-            <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Cód: {project.id.slice(-6).toUpperCase()}</span>
-          </div>
-        </div>
+const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any }) => (
+     <motion.div
+       initial={{ opacity: 0, y: 10 }}
+       animate={{ opacity: 1, y: 0 }}
+       onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
+       className={`bg-white  rounded-xl sm:rounded-2xl border border-slate-200  shadow-sm  overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect relative ${selectedProjectIds.has(project.id) ? "ring-2 ring-red-500" : ""}`}
+     >
+       {bulkMode && (
+         <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
+           <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
+             className="w-4 h-4 accent-red-500 cursor-pointer" />
+         </div>
+       )}
+       <div className="p-4 space-y-3 flex-1">
+         <div className="flex justify-between items-start">
+           <div className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform duration-300 icon-box icon-gradient-blue">
+             <Building2 size={20} />
+           </div>
+           <div className="flex flex-col items-end sm:items-end">
+             <span className={cn(
+               "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest",
+               project.status === 'EJECUCION' ? "bg-secondary text-primary" :
+               project.status === 'COTIZACION' ? "bg-blue-500 text-white" :
+               "bg-green-500 text-white"
+             )}>
+               {project.status}
+             </span>
+             <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 mt-1 uppercase tracking-tighter">Cód: {project.id.slice(-6).toUpperCase()}</span>
+           </div>
+         </div>
 
-        <div className="space-y-0.5">
-          <h3 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-tight line-clamp-1 group-hover:text-secondary transition-colors italic">{project.name}</h3>
-          <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest truncate">{project.clientName}</p>
-        </div>
+         <div className="space-y-0.5">
+           <h3 className="text-[10px] sm:text-xs font-black text-primary uppercase tracking-tight line-clamp-1 group-hover:text-secondary transition-colors italic">{project.name}</h3>
+           <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest truncate">{project.clientName}</p>
+         </div>
 
-        <div className="pt-2 space-y-1.5 border-t border-slate-50">
-          <div className="flex justify-between items-end">
-            <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Progreso</span>
-            <div className="flex items-center gap-1">
-              {project.status === 'EJECUCION' && (new Date().getTime() - new Date(project.startDate).getTime()) / (new Date(project.endDate || project.startDate).getTime() - new Date(project.startDate).getTime() || 1) > 0.1 && (project.progress || 0) < 10 && (
-                 <span title="Progreso atrasado respecto al tiempo transcurrido"><AlertCircle size={10} className="text-red-500 animate-pulse" /></span>
-              )}
-              <span className="text-[9px] font-black text-primary">{project.progress || 0}%</span>
-              <div className="w-1 h-1 rounded-full bg-secondary animate-pulse" />
-            </div>
-          </div>
-          <div className="h-1.5 bg-slate-100  rounded-full overflow-hidden w-full relative">
-            <motion.div 
-              initial={{ width: 0 }}
-              animate={{ width: `${project.progress || 0}%` }}
-              className={cn(
-                "h-full rounded-full transition-all duration-1000 relative z-10",
-                project.status === 'EJECUCION' ? "bg-secondary" : "bg-slate-400"
-              )}
-            />
-          </div>
-        </div>
-      </div>
+         <div className="pt-2 space-y-1.5 border-t border-slate-50">
+           <div className="flex justify-between items-end">
+             <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Progreso</span>
+             <div className="flex items-center gap-1">
+               {project.status === 'EJECUCION' && (new Date().getTime() - new Date(project.startDate).getTime()) / (new Date(project.endDate || project.startDate).getTime() - new Date(project.startDate).getTime() || 1) > 0.1 && (project.progress || 0) < 10 && (
+                  <span title="Progreso atrasado respecto al tiempo transcurrido"><AlertCircle size={10} className="text-red-500 animate-pulse" /></span>
+               )}
+               <span className="text-[9px] font-black text-primary">{project.progress || 0}%</span>
+               <div className="w-1 h-1 rounded-full bg-secondary animate-pulse" />
+             </div>
+           </div>
+           <div className="h-1.5 bg-slate-100  rounded-full overflow-hidden w-full relative">
+             <motion.div
+               initial={{ width: 0 }}
+               animate={{ width: `${project.progress || 0}%` }}
+               className={cn(
+                 "h-full rounded-full transition-all duration-1000 relative z-10",
+                 project.status === 'EJECUCION' ? "bg-secondary" : "bg-slate-400"
+               )}
+             />
+           </div>
+         </div>
+       </div>
 
-      <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-50 flex justify-between items-center mt-auto">
-        <div className="flex flex-col">
-          <span className="text-[6px] font-black text-slate-400 uppercase tracking-widest">Presupuesto</span>
-          <span className="text-[11px] font-black text-primary italic leading-none">Q {(project.budget || 0).toLocaleString()}</span>
-        </div>
-        <button 
-          onClick={(e) => handleDelete(e, project.id)}
-          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-        >
-          <Trash2 size={14} />
-        </button>
-      </div>
-    </motion.div>
-  );
+       <div className="px-4 py-3 bg-slate-50/50 border-t border-slate-50 flex justify-between items-center mt-auto">
+         <div className="flex flex-col">
+           <span className="text-[6px] font-black text-slate-400 uppercase tracking-widest">Presupuesto</span>
+           <span className="text-[11px] font-black text-primary italic leading-none">Q {(project.budget || 0).toLocaleString()}</span>
+         </div>
+         <button
+           onClick={(e) => handleDelete(e, project.id)}
+           className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+         >
+           <Trash2 size={14} />
+         </button>
+       </div>
+     </motion.div>
+   ));
 
   const toggleItemExpansion = (itemId: string) => {
     setExpandedItems(prev => 
@@ -652,13 +651,13 @@ export default function ProjectsModule() {
         });
 return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-               {[
-                { icon: <Building2 size={12} className="text-blue-500 dark:text-blue-400" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700 dark:text-white' },
-                { icon: <DollarSign size={12} className="text-amber-500 dark:text-amber-400" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700 dark:text-white' },
-                { icon: <TrendingUp size={12} className="text-green-500 dark:text-green-400" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600 dark:text-red-300' : 'text-green-700 dark:text-white' },
-                { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500 dark:text-red-400' : 'text-green-500 dark:text-green-400'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600 dark:text-red-300' : 'text-green-700 dark:text-white' },
+{[
+                 { icon: <Building2 size={12} className="text-blue-500" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700' },
+                 { icon: <DollarSign size={12} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700' },
+{ icon: <TrendingUp size={12} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
+                 { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600' : 'text-green-700' },
               ].map(k => (
-                <div key={k.label} className="bg-white  border border-slate-200  rounded-lg p-2 sm:p-3 shadow-sm dark:shadow-slate-900/20">
+                <div key={k.label} className="bg-white  border border-slate-200  rounded-lg p-2 sm:p-3 shadow-sm ">
                   <div className="flex items-center gap-1 mb-1">{k.icon}<span className="text-[6px] sm:text-[7px] font-black text-slate-400  uppercase">{k.label}</span></div>
                   <p className={cn('text-base sm:text-lg font-black', k.color)}>{k.value}</p>
                   <p className="text-[6px] sm:text-[7px] font-bold text-slate-400  uppercase mt-0.5 truncate">{k.sub}</p>
@@ -668,7 +667,7 @@ return (
          );
       })()}
 
-      <div className="bg-white  rounded-2xl border border-slate-200  shadow-sm dark:shadow-slate-900/20 overflow-hidden">
+      <div className="bg-white  rounded-2xl border border-slate-200  shadow-sm  overflow-hidden">
 <div className="p-3 md:p-4 border-b border-slate-100  flex flex-col md:flex-row justify-between items-center gap-3">
              <div className="relative flex-1 w-full max-w-md">
                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 " size={16} />
@@ -677,7 +676,7 @@ return (
                 placeholder="BUSCAR PROYECTO..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-50  border border-slate-200  rounded-lg pl-10 pr-3 py-2 text-[9px] font-black uppercase focus:outline-none focus:border-secondary dark:focus:border-secondary transition-all placeholder:text-slate-400  text-slate-900 "
+                className="w-full bg-slate-50  border border-slate-200  rounded-lg pl-10 pr-3 py-2 text-[9px] font-black uppercase focus:outline-none focus:border-secondary :border-secondary transition-all placeholder:text-slate-400  text-slate-900 "
                />
              </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
@@ -685,14 +684,14 @@ return (
                  <button
                   onClick={() => setViewMode('table')}
                   title="Vista de Tabla"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-white  text-slate-900  shadow-sm dark:shadow-slate-900/50" : "text-slate-400  hover:text-slate-600 dark:hover:text-slate-300")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-white  text-slate-900  shadow-sm " : "text-slate-400  hover:text-slate-600 ")}
                  >
                    <ListFilter size={15} />
                  </button>
                  <button
                   onClick={() => setViewMode('grid')}
                   title="Vista de Cuadrícula"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-white  text-slate-900  shadow-sm dark:shadow-slate-900/50" : "text-slate-400  hover:text-slate-600 dark:hover:text-slate-300")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-white  text-slate-900  shadow-sm " : "text-slate-400  hover:text-slate-600 ")}
                  >
                   <ListFilter size={15} />
                 </button>
@@ -708,12 +707,12 @@ return (
                 <button
                   onClick={() => setViewMode('kanban')}
                   title="Vista Kanban"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-white  text-slate-900  shadow-sm dark:shadow-slate-900/50" : "text-slate-400  hover:text-slate-600 dark:hover:text-slate-300")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-white  text-slate-900  shadow-sm " : "text-slate-400  hover:text-slate-600 ")}
                 >
                   <Layers size={15} />
                 </button>
                 <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
-                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm dark:shadow-red-900/50' : 'bg-slate-100  text-slate-500  hover:text-slate-800 dark:hover:text-slate-200'}`}>
+                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm ' : 'bg-slate-100  text-slate-500  hover:text-slate-800 '}`}>
                  {bulkMode ? 'Cancelar' : 'Seleccionar'}
                </button>
                <div className="flex flex-col gap-0.5 min-w-[120px]">
@@ -767,7 +766,7 @@ return (
                    <th className="px-4 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right">#</th>
                  </tr>
                </thead>
-                <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
+                <tbody className="divide-y divide-slate-50 ">
                   {paginatedProjects.map((project, i) => (
                     <motion.tr
                       key={project.id}
@@ -775,7 +774,7 @@ return (
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
                       onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-                      className={`group hover:bg-slate-50/50 /50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50 dark:bg-red-900/20 border-l-2 border-red-500" : ""}`}
+                      className={`group hover:bg-slate-50/50 /50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50  border-l-2 border-red-500" : ""}`}
                     >
                      {bulkMode && (
                        <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
@@ -785,7 +784,7 @@ return (
                      )}
                      <td className="px-4 py-2">
                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-slate-100  flex items-center justify-center text-primary border border-slate-200  shrink-0 group-hover:bg-slate-900 dark:group-hover:bg-slate-700 group-hover:text-secondary transition-all">
+                          <div className="w-7 h-7 rounded-lg bg-slate-100  flex items-center justify-center text-primary border border-slate-200  shrink-0 group-hover:bg-slate-900 :bg-slate-700 group-hover:text-secondary transition-all">
                            <Building2 size={14} />
                          </div>
                          <div className="min-w-0">
@@ -826,11 +825,11 @@ return (
                        <div className="flex items-center justify-end gap-1">
                           <button
                             onClick={(e) => handleDelete(e, project.id)}
-                            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
+                            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-red-500 hover:bg-red-50 :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
                           >
                             <Trash2 size={12} />
                           </button>
-                          <button className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  group-hover:text-secondary group-hover:bg-slate-900 dark:group-hover:bg-slate-700 transition-all">
+                          <button className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  group-hover:text-secondary group-hover:bg-slate-900 :bg-slate-700 transition-all">
                            <ChevronRight size={14} />
                          </button>
                        </div>
@@ -856,8 +855,8 @@ return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
             {[
               { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-slate-100  border-slate-200 ', dot: 'bg-slate-400 ' },
-              { id: 'EJECUCION', label: 'Ejecucion', color: 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-600', dot: 'bg-blue-500' },
-              { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-600', dot: 'bg-green-500' },
+{ id: 'EJECUCION', label: 'Ejecucion', color: 'bg-blue-50  border-blue-200 ', dot: 'bg-blue-500' },
+               { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-green-50  border-green-200 ', dot: 'bg-green-500' },
             ].map(col => (
               <div key={col.id} className={`rounded-2xl border p-4 space-y-3 ${col.color}`}>
                 <div className="flex items-center gap-2 mb-2">
@@ -872,7 +871,7 @@ return (
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ duration: 0.2, delay: ki * 0.07 }}
                     onClick={() => setSelectedProject(p)}
-                    className="bg-white  rounded-xl p-3 shadow-sm dark:shadow-slate-900/20 border border-white  hover:border-secondary cursor-pointer transition-all space-y-2"
+                    className="bg-white  rounded-xl p-3 shadow-sm  border border-white  hover:border-secondary cursor-pointer transition-all space-y-2"
                   >
                     <p className="text-[10px] font-black text-primary uppercase leading-tight">{p.name}</p>
                      <p className="text-[8px] text-slate-600  font-bold uppercase">{p.clientName}</p>
@@ -929,7 +928,7 @@ return (
             <div className="border-b border-slate-100  pb-6 space-y-3">
               {/* Fila 1: icono + titulo + boton editar */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-slate-900  rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20 dark:shadow-slate-900/50">
+                <div className="w-12 h-12 bg-slate-900  rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-slate-900/20 ">
                   <Building2 size={24} />
                 </div>
                 <div className="min-w-0 flex-1">
@@ -1570,5 +1569,6 @@ return (
     </div>
   );
 }
+
 
 

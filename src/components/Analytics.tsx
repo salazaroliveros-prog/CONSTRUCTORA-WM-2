@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { 
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import {
   BarChart3, TrendingUp, PieChart as PieChartIcon, Zap, Target,
   Download, Filter, DollarSign, Award, AlertTriangle, CheckCircle2,
   ArrowUpRight, ArrowDownRight, Calendar, Layers, Users, Package,
   Truck, ShoppingCart, Building2, AlertCircle, TrendingDown
 } from 'lucide-react';
-import { 
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Cell, Pie, Legend, RadialBarChart, RadialBar,
   LineChart, Line, AreaChart, Area, ComposedChart
@@ -21,6 +21,7 @@ import { useCountUp } from '../hooks/useCountUp';
 import { generateProjectPDF, generateProjectCSV, PDF_TEMPLATES, CSV_TEMPLATES } from '../lib/exportUtils';
 import { calculateProjectTotals } from '../lib/reports';
 import { Project, Transaction } from '../constants';
+import { trackEvent, trackExport } from '../utils/logger';
 
 function AnimatedNum({ v }: { v: number }) { const n = useCountUp(v, 800); return <>{n}</>; }
 

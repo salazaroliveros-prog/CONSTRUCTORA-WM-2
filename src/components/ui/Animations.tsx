@@ -8,14 +8,8 @@
 
 import React, { useState, useRef, useCallback, CSSProperties } from 'react';
 import { motion, AnimatePresence, useInView, useAnimation, Variants, HTMLMotionProps } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../../utils/cn';
 import { Info, Sparkles, CheckCircle, AlertTriangle, X, ChevronRight } from 'lucide-react';
-
-// Utility
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 // ============================================
 // ANIMATION VARIANTS - Framer Motion
@@ -333,7 +327,7 @@ export function Skeleton({
   return (
     <div
       className={cn(
-        'bg-slate-200 dark:bg-slate-700',
+        'bg-slate-200 ',
         variantStyles[variant],
         animationStyles[animation],
         className
@@ -346,7 +340,7 @@ export function Skeleton({
 // Skeleton Card
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('bg-white dark:bg-slate-800 rounded-2xl p-4 border border-slate-100 dark:border-slate-700', className)}>
+    <div className={cn('bg-white  rounded-2xl p-4 border border-slate-100 ', className)}>
       <div className="flex items-center gap-3 mb-4">
         <Skeleton variant="circular" width={40} height={40} />
         <div className="flex-1 space-y-2">
@@ -366,7 +360,7 @@ export function SkeletonCard({ className }: { className?: string }) {
 // Skeleton Table Row
 export function SkeletonTableRow({ columns = 5 }: { columns?: number }) {
   return (
-    <tr className="border-b border-slate-100 dark:border-slate-700">
+    <tr className="border-b border-slate-100 ">
       {Array.from({ length: columns }).map((_, i) => (
         <td key={i} className="px-3 py-3">
           <Skeleton variant="text" height={12} width={Math.random() * 60 + 40 + '%'} />
@@ -877,14 +871,14 @@ export function NotificationToast({
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 50, scale: 0.9 }}
       className={cn(
-        'flex items-start gap-3 p-4 bg-white dark:bg-slate-800 rounded-xl shadow-2xl border-l-4',
+        'flex items-start gap-3 p-4 bg-white  rounded-xl shadow-2xl border-l-4',
         borderColors[type]
       )}
     >
       {icons[type]}
       <div className="flex-1 min-w-0">
-        <p className="text-[10px] font-black uppercase text-slate-900 dark:text-white">
-          {title}
+<p className="text-[10px] font-black uppercase text-slate-900">
+           {title}
         </p>
         {message && (
           <p className="text-[9px] text-slate-500 mt-0.5">{message}</p>

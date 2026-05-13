@@ -90,9 +90,9 @@ export default function Modal({
                mass: 0.9,
              }}
              className={`relative w-full ${sizeClasses[size]} ${
-               glassEffect
-                 ? 'bg-white/70 backdrop-blur-2xl border border-white/40 shadow-2xl dark:bg-slate-900/80 dark:border-white/10'
-                 : 'bg-white rounded-3xl shadow-2xl border border-slate-100 dark:bg-slate-900 dark:border-slate-700'
+glassEffect
+                  ? 'bg-white/70 backdrop-blur-2xl border border-white/40 shadow-2xl'
+                  : 'bg-white rounded-3xl shadow-2xl border border-slate-100  '
              }`}
              style={{
                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.1) inset',
@@ -109,11 +109,11 @@ export default function Modal({
             
 {/* Header */}
              <div
-               className={`px-6 py-5 flex items-center justify-between ${
-                 glassEffect
-                   ? 'bg-gradient-to-r from-white/60 to-white/30 border-b border-white/20 dark:from-slate-800/60 dark:to-slate-800/30 dark:border-white/10'
-                   : 'border-b border-slate-50 dark:border-slate-700'
-               }`}
+className={`px-6 py-5 flex items-center justify-between ${
+                  glassEffect
+                    ? 'bg-gradient-to-r from-white/60 to-white/30 border-b border-white/20'
+                    : 'border-b border-slate-50 '
+                }`}
              >
               <div className="flex items-center gap-3">
                 {/* Accent bar */}

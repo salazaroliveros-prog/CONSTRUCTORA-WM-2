@@ -193,11 +193,11 @@ export default function AIAssistant() {
               </p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 dark:bg-purple-900/20 border border-purple-100 dark:border-purple-800 rounded-xl">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-purple-50  border border-purple-100  rounded-xl">
             <div className="status-dot status-dot-blue" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400">
-              {totalRecords} registros cargados
-            </span>
+<span className="text-[9px] font-black uppercase tracking-widest text-purple-600">
+               {totalRecords} registros cargados
+             </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
@@ -228,7 +228,7 @@ export default function AIAssistant() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SUGGESTIONS.map((s, i) => (
                   <button key={i} onClick={() => sendMessage(s)} disabled={isLoading}
-                    className="text-left px-4 py-3 bg-white /60 border border-slate-200  rounded-xl text-[11px] text-slate-600  hover:border-purple-300 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-all disabled:opacity-50 group">
+                    className="text-left px-4 py-3 bg-white /60 border border-slate-200  rounded-xl text-[11px] text-slate-600  hover:border-purple-300 hover:bg-purple-50 :bg-purple-900/20 transition-all disabled:opacity-50 group">
                     <Sparkles size={10} className="inline mr-1.5 text-purple-400 group-hover:text-purple-500" />
                     {s}
                   </button>
@@ -289,3 +289,4 @@ export default function AIAssistant() {
     </div>
   );
 }
+

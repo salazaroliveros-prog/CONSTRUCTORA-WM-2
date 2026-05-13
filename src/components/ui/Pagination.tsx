@@ -1,11 +1,6 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+import { cn } from '../../utils/cn';
 
 interface GridInfo {
   cols: number;
@@ -62,7 +57,7 @@ export default function Pagination({
           <button
             onClick={onPrev}
             disabled={currentPage === 1}
-            className="p-1 rounded-md border border-slate-100 dark:border-slate-200 bg-white dark:bg-slate-900/80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-md border border-slate-100  bg-white /80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronLeft size={12} />
           </button>
@@ -70,7 +65,7 @@ export default function Pagination({
           <button
             onClick={onNext}
             disabled={currentPage === totalPages}
-            className="p-1 rounded-md border border-slate-100 dark:border-slate-200 bg-white dark:bg-slate-900/80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-md border border-slate-100  bg-white /80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronRight size={12} />
           </button>
@@ -80,7 +75,7 @@ export default function Pagination({
   }
 
   return (
-    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-slate-200", className)}>
+    <div className={cn("flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 ", className)}>
       <div className="text-[9px] font-black text-slate-600 uppercase tracking-widest">
         Mostrando <span className="text-secondary">{startIndex + 1}-{endIndex}</span> de <span className="text-primary">{totalItems}</span> registros
       </div>
@@ -89,7 +84,7 @@ export default function Pagination({
         <button
           onClick={onPrev}
           disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-slate-200 bg-white dark:bg-slate-900/80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-slate-200 bg-white /80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <ChevronLeft size={16} />
         </button>
@@ -114,7 +109,7 @@ export default function Pagination({
         <button
           onClick={onNext}
           disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-slate-200 bg-white dark:bg-slate-900/80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-slate-200 bg-white /80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <ChevronRight size={16} />
         </button>

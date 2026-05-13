@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Users, Plus, Search, Trash2, LayoutGrid, List, HardHat, Pencil,
   X, Phone, Mail, CreditCard, DollarSign, Briefcase, ChevronRight,
@@ -11,8 +11,7 @@ import {
   Building2, BarChart2, CheckCircle2, Save
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
 import { subscribeToCollection, addDocument, updateDocument, deleteDocument, checkUniqueField, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
@@ -20,8 +19,8 @@ import Pagination from './ui/Pagination';
 import Modal from './ui/Modal';
 import { toast } from 'sonner';
 import { Payroll, PayrollEmployee, Transaction } from '../constants';
-
-function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
+import { sanitizeString } from '../utils/sanitize';
+import { trackCRUD, trackEvent } from '../utils/logger';
 
 interface StaffMember {
   id: string;

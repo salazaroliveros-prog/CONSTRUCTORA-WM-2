@@ -9,7 +9,7 @@ export default function EffectsShowcase() {
         <h1 className="text-4xl font-black text-gradient-primary">
           ✨ Efectos Visuales Mejorados
         </h1>
-        <p className="text-lg text-slate-600 dark:text-slate-400">
+        <p className="text-lg text-slate-600 ">
           Experiencia visual única con efectos avanzados
         </p>
       </div>
@@ -25,7 +25,7 @@ export default function EffectsShowcase() {
             </div>
             <div>
               <h3 className="font-bold text-lg">Efectos de Partículas</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 ">
                 Partículas flotantes en hover
               </p>
             </div>
@@ -40,7 +40,7 @@ export default function EffectsShowcase() {
             </div>
             <div>
               <h3 className="font-bold text-lg">Efecto Shimmer</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 ">
                 Barrido de luz en hover
               </p>
             </div>
@@ -55,7 +55,7 @@ export default function EffectsShowcase() {
             </div>
             <div>
               <h3 className="font-bold text-lg">Efecto Glow</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 ">
                 Brillo rotativo en hover
               </p>
             </div>
@@ -70,7 +70,7 @@ export default function EffectsShowcase() {
             </div>
             <div>
               <h3 className="font-bold text-lg">Tarjeta Interactiva</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 ">
                 Elevación y escala en hover
               </p>
             </div>
@@ -85,7 +85,7 @@ export default function EffectsShowcase() {
             </div>
             <div>
               <h3 className="font-bold text-lg">Borde Gradiente</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 ">
                 Borde gradiente estático con glow en hover
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function EffectsShowcase() {
             </div>
             <div>
               <h3 className="font-bold text-lg">Efectos Combinados</h3>
-              <p className="text-sm text-slate-600 dark:text-slate-400">
+              <p className="text-sm text-slate-600 ">
                 Múltiples efectos juntos
               </p>
             </div>

@@ -34,11 +34,15 @@ export interface BudgetLine {
     formworkType?: string; // Tipo de encofrado
   };
 
-  // Calculated fields (not stored, computed by the engine)
-  materialTotal?: number;
-  laborTotal?: number;
-  subtotal?: number;
-}
+   // Calculated fields (not stored, computed by the engine)
+   materialTotal?: number;
+   laborTotal?: number;
+   subtotal?: number;
+
+   // Extended metadata from BudgetItem
+   durationDays?: number;
+   category?: string;
+ }
 
 /**
  * Get budget lines filtered by typology

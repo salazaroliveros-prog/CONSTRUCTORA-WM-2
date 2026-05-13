@@ -1,12 +1,13 @@
 /**
  * Módulo de Seguimiento — Avance Físico y Financiero
  */
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+import { cn } from '../utils/cn';
+import { fmtQ } from '../utils/format';
 import { subscribeToCollection } from '../services/firestoreService';
 import { Transaction } from '../constants';
+import { trackEvent } from '../utils/logger';
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -15,8 +16,6 @@ import {
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2, FileDown, Calendar } from 'lucide-react';
 import { generateProgressReport } from '../lib/reports';
 
-function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
-function fmtQ(n: number) { return 'Q ' + n.toLocaleString('es-GT', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
 function pct(n: number) { return Math.min(100, Math.max(0, Math.round(n))); }
 
 const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
@@ -149,15 +148,15 @@ export default function Seguimiento() {
             <option value="ALL">TODOS LOS PROYECTOS EN EJECUCION</option>
             {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
-          {selected && (
-            <button
-              onClick={() => generateProgressReport(selected, transactions)}
-              className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95"
-            >
-              <FileDown size={14} className="text-secondary" />
-              <span className="hidden sm:inline">Informe PDF</span>
-            </button>
-          )}
+{selected && (
+             <button
+               onClick={() => generateProgressReport(selected, transactions)}
+               className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95"
+             >
+               <FileDown size={14} className="text-secondary" />
+               <span className="hidden sm:inline">Informe PDF</span>
+             </button>
+           )}
         </div>
       </div>
 
