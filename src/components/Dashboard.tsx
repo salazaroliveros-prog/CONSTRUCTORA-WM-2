@@ -57,8 +57,7 @@ import {
   PolarGrid,
   PolarAngleAxis,
   PolarRadiusAxis,
-  Radar,
-  Treemap
+  Radar
 } from 'recharts';
 
 function MiniRing({ value, color, label }: { value: number; color: string; label: string }) {
@@ -312,6 +311,7 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
   const [resetData, setResetData] = useState<Record<string, {items: any[], selected: string[]}>>({});
   const [resetLoading, setResetLoading] = useState(false);
   const { selectedProjectId, setSelectedProjectId, executingProjects: ctxExecutingProjects, setExecutingProjects } = useProjectFilter();
+  const [selectedYear, setSelectedYear] = useState<string>('todos');
 
   const [accountingForm, setAccountingForm] = useState({
     type: 'Salida' as 'Entrada' | 'Salida',
@@ -414,6 +414,9 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
     ? executingProjects
     : executingProjects.filter(p => p.id === selectedProjectId);
 
+  const availableYears = ['todos', ...new Set(projects.map(p => p.startDate ? new Date(p.startDate).getFullYear().toString() : '').filter(Boolean))].sort();
+  const projectsByYear = selectedYear === 'todos' ? filteredProjects : filteredProjects.filter(p => p.startDate && new Date(p.startDate).getFullYear().toString() === selectedYear);
+
   // Transactions filtered by project when one is selected
   // Transactions store optional projectId; fall back to global when ALL
   const filteredTransactions = selectedProjectId === 'ALL'
@@ -514,13 +517,15 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
     { area: 'Eficiencia', value: avgFinanciero > 0 ? Math.min(100, (avgFisico / avgFinanciero) * 100) : 50, fullMark: 100 },
   ];
 
-  // Treemap data - Distribución de presupuesto por proyecto
-  const treemapData = filteredProjects.map(p => ({
-    name: p.name?.slice(0, 15) || 'Sin nombre',
-    size: p.budget || 0,
-    progress: p.progress || 0,
-    color: p.progress > 70 ? '#10b981' : p.progress > 40 ? '#f59e0b' : '#3b82f6'
-  }));
+  // Table data - Estado de cuentas por proyecto
+  const tableData = projectsByYear.map(p => {
+    const aportes = transactions
+      .filter(t => t.type === 'INGRESO' && t.category === 'Aporte Cliente' && t.projectId === p.id)
+      .reduce((acc, t) => acc + (t.amount || 0), 0);
+    const costoTotal = p.budget || 0;
+    const pendiente = Math.max(0, costoTotal - aportes);
+    return { id: p.id, name: p.name || 'Sin nombre', costoTotal, aportes, pendiente, progress: p.progress || 0 };
+  }).sort((a, b) => b.pendiente - a.pendiente);
 
   // Activity heatmap data - Últimos 84 días de actividad
   const heatmapData = Array.from({ length: 84 }).map((_, i) => {
@@ -920,47 +925,51 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
           </div>
         </div>
 
-        {/* Row 3: Treemap & Progress Tracker */}
+        {/* Row 3: Tabla de cuentas & Progress Tracker */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {/* Treemap */}
+          {/* Tabla Estado de Cuentas */}
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Presupuesto por Proyecto</h2>
-            <div className="h-[130px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <Treemap
-                  data={treemapData}
-                  dataKey="size"
-                  aspectRatio={2}
-                  stroke="#fff"
-                  content={({ x, y, width, height, name, color }: any) => (
-                    <g>
-                      <rect
-                        x={x}
-                        y={y}
-                        width={width}
-                        height={height}
-                        style={{
-                          fill: color || '#f59e0b',
-                          stroke: '#fff',
-                          strokeWidth: 1,
-                          rx: 3,
-                        }}
-                      />
-                      {width > 40 && height > 20 && (
-                        <text
-                          x={x + width / 2}
-                          y={y + height / 2}
-                          textAnchor="middle"
-                          dominantBaseline="middle"
-                          className="text-[8px] font-black fill-white uppercase"
-                        >
-                          {name.length > 12 ? name.slice(0, 10) + '..' : name}
-                        </text>
-                      )}
-                    </g>
-                  )}
-                />
-              </ResponsiveContainer>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Estado de Cuentas por Proyecto</h2>
+              {availableYears.length > 2 && (
+                <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
+                  className="text-[8px] font-bold uppercase tracking-wider bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary">
+                  {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'Todos' : y}</option>)}
+                </select>
+              )}
+            </div>
+            <div className="overflow-x-auto overflow-y-auto">
+              <table className="w-full text-[9px]">
+                <thead className="sticky top-0 bg-inherit">
+                  <tr className="border-b border-slate-200">
+                    <th className="text-left font-black text-slate-500 uppercase tracking-wider pb-1.5 pr-2">Proyecto</th>
+                    <th className="text-right font-black text-slate-500 uppercase tracking-wider pb-1.5 px-1">Costo Total</th>
+                    <th className="text-right font-black text-slate-500 uppercase tracking-wider pb-1.5 px-1">Aportes</th>
+                    <th className="text-right font-black text-slate-500 uppercase tracking-wider pb-1.5 pl-1">Pendiente</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {tableData.map(row => (
+                    <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
+                      <td className="py-1 pr-2 font-bold text-primary truncate max-w-[130px] sm:max-w-[180px]">{row.name}</td>
+                      <td className="py-1 text-right font-mono font-bold px-1">{fmtQ(row.costoTotal)}</td>
+                      <td className="py-1 text-right font-mono font-bold text-emerald-600 px-1">{fmtQ(row.aportes)}</td>
+                      <td className={cn("py-1 text-right font-mono font-bold pl-1", row.pendiente > 0 ? "text-amber-600" : "text-slate-400")}>{fmtQ(row.pendiente)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+                {tableData.length > 0 && (
+                  <tfoot>
+                    <tr className="border-t-2 border-slate-300">
+                      <td className="py-1.5 pr-2 font-black text-primary text-[10px]">TOTAL</td>
+                      <td className="py-1.5 text-right font-mono font-black text-[10px] px-1">{fmtQ(tableData.reduce((a, r) => a + r.costoTotal, 0))}</td>
+                      <td className="py-1.5 text-right font-mono font-black text-emerald-600 text-[10px] px-1">{fmtQ(tableData.reduce((a, r) => a + r.aportes, 0))}</td>
+                      <td className={cn("py-1.5 text-right font-mono font-black text-[10px] pl-1", tableData.some(r => r.pendiente > 0) ? "text-amber-600" : "text-slate-400")}>{fmtQ(tableData.reduce((a, r) => a + r.pendiente, 0))}</td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+              {tableData.length === 0 && <p className="text-[9px] text-slate-400 text-center py-4">Sin proyectos</p>}
             </div>
           </div>
 
