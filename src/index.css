@@ -94,7 +94,8 @@
   -webkit-backdrop-filter: var(--glass-blur) !important;
   border-color: var(--glass-border) !important;
   box-shadow: var(--glass-shadow) !important;
-  transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease;
+  transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease, background 0.2s ease, border-color 0.2s ease !important;
+  will-change: transform;
 }
 
 .bg-white.border:hover,
@@ -103,23 +104,8 @@
 .bento-card:hover,
 .glass-card:hover,
 .action-card:hover {
-  transform: translateY(-6px) scale(1.008) !important;
-  box-shadow:
-    0 25px 60px rgba(15,23,42,0.16),
-    0 8px 24px rgba(15,23,42,0.10),
-    inset 0 1px 0 rgba(255,255,255,0.98) !important;
-}
-.bg-white.border:hover,
-.bg-white.rounded-2xl:hover,
-.bg-white.rounded-xl:hover,
-.bento-card:hover,
-.glass-card:hover,
-.action-card:hover {
-  transform: translateY(-6px) scale(1.008) !important;
-  box-shadow:
-    0 25px 70px rgba(30,80,220,0.35),
-    0 10px 30px rgba(0,0,0,0.65),
-    inset 0 1px 0 rgba(255,255,255,0.18) !important;
+  transform: translateY(var(--card-hover-lift, -4px)) scale(1.005) !important;
+  box-shadow: var(--card-hover-shadow, 0 20px 48px rgba(15,23,42,0.14)) !important;
 }
 
 /* ── Card Style overrides (data-card) ────────────────────── */
@@ -542,18 +528,6 @@ html {
   transition: background-color 0.35s ease, color 0.35s ease;
 }
 
-/* ── App background — uses theme variable ────────────────── */
-#app-root {
-  background-color: var(--bg-app, #f0f4fa);
-  background-image:
-    repeating-linear-gradient(
-      135deg,
-      rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 1px,
-      transparent 1px, transparent 6px
-    ),
-    linear-gradient(135deg, transparent, transparent);
-}
-
 
 /* ── Dark mode: menu glass override ─────────────────────── */
 [style*="rgba(255,255,255,0.72)"] {
@@ -681,46 +655,6 @@ html {
 /* ══════════════════════════════════════════════════════════
    MEJORAS DE ANIMACIONES Y EFECTOS — v2
    ══════════════════════════════════════════════════════════ */
-
-/* ── 1. Hover de tarjetas mejorado con spring suave ──────── */
-.bg-white.border,
-.bg-white.rounded-2xl,
-.bg-white.rounded-xl,
-.bento-card,
-.glass-card,
-.action-card {
-  transition:
-    transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1),
-    box-shadow 0.28s ease,
-    background 0.2s ease,
-    border-color 0.2s ease !important;
-  will-change: transform;
-}
-
-.bg-white.border:hover,
-.bg-white.rounded-2xl:hover,
-.bg-white.rounded-xl:hover,
-.bento-card:hover,
-.glass-card:hover,
-.action-card:hover {
-  transform: translateY(-4px) scale(1.005) !important;
-  box-shadow:
-    0 20px 48px rgba(15,23,42,0.14),
-    0 4px 12px rgba(15,23,42,0.08),
-    inset 0 1px 0 rgba(255,255,255,0.95) !important;
-}
-.bg-white.border:hover,
-.bg-white.rounded-2xl:hover,
-.bg-white.rounded-xl:hover,
-.bento-card:hover,
-.glass-card:hover,
-.action-card:hover {
-  transform: translateY(-4px) scale(1.005) !important;
-  box-shadow:
-    0 20px 56px rgba(30,80,200,0.32),
-    0 6px 20px rgba(0,0,0,0.60),
-    inset 0 1px 0 rgba(255,255,255,0.16) !important;
-}
 
 /* ── 2. KPI card — glow pulsante en el borde ─────────────── */
 .kpi-card {
@@ -891,51 +825,9 @@ html {
 .stagger-grid > *:nth-child(8)  { animation-delay: 0.32s; }
 .stagger-grid > *:nth-child(n+9){ animation-delay: 0.36s; }
 
-/* ── 7. Fondo del app mejorado con efectos más ricos ─────── */
+/* ── 7. Fondo del app — usa variable del tema activo ──────── */
 #app-root {
-  background-color: #d4d8e0;
-  background-image:
-    /* Ruido sutil */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"),
-    /* Patrón de puntos diagonales */
-    repeating-linear-gradient(
-      135deg,
-      rgba(255,255,255,0.22) 0px, rgba(255,255,255,0.22) 1px,
-      transparent 1px, transparent 7px
-    ),
-    /* Gradiente base */
-    linear-gradient(160deg, #c6ccd8 0%, #dde2ea 30%, #eceef2 50%, #dfe2e8 70%, #c8cdd8 100%);
-}
-
-#app-root {
-  background-color: #040710;
-  background-image:
-    /* Spotlight dorado superior */
-    radial-gradient(ellipse 70% 50% at 50% -8%, rgba(210,165,55,0.60) 0%, rgba(130,95,20,0.28) 38%, transparent 65%),
-    /* Glow azul lateral izquierdo */
-    radial-gradient(ellipse 40% 60% at -5% 40%, rgba(30,80,200,0.18) 0%, transparent 60%),
-    /* Glow azul lateral derecho */
-    radial-gradient(ellipse 40% 60% at 105% 40%, rgba(20,60,180,0.15) 0%, transparent 60%),
-    /* Partículas flotantes */
-    radial-gradient(circle at 20% 20%, rgba(59,130,246,0.1) 1px, transparent 1px),
-    radial-gradient(circle at 80% 80%, rgba(139,92,246,0.1) 1px, transparent 1px),
-    radial-gradient(circle at 40% 60%, rgba(16,185,129,0.1) 1px, transparent 1px),
-    /* Franja azul inferior */
-    linear-gradient(to bottom, #060a16 50%, #0c1830 72%, #0a2050 86%, #0c2870 100%);
-  background-size: 
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    80px 80px,
-    120px 120px,
-    60px 60px,
-    100% 100%;
-  animation: background-float 20s ease-in-out infinite;
-}
-
-@keyframes background-float {
-  0%, 100% { background-position: 0% 0%, 0% 0%, 0% 0%, 0px 0px, 0px 0px, 0px 0px, 0% 0%; }
-  50% { background-position: 0% 0%, 0% 0%, 0% 0%, -40px -40px, 60px 60px, -30px 30px, 0% 0%; }
+  background: var(--bg-app, #f0f4fa);
 }
 
 /* ── 8. Efecto de borde luminoso en tarjetas activas ─────── */
