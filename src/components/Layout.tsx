@@ -284,7 +284,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
          </header>
 
       {/* ── Content ────────────────────────────────────────────── */}
-      <main className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-4 scroll-smooth bg-transparent min-h-0 pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex flex-col">
+      <main className="flex-1 overflow-y-auto px-3 py-3 sm:px-4 sm:py-4 md:px-6 md:py-4 scroll-smooth bg-transparent min-h-0 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(6rem+env(safe-area-inset-bottom,0px))] md:scroll-mb-[calc(2rem+env(safe-area-inset-bottom,0px))] flex flex-col">
         <div className="w-full max-w-[1800px] mx-auto h-full">
           {children}
         </div>
@@ -292,13 +292,52 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
       {/* ── Bottom Navigation ─────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-[49] safe-area-pb transition-colors bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700">
-        <div className="flex justify-around items-center h-14 px-0.5 max-w-screen-sm mx-auto">
+        <div className="flex items-center justify-between h-16 px-4 max-w-screen-sm mx-auto">
+          {/* Left: Connection Status */}
+          <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest">
+            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+            <span className="text-slate-600 dark:text-slate-300">EN LÍNEA</span>
+          </div>
+
+          {/* Center: Brand Slogan */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+            <span className="text-[9px] font-black text-amber-600 dark:text-amber-400 uppercase tracking-[0.15em] whitespace-nowrap">
+              EDIFICANDO EL FUTURO
+            </span>
+          </div>
+
+          {/* Right: Module Quick Access */}
+          <div className="flex items-center gap-1">
+            {[
+              { id: 'projects', icon: <Building2 size={16} />, color: 'text-blue-600 dark:text-blue-400' },
+              { id: 'suppliers', icon: <Truck size={16} />, color: 'text-green-600 dark:text-green-400' },
+              { id: 'inventory', icon: <Package size={16} />, color: 'text-purple-600 dark:text-purple-400' },
+              { id: 'staff', icon: <HardHat size={16} />, color: 'text-orange-600 dark:text-orange-400' }
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={cn(
+                  "p-2 rounded-lg transition-all active:scale-90 hover:bg-slate-100 dark:hover:bg-slate-800",
+                  activeTab === item.id ? "bg-secondary/20" : "",
+                  item.color
+                )}
+                title={item.id}
+              >
+                {item.icon}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Navigation Row */}
+        <div className="flex justify-around items-center h-14 px-0.5 max-w-screen-sm mx-auto border-t border-slate-200/50 dark:border-slate-700/50">
           {mobileMenuItems.map((item, index) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 py-1.5 px-1.5 rounded-lg transition-all active:scale-95 min-w-0 flex-1",
+                "flex flex-col items-center justify-center gap-0.5 py-1.5 px-1 rounded-lg transition-all active:scale-95 min-w-0 flex-1",
                 activeTab === item.id
                   ? "text-secondary bg-secondary/10 dark:bg-secondary/20"
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
@@ -311,7 +350,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                 {item.iconMobile || item.icon}
               </span>
               <span className={cn(
-                "text-[7px] font-bold uppercase tracking-wide leading-tight",
+                "text-[6px] font-bold uppercase tracking-wide leading-tight",
                 activeTab === item.id ? "text-secondary" : "text-slate-600 dark:text-slate-300"
               )}>
                 {item.labelMobile || item.label}

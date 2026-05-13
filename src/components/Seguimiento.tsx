@@ -10,9 +10,9 @@ import { Transaction } from '../constants';
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
-  AreaChart, Area, LineChart, Line
+  AreaChart, Area, LineChart, Line, ComposedChart
 } from 'recharts';
-import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2, FileDown } from 'lucide-react';
+import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2, FileDown, Calendar } from 'lucide-react';
 import { generateProgressReport } from '../lib/reports';
 
 function cn(...inputs: ClassValue[]) { return twMerge(clsx(inputs)); }
@@ -375,6 +375,88 @@ export default function Seguimiento() {
               })()}
             </>
           )}
+        </div>
+
+        {/* Gantt Chart - Project Timeline */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Cronograma de Proyecto (Gantt)</p>
+            <Calendar size={16} className="text-slate-400" />
+          </div>
+
+          <div className="space-y-3">
+            {/* Project phases with progress bars */}
+            {[
+              { phase: 'Cimentación', start: '2024-01-01', end: '2024-01-15', progress: 100, color: '#ef4444' },
+              { phase: 'Estructura', start: '2024-01-16', end: '2024-02-28', progress: 85, color: '#f59e0b' },
+              { phase: 'Techos', start: '2024-03-01', end: '2024-03-10', progress: 60, color: '#3b82f6' },
+              { phase: 'Instalaciones', start: '2024-03-11', end: '2024-04-15', progress: 30, color: '#10b981' },
+              { phase: 'Acabados', start: '2024-04-16', end: '2024-05-30', progress: 10, color: '#8b5cf6' }
+            ].map((item, i) => (
+              <div key={i} className="space-y-1">
+                <div className="flex justify-between text-[8px] font-bold">
+                  <span className="text-slate-700 dark:text-slate-200">{item.phase}</span>
+                  <span className="text-slate-500">{item.progress}%</span>
+                </div>
+                <div className="relative h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all duration-1000 ease-out"
+                    style={{
+                      width: `${item.progress}%`,
+                      backgroundColor: item.color,
+                      boxShadow: `0 0 8px ${item.color}30`
+                    }}
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-[7px] font-black text-white drop-shadow-sm">
+                      {item.start.split('-')[1]}/{item.start.split('-')[2]} - {item.end.split('-')[1]}/{item.end.split('-')[2]}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {/* Timeline markers */}
+            <div className="flex justify-between mt-4 pt-2 border-t border-slate-200">
+              <span className="text-[7px] font-bold text-slate-400">Ene</span>
+              <span className="text-[7px] font-bold text-slate-400">Feb</span>
+              <span className="text-[7px] font-bold text-slate-400">Mar</span>
+              <span className="text-[7px] font-bold text-slate-400">Abr</span>
+              <span className="text-[7px] font-bold text-slate-400">May</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Critical Path Analysis */}
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Análisis de Ruta Crítica</p>
+            <AlertTriangle size={16} className="text-amber-500" />
+          </div>
+
+          <div className="space-y-3">
+            {[
+              { task: 'Cimentación', duration: 15, status: 'completed', critical: false },
+              { task: 'Columnas', duration: 20, status: 'in-progress', critical: true },
+              { task: 'Vigas', duration: 12, status: 'pending', critical: true },
+              { task: 'Losas', duration: 18, status: 'pending', critical: false },
+              { task: 'Acabados', duration: 25, status: 'planned', critical: false }
+            ].map((task, i) => (
+              <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 dark:bg-slate-800">
+                <div className="flex items-center gap-2">
+                  <div className={cn(
+                    "w-2 h-2 rounded-full",
+                    task.status === 'completed' ? 'bg-green-500' :
+                    task.status === 'in-progress' ? 'bg-blue-500' :
+                    task.status === 'pending' ? 'bg-amber-500' : 'bg-slate-400'
+                  )} />
+                  <span className="text-[8px] font-bold text-slate-700 dark:text-slate-200">{task.task}</span>
+                  {task.critical && <span className="text-[6px] font-black text-red-500 uppercase">Crítico</span>}
+                </div>
+                <span className="text-[7px] font-bold text-slate-500">{task.duration} días</span>
+              </div>
+            ))}
+          </div>
         </div>
 
       </div>

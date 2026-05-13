@@ -17,12 +17,13 @@ import {
   X,
   CreditCard,
   ArrowDownLeft,
-  ArrowUpRight,
-  RotateCcw,
-  AlertTriangle,
-  Pencil,
-  Trash2
-} from 'lucide-react';
+   ArrowUpRight,
+   RotateCcw,
+   AlertTriangle,
+   Pencil,
+   Trash2,
+   HardHat
+ } from 'lucide-react';
 import { motion } from 'motion/react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -1055,38 +1056,53 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
 
       {/* Side Actions / Live Feed */}
       <aside className="hidden lg:flex flex-col gap-2 w-64 shrink-0">
-         <div className={cn(cardClass, "rounded-2xl p-3 text-left relative overflow-hidden")}>
-            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Acciones Rápidas</h4>
-            <div className="space-y-2">
-               <button 
-                 onClick={() => setIsAccountingModalOpen(true)}
-                 className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-4 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all hover:scale-[1.02] active:scale-95 shadow-xl"
-               >
-                 <ArrowUpRight size={14} className="text-secondary" />
-                 Registro Contable
-               </button>
-               {[
-                 { label: 'Nueva Cotización', icon: <Plus size={14} />, color: 'bg-slate-100 text-primary' },
-                 { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-slate-100 text-primary', tab: 'inventory' },
-                 { label: 'Reporte de Obra', icon: <Truck size={14} />, color: 'bg-slate-100 text-primary', tab: 'seguimiento' },
-               ].map((action, i) => (
-                 <button key={i} onClick={() => setActiveTab?.(action.tab as string)} className={cn(
-                   "interactive-card w-full flex items-center gap-3 p-3.5 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all",
-                   action.color
-                 )}>
-                   {action.icon}
-                   {action.label}
-                 </button>
-               ))}
-               <button 
-                 onClick={handleSystemReset}
-                 className="w-full flex items-center gap-3 p-3.5 rounded-xl font-black tracking-widest uppercase text-[9px] transition-all hover:bg-red-50 text-red-500 mt-2 border border-dashed border-red-200"
-               >
-                 <RotateCcw size={14} />
-                 Reiniciar Sistema
-               </button>
-            </div>
-         </div>
+          <div className={cn(cardClass, "rounded-2xl p-3 text-left relative overflow-hidden")}>
+             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Accesos Rápidos</h4>
+             <div className="space-y-2">
+                {/* Cotización */}
+                <button
+                  onClick={() => setActiveTab?.('projects')}
+                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                >
+                  <Plus size={14} />
+                  Nueva Cotización
+                </button>
+
+                {/* Registro Contable */}
+                <button
+                  onClick={() => setIsAccountingModalOpen(true)}
+                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white"
+                >
+                  <ArrowUpRight size={14} />
+                  Registro Contable
+                </button>
+
+                {/* Otras acciones */}
+                {[
+                  { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-slate-100 text-primary hover:bg-slate-200', tab: 'inventory' },
+                  { label: 'Reporte de Obra', icon: <TrendingUp size={14} />, color: 'bg-slate-100 text-primary hover:bg-slate-200', tab: 'seguimiento' },
+                  { label: 'Administrar Personal', icon: <HardHat size={14} />, color: 'bg-slate-100 text-primary hover:bg-slate-200', tab: 'staff' },
+                ].map((action, i) => (
+                  <button key={i} onClick={() => setActiveTab?.(action.tab as string)} className={cn(
+                    "interactive-card w-full flex items-center gap-3 p-2.5 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all border border-transparent hover:border-slate-300",
+                    action.color
+                  )}>
+                    {action.icon}
+                    {action.label}
+                  </button>
+                ))}
+
+                <div className="pt-2 border-t border-slate-200">
+                  <button
+                    onClick={handleSystemReset}
+                    className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-red-50 text-red-500 border border-dashed border-red-200"
+                  >
+                    <RotateCcw size={12} />
+                    Reiniciar Sistema
+                  </button>
+                </div>
+             </div>
+          </div>
 
          <div className="bg-slate-900 rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
