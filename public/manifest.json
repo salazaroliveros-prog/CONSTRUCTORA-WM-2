@@ -14,22 +14,28 @@
   "dir": "ltr",
   "icons": [
     {
-      "src": "/logo.webp",
-      "sizes": "any",
-      "type": "image/webp",
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/logo.webp",
-      "sizes": "192x192",
-      "type": "image/webp",
-      "purpose": "any maskable"
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/logo.webp",
+      "src": "/logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/webp",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [],
@@ -39,21 +45,21 @@
       "short_name": "Dashboard",
       "description": "Ver dashboard principal",
       "url": "/?tab=dashboard",
-      "icons": [{ "src": "/logo.webp", "sizes": "96x96" }]
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
     },
     {
       "name": "Proyectos",
       "short_name": "Proyectos",
       "description": "Ver proyectos activos",
       "url": "/?tab=projects",
-      "icons": [{ "src": "/logo.webp", "sizes": "96x96" }]
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
     },
     {
       "name": "Inventario",
       "short_name": "Inventario",
       "description": "Ver inventario y stock",
       "url": "/?tab=inventory",
-      "icons": [{ "src": "/logo.webp", "sizes": "96x96" }]
+      "icons": [{ "src": "/logo.png", "sizes": "96x96" }]
     }
   ],
   "related_applications": [],

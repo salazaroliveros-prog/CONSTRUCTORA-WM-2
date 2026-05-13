@@ -19,7 +19,6 @@ import { useSettings } from '../contexts/SettingsContext';
 import { ALL_MODULES } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { toast } from 'sonner';
-import Logo from './Logo';
 import TopBarClock from './TopBarClock';
 import AIFloatingButton from './AIFloatingButton';
 
@@ -143,17 +142,22 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     >
 {/* ── Topbar ─────────────────────────────────────────────── */}
           <header className="h-16 sm:h-[4.25rem] backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors bg-white/80 border-slate-200">
-            {/* Left: Logo */}
+            {/* Left: Logo / Avatar */}
             <div className="flex items-center shrink-0">
-              <Logo avatarUrl={user?.photoURL} className="w-7 h-7 sm:w-8 sm:h-8" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
+                {user?.photoURL
+                  ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  : <span className="uppercase">{user?.displayName?.charAt(0) || 'W'}</span>
+                }
+              </div>
             </div>
 
-            {/* Center: Branding — absolutely centered for maximum visual impact */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none select-none">
-              <span className="text-base sm:text-lg md:text-xl font-black text-primary uppercase tracking-[0.12em] leading-tight">
+            {/* Center: Branding */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none select-none max-w-[calc(100%-6rem)] md:max-w-none">
+              <span className="text-[11px] sm:text-lg md:text-xl font-black text-primary uppercase tracking-[0.12em] leading-tight truncate max-w-full">
                 {settings.companyName}
               </span>
-              <span className="text-[9px] sm:text-[10px] md:text-xs font-semibold text-amber-500 tracking-[0.2em] uppercase mt-0.5">
+              <span className="text-[7px] sm:text-[10px] md:text-xs font-semibold text-amber-500 tracking-[0.2em] uppercase mt-0.5 truncate max-w-full">
                 edificando el futuro
               </span>
             </div>
