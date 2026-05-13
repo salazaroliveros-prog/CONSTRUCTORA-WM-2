@@ -279,56 +279,58 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       {/* ── Floating Bottom Navigation ─────────────────────────── */}
       <AnimatePresence mode="wait">
         {navOpen ? (
-          <motion.div
-            key="nav-open"
-            initial={{ opacity: 0, y: 16, scale: 0.85 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 16, scale: 0.85 }}
-            transition={{ type: "spring", stiffness: 350, damping: 28 }}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[49] flex items-center gap-1 px-2 py-1.5 rounded-2xl bg-white/70 dark:bg-slate-900/70 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12)] border border-slate-200/50 dark:border-slate-700/50"
-          >
-            {mobileMenuItems.map((item) => {
-              const isActive = activeTab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  onClick={() => { setActiveTab(item.id); setNavOpen(false); }}
-                  title={item.label}
-                  className={cn(
-                    "relative flex flex-col items-center justify-center gap-0.5 w-12 sm:w-14 py-1.5 rounded-xl transition-all duration-200",
-                    "hover:scale-[1.6] hover:z-10 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:bg-white/90 dark:hover:bg-slate-800/90",
-                    "active:scale-95",
-                    isActive
-                      ? "text-secondary font-bold scale-110"
-                      : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
-                  )}
-                >
-                  {isActive && (
-                    <motion.div
-                      layoutId="bottomNavIndicator"
-                      className="absolute -top-1 left-1/2 -translate-x-1/2 h-1 w-6 rounded-full bg-secondary"
-                      transition={{ type: "spring", stiffness: 500, damping: 35 }}
-                    />
-                  )}
-                  <span className="drop-shadow-sm">{item.iconMobile || item.icon}</span>
-                  <span className={cn(
-                    "text-[6px] font-bold uppercase tracking-wider leading-none whitespace-nowrap",
-                    isActive ? "text-secondary" : "text-inherit"
-                  )}>
-                    {item.labelMobile || item.label}
-                  </span>
-                </button>
-              );
-            })}
-            <button
-              onClick={() => setNavOpen(false)}
-              className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shrink-0 ml-1"
-              title="Cerrar menú"
-              aria-label="Cerrar navegación"
+            <motion.div
+              key="nav-open"
+              initial={{ opacity: 0, y: 16, scale: 0.85 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.85 }}
+              transition={{ type: "spring", stiffness: 350, damping: 28 }}
+              className="fixed bottom-0 md:bottom-2 left-0 right-0 z-[49] flex justify-center"
             >
-              <X size={14} />
-            </button>
-          </motion.div>
+              <div className="flex items-stretch md:items-center overflow-x-auto overflow-y-hidden no-scrollbar gap-0.5 md:gap-0 px-1.5 py-1.5 rounded-none md:rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl shadow-[0_-2px_20px_rgba(0,0,0,0.08)] md:shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-t md:border border-slate-200/50 dark:border-slate-700/50 w-full md:w-[calc(100%-2rem)] md:max-w-4xl md:mx-auto">
+                {mobileMenuItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => { setActiveTab(item.id); setNavOpen(false); }}
+                      title={item.label}
+                      className={cn(
+                        "relative flex flex-col items-center justify-center gap-0.5 min-w-[3.25rem] flex-shrink-0 md:flex-1 md:min-w-0 py-1.5 rounded-xl transition-all duration-200",
+                        "hover:scale-[1.6] md:hover:scale-[1.4] hover:z-10 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:bg-white/90 dark:hover:bg-slate-800/90",
+                        "active:scale-95",
+                        isActive
+                          ? "text-secondary font-bold scale-110"
+                          : "text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+                      )}
+                    >
+                      {isActive && (
+                        <motion.div
+                          layoutId="bottomNavIndicator"
+                          className="absolute -top-1 left-1/2 -translate-x-1/2 h-1 w-6 rounded-full bg-secondary"
+                          transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                        />
+                      )}
+                      <span className="drop-shadow-sm">{item.iconMobile || item.icon}</span>
+                      <span className={cn(
+                        "text-[6px] font-bold uppercase tracking-wider leading-none whitespace-nowrap",
+                        isActive ? "text-secondary" : "text-inherit"
+                      )}>
+                        {item.labelMobile || item.label}
+                      </span>
+                    </button>
+                  );
+                })}
+                <button
+                  onClick={() => setNavOpen(false)}
+                  className="flex items-center justify-center w-8 h-8 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all shrink-0 ml-1 md:ml-0"
+                  title="Cerrar menú"
+                  aria-label="Cerrar navegación"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </motion.div>
         ) : (
           <motion.button
             key="nav-closed"
