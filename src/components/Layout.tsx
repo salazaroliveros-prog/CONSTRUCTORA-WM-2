@@ -108,25 +108,30 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
   };
 
   const allMenuItems = [
-    { id: 'dashboard',   label: 'Inicio',                 labelMobile: 'Inicio',   icon: <LayoutDashboard size={18} />, iconMobile: <LayoutDashboard size={16} /> },
-    { id: 'clients',     label: 'Clientes',               labelMobile: 'Clientes', icon: <Users size={18} />,           iconMobile: <Users size={16} /> },
-    { id: 'projects',    label: 'Gestión de Proyectos',    labelMobile: 'Proyectos',icon: <Building2 size={18} />,       iconMobile: <Building2 size={16} /> },
-
-    { id: 'execution',   label: 'Seguimiento',            labelMobile: 'Seguim.',  icon: <ClipboardList size={18} />,  iconMobile: <ClipboardList size={16} /> },
-    { id: 'seguimiento', label: 'Avance',                 labelMobile: 'Avance',   icon: <TrendingUp size={18} />,     iconMobile: <TrendingUp size={16} /> },
-    { id: 'gantt',       label: 'Gantt',                  labelMobile: 'Gantt',    icon: <Calendar size={18} />,       iconMobile: <Calendar size={16} /> },
-    { id: 'suppliers',   label: 'Proveedores',            labelMobile: 'Prov.',    icon: <Truck size={18} />,          iconMobile: <Truck size={16} /> },
-    { id: 'inventory',   label: 'Stock',                  labelMobile: 'Stock',    icon: <Package size={18} />,        iconMobile: <Package size={16} /> },
-    { id: 'analytics',   label: 'Analíticas',             labelMobile: 'Anal.',    icon: <BarChart3 size={18} />,      iconMobile: <BarChart3 size={16} /> },
-    { id: 'staff',       label: 'Recursos',               labelMobile: 'RRHH',     icon: <HardHat size={18} />,        iconMobile: <HardHat size={16} /> },
-    { id: 'ai',          label: 'Asistente IA',           labelMobile: 'IA',       icon: <Sparkles size={18} />,       iconMobile: <Sparkles size={16} /> },
-    { id: 'effects',     label: 'Efectos',                labelMobile: 'Fx',       icon: <Zap size={18} />,            iconMobile: <Zap size={16} /> },
-    { id: 'settings',    label: 'Ajustes',                labelMobile: 'Conf.',    icon: <Settings size={18} />,       iconMobile: <Settings size={16} /> },
+    { id: 'dashboard',   label: 'Inicio',                 labelMobile: 'Inicio',   icon: <LayoutDashboard size={20} />, iconMobile: <LayoutDashboard size={16} />, priority: 1 },
+    { id: 'projects',    label: 'Gestión de Proyectos',    labelMobile: 'Proyectos',icon: <Building2 size={18} />,       iconMobile: <Building2 size={16} />, priority: 1 },
+    { id: 'suppliers',   label: 'Proveedores',            labelMobile: 'Proveed.', icon: <Truck size={18} />,          iconMobile: <Truck size={16} />, priority: 1 },
+    { id: 'inventory',   label: 'Stock',                  labelMobile: 'Invent.',  icon: <Package size={18} />,        iconMobile: <Package size={16} />, priority: 1 },
+    { id: 'staff',       label: 'Recursos Humanos',       labelMobile: 'Personal', icon: <HardHat size={18} />,        iconMobile: <HardHat size={16} />, priority: 1 },
+    { id: 'clients',     label: 'Clientes',               labelMobile: 'Clientes', icon: <Users size={18} />,           iconMobile: <Users size={16} />, priority: 2 },
+    { id: 'execution',   label: 'Seguimiento',            labelMobile: 'Seguim.',  icon: <ClipboardList size={18} />,  iconMobile: <ClipboardList size={16} />, priority: 2 },
+    { id: 'seguimiento', label: 'Avance',                 labelMobile: 'Avance',   icon: <TrendingUp size={18} />,     iconMobile: <TrendingUp size={16} />, priority: 2 },
+    { id: 'analytics',   label: 'Analíticas',             labelMobile: 'Anal.',    icon: <BarChart3 size={18} />,      iconMobile: <BarChart3 size={16} />, priority: 3 },
+    { id: 'gantt',       label: 'Gantt',                  labelMobile: 'Gantt',    icon: <Calendar size={18} />,       iconMobile: <Calendar size={16} />, priority: 3 },
+    { id: 'ai',          label: 'Asistente IA',           labelMobile: 'IA',       icon: <Sparkles size={18} />,       iconMobile: <Sparkles size={16} />, priority: 3 },
+    { id: 'settings',    label: 'Ajustes',                labelMobile: 'Conf.',    icon: <Settings size={18} />,       iconMobile: <Settings size={16} />, priority: 3 },
+    { id: 'effects',     label: 'Efectos',                labelMobile: 'Fx',       icon: <Zap size={18} />,            iconMobile: <Zap size={16} />, priority: 4 },
   ];
 
   const menuItems = allMenuItems.filter(item =>
     item.id === 'settings' || item.id === 'ai' || (settings.activeModules ?? ALL_MODULES).includes(item.id)
   );
+
+  // Mobile navigation: prioritize essential modules
+  const mobileMenuItems = menuItems
+    .filter(item => settings.activeModules?.includes(item.id) ?? true)
+    .sort((a, b) => (a.priority || 4) - (b.priority || 4))
+    .slice(0, 6); // Show top 6 priority modules on mobile
 
   const activeItem = menuItems.find(m => m.id === activeTab);
 
@@ -287,13 +292,13 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
       {/* ── Bottom Navigation ─────────────────────────────────── */}
       <nav className="fixed bottom-0 left-0 right-0 z-[49] safe-area-pb transition-colors bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-200 dark:border-slate-700">
-        <div className="flex justify-around items-center h-14 px-1 max-w-screen-sm mx-auto">
-          {menuItems.slice(0, 5).map((item, index) => (
+        <div className="flex justify-around items-center h-14 px-0.5 max-w-screen-sm mx-auto">
+          {mobileMenuItems.map((item, index) => (
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               className={cn(
-                "flex flex-col items-center justify-center gap-0.5 py-1.5 px-2 rounded-lg transition-all active:scale-95 min-w-0 flex-1",
+                "flex flex-col items-center justify-center gap-0.5 py-1.5 px-1.5 rounded-lg transition-all active:scale-95 min-w-0 flex-1",
                 activeTab === item.id
                   ? "text-secondary bg-secondary/10 dark:bg-secondary/20"
                   : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
