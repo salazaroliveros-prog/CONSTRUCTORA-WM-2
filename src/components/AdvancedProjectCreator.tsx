@@ -27,7 +27,8 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
-import { MARKET_LEVELS, SLAB_TYPOLOGIES, MarketLevel, SlabTypology, applyMarketParameters } from '../lib/marketParams';
+import { MARKET_LEVELS, SLAB_TYPOLOGIES, MarketLevel, SlabTypology, applyMarketParameters, generateSlabBudgetLines } from '../lib/marketParams';
+import { getBudgetLinesByTypology, defaultBudget } from '../lib/budgetData';
 import {
   Typology,
   DEFAULT_WORK_ITEMS,
@@ -54,6 +55,30 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedMarketLevel, setSelectedMarketLevel] = useState<MarketLevel>(MARKET_LEVELS[1]); // Moderate by default
   const [selectedSlabType, setSelectedSlabType] = useState<SlabTypology>(SLAB_TYPOLOGIES[0]); // Solid slab by default
+
+  // Load initial budget lines for the selected typology
+  const loadTypologyBudget = () => {
+    const typologyLines = getBudgetLinesByTypology(selectedTypology);
+    const newItems: ProjectItem[] = typologyLines.map(line => ({
+      ...line,
+      projectQuantity: line.qty || 0,
+      selected: true,
+      typology: selectedTypology,
+      durationDays: 1,
+      materials: [], // Required by ProjectItem
+      labor: [],     // Required by ProjectItem
+      category: line.description.includes('Cimentación') ? 'Cimentación' :
+                line.description.includes('Columna') ? 'Estructura' :
+                line.description.includes('Losa') ? 'Entrepiso' :
+                line.description.includes('Carretera') ? 'Infraestructura' :
+                line.description.includes('Puente') ? 'Ingeniería' : 'General'
+    }));
+    setCurrentProject(p => ({
+      ...p,
+      items: [...p.items, ...newItems]
+    }));
+    toast.success(`Se cargaron ${typologyLines.length} renglones para ${selectedTypology}`);
+  };
   const [currentProject, setCurrentProject] = useState<Project>({
     id: 'temp-id',
     name: 'Nuevo Proyecto',
@@ -546,7 +571,18 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                      onChange={e => setCurrentProject(p => ({ ...p, endDate: e.target.value }))}
                      className="w-full bg-slate-50 border border-slate-200 rounded px-3 py-2 text-xs font-bold focus:outline-none focus:border-secondary"
                    />
-                 </div>
+                  </div>
+
+                  {/* Load Typology Budget Button */}
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={loadTypologyBudget}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-black uppercase rounded-lg transition-all flex items-center gap-2"
+                    >
+                      <Plus size={14} />
+                      Cargar Renglones de {selectedTypology}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Market Level and Slab Type Selection */}
@@ -589,6 +625,83 @@ export default function AdvancedProjectCreator({ onComplete }: { onComplete?: ()
                       ))}
                     </select>
                     <p className="text-[8px] text-blue-600 dark:text-blue-300 mt-1">{selectedSlabType.description}</p>
+                  </div>
+
+                  {/* Generate Slab Lines Button */}
+                  <div className="flex justify-center pt-2">
+                    <button
+                      onClick={() => {
+                        if (areaTotal > 0) {
+                          const slabLines = generateSlabBudgetLines(selectedSlabType, areaTotal);
+                          // Convert to ProjectItem format and add to current items
+                          const newItems: ProjectItem[] = slabLines.map(line => ({
+                            ...line,
+                            projectQuantity: line.qty,
+                            selected: true,
+                            typology: selectedTypology,
+                            durationDays: 1, // Default
+                            category: 'Losa/Cubierta'
+                          }));
+                          setCurrentProject(p => ({
+                            ...p,
+                            items: [...p.items, ...newItems]
+                          }));
+                          toast.success(`Se agregaron ${slabLines.length} renglones de ${selectedSlabType.name}`);
+                        } else {
+                          toast.error('Ingrese el área total del proyecto primero');
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-[9px] font-black uppercase rounded-lg transition-all flex items-center gap-2"
+                    >
+                      <Plus size={14} />
+                      Generar Renglones de Losa
+                    </button>
+                  </div>
+                </div>
+
+                {/* Market Parameters Impact Summary */}
+                <div className="bg-gradient-to-r from-green-50 to-blue-50 dark:from-green-900/20 dark:to-blue-900/20 rounded-xl border border-green-200 dark:border-green-700 p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <TrendingUp size={16} className="text-green-600" />
+                    <h4 className="text-[10px] font-black text-green-800 dark:text-green-200 uppercase tracking-widest">
+                      Impacto de Parámetros de Mercado
+                    </h4>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase">Nivel Mercado</p>
+                      <p className="text-[10px] font-black text-green-600">{selectedMarketLevel.name}</p>
+                      <p className="text-[7px] text-slate-400">Q{selectedMarketLevel.costPerSqm.recommended}/m²</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase">Tipo Losa</p>
+                      <p className="text-[10px] font-black text-blue-600">{selectedSlabType.name}</p>
+                      <p className="text-[7px] text-slate-400">{selectedSlabType.costMultipliers.material}x material</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase">Área Proyecto</p>
+                      <p className="text-[10px] font-black text-purple-600">{areaTotal || 0} m²</p>
+                      <p className="text-[7px] text-slate-400">Total construido</p>
+                    </div>
+                    <div className="bg-white dark:bg-slate-800 rounded-lg p-2">
+                      <p className="text-[8px] font-bold text-slate-500 uppercase">Costo Final</p>
+                      <p className="text-[10px] font-black text-secondary">Q{costPerM2.toFixed(0)}/m²</p>
+                      <p className="text-[7px] text-slate-400">Aplicando factores</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-green-200 dark:border-green-700">
+                    <div className="flex justify-between text-[8px] font-bold">
+                      <span className="text-slate-600 dark:text-slate-300">Costo Base:</span>
+                      <span className="text-slate-800 dark:text-slate-200">Q{(totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100)).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-[8px] font-bold mt-1">
+                      <span className="text-green-600">+ Parámetros Mercado:</span>
+                      <span className="text-green-600">Q{(totalBudget - (totalDirect * (1 + (currentProject.indirectCosts + currentProject.administrativeCosts + currentProject.personalCosts) / 100))).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-[10px] font-black text-secondary mt-2 pt-2 border-t border-secondary/30">
+                      <span>TOTAL AJUSTADO:</span>
+                      <span>Q{totalBudget.toLocaleString()}</span>
+                    </div>
                   </div>
                 </div>
 

@@ -57,6 +57,39 @@ export function calculateDynamicQuantity(line: BudgetLine): number {
     const area = (dims.length || 0) * (dims.width || 0);
     volume = area * (dims.thickness || 0.15); // Default 15cm thickness
     line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('solera')) {
+    // Solera: width × height × length
+    volume = (dims.width || 0) * (dims.height || 0) * (dims.length || 0);
+    line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('zapata')) {
+    // Zapata: length × width × height (similar to foundation)
+    volume = (dims.length || 0) * (dims.width || 0) * (dims.height || 0);
+    line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('carretera') || line.description.toLowerCase().includes('sub-base') || line.description.toLowerCase().includes('base asfáltica')) {
+    // Road layers: length × width × thickness
+    volume = (dims.length || 0) * (dims.width || 0) * (dims.thickness || 0.15);
+    line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('puente') || line.description.toLowerCase().includes('pilas')) {
+    // Bridge piles: cross-section × height
+    const crossSection = (dims.width || 0) * (dims.height || 0);
+    volume = crossSection * (dims.length || 0);
+    line.unit = 'm³';
+  } else if (line.description.toLowerCase().includes('fachada') || line.description.toLowerCase().includes('vidrio')) {
+    // Facade/glass: length × height
+    volume = (dims.length || 0) * (dims.height || 0);
+    line.unit = 'm²';
+  } else if (line.description.toLowerCase().includes('cerramientos') || line.description.toLowerCase().includes('perimetrales')) {
+    // Perimeter fencing: length × height
+    volume = (dims.length || 0) * (dims.height || 0);
+    line.unit = 'm';
+  } else if (line.description.toLowerCase().includes('piso industrial') || line.description.toLowerCase().includes('accesibilidad')) {
+    // Floor areas: length × width × thickness
+    volume = (dims.length || 0) * (dims.width || 0) * (dims.thickness || 0.15);
+    line.unit = 'm²';
+  } else if (line.description.toLowerCase().includes('estructura metálica') || line.description.toLowerCase().includes('cubierta')) {
+    // Metal structure: area × kg/m²
+    volume = (dims.length || 0) * (dims.width || 0);
+    line.unit = 'm²';
   }
 
   // Apply waste factor
@@ -71,15 +104,17 @@ export function calculateSteelReinforcement(line: BudgetLine): { diameter: numbe
   let volume = line.qty;
   let steelRatio = 0.015; // Default 1.5%
 
-  // Determine steel ratio based on element type
+  // Determine steel ratio based on element type and typology
   if (line.description.toLowerCase().includes('columna')) {
-    steelRatio = ENGINEERING_CONSTANTS.steelRatios.columns;
+    steelRatio = line.typology === 'INDUSTRIAL' ? 0.03 : ENGINEERING_CONSTANTS.steelRatios.columns;
   } else if (line.description.toLowerCase().includes('viga')) {
     steelRatio = ENGINEERING_CONSTANTS.steelRatios.beams;
   } else if (line.description.toLowerCase().includes('losa')) {
-    steelRatio = ENGINEERING_CONSTANTS.steelRatios.slabs;
+    steelRatio = line.typology === 'COMERCIAL' ? 0.013 : ENGINEERING_CONSTANTS.steelRatios.slabs;
   } else if (line.description.toLowerCase().includes('cimentación') || line.description.toLowerCase().includes('zapata')) {
     steelRatio = ENGINEERING_CONSTANTS.steelRatios.foundation;
+  } else if (line.description.toLowerCase().includes('puente') || line.description.toLowerCase().includes('pilas')) {
+    steelRatio = 0.04; // Higher reinforcement for bridges
   }
 
   // Calculate steel volume

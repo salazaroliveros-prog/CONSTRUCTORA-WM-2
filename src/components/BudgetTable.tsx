@@ -175,6 +175,270 @@ export default function BudgetTable({ lines, projectQty, onUpdate, onAddCustom, 
                       </div>
                     </>
                   )}
+                  {line.description.toLowerCase().includes('solera') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.width || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.width = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Alto (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.height || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.height = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Longitud (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {line.description.toLowerCase().includes('zapata') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.width || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.width = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Profundidad (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.height || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.height = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {line.description.toLowerCase().includes('carretera') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Ancho (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.width || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.width = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Espesor (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.thickness || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.thickness = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {line.description.toLowerCase().includes('puente') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Sección Base (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.width || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.width = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Sección Alto (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.height || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.height = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Altura (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {line.description.toLowerCase().includes('fachada') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Largo (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Alto (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.height || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.height = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
+                  {line.description.toLowerCase().includes('cerramientos') && (
+                    <>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Longitud (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.length || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.length = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Altura (m)</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={line.dimensions?.height || ''}
+                          onChange={(e) => {
+                            const updated = { ...line };
+                            if (!updated.dimensions) updated.dimensions = {};
+                            updated.dimensions.height = parseFloat(e.target.value) || 0;
+                            onUpdate(lines.map(l => l.id === line.id ? updated : l));
+                          }}
+                          className="w-full mt-1 px-2 py-1 text-[9px] border border-slate-300 dark:border-slate-600 rounded bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-200"
+                        />
+                      </div>
+                    </>
+                  )}
                   <div>
                     <label className="text-[8px] font-bold text-slate-600 dark:text-slate-300 uppercase">Factor Desperdicio</label>
                     <input

@@ -231,6 +231,126 @@ export function applyMarketParameters(
 }
 
 /**
+ * Generate automatic budget lines based on slab typology
+ */
+export function generateSlabBudgetLines(
+  slabType: SlabTypology,
+  projectArea: number
+): any[] {
+  const lines = [];
+
+  if (slabType.materialSpecs.concrete) {
+    // Concrete volume calculation
+    const concreteVolume = projectArea * slabType.materialSpecs.concrete.volumePerSqm;
+    lines.push({
+      id: `slab_concrete_${Date.now()}`,
+      code: '02-01-001',
+      description: `Losa - Concreto ${slabType.materialSpecs.concrete.grade}`,
+      unit: 'm³',
+      qty: concreteVolume * slabType.materialSpecs.concrete.wasteFactor,
+      materialCost: 450, // Q per m³
+      laborCost: 35,
+      materialPerf: 1,
+      laborPerf: 0.3,
+      order: 1,
+      wasteFactor: slabType.materialSpecs.concrete.wasteFactor
+    });
+  }
+
+  if (slabType.materialSpecs.steel) {
+    // Steel reinforcement calculation
+    const concreteVolume = projectArea * (slabType.materialSpecs.concrete?.volumePerSqm || 0.15);
+    const steelWeight = concreteVolume * slabType.materialSpecs.steel.kgPerCum;
+    lines.push({
+      id: `slab_steel_${Date.now()}`,
+      code: '02-01-002',
+      description: `Losa - Acero Refuerzo Ø${slabType.materialSpecs.steel.diameter}mm`,
+      unit: 'kg',
+      qty: steelWeight * slabType.materialSpecs.steel.wasteFactor,
+      materialCost: 9.00, // Q per kg
+      laborCost: 3.00,
+      materialPerf: 1,
+      laborPerf: 0.15,
+      order: 2,
+      wasteFactor: slabType.materialSpecs.steel.wasteFactor
+    });
+  }
+
+  if (slabType.materialSpecs.formwork) {
+    lines.push({
+      id: `slab_formwork_${Date.now()}`,
+      code: '02-01-003',
+      description: `Losa - Encofrado ${slabType.materialSpecs.formwork.type}`,
+      unit: 'm²',
+      qty: projectArea,
+      materialCost: slabType.materialSpecs.formwork.costPerSqm,
+      laborCost: 15,
+      materialPerf: 1,
+      laborPerf: 0.2,
+      order: 3,
+      wasteFactor: 1.02
+    });
+  }
+
+  if (slabType.materialSpecs.prefabricated) {
+    // Prefabricated system
+    lines.push({
+      id: `slab_viguetas_${Date.now()}`,
+      code: '02-02-001',
+      description: 'Losa Prefabricada - Viguetas',
+      unit: 'unid',
+      qty: projectArea * slabType.materialSpecs.prefabricated.viguetaUnits,
+      materialCost: 85, // Q per unit
+      laborCost: 25,
+      materialPerf: 1,
+      laborPerf: 0.5,
+      order: 4
+    });
+
+    lines.push({
+      id: `slab_bovedillas_${Date.now()}`,
+      code: '02-02-002',
+      description: 'Losa Prefabricada - Bovedillas',
+      unit: 'unid',
+      qty: projectArea * slabType.materialSpecs.prefabricated.bovedillaUnits,
+      materialCost: 12, // Q per unit
+      laborCost: 8,
+      materialPerf: 1,
+      laborPerf: 0.3,
+      order: 5
+    });
+
+    lines.push({
+      id: `slab_mesh_${Date.now()}`,
+      code: '02-02-003',
+      description: 'Losa Prefabricada - Malla Electrosoldada',
+      unit: 'kg',
+      qty: projectArea * slabType.materialSpecs.prefabricated.meshKg,
+      materialCost: 8.50,
+      laborCost: 3.00,
+      materialPerf: 1,
+      laborPerf: 0.1,
+      order: 6
+    });
+
+    lines.push({
+      id: `slab_compression_${Date.now()}`,
+      code: '02-02-004',
+      description: 'Losa Prefabricada - Capa Compresión',
+      unit: 'm³',
+      qty: projectArea * slabType.materialSpecs.prefabricated.compressionSlab,
+      materialCost: 450,
+      laborCost: 35,
+      materialPerf: 1,
+      laborPerf: 0.3,
+      order: 7
+    });
+  }
+
+  return lines;
+}
+
+/**
  * Get recommended market level based on project area and budget
  */
 export function getRecommendedMarketLevel(
