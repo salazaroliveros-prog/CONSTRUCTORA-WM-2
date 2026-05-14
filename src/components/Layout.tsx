@@ -130,26 +130,33 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
   const activeItem = menuItems.find(m => m.id === activeTab);
 
-  // Fullscreen on launch — Enter fullscreen on first click, exit with Escape
+  // Fullscreen al abrir — se activa inmediatamente, Escape sale
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const fullscreenInitRef = useRef(false);
   useEffect(() => {
-    const onFullscreenChange = () => setIsFullscreen(!!document.fullscreenElement);
-    document.addEventListener('fullscreenchange', onFullscreenChange);
-    // Enter fullscreen on first user interaction (click/tap anywhere)
-    const onFirstInteraction = () => {
-      if (fullscreenInitRef.current) return;
-      fullscreenInitRef.current = true;
+    const tryFullscreen = () => {
       if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
         document.documentElement.requestFullscreen().catch(() => {});
       }
     };
-    window.addEventListener('click', onFirstInteraction, { once: true });
-    window.addEventListener('touchstart', onFirstInteraction, { once: true });
+    tryFullscreen();
+    const onInteraction = () => { if (!document.fullscreenElement) tryFullscreen(); };
+    const onChange = () => setIsFullscreen(!!document.fullscreenElement);
+    const onEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && document.fullscreenElement) {
+        document.exitFullscreen?.();
+      }
+    };
+    document.addEventListener('fullscreenchange', onChange);
+    window.addEventListener('click', onInteraction);
+    window.addEventListener('keydown', onInteraction);
+    window.addEventListener('touchstart', onInteraction);
+    window.addEventListener('keydown', onEscape);
     return () => {
-      document.removeEventListener('fullscreenchange', onFullscreenChange);
-      window.removeEventListener('click', onFirstInteraction);
-      window.removeEventListener('touchstart', onFirstInteraction);
+      document.removeEventListener('fullscreenchange', onChange);
+      window.removeEventListener('click', onInteraction);
+      window.removeEventListener('keydown', onInteraction);
+      window.removeEventListener('touchstart', onInteraction);
+      window.removeEventListener('keydown', onEscape);
     };
   }, []);
 
@@ -253,8 +260,19 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                      {/* ...notification list (unchanged) */}
                    </motion.div>
                  )}
-               </AnimatePresence>
-             </div>
+      </AnimatePresence>
+
+      {!isFullscreen && (
+        <button
+          onClick={() => document.documentElement.requestFullscreen?.()?.catch(() => {})}
+          className="fixed top-2 right-2 z-[99] w-7 h-7 rounded-lg bg-white/70 backdrop-blur-md shadow-md border border-slate-200/50 flex items-center justify-center hover:scale-110 hover:bg-white/90 transition-all duration-200"
+          title="Pantalla completa (F11)"
+          aria-label="Entrar en pantalla completa"
+        >
+          <Maximize size={12} className="text-slate-500" />
+        </button>
+      )}
+    </div>
 
              {/* AI Assistant */}
              <div className="relative">
