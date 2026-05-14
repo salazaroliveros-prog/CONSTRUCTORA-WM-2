@@ -39,6 +39,7 @@ export default function ProjectBuilder({ onComplete }: ProjectBuilderProps) {
     totals,
     estimatedDays,
     totalMaterialsSummary,
+    marketMultipliers,
     setProject,
     setSelectedTypology,
     setSelectedMarketLevel,
@@ -261,6 +262,8 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
           onUpdate={setBudgetTree}
           onAddCustom={addCustomItem}
           editingAllowed={true}
+          marketMultipliers={marketMultipliers}
+          wasteFactors={wasteFactors}
         />
       </div>
 

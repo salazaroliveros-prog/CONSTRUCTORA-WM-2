@@ -57,6 +57,7 @@ interface UseProjectBuilderResult {
   };
   estimatedDays: number;
   totalMaterialsSummary: Array<{ name: string; unit: string; totalQuantity: number; totalCost: number }>;
+  marketMultipliers: { material: number; labor: number };
   // setters de configuración
   setProject: (p: any) => void;
   setSelectedTypology: (t: Typology) => void;
@@ -141,26 +142,33 @@ export function useProjectBuilder({ initialItems = [] }: UseProjectBuilderProps 
     return Object.values(summary).sort((a, b) => a.name.localeCompare(b.name));
   }, [project.items]);
 
-  // Cálculos totales basados en budgetTree
+  // Multiplicadores de mercado aplicados a cada línea
+  const marketMultipliers = useMemo(() => ({
+    material: (selectedSlabType?.costMultipliers?.material ?? 1) * (selectedMarketLevel.costPerSqm.recommended / 3750),
+    labor: selectedMarketLevel.laborMultiplier,
+  }), [selectedMarketLevel, selectedSlabType]);
+
+  // Cálculos totales basados en budgetTree con ajustes de mercado por línea
   const totals = useMemo(() => {
     let materialsTotal = 0;
     let laborTotal = 0;
 
+    const matMul = marketMultipliers.material;
+    const labMul = marketMultipliers.labor;
+
     budgetTree.forEach(line => {
-      // Costos propios de la línea padre
       if (line.materialCost > 0) {
-        materialsTotal += line.qty * line.materialCost * (line.materialPerf || 1);
+        materialsTotal += line.qty * line.materialCost * (line.materialPerf || 1) * matMul;
       }
       if (line.laborCost > 0) {
-        laborTotal += line.qty * line.laborCost * (line.laborPerf || 1);
+        laborTotal += line.qty * line.laborCost * (line.laborPerf || 1) * labMul;
       }
-      // Costos de hijos
       line.children?.forEach(child => {
         if (child.materialCost > 0) {
-          materialsTotal += child.qty * child.materialCost * (child.materialPerf || 1);
+          materialsTotal += child.qty * child.materialCost * (child.materialPerf || 1) * matMul;
         }
         if (child.laborCost > 0) {
-          laborTotal += child.qty * child.laborCost * (child.laborPerf || 1);
+          laborTotal += child.qty * child.laborCost * (child.laborPerf || 1) * labMul;
         }
       });
     });
@@ -169,7 +177,8 @@ export function useProjectBuilder({ initialItems = [] }: UseProjectBuilderProps 
     const wasteLabor = laborTotal * (wasteFactors.labor / 100);
     const totalDirect = materialsTotal + laborTotal + wasteMaterials + wasteLabor;
     const baseBudget = totalDirect * (1 + (project.indirectCosts + project.administrativeCosts + project.personalCosts) / 100);
-    const totalBudget = applyMarketParameters(baseBudget, selectedMarketLevel, selectedSlabType);
+    // Nota: applyMarketParameters ya no duplica el ajuste de mercado porque lo aplicamos por línea
+    const totalBudget = baseBudget;
     const costPerM2 = areaTotal > 0 ? totalBudget / areaTotal : 0;
     const indirectCost = totalDirect * (project.indirectCosts / 100);
     const adminCost = totalDirect * (project.administrativeCosts / 100);
@@ -187,7 +196,7 @@ export function useProjectBuilder({ initialItems = [] }: UseProjectBuilderProps 
       adminCost,
       personalCost
     };
-  }, [budgetTree, wasteFactors, project.indirectCosts, project.administrativeCosts, project.personalCosts, selectedMarketLevel, selectedSlabType, areaTotal]);
+  }, [budgetTree, wasteFactors, project.indirectCosts, project.administrativeCosts, project.personalCosts, marketMultipliers, areaTotal]);
 
   // Acciones sobre ítems
   const addItem = useCallback((item: WorkItem): boolean => {
@@ -306,6 +315,7 @@ export function useProjectBuilder({ initialItems = [] }: UseProjectBuilderProps 
     totals,
     estimatedDays,
     totalMaterialsSummary,
+    marketMultipliers,
     setProject,
     setSelectedTypology,
     setSelectedMarketLevel,
