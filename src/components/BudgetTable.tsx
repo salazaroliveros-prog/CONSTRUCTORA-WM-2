@@ -49,13 +49,15 @@ const fmtDev = (v: number): string => v === 0 ? '—' : `${v >= 0 ? '+' : ''}${v
 
 // ─── Componente de celda editable inline ──────────────────────────────────────
 const InlineEdit = memo(function InlineEdit({
-  value, display, type, onCommit, disabled,
+   value, display, type, onCommit, disabled, id, label,
 }: {
-  value: string | number;
-  display: string;
-  type?: 'text' | 'number' | 'percent';
-  onCommit: (v: number) => void;
-  disabled?: boolean;
+   value: string | number;
+   display: string;
+   type?: 'text' | 'number' | 'percent';
+   onCommit: (v: number) => void;
+   disabled?: boolean;
+   id?: string;
+   label?: string;
 }) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
@@ -64,23 +66,24 @@ const InlineEdit = memo(function InlineEdit({
   useEffect(() => { if (editing && ref.current) { ref.current.focus(); ref.current.select(); } }, [editing]);
 
   if (disabled) return <span className="text-[9px] text-slate-400">{display}</span>;
-  if (editing) {
-    return (
-      <div className="inline-flex items-center gap-0.5">
-        <input ref={ref} type="text" inputMode="decimal"
-          value={draft} onChange={e => setDraft(e.target.value)}
-          onKeyDown={e => {
-            if (e.key === 'Enter') { const n = parseQtyInput(draft); if (validateQty(n) || n === 0) onCommit(n); setEditing(false); }
-            if (e.key === 'Escape') setEditing(false);
-          }}
-          onBlur={() => { const n = parseQtyInput(draft); if (validateQty(n) || n === 0) onCommit(n); setEditing(false); }}
-          className="w-20 text-[9px] text-right px-1 py-0.5 border border-blue-400 rounded bg-white focus:outline-none font-mono tabular-nums"
-        />
-        <button onClick={() => { const n = parseQtyInput(draft); if (validateQty(n) || n === 0) onCommit(n); setEditing(false); }} className="p-0.5 text-green-600 hover:text-green-800"><Check size={10} /></button>
-        <button onClick={() => setEditing(false)} className="p-0.5 text-red-600 hover:text-red-800"><X size={10} /></button>
-      </div>
-    );
-  }
+if (editing) {
+     return (
+       <div className="inline-flex items-center gap-0.5">
+         <label className="sr-only" htmlFor={`inline-input-${id}`}>{label || 'Editar valor'}</label>
+         <input id={`inline-input-${id}`} ref={ref} type="text" inputMode="decimal" aria-label={label || 'Editar valor'}
+           value={draft} onChange={e => setDraft(e.target.value)}
+           onKeyDown={e => {
+             if (e.key === 'Enter') { const n = parseQtyInput(draft); if (validateQty(n) || n === 0) onCommit(n); setEditing(false); }
+             if (e.key === 'Escape') setEditing(false);
+           }}
+           onBlur={() => { const n = parseQtyInput(draft); if (validateQty(n) || n === 0) onCommit(n); setEditing(false); }}
+           className="w-20 text-[9px] text-right px-1 py-0.5 border border-blue-400 rounded bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 font-mono tabular-nums"
+         />
+         <button aria-label="Confirmar" onClick={() => { const n = parseQtyInput(draft); if (validateQty(n) || n === 0) onCommit(n); setEditing(false); }} className="p-0.5 text-green-600 hover:text-green-800"><Check size={10} /></button>
+         <button aria-label="Cancelar" onClick={() => setEditing(false)} className="p-0.5 text-red-600 hover:text-red-800"><X size={10} /></button>
+       </div>
+     );
+   }
   return (
     <span className="text-[9px] text-right cursor-pointer hover:bg-yellow-50 px-1 rounded text-slate-600 hover:text-slate-900 tabular-nums"
       onClick={() => {
@@ -111,12 +114,16 @@ const BudgetRow = memo(function BudgetRow({
 }) {
   const hasChildren = line.children && line.children.length > 0;
   const r = lineResult;
-  const hasDeviation = line.actualCost !== undefined && line.actualCost > 0 && line.subtotal;
+const hasDeviation = line.actualCost !== undefined && line.actualCost > 0 && line.subtotal;
 
-  const commit = useCallback((field: string, val: number) => {
-    const updated = { ...line, [field]: precise(val) };
-    onUpdateLine(updated);
-  }, [line, onUpdateLine]);
+   const commit = useCallback((field: string, val: number) => {
+     const updated = { ...line, [field]: precise(val) };
+     onUpdateLine(updated);
+   }, [line, onUpdateLine]);
+
+   const deviationPct = hasDeviation
+     ? ((line.actualCost! - (line.subtotal || 0)) / (line.subtotal || 1)) * 100
+     : 0;
 
   return (
     <>
@@ -124,18 +131,18 @@ const BudgetRow = memo(function BudgetRow({
         {/* Renglon */}
         <td style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}>
           <div className="flex items-center gap-1.5 py-1.5">
-            {hasChildren ? (
-              <button onClick={() => onToggle(line.id)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 transition-colors">
-                {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
-              </button>
-            ) : <span className="w-5" />}
+{hasChildren ? (
+               <button onClick={() => onToggle(line.id)} aria-label={`Expandir renglón ${line.code}`} className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 transition-colors">
+                 {isExpanded ? <ChevronDown size={12} aria-hidden="true" /> : <ChevronRight size={12} aria-hidden="true" />}
+               </button>
+             ) : <span className="w-5" />}
 
-            {line.computationType === 'dynamic' && (
-              <span className="text-[8px] text-blue-500 font-bold" title="Cálculo dinámico por dimensiones"><GitBranch size={9} /></span>
-            )}
-            {r?.computationType === 'steel' && (
-              <span className="text-[8px] text-orange-500 font-bold" title="Acero de refuerzo"><Zap size={9} /></span>
-            )}
+{line.computationType === 'dynamic' && (
+               <span className="text-[8px] text-blue-500 font-bold" aria-label="Cálculo dinámico por dimensiones"><GitBranch size={9} /></span>
+             )}
+             {r?.computationType === 'steel' && (
+               <span className="text-[8px] text-orange-500 font-bold" aria-label="Acero de refuerzo"><Zap size={9} /></span>
+             )}
 
             <span className="text-[9px] font-black text-slate-700 uppercase">{line.code}</span>
             <span className="text-[9px] font-bold text-slate-600 truncate max-w-[180px]" title={line.description}>{line.description}</span>
@@ -152,47 +159,47 @@ const BudgetRow = memo(function BudgetRow({
         <td className="text-[9px] text-slate-500 text-right font-mono">{line.unit}</td>
 
         {/* Cantidad */}
-        {line.computationType === 'dynamic' ? (
-          <td className="text-right">
-            <span className="text-[9px] text-blue-600 font-bold cursor-pointer hover:bg-blue-100 px-1 rounded" onClick={() => onEdit(line.id)}>
-              {fmtQtyScientific(r?.qty ?? line.qty)} (calc)
-            </span>
-          </td>
-        ) : (
-          <td className="text-right">
-            {editingAllowed ? (
-              <InlineEdit value={r?.qty ?? line.qty} display={fmtQty(r?.qty ?? line.qty, 0, 6)} onCommit={v => commit('qty', v)} />
-            ) : (
-              <span className="text-[9px] text-slate-600 tabular-nums">{fmtQty(r?.qty ?? line.qty, 0, 6)}</span>
-            )}
-          </td>
-        )}
+{line.computationType === 'dynamic' ? (
+           <td className="text-right">
+             <button onClick={() => onEdit(line.id)} className="text-[9px] text-blue-600 font-bold hover:bg-blue-100 px-1 rounded" aria-label={`Editar dimensiones de ${line.description}`}>
+               {fmtQtyScientific(r?.qty ?? line.qty)} (calc)
+             </button>
+           </td>
+         ) : (
+           <td className="text-right">
+             {editingAllowed ? (
+               <InlineEdit id={`qty-${line.id}`} label={`Cantidad ${line.code}`} value={r?.qty ?? line.qty} display={fmtQty(r?.qty ?? line.qty, 0, 6)} onCommit={v => commit('qty', v)} />
+             ) : (
+               <span className="text-[9px] text-slate-600 tabular-nums">{fmtQty(r?.qty ?? line.qty, 0, 6)}</span>
+             )}
+           </td>
+         )}
 
         {/* Costo Unitario Material */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={r?.materialCost ?? line.materialCost} display={fmtMoney(r?.materialCost ?? line.materialCost)} onCommit={v => commit('materialCost', v)} />
-          ) : (
-            <span className="text-[9px] text-slate-500 tabular-nums">{fmtMoney(r?.materialCost ?? line.materialCost)}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`mat-${line.id}`} label={`Costo material ${line.code}`} value={r?.materialCost ?? line.materialCost} display={fmtMoney(r?.materialCost ?? line.materialCost)} onCommit={v => commit('materialCost', v)} />
+           ) : (
+             <span className="text-[9px] text-slate-500 tabular-nums">{fmtMoney(r?.materialCost ?? line.materialCost)}</span>
+           )}
         </td>
 
         {/* Costo Unitario Mano de Obra */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={r?.laborCost ?? line.laborCost} display={fmtMoney(r?.laborCost ?? line.laborCost)} onCommit={v => commit('laborCost', v)} />
-          ) : (
-            <span className="text-[9px] text-slate-500 tabular-nums">{fmtMoney(r?.laborCost ?? line.laborCost)}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`lab-${line.id}`} label={`Costo mano de obra ${line.code}`} value={r?.laborCost ?? line.laborCost} display={fmtMoney(r?.laborCost ?? line.laborCost)} onCommit={v => commit('laborCost', v)} />
+           ) : (
+             <span className="text-[9px] text-slate-500 tabular-nums">{fmtMoney(r?.laborCost ?? line.laborCost)}</span>
+           )}
         </td>
 
         {/* Costo Unitario Equipo */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={line.equipmentCost ?? 0} display={fmtMoney((line.equipmentCost ?? 0))} onCommit={v => commit('equipmentCost', v)} />
-          ) : (
-            <span className="text-[9px] text-slate-500 tabular-nums">{fmtMoney((line.equipmentCost ?? 0))}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`eq-${line.id}`} label={`Costo equipo ${line.code}`} value={line.equipmentCost ?? 0} display={fmtMoney((line.equipmentCost ?? 0))} onCommit={v => commit('equipmentCost', v)} />
+           ) : (
+             <span className="text-[9px] text-slate-500 tabular-nums">{fmtMoney((line.equipmentCost ?? 0))}</span>
+           )}
         </td>
 
         {/* TOTAL MATERIAL */}
@@ -217,38 +224,38 @@ const BudgetRow = memo(function BudgetRow({
 
         {/* DÍAS */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={line.durationDays ?? 0} display={line.durationDays ? `${line.durationDays}d` : '—'} onCommit={v => commit('durationDays', v)} />
-          ) : (
-            <span className="text-[9px] text-slate-500">{line.durationDays ? `${line.durationDays}d` : '—'}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`dur-${line.id}`} label={`Duración días ${line.code}`} value={line.durationDays ?? 0} display={line.durationDays ? `${line.durationDays}d` : '—'} onCommit={v => commit('durationDays', v)} />
+           ) : (
+             <span className="text-[9px] text-slate-500">{line.durationDays ? `${line.durationDays}d` : '—'}</span>
+           )}
         </td>
 
         {/* RENDIMIENTO */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={line.laborPerf ?? 1} display={line.laborPerf && line.laborPerf !== 1 ? fmtPct(line.laborPerf) : '—'} type="percent" onCommit={v => commit('laborPerf', v / 100)} />
-          ) : (
-            <span className="text-[9px] text-slate-500">{line.laborPerf && line.laborPerf !== 1 ? fmtPct(line.laborPerf) : '—'}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`perf-${line.id}`} label={`Rendimiento ${line.code}`} value={line.laborPerf ?? 1} display={line.laborPerf && line.laborPerf !== 1 ? fmtPct(line.laborPerf) : '—'} type="percent" onCommit={v => commit('laborPerf', v / 100)} />
+           ) : (
+             <span className="text-[9px] text-slate-500">{line.laborPerf && line.laborPerf !== 1 ? fmtPct(line.laborPerf) : '—'}</span>
+           )}
         </td>
 
         {/* DESPERDICIO */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={line.wasteFactor ?? 1} display={line.wasteFactor && line.wasteFactor !== 1 ? fmtPct(line.wasteFactor) : '—'} type="percent" onCommit={v => commit('wasteFactor', v / 100)} />
-          ) : (
-            <span className="text-[9px] text-slate-500">{line.wasteFactor && line.wasteFactor !== 1 ? fmtPct(line.wasteFactor) : '—'}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`waste-${line.id}`} label={`Desperdicio ${line.code}`} value={line.wasteFactor ?? 1} display={line.wasteFactor && line.wasteFactor !== 1 ? fmtPct(line.wasteFactor) : '—'} type="percent" onCommit={v => commit('wasteFactor', v / 100)} />
+           ) : (
+             <span className="text-[9px] text-slate-500">{line.wasteFactor && line.wasteFactor !== 1 ? fmtPct(line.wasteFactor) : '—'}</span>
+           )}
         </td>
 
         {/* ÍNDICE MERCADO */}
         <td className="text-right">
-          {editingAllowed ? (
-            <InlineEdit value={line.marketPriceIndex ?? 1} display={line.marketPriceIndex && line.marketPriceIndex !== 1 ? fmtPct(line.marketPriceIndex) : '—'} type="percent" onCommit={v => commit('marketPriceIndex', v / 100)} />
-          ) : (
-            <span className="text-[9px] text-slate-500">{line.marketPriceIndex && line.marketPriceIndex !== 1 ? fmtPct(line.marketPriceIndex) : '—'}</span>
-          )}
+{editingAllowed ? (
+             <InlineEdit id={`mkt-${line.id}`} label={`Índice mercado ${line.code}`} value={line.marketPriceIndex ?? 1} display={line.marketPriceIndex && line.marketPriceIndex !== 1 ? fmtPct(line.marketPriceIndex) : '—'} type="percent" onCommit={v => commit('marketPriceIndex', v / 100)} />
+           ) : (
+             <span className="text-[9px] text-slate-500">{line.marketPriceIndex && line.marketPriceIndex !== 1 ? fmtPct(line.marketPriceIndex) : '—'}</span>
+           )}
         </td>
 
         {/* ACERO */}
@@ -262,32 +269,27 @@ const BudgetRow = memo(function BudgetRow({
         </td>
 
         {/* DESVIACIÓN */}
-        {hasDeviation && (
-          <td className="text-[9px] text-right">
-            {(() => {
-              const dev = ((line.actualCost! - (r?.totalLine ?? line.subtotal ?? 0)) / (r?.totalLine ?? line.subtotal ?? 1)) * 100;
-              return (
-                <span className={`font-bold ${dev > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                  {fmtDev(dev)}
-                </span>
-              );
-            })()}
-          </td>
-        )}
+{hasDeviation && (
+           <td className="text-[9px] text-right">
+             <span className={`font-bold ${deviationPct > 0 ? 'text-red-600' : 'text-green-600'}`} aria-label={`Desviación ${deviationPct.toFixed(1)}%`}>
+               {fmtDev(deviationPct)}
+             </span>
+           </td>
+         )}
 
         {/* ACCIONES */}
         {editingAllowed && (
           <td className="text-right">
-            {line.computationType === 'dynamic' && (
-              <button onClick={() => onEdit(line.id)} className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 transition-all" title="Editar dimensiones"><Pencil size={11} /></button>
-            )}
-            <button onClick={() => {
-              const kids = line.children?.length ?? 0;
-              toast(`¿Eliminar "${line.description}"${kids > 0 ? ` y sus ${kids} sub-renglones` : ''}?`, {
-                action: { label: 'Eliminar', onClick: () => onDeleteLine(line.id) },
-                cancel: { label: 'Cancelar', onClick: () => {} },
-              });
-            }} className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-red-600 transition-all" title="Eliminar"><Trash2 size={11} /></button>
+{line.computationType === 'dynamic' && (
+             <button onClick={() => onEdit(line.id)} aria-label={`Editar dimensiones de ${line.code}`} className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 transition-all" title="Editar dimensiones"><Pencil size={11} /></button>
+           )}
+           <button onClick={() => {
+             const kids = line.children?.length ?? 0;
+             toast(`¿Eliminar "${line.description}"${kids > 0 ? ` y sus ${kids} sub-renglones` : ''}?`, {
+               action: { label: 'Eliminar', onClick: () => onDeleteLine(line.id) },
+               cancel: { label: 'Cancelar', onClick: () => {} },
+             });
+           }} aria-label={`Eliminar ${line.description}`} className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-red-600 transition-all" title="Eliminar"><Trash2 size={11} /></button>
           </td>
         )}
       </tr>

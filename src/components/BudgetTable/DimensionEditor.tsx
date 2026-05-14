@@ -145,22 +145,26 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {fields.map(field => (
           <div key={field}>
-            <label className="text-[8px] font-bold text-slate-600 uppercase block mb-1">
-              {getLabel(field)}
-            </label>
-            <input
-              type="number"
-              step="0.01"
-              min="0"
-              value={dimensions[field] || ''}
-              onChange={(e) => handleChange(field, e.target.value)}
-              placeholder="0.00"
-              className={cn(
-                "w-full px-2 py-1.5 text-[9px] border rounded bg-white text-slate-900",
-                "focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500",
-                "border-slate-300 placeholder:text-slate-400"
-              )}
-            />
+<label className="text-[8px] font-bold text-slate-600 uppercase block mb-1" htmlFor={`dim-${field}`}>
+               {getLabel(field)}
+             </label>
+             <input
+               id={`dim-${field}`}
+               type="number"
+               step="0.01"
+               min="0"
+               name={field}
+               inputMode="decimal"
+               autoComplete="off"
+               value={dimensions[field] || ''}
+               onChange={(e) => handleChange(field, e.target.value)}
+               placeholder="0.00"
+               className={cn(
+                 "w-full px-2 py-1.5 text-[9px] border rounded bg-white text-slate-900",
+                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                 "border-slate-300 placeholder:text-slate-400"
+               )}
+             />
           </div>
         ))}
       </div>
@@ -172,20 +176,21 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
           const num = parseFloat(val);
           if (!isNaN(num) && num > 0) dims[key] = num;
         });
-        const previewLine = { ...line, dimensions: Object.keys(dims).length > 0 ? dims : undefined, computationType: 'dynamic' as const };
-        const previewQty = Object.keys(dims).length > 0 ? calcDynamicQty(previewLine) : 0;
-        const matCost = previewQty * (line.materialCost || 0) * (line.materialPerf ?? 1);
-        const labCost = previewQty * (line.laborCost || 0) * (line.laborPerf ?? 1);
-        const eqCost = previewQty * (line.equipmentCost || 0);
-        const wasteF = line.wasteFactor ?? 1;
-        const wasteAmt = (matCost + labCost + eqCost) * (wasteF - 1);
-        const subtotal = matCost + labCost + eqCost + wasteAmt;
-        const taxAmt = subtotal * (line.taxRate ?? ENGINEERING.taxRate);
-        const profitAmt = subtotal * (line.profitMargin ?? ENGINEERING.profitMargin);
-        const contingAmt = subtotal * (line.contingency ?? ENGINEERING.contingency);
-        const total = subtotal + taxAmt + profitAmt + contingAmt;
-        const hasValidDims = Object.keys(dims).length > 0 && previewQty > 0;
-        return hasValidDims ? (
+const previewLine = { ...line, dimensions: Object.keys(dims).length > 0 ? dims : undefined, computationType: 'dynamic' as const };
+const previewQtyRaw = calcDynamicQty(previewLine);
+         const hasValidDims = Object.keys(dims).length > 0 && previewQtyRaw.qty > 0;
+         const previewQty = hasValidDims ? previewQtyRaw.qty : 0;
+         const matCost = previewQty * (line.materialCost || 0) * (line.materialPerf ?? 1);
+         const labCost = previewQty * (line.laborCost || 0) * (line.laborPerf ?? 1);
+         const eqCost = previewQty * (line.equipmentCost || 0);
+         const wasteF = line.wasteFactor ?? 1;
+         const wasteAmt = (matCost + labCost + eqCost) * (wasteF - 1);
+         const subtotal = matCost + labCost + eqCost + wasteAmt;
+         const taxAmt = subtotal * (line.taxRate ?? ENGINEERING.taxRate);
+         const profitAmt = subtotal * (line.profitMargin ?? ENGINEERING.profitMargin);
+         const contingAmt = subtotal * (line.contingency ?? ENGINEERING.contingency);
+         const total = subtotal + taxAmt + profitAmt + contingAmt;
+         return hasValidDims ? (
           <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
               <Calculator size={12} className="text-blue-600" />

@@ -54,19 +54,20 @@ export default function Modal({
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
 {/* Backdrop with glassmorphism */}
-           <motion.div
-             initial={{ opacity: 0 }}
-             animate={{ opacity: 1 }}
-             exit={{ opacity: 0 }}
-             transition={{ duration: 0.2 }}
-             onClick={onClose}
-             className="absolute inset-0"
-             style={{
-               background: 'rgba(15, 23, 42, 0.6)',
-               backdropFilter: 'blur(8px) saturate(180%)',
-               WebkitBackdropFilter: 'blur(8px) saturate(180%)',
-             }}
-           />
+<motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={onClose}
+              className="absolute inset-0"
+              style={{
+                background: 'rgba(15, 23, 42, 0.6)',
+                backdropFilter: 'blur(8px) saturate(180%)',
+                WebkitBackdropFilter: 'blur(8px) saturate(180%)',
+              }}
+              aria-hidden="true"
+            />
 
            {/* Modal Content */}
            <motion.div
@@ -118,7 +119,7 @@ className={`px-6 py-5 flex items-center justify-between ${
               <div className="flex items-center gap-3">
                 {/* Accent bar */}
                 <div className="w-1 h-5 bg-secondary rounded-full" />
-                <h3 className="text-sm font-black text-primary uppercase tracking-widest">
+                <h3 id="modal-title" className="text-sm font-black text-primary uppercase tracking-widest">
                   {title}
                 </h3>
               </div>

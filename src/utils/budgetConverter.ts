@@ -5,6 +5,7 @@
 
 import { BudgetItem } from '../types/budget';
 import { BudgetLine } from '../lib/budgetData';
+import { Typology } from '../models/engineering';
 
 /**
  * Convierte un arreglo de BudgetItem a un árbol de BudgetLine.
@@ -13,7 +14,10 @@ import { BudgetLine } from '../lib/budgetData';
 export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
   return items.map(item => {
     const hasDimensions = !!item.dimensions && Object.keys(item.dimensions).length > 0;
-    const computationType: 'fixed' | 'dynamic' = item.computationType || (hasDimensions ? 'dynamic' : 'fixed');
+const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fixed');
+     const computationType: 'fixed' | 'dynamic' = rawType === 'steel' ? 'dynamic' : (rawType as 'fixed' | 'dynamic');
+
+    const typology = (item.typology as Typology) || Typology.RESIDENCIAL;
 
     const parentLine: BudgetLine = {
       id: item.id,
@@ -23,6 +27,7 @@ export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
       qty: item.projectQuantity,
       materialCost: 0,
       laborCost: 0,
+      equipmentCost: 0,
       materialPerf: 1,
       laborPerf: 1,
       order: 0,
@@ -30,9 +35,17 @@ export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
       computationType,
       dimensions: item.dimensions,
       wasteFactor: item.wasteFactor,
-      typology: item.typology,
+      typology,
       durationDays: item.durationDays,
       category: item.category,
+      isActive: true,
+      projectQuantity: item.projectQuantity,
+      materials: [],
+      labor: [],
+      equipment: [],
+      dailyOutput: 1,
+      crewSize: 2,
+      estimatedDays: 0,
     };
 
     // Materiales como hijos
@@ -42,13 +55,27 @@ export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
       code: `${item.code}-M${idx + 1}`,
       description: mat.name,
       unit: mat.unit,
-      qty: mat.quantity * item.projectQuantity, // Cantidad total para el proyecto
+      qty: mat.quantity * item.projectQuantity,
       materialCost: mat.price,
       laborCost: 0,
+      equipmentCost: 0,
       materialPerf: 1,
       laborPerf: 1,
       order: idx,
-      children: [],
+      children: [] as BudgetLine[],
+      computationType: 'fixed' as const,
+      dimensions: undefined,
+      wasteFactor: 1,
+      typology,
+      durationDays: item.durationDays || 1,
+      category: item.category || 'Materiales',
+      isActive: true,
+      projectQuantity: item.projectQuantity,
+      materials: [] as any,
+      labor: [] as any,
+      equipment: [] as any,
+      dailyOutput: 1,
+      crewSize: 2,
     }));
 
     // Mano de obra como hijos
@@ -58,13 +85,27 @@ export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
       code: `${item.code}-L${idx + 1}`,
       description: lab.role,
       unit: lab.unit,
-      qty: lab.quantity * item.projectQuantity, // Cantidad total para el proyecto
+      qty: lab.quantity * item.projectQuantity,
       materialCost: 0,
       laborCost: lab.price,
+      equipmentCost: 0,
       materialPerf: 1,
       laborPerf: 1,
       order: idx + materialChildren.length,
-      children: [],
+      children: [] as BudgetLine[],
+      computationType: 'fixed' as const,
+      dimensions: undefined,
+      wasteFactor: 1,
+      typology,
+      durationDays: item.durationDays || 1,
+      category: item.category || 'Mano de Obra',
+      isActive: true,
+      projectQuantity: item.projectQuantity,
+      materials: [] as any,
+      labor: [] as any,
+      equipment: [] as any,
+      dailyOutput: 1,
+      crewSize: 2,
     }));
 
     parentLine.children = [...materialChildren, ...laborChildren];
@@ -103,16 +144,16 @@ export function budgetTreeToItems(tree: BudgetLine[]): BudgetItem[] {
       code: line.code,
       description: line.description,
       unit: line.unit,
-      typology: line.typology || 'RESIDENCIAL',
+      typology: (line.typology as any) || Typology.RESIDENCIAL,
       durationDays: line.durationDays || 1,
       category: line.category || 'PERSONALIZADO',
       projectQuantity: line.qty,
-      selected: true,
+      selected: true as const,
       materials,
       labor,
       dimensions: line.dimensions,
       wasteFactor: line.wasteFactor,
-      computationType: line.computationType,
+      computationType: line.computationType === 'steel' ? 'dynamic' : (line.computationType as any),
     };
   });
 }

@@ -152,7 +152,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       }
       toast.success(`PDF generado: ${type}`);
     } catch (error) {
-      toast.error('Error al generar PDF',{ description: parseError(error as any) });
+      toast.error('Error al generar PDF', { description: parseError(error as any) });
     }
   };
 
@@ -185,43 +185,49 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       />
 
       {/* Panel de ítems APU (búsqueda) */}
-      {showAPUPanel && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-bold text-slate-800">Biblioteca APU</h3>
-            <button
-              onClick={() => setShowAPUPanel(false)}
-              className="text-slate-500 hover:text-slate-700"
-            >
-              Cerrar
-            </button>
-          </div>
-          <input
-            type="text"
-            placeholder="Buscar en APU..."
-            value={apuSearch}
-            onChange={(e) => setApuSearch(e.target.value)}
-            className="w-full px-4 py-2 text-[9px] border border-slate-300 rounded-lg mb-3"
-          />
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
-            {availableAPU.map(apu => (
-              <div
-                key={apu.id}
-                onClick={() => {
-                  if (addAPUItem(apu as any)) {
-                    setShowAPUPanel(false);
-                    setApuSearch('');
-                  }
-                }}
-                className="p-3 border border-slate-200 rounded-lg cursor-pointer hover:border-secondary hover:shadow-md transition-all"
-              >
-                <p className="text-[9px] font-bold text-slate-800">{apu.description}</p>
-                <p className="text-[8px] text-slate-500">{apu.code} · {apu.unit}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+{showAPUPanel && (
+         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+           <div className="flex items-center justify-between mb-4">
+             <h3 className="text-sm font-bold text-slate-800">Biblioteca APU</h3>
+             <button
+               onClick={() => setShowAPUPanel(false)}
+               aria-label="Cerrar panel APU"
+               className="text-slate-500 hover:text-slate-700"
+             >
+               ✕
+             </button>
+           </div>
+           <div className="sr-only">
+             <label htmlFor="apu-search-input">Buscar en APU</label>
+           </div>
+           <input
+             id="apu-search-input"
+             type="search"
+             placeholder="Buscar en APU..."
+             value={apuSearch}
+             onChange={(e) => setApuSearch(e.target.value)}
+             className="w-full px-4 py-2 text-[9px] border border-slate-300 rounded-lg mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+           />
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
+             {availableAPU.map(apu => (
+               <button
+                 key={apu.id}
+                 onClick={() => {
+                   if (addAPUItem(apu as any)) {
+                     setShowAPUPanel(false);
+                     setApuSearch('');
+                   }
+                 }}
+                 className="p-3 border border-slate-200 rounded-lg text-left hover:border-secondary hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                 aria-label={`Agregar APU: ${apu.description}`}
+               >
+                 <p className="text-[9px] font-bold text-slate-800">{apu.description}</p>
+                 <p className="text-[8px] text-slate-500">{apu.code} · {apu.unit}</p>
+               </button>
+             ))}
+           </div>
+         </div>
+       )}
 
       {/* Biblioteca de renglones (búsqueda y selección) */}
       <ProjectItemsList
@@ -241,18 +247,20 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
             </span>
           </h2>
           <div className="flex gap-2">
-            <button
-              onClick={() => setShowAPUPanel(v => !v)}
-              className="px-3 py-1.5 text-[8px] font-bold uppercase bg-slate-100 text-slate-700 rounded hover:bg-slate-200"
-            >
-              {showAPUPanel ? 'Ocultar APU' : 'Buscar APU'}
-            </button>
-            <button
-              onClick={addCustomItem}
-              className="px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded hover:bg-blue-200"
-            >
-              + Personalizado
-            </button>
+<button
+               onClick={() => setShowAPUPanel(v => !v)}
+               aria-label={`${showAPUPanel ? 'Ocultar' : 'Mostrar'} biblioteca APU`}
+               className="px-3 py-1.5 text-[8px] font-bold uppercase bg-slate-100 text-slate-700 rounded hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+             >
+               {showAPUPanel ? 'Ocultar APU' : 'Buscar APU'}
+             </button>
+             <button
+               onClick={addCustomItem}
+               aria-label="Agregar renglón personalizado"
+               className="px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+             >
+               + Personalizado
+             </button>
           </div>
         </div>
 

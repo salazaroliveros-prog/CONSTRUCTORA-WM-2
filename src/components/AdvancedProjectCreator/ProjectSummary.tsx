@@ -48,11 +48,11 @@ interface ProjectSummaryProps {
 }
 
 function formatQ(value: number): string {
-  return `Q ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return fmtQ(value);
 }
 
 function fmtPct(value: number): string {
-  return `${value >= 0 ? '+' : ''}${value.toFixed(1)}%`;
+  return new Intl.NumberFormat('es-GT', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
 }
 
 // ─── Componente principal ───────────────────────────────────────────────────
@@ -94,9 +94,9 @@ export function ProjectSummary({
   }, [budgetLines]);
 
   // ── Alertas de desviación ────────────────────────────────────────────────
-  const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
-    if (!budgetLines?.length) return [];
-    return checkDeviations(budgetLines, 5);
+const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
+     if (!budgetLines?.length) return [];
+     return checkDeviations(budgetLines as BudgetLine[], {}, 5);
   }, [budgetLines]);
 
   // ── Gastos reales desde transacciones (Budget vs Actual) ─────────────────
@@ -121,14 +121,16 @@ export function ProjectSummary({
             <h2 className="text-sm font-black uppercase text-slate-800">Resumen de Costos</h2>
           </div>
           <div className="flex items-center gap-2">
-            <button onClick={() => setShowSensitivity(v => !v)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded transition-colors ${showSensitivity ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              <BarChart3 size={10} /> Sensibilidad
-            </button>
-            <button onClick={() => setShowAlerts(v => !v)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded transition-colors ${showAlerts ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
-              <ShieldAlert size={10} /> Alertas ({deviations.length})
-            </button>
+<button onClick={() => setShowSensitivity(v => !v)}
+               aria-label={`${showSensitivity ? 'Ocultar' : 'Mostrar'} análisis de sensibilidad`}
+               className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded transition-colors ${showSensitivity ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+               <BarChart3 size={10} aria-hidden="true" /> Sensibilidad
+             </button>
+             <button onClick={() => setShowAlerts(v => !v)}
+               aria-label={`${showAlerts ? 'Ocultar' : 'Mostrar'} alertas de desviación`}
+               className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded transition-colors ${showAlerts ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+               <ShieldAlert size={10} aria-hidden="true" /> Alertas ({deviations.length})
+             </button>
             <button onClick={() => onExportPDF('completo')}
               className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
               <FileDown size={10} /> PDF

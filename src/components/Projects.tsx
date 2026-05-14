@@ -99,17 +99,17 @@ function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-2 space-y-1.5">
         <div className="grid grid-cols-2 gap-1.5">
           {fields.map(f => (
-            <div key={f.key} className={f.small ? '' : 'col-span-2'}>
-              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5">{f.label}</label>
-              <input type={f.type} value={form[f.key]} step={f.type === 'number' ? '0.01' : undefined}
-                onChange={e => setForm({ ...form, [f.key]: f.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value })}
-                className="w-full bg-white border border-amber-200 rounded-lg px-2 py-1 text-[9px] font-black uppercase focus:outline-none focus:border-amber-400" />
-            </div>
+<div key={f.key} className={f.small ? '' : 'col-span-2'}>
+               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-0.5" htmlFor={`field-${f.key}`}>{f.label}</label>
+               <input id={`field-${f.key}`} name={f.key} type={f.type} value={form[f.key]} step={f.type === 'number' ? '0.01' : undefined} inputMode={f.type === 'number' ? 'decimal' : undefined} autoComplete="off"
+                 onChange={e => setForm({ ...form, [f.key]: f.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value })}
+                 className="w-full bg-white border border-amber-200 rounded-lg px-2 py-1 text-[9px] font-black uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500" />
+             </div>
           ))}
         </div>
         <div className="flex gap-1.5">
-          <button onClick={() => setEditing(false)} className="flex-1 py-1 bg-white border border-slate-200 rounded-lg text-[7px] font-black uppercase text-slate-500">Cancelar</button>
-          <button onClick={handleSave} className="flex-1 py-1 bg-amber-500 text-white rounded-lg text-[7px] font-black uppercase">Guardar</button>
+<button aria-label="Cancelar edición" onClick={() => setEditing(false)} className="flex-1 py-1 bg-white border border-slate-200 rounded-lg text-[7px] font-black uppercase text-slate-500">Cancelar</button>
+           <button aria-label="Guardar cambios" onClick={handleSave} className="flex-1 py-1 bg-amber-500 text-white rounded-lg text-[7px] font-black uppercase">Guardar</button>
         </div>
       </div>
     );
@@ -124,8 +124,8 @@ function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
         <div className="text-right mr-1">
           <p className="text-[9px] font-black text-slate-600">Q {totalPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</p>
         </div>
-        <button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} className="btn-edit opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
-        <button onClick={onDelete} className="btn-delete opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
+<button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} aria-label="Editar ítem" className="btn-edit opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
+         <button onClick={onDelete} aria-label="Eliminar ítem" className="btn-delete opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
       </div>
     </div>
   );

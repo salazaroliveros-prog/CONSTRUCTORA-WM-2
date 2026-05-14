@@ -1,7 +1,18 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, signInWithGoogle, logout, onAuthStateChanged, getRedirectAuthResult, User } from '../lib/firebase';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
+import {
+  auth,
+  signInWithGoogle,
+  logout,
+  onAuthStateChanged,
+  getRedirectAuthResult,
+  getIdToken,
+  setSessionCookie,
+  User
+} from '../lib/firebase';
+import { SyncEngine } from '../lib/sync/SyncEngine';
+import type { SyncState } from '../lib/sync/types';
 
-// Usuario principal autorizado - solo este correo puede ver todos los datos
+// Usuario principal autorizado
 const AUTHORIZED_EMAIL = 'salazaroliveros@gmail.com';
 
 interface AuthContextType {
@@ -10,30 +21,90 @@ interface AuthContextType {
   isAuthorizedUser: boolean;
   login: () => Promise<void>;
   signOut: () => Promise<void>;
+  getIdTokenResult: () => Promise<string | null>;
+}
+
+interface SyncContextType {
+  syncState: SyncState | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const SyncContext = createContext<SyncContextType>({ syncState: null });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncState, setSyncState] = useState<SyncState | null>(null);
 
-  // Verificar si el usuario actual es el autorizado
   const isAuthorizedUser = user?.email === AUTHORIZED_EMAIL;
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-      setUser(firebaseUser);
-      setLoading(false);
-    });
-    return () => unsubscribe();
+    let cancelled = false;
+
+    const init = async () => {
+      try {
+        const redirectUser = await getRedirectAuthResult();
+        if (redirectUser && !cancelled) {
+          setUser(redirectUser);
+          const token = await getIdToken(redirectUser);
+          if (token && !cancelled) {
+            await setSessionCookie(token);
+          }
+        }
+      } catch (err) {
+        console.error('Redirect auth error:', err);
+      }
+
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (!cancelled) {
+          setUser(firebaseUser);
+
+          if (firebaseUser && !cancelled) {
+            try {
+              const token = await getIdToken(firebaseUser);
+              if (token) await setSessionCookie(token);
+            } catch { /* ok */ }
+
+            // Inicializar SyncEngine al autenticarse
+            try {
+              const engine = SyncEngine.getInstance();
+              await engine.init();
+            } catch (e) {
+              console.error('[AuthProvider] SyncEngine init failed:', e);
+            }
+          }
+
+          setLoading(false);
+        }
+      });
+
+      return unsubscribe;
+    };
+
+    const unsubPromise = init();
+    return () => {
+      cancelled = true;
+      unsubPromise.then(unsub => unsub?.());
+    };
   }, []);
+
+  // Suscribirse a cambios de estado del SyncEngine
+  useEffect(() => {
+    if (!user) return;
+
+    const engine = SyncEngine.getInstance();
+    const stopSync = engine.onStateChange((state) => {
+      setSyncState(state);
+    });
+
+    return stopSync;
+  }, [user]);
 
   const login = async () => {
     try {
       setLoading(true);
       await signInWithGoogle();
-      // signInWithRedirect redirige a Google, no retorna acá
+      setLoading(false);
     } catch (error: any) {
       if (error?.code !== 'auth/cancelled-popup-request' && error?.code !== 'auth/popup-closed-by-user') {
         console.error('Login error:', error);
@@ -42,25 +113,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Manejar resultado del redirect (cuando Google redirige de vuelta)
-  useEffect(() => {
-    const handleRedirectResult = async () => {
-      const user = await getRedirectAuthResult();
-      if (user) {
-        // Usuario autenticado exitosamente vía redirect
-        console.log('Redirect login successful:', user.email);
-      }
-    };
-    handleRedirectResult();
+  const signOut = useCallback(async () => {
+    try {
+      await fetch('/api/auth/session', { method: 'DELETE' });
+    } catch { /* ignore */ }
+
+    // Detener sync engine
+    SyncEngine.resetInstance();
+    await logout();
   }, []);
 
-  const signOut = async () => {
-    await logout();
+  const getIdTokenResult = async (): Promise<string | null> => {
+    if (!user) return null;
+    try {
+      return await getIdToken(user);
+    } catch {
+      return null;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthorizedUser, login, signOut }}>
-      {!loading && children}
+    <AuthContext.Provider value={{ user, loading, isAuthorizedUser, login, signOut, getIdTokenResult }}>
+      <SyncContext.Provider value={{ syncState }}>
+        {!loading && children}
+      </SyncContext.Provider>
     </AuthContext.Provider>
   );
 }
@@ -69,6 +145,14 @@ export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}
+
+export function useSync() {
+  const context = useContext(SyncContext);
+  if (context === undefined) {
+    throw new Error('useSync must be used within a SyncProvider');
   }
   return context;
 }

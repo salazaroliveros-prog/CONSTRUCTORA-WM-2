@@ -8,5 +8,11 @@ coverage/
 !.env.example
 .kiro/
 .vscode/
-
 .vercel
+
+# Archivos de sesión/config local de Kilo
+session-ses_*.md
+ts-errors.txt
+
+# Firebase config local (usa .env.local en su lugar)
+firebase-applet-config.json

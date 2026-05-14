@@ -1,41 +1,89 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import {
+  getAuth, GoogleAuthProvider, signInWithPopup,
+  signInWithRedirect, getRedirectResult,
+  signOut, onAuthStateChanged, User, getIdToken,
+  browserLocalPersistence, setPersistence
+} from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import firebaseConfig from '../../firebase-applet-config.json';
+import { getStorage } from 'firebase/storage';
+import firebaseConfig from './firebaseConfig';
 
-export const app = initializeApp(firebaseConfig);
+// ─── Inicialización singleton ──────────────────────────────────────────────────
+if (!getApps().length) {
+  initializeApp(firebaseConfig);
+}
+
+export const app = getApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const storage = getStorage(app);
 
+// ─── Persistencia de sesión: LOCAL (sobrevive recargas y cierre de tab) ────────
+// Por defecto Firebase usa SESSION (se pierde al cerrar tab).
+// LOCAL persiste hasta que se hace signOut explícito.
+setPersistence(auth, browserLocalPersistence).catch(console.error);
+
+// ─── Google Auth Provider ──────────────────────────────────────────────────────
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({ prompt: 'select_account' });
 
-export const signInWithGoogle = async () => {
+/**
+ * Login con popup (preferido) — no depende de cookies de terceros.
+ * Funciona en localhost y en producción Vercel.
+ */
+export const signInWithGoogle = async (): Promise<User | null> => {
   try {
-    // Usar redirect en lugar de popup para evitar bloqueos COOP/COEP
-    await signInWithRedirect(auth, googleProvider);
-    // La función retorna sin usuario porque el redirect recarga la página
-    // getRedirectResult se maneja en AuthContext
-    return null;
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
   } catch (error: any) {
-    if (error?.code !== 'auth/cancelled-popup-request' && error?.code !== 'auth/popup-closed-by-user') {
+    if (error?.code === 'auth/popup-closed-by-user') {
+      console.warn('Popup cerrado por el usuario');
+      return null;
+    }
+    if (error?.code === 'auth/popup-blocked') {
+      try {
+        await signInWithRedirect(auth, googleProvider);
+        return null;
+      } catch (redirectError: any) {
+        throw redirectError;
+      }
+    }
+    if (error?.code !== 'auth/cancelled-popup-request') {
       console.error('Error signing in with Google:', error);
     }
     throw error;
   }
 };
 
-/** Obtener resultado de autenticación después de redirect */
+/** Obtener resultado de autenticación después de redirect (fallback) */
 export const getRedirectAuthResult = async () => {
   try {
     const result = await getRedirectResult(auth);
     return result?.user || null;
   } catch (error: any) {
-    console.error('Error getting redirect result:', error);
+    if (error?.code !== 'auth/redirect-error' && error?.code !== 'auth/no-current-user') {
+      console.error('Error getting redirect result:', error);
+    }
     return null;
   }
 };
 
 export const logout = () => signOut(auth);
 
-export { onAuthStateChanged };
+// ─── Session Cookie helper (para Vercel producción) ───────────────────────────────
+export async function setSessionCookie(idToken: string): Promise<boolean> {
+  try {
+    const res = await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    });
+    return res.ok;
+  } catch {
+    return false;
+  }
+}
+
+export { onAuthStateChanged, getIdToken };
 export type { User };

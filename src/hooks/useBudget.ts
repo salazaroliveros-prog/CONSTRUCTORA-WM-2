@@ -11,7 +11,8 @@
  */
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { BudgetLine, defaultBudget } from '../lib/budgetData';
+import { BudgetLine } from '../lib/budgetData';
+import { BudgetLineDocument } from '../models/budget';
 import { calculateTree, calculateProject, BudgetTotals as ProjectTotals, LineResult } from '../engine/budgetEngine';
 import { MarketLevel, SLAB_TYPOLOGIES, MARKET_LEVELS, applyMarketParameters } from '../lib/marketParams';
 import { itemsToBudgetTree, budgetTreeToItems } from '../utils/budgetConverter';
@@ -45,7 +46,7 @@ interface UseBudgetResult {
 }
 
 export function useBudget(props: UseBudgetProps = {}): UseBudgetResult {
-  const { initialBudget = defaultBudget, projectConfig } = props;
+  const { initialBudget = [], projectConfig } = props;
 
   const [budgetLines, setBudgetLines] = useState<BudgetLine[]>([]);
   const [calculatedBudget, setCalculatedBudget] = useState<LineResult[]>([]);

@@ -1,0 +1,10 @@
+Debugger listening on ws://127.0.0.1:55766/7a9b1014-21db-4220-b389-a31f3d40f91a
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+Debugger ending on ws://127.0.0.1:55766/7a9b1014-21db-4220-b389-a31f3d40f91a
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger listening on ws://127.0.0.1:55775/fc394cd7-b040-42b2-a0a8-3cc493f92c97
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+Debugger ending on ws://127.0.0.1:55775/fc394cd7-b040-42b2-a0a8-3cc493f92c97
+For help, see: https://nodejs.org/en/docs/inspector
