@@ -7,9 +7,8 @@ import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
 import { ChevronRight, ChevronDown, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 import { BudgetLine } from '../lib/budgetData';
 import { toast } from 'sonner';
-import { cn } from '../utils/cn';
 import { DimensionEditor } from './BudgetTable/DimensionEditor';
-import { calculateDynamicQuantity } from '../utils/budgetCalc';
+import { calculateDynamicQuantity, calculateBudget } from '../utils/budgetCalc';
 
 interface BudgetTableProps {
   lines: BudgetLine[];
@@ -20,7 +19,33 @@ interface BudgetTableProps {
 }
 
 /**
+ * Computa subtotal en tiempo real para una línea (incluye hijos)
+ */
+function calcLineMaterial(line: BudgetLine): number {
+  return line.qty * line.materialCost * (line.materialPerf ?? 1);
+}
+function calcLineLabor(line: BudgetLine): number {
+  return line.qty * line.laborCost * (line.laborPerf ?? 1);
+}
+function calcLineSelf(line: BudgetLine): number {
+  return calcLineMaterial(line) + calcLineLabor(line);
+}
+function calcLineTotal(line: BudgetLine): number {
+  const self = calcLineSelf(line);
+  const children = line.children?.reduce((s, c) => s + calcLineTotal(c), 0) ?? 0;
+  return self + children;
+}
+
+/**
+ * Muestra valor formateado o vacío si es cero
+ */
+function fmtQVal(v: number): string {
+  return v > 0 ? `Q ${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '';
+}
+
+/**
  * Componente de fila individual (memoizado) con CRUD completo
+ * y cálculo automático en tiempo real
  */
 const BudgetTableRow = memo(function BudgetTableRow({
   line,
@@ -47,6 +72,14 @@ const BudgetTableRow = memo(function BudgetTableRow({
   const [editingField, setEditingField] = useState<'qty' | 'materialCost' | 'laborCost' | null>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Cálculos en tiempo real
+  const rtMaterial = calcLineMaterial(line);
+  const rtLabor = calcLineLabor(line);
+  const rtSelf = rtMaterial + rtLabor;
+  const rtChildrenTotal = line.children?.reduce((s, c) => s + calcLineTotal(c), 0) ?? 0;
+  const rtSubtotal = rtSelf + rtChildrenTotal;
+  const showSubtotal = rtSubtotal > 0 || hasChildren;
 
   useEffect(() => {
     if (editingField && inputRef.current) {
@@ -94,9 +127,21 @@ const BudgetTableRow = memo(function BudgetTableRow({
         </td>
       );
     }
+    // No mostrar "0.00" — mostrar vacío si es cero
+    if (value === 0 && field !== 'qty') {
+      return (
+        <td
+          className="text-[9px] text-right text-slate-300 cursor-pointer hover:bg-yellow-50"
+          onClick={() => editingAllowed && startInlineEdit(field)}
+          title="Click para editar"
+        >
+          —
+        </td>
+      );
+    }
     return (
       <td
-        className={`text-[9px] text-right ${editingAllowed && field !== 'qty' ? 'cursor-pointer hover:bg-yellow-50' : ''}`}
+        className={`text-[9px] text-right ${editingAllowed ? 'cursor-pointer hover:bg-yellow-50' : ''}`}
         onClick={() => editingAllowed && startInlineEdit(field)}
         title={editingAllowed ? 'Click para editar' : undefined}
       >
@@ -159,8 +204,8 @@ const BudgetTableRow = memo(function BudgetTableRow({
         )}
         <EditableCell field="materialCost" value={line.materialCost} prefix="Q " />
         <EditableCell field="laborCost" value={line.laborCost} prefix="Q " />
-        <td className="text-[9px] font-bold text-slate-800 text-right">
-          Q {(line.subtotal ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        <td className={`text-[9px] font-bold text-right ${showSubtotal ? 'text-slate-800' : 'text-slate-300'}`}>
+          {showSubtotal ? fmtQVal(rtSubtotal) : '—'}
         </td>
         {editingAllowed && (
           <td className="text-right">
@@ -195,7 +240,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
         </tr>
       )}
 
-      {/* Filas hijas (recursivas) */}
+      {/* Filas hijas (recursivas) — despliegue automático con sus propios cálculos */}
       {hasChildren && isExpanded && line.children!.map(child => (
         <BudgetTableRow
           key={child.id}
@@ -261,7 +306,7 @@ export default function BudgetTable({
   const handleDeleteLine = useCallback((id: string) => {
     const newLines = deleteLineRecursive(lines, id);
     if (newLines.length !== lines.length || JSON.stringify(newLines) !== JSON.stringify(lines)) {
-      onUpdate(newLines);
+      onUpdate(calculateBudget(newLines));
       toast.success('Renglón eliminado');
     }
   }, [lines, onUpdate, deleteLineRecursive]);
@@ -297,7 +342,8 @@ export default function BudgetTable({
    * Handler para actualización de línea desde editor
    */
   const handleUpdateLine = useCallback((updatedLine: BudgetLine) => {
-    onUpdate(updateLineRecursive(lines, updatedLine));
+    const updated = updateLineRecursive(lines, updatedLine);
+    onUpdate(calculateBudget(updated));
   }, [lines, onUpdate, updateLineRecursive]);
 
   /**

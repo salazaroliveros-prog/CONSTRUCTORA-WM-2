@@ -4,9 +4,10 @@
  */
 
 import React, { useState } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Calculator } from 'lucide-react';
 import { BudgetLine } from '../../lib/budgetData';
 import { cn } from '../../utils/cn';
+import { calculateDynamicQuantity } from '../../utils/budgetCalc';
 
 interface DimensionEditorProps {
   line: BudgetLine;
@@ -163,6 +164,47 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
           </div>
         ))}
       </div>
+
+      {/* Vista previa de cálculo en tiempo real */}
+      {(() => {
+        const dims: Record<string, number> = {};
+        Object.entries(dimensions).forEach(([key, val]) => {
+          const num = parseFloat(val);
+          if (!isNaN(num) && num > 0) dims[key] = num;
+        });
+        const previewLine = { ...line, dimensions: Object.keys(dims).length > 0 ? dims : undefined, computationType: 'dynamic' as const };
+        const previewQty = Object.keys(dims).length > 0 ? calculateDynamicQuantity(previewLine) : 0;
+        const previewMat = previewQty * line.materialCost * (line.materialPerf ?? 1);
+        const previewLab = previewQty * line.laborCost * (line.laborPerf ?? 1);
+        const previewSub = previewMat + previewLab;
+        const hasValidDims = Object.keys(dims).length > 0 && previewQty > 0;
+        return hasValidDims ? (
+          <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+            <div className="flex items-center gap-2 mb-2">
+              <Calculator size={12} className="text-blue-600" />
+              <span className="text-[8px] font-black text-blue-700 uppercase">Vista previa del cálculo</span>
+            </div>
+            <div className="grid grid-cols-4 gap-3 text-[9px]">
+              <div>
+                <span className="text-slate-500">Cant. calculada:</span>
+                <span className="ml-1 font-bold text-slate-800">{previewQty.toFixed(2)} {line.unit}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">Material:</span>
+                <span className="ml-1 font-bold text-slate-800">Q {previewMat.toFixed(2)}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">Mano Obra:</span>
+                <span className="ml-1 font-bold text-slate-800">Q {previewLab.toFixed(2)}</span>
+              </div>
+              <div>
+                <span className="text-slate-500">Subtotal:</span>
+                <span className="ml-1 font-bold text-blue-700">Q {previewSub.toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+        ) : null;
+      })()}
 
       <div className="flex gap-2 mt-4">
         <button
