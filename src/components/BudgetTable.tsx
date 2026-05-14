@@ -8,7 +8,7 @@ import { ChevronRight, ChevronDown, Pencil, Trash2, Plus, Check, X, Clock } from
 import { BudgetLine } from '../lib/budgetData';
 import { toast } from 'sonner';
 import { DimensionEditor } from './BudgetTable/DimensionEditor';
-import { calculateDynamicQuantity, calculateBudget } from '../utils/budgetCalc';
+import { calculateDynamicQuantity, calculateBudget, precise, fmtInput } from '../utils/budgetCalc';
 
 interface BudgetTableProps {
   lines: BudgetLine[];
@@ -23,42 +23,43 @@ interface BudgetTableProps {
  * Computa costos, duración y consolidación jerárquica
  */
 
-// Costo material de una línea (qty × unitCost × perf)
+// Costo material exacto con precisión 2 decimales
 function calcLineMaterial(line: BudgetLine): number {
-  return line.qty * line.materialCost * (line.materialPerf ?? 1);
+  return precise(line.qty * line.materialCost * (line.materialPerf ?? 1));
 }
-// Costo mano de obra de una línea
 function calcLineLabor(line: BudgetLine): number {
-  return line.qty * line.laborCost * (line.laborPerf ?? 1);
+  return precise(line.qty * line.laborCost * (line.laborPerf ?? 1));
 }
-// Subtotal propio (sin hijos)
+function calcLineEquipment(line: BudgetLine): number {
+  return precise(line.qty * (line.equipmentCost ?? 0));
+}
 function calcLineSelf(line: BudgetLine): number {
-  return calcLineMaterial(line) + calcLineLabor(line);
+  return calcLineMaterial(line) + calcLineLabor(line) + calcLineEquipment(line);
 }
-// Subtotal total (propio + recursivo hijos)
 function calcLineTotal(line: BudgetLine): number {
   const self = calcLineSelf(line);
   const children = line.children?.reduce((s, c) => s + calcLineTotal(c), 0) ?? 0;
-  return self + children;
+  return precise(self + children);
 }
-// Costo material efectivo (incluye hijos si los tiene)
+// Costos efectivos (incluyen hijos)
 function calcLineMatTotal(line: BudgetLine): number {
   if (!line.children?.length) return calcLineMaterial(line);
-  return line.children.reduce((s, c) => s + calcLineMaterial(c), 0);
+  return precise(line.children.reduce((s, c) => s + calcLineMaterial(c), 0));
 }
-// Costo mano de obra efectivo (incluye hijos)
 function calcLineLabTotal(line: BudgetLine): number {
   if (!line.children?.length) return calcLineLabor(line);
-  return line.children.reduce((s, c) => s + calcLineLabor(c), 0);
+  return precise(line.children.reduce((s, c) => s + calcLineLabor(c), 0));
 }
-// Duración estimada de la línea en días
+function calcLineEqTotal(line: BudgetLine): number {
+  if (!line.children?.length) return calcLineEquipment(line);
+  return precise(line.children.reduce((s, c) => s + calcLineEquipment(c), 0));
+}
 function calcLineDuration(line: BudgetLine): number {
   if (!line.children?.length) return 0;
-  return line.children.length * 0.5; // estimación: 0.5 día por sub-renglón
+  return precise(line.children.length * 0.5);
 }
-
 function fmtQVal(v: number): string {
-  return v > 0 ? `Q ${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '';
+  return v > 0 ? `Q ${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '';
 }
 
 /**
@@ -116,21 +117,29 @@ const BudgetTableRow = memo(function BudgetTableRow({
 
   const startInlineEdit = (field: 'qty' | 'materialCost' | 'laborCost') => {
     if (field === 'qty' && line.computationType === 'dynamic') return;
-    if (field !== 'qty' && hasChildren) return; // padres: no editar unitario
+    if (field !== 'qty' && hasChildren) return;
     setEditValue(String(line[field]));
     setEditingField(field);
   };
 
   const commitInlineEdit = () => {
     if (!editingField) return;
-    const val = parseFloat(editValue);
+    const raw = editValue.replace(',', '.');
+    const val = parseFloat(raw);
     if (!isNaN(val) && val >= 0) {
-      onUpdateLine({ ...line, [editingField]: val });
+      // Forzar precisión 2 decimales
+      onUpdateLine({ ...line, [editingField]: precise(val) });
     }
     setEditingField(null);
   };
 
   const cancelInlineEdit = () => setEditingField(null);
+
+  // Forzar formato 00.00 mientras se escribe (en tiempo real)
+  useEffect(() => {
+    if (!editingField) return;
+    // Permitir escritura libre durante edición, el formateo ocurre al commit
+  }, [editingField, editValue]);
 
   // Celda para costo material/labor — padres muestran total, hojas muestran unitario
   const CostCell = ({ field, label }: { field: 'materialCost' | 'laborCost'; label: string }) => {
@@ -204,7 +213,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
         {line.computationType === 'dynamic' ? (
           <td className="text-[9px] text-right">
             <span className="text-blue-600 font-medium cursor-pointer hover:bg-blue-50" onClick={() => onEdit(line.id)}>
-              {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} (calc)
+              {fmtInput(line.qty)} (calc)
             </span>
           </td>
         ) : isLeaf ? (
@@ -213,7 +222,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
               return (
                 <td className="text-right p-0">
                   <div className="inline-flex items-center gap-0.5">
-                    <input ref={inputRef} type="number" step="any" min="0"
+                    <input ref={inputRef} type="number" step="0.01" min="0"
                       value={editValue} onChange={(e) => setEditValue(e.target.value)}
                       onKeyDown={(e) => { if (e.key === 'Enter') commitInlineEdit(); if (e.key === 'Escape') cancelInlineEdit(); }}
                       onBlur={commitInlineEdit}
@@ -228,16 +237,20 @@ const BudgetTableRow = memo(function BudgetTableRow({
             return (
               <td className="text-[9px] text-right cursor-pointer hover:bg-yellow-50"
                 onClick={() => editingAllowed && startInlineEdit('qty')} title="Click para editar cantidad">
-                {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                {fmtInput(line.qty)}
               </td>
             );
           })()
         ) : (
-          <td className="text-[9px] text-right text-slate-600">{line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
+          <td className="text-[9px] text-right text-slate-600">{fmtInput(line.qty)}</td>
         )}
 
         <CostCell field="materialCost" label="materiales" />
         <CostCell field="laborCost" label="mano de obra" />
+
+        <td className={`text-[9px] text-right ${isLeaf ? 'text-slate-600' : 'font-bold text-slate-700'}`}>
+          {fmtQVal(calcLineEquipment(line)) || (hasChildren ? '—' : 'Q 0.00')}
+        </td>
 
         <td className={`text-[9px] font-bold text-right ${showSubtotal ? 'text-slate-800' : 'text-slate-300'}`}>
           {showSubtotal ? fmtQVal(rtSubtotal) : '—'}
@@ -264,7 +277,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
       {/* Edición de dimensiones */}
       {editingAllowed && isEditing && (
         <tr key={`${line.id}_edit`} className="bg-blue-50 border-t border-blue-200">
-          <td colSpan={editingAllowed ? 7 : 6} className="p-0">
+          <td colSpan={editingAllowed ? 8 : 7} className="p-0">
             <DimensionEditor line={line} onUpdate={onUpdateLine} onClose={() => onEdit(line.id)} />
           </td>
         </tr>
@@ -408,6 +421,9 @@ export default function BudgetTable({
             </th>
             <th className="px-4 py-2 text-[9px] font-black text-slate-700 uppercase tracking-wider text-right">
               Mano Obra Q
+            </th>
+            <th className="px-4 py-2 text-[9px] font-black text-slate-700 uppercase tracking-wider text-right">
+              Equipo Q
             </th>
             <th className="px-4 py-2 text-[9px] font-black text-slate-700 uppercase tracking-wider text-right">
               Subtotal Q

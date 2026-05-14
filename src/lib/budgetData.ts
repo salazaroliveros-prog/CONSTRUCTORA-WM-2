@@ -2,47 +2,58 @@
 
 export interface BudgetLine {
   id: string;
-  parentId?: string; // undefined means it's a top-level line
-  code: string; // e.g., "01-01-001"
+  parentId?: string;
+  code: string;
   description: string;
-  unit: string; // e.g., "m²", "kg", "hr"
-  qty: number; // base quantity for this line (e.g., area, volume, length)
-  materialCost: number; // cost per unit of material (in Q.)
-  laborCost: number; // cost per unit of labor (in Q.)
-  materialPerf: number; // material performance: units of material per unit of base qty (e.g., kg/m²)
-  laborPerf: number; // labor performance: hours of labor per unit of base qty (e.g., hr/m²)
-  order: number; // chronological order for sorting
-  children: BudgetLine[]; // sub-lines (for material and labor breakdown)
+  unit: string;
+  qty: number;
+  materialCost: number;
+  laborCost: number;
+  materialPerf: number;
+  laborPerf: number;
+  order: number;
+  children: BudgetLine[];
 
-  // New: Dynamic computation fields for engineering calculations
-  computationType?: 'fixed' | 'dynamic'; // Whether qty is fixed or calculated from dimensions
+  computationType?: 'fixed' | 'dynamic';
   dimensions?: {
-    length?: number; // Largo (m)
-    width?: number;  // Ancho (m)
-    height?: number; // Alto/Profundidad (m)
-    diameter?: number; // Diámetro (m) for circular elements
-    thickness?: number; // Espesor (m)
+    length?: number;
+    width?: number;
+    height?: number;
+    diameter?: number;
+    thickness?: number;
   };
-  wasteFactor?: number; // Factor de desperdicio (e.g., 1.05 for 5% waste)
-  typology?: string; // Construction typology: RESIDENCIAL, COMERCIAL, INDUSTRIAL, CIVIL, PUBLICA
+  /** Factor de desperdicio (1.05 = 5%) */
+  wasteFactor?: number;
+  /** Costo de equipo por unidad */
+  equipmentCost?: number;
+  /** Tasa de IVA (0.12 = 12%) */
+  taxRate?: number;
+  /** Margen de utilidad (0.15 = 15%) */
+  profitMargin?: number;
+  /** Porcentaje de imprevistos (0.05 = 5%) */
+  contingency?: number;
+  /** Índice de precio de mercado (1.0 = base, 1.10 = +10%) */
+  marketPriceIndex?: number;
+  /** Costo real ejecutado (para comparativa) */
+  actualCost?: number;
+  typology?: string;
 
-  // New: Material specifications for automatic calculations
   materialSpecs?: {
-    concreteGrade?: string; // e.g., "f'c 210 kg/cm²"
-    steelType?: string; // e.g., "A36", "A42"
-    steelDiameter?: number; // Diámetro de acero (mm)
-    formworkType?: string; // Tipo de encofrado
+    concreteGrade?: string;
+    steelType?: string;
+    steelDiameter?: number;
+    formworkType?: string;
   };
 
-   // Calculated fields (not stored, computed by the engine)
-   materialTotal?: number;
-   laborTotal?: number;
-   subtotal?: number;
+  // Calculated fields
+  materialTotal?: number;
+  laborTotal?: number;
+  equipmentTotal?: number;
+  subtotal?: number;
 
-   // Extended metadata from BudgetItem
-   durationDays?: number;
-   category?: string;
- }
+  durationDays?: number;
+  category?: string;
+}
 
 /**
  * Get budget lines filtered by typology
