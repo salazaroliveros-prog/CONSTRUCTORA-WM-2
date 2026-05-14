@@ -17,7 +17,6 @@ import { PurchaseOrderPanel } from './PurchaseOrderPanel';
 import { subscribeToCollection } from '../../services/firestoreService';
 import { toast } from 'sonner';
 import { APU_BY_TYPOLOGY } from '../../lib/apuLibrary';
-import { getBudgetLinesByTypology } from '../../lib/budgetData';
 import { parseError } from '../../services/firestoreService';
 
 interface ProjectBuilderProps {
@@ -76,39 +75,6 @@ export default function ProjectBuilder({ onComplete }: ProjectBuilderProps) {
     );
     return () => { u1(); u2(); };
   }, []);
-
-  // Carga renglones principales por tipología en orden cronológico
-  const loadTypologyBudget = () => {
-    const typologyLines = getBudgetLinesByTypology(selectedTypology);
-    const newItems = typologyLines
-      .sort((a, b) => a.order - b.order)
-      .map(line => ({
-        id: line.id,
-        code: line.code,
-        description: line.description,
-        unit: line.unit,
-        typology: selectedTypology,
-        durationDays: 1,
-        category: line.description.includes('Cimentación') ? 'Cimentación' :
-                  line.description.includes('Columna') ? 'Estructura' :
-                  line.description.includes('Losa') ? 'Entrepiso' :
-                  line.description.includes('Carretera') ? 'Infraestructura' :
-                  line.description.includes('Puente') ? 'Ingeniería' : 'General',
-        projectQuantity: line.qty || 0,
-        selected: true,
-        materials: line.materialCost > 0 ? [{
-          name: 'Materiales', unit: line.unit, quantity: 1, price: line.materialCost
-        }] : [],
-        labor: line.laborCost > 0 ? [{
-          role: 'Mano de Obra', unit: line.unit, quantity: 1, price: line.laborCost
-        }] : [],
-        wasteFactor: line.wasteFactor,
-      }));
-    setProject(prev => ({ ...prev, items: newItems }));
-  };
-
-  // Cargar renglones al abrir o cambiar tipología
-  useEffect(() => { loadTypologyBudget(); }, [selectedTypology]);
 
   // Cambio de tipología
   const handleTypologyChange = (newTypology: Typology) => {
