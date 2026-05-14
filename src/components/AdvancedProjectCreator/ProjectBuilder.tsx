@@ -3,9 +3,9 @@
  * Refactorizado: usa hooks personalizados, componentes extraídos, lógica centralizada
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Typology } from '../../constants';
-import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente } from '../../lib/reports';
+import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON } from '../../lib/reports';
 import { addDocument } from '../../services/firestoreService';
 import { fmtQ } from '../../utils/format';
 import { useProjectBuilder } from '../../hooks/useProjectBuilder';
@@ -122,6 +122,27 @@ export default function ProjectBuilder({ onComplete }: ProjectBuilderProps) {
     toast.success(`Se cargaron ${typologyLines.length} renglones para ${selectedTypology}`);
   };
 
+  // Protección contra pérdida de datos al cambiar tipología
+  const pendingTypologyRef = useRef<string | null>(null);
+  const handleTypologyChange = (newTypology: Typology) => {
+    if (project.items.length > 0 && newTypology !== selectedTypology) {
+      pendingTypologyRef.current = newTypology;
+      toast('¿Cambiar tipología?', {
+        description: 'Se perderán todos los renglones actuales del presupuesto.',
+        action: {
+          label: 'Cambiar',
+          onClick: () => { pendingTypologyRef.current = null; setSelectedTypology(newTypology); }
+        },
+        cancel: {
+          label: 'Cancelar',
+          onClick: () => { pendingTypologyRef.current = null; }
+        }
+      });
+    } else {
+      setSelectedTypology(newTypology);
+    }
+  };
+
   // Cargar presupuesto cuando cambia la tipología
   useEffect(() => {
     loadTypologyBudget();
@@ -165,6 +186,16 @@ export default function ProjectBuilder({ onComplete }: ProjectBuilderProps) {
    */
 const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => {
     try {
+      const totalsOverride = {
+        directCost: totals.totalDirect,
+        materialsTotal: totals.materialsTotal,
+        laborTotal: totals.laborTotal,
+        indirectCost: totals.indirectCost,
+        adminCost: totals.adminCost,
+        personalCost: totals.personalCost,
+        totalBudget: totals.totalBudget,
+        estimatedDays,
+      };
       const fullProject = {
         ...project,
         directCosts: totals.totalDirect,
@@ -173,16 +204,16 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       };
       switch (type) {
         case 'completo':
-          generateBudgetPDF(fullProject as any);
+          generateBudgetPDF(fullProject as any, totalsOverride);
           break;
         case 'apu':
-          generateBudgetPDFAPU(fullProject as any);
+          generateBudgetPDFAPU(fullProject as any, totalsOverride);
           break;
         case 'ejecutivo':
-          generateBudgetPDFEjecutivo(fullProject as any);
+          generateBudgetPDFEjecutivo(fullProject as any, totalsOverride);
           break;
         case 'cliente':
-          generateBudgetPDFCliente(fullProject as any);
+          generateBudgetPDFCliente(fullProject as any, totalsOverride);
           break;
       }
       toast.success(`PDF generado: ${type}`);
@@ -206,7 +237,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       {/* Header con configuración */}
       <ProjectHeader
         selectedTypology={selectedTypology as Typology}
-        onTypologyChange={setSelectedTypology}
+        onTypologyChange={handleTypologyChange}
         selectedMarketLevel={selectedMarketLevel}
         onMarketLevelChange={setSelectedMarketLevel}
         selectedSlabType={selectedSlabType}
@@ -215,6 +246,8 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
         onToggleAdvanced={() => setShowAdvancedConfig(v => !v)}
         areaTotal={areaTotal}
         onAreaTotalChange={setAreaTotal}
+        wasteFactors={wasteFactors}
+        onWasteFactorsChange={setWasteFactors}
       />
 
       {/* Panel de ítems APU (búsqueda) */}
@@ -306,6 +339,15 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
         projectName={project.name}
         clientName={project.clientName}
         onExportPDF={handleExportPDF}
+        onExportJSON={() => {
+          const fullProject = { ...project, directCosts: totals.totalDirect, budget: totals.totalBudget } as any;
+          generateBudgetJSON(fullProject, {
+            directCost: totals.totalDirect, materialsTotal: totals.materialsTotal, laborTotal: totals.laborTotal,
+            indirectCost: totals.indirectCost, adminCost: totals.adminCost, personalCost: totals.personalCost,
+            totalBudget: totals.totalBudget, estimatedDays,
+          });
+          toast.success('JSON exportado');
+        }}
         onSaveProject={handleSaveProject}
         isSaving={saving}
       />

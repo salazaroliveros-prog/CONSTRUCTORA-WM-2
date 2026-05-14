@@ -593,7 +593,7 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
             Listado General de Obras
           </button>
           <div className="text-right">
-            <h1 className="text-xl font-black text-primary uppercase tracking-tight italic">Wizard de Configuración</h1>
+            <h1 className="text-xl font-black text-primary uppercase tracking-tight italic">Asistente de Configuración</h1>
             <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none mt-1">Configuración técnica de proyecto</p>
           </div>
         </div>
@@ -638,8 +638,15 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
       {(() => {
         const totalBudget   = projects.reduce((s, p) => s + (p.budget || 0), 0);
         const inExec        = projects.filter(p => p.status === 'EJECUCION');
+        const inExecIds     = inExec.map(p => p.id);
         const execBudget    = inExec.reduce((s, p) => s + (p.budget || 0), 0);
-        const totalExecuted = transactions.filter(t => t.type === 'GASTO').reduce((s, t) => s + (t.amount || 0), 0);
+        const totalExecuted = (() => {
+          const fromTx = transactions
+            .filter(t => t.type === 'GASTO' && t.projectId && inExecIds.includes(t.projectId))
+            .reduce((s, t) => s + (t.amount || 0), 0);
+          if (fromTx > 0) return fromTx;
+          return inExec.reduce((s, p) => s + (p.budget || 0) * ((p.progress || 0) / 100), 0);
+        })();
         const deviation     = execBudget > 0 ? ((totalExecuted - execBudget) / execBudget) * 100 : 0;
         // Proyectos con retraso real: tiempo transcurrido > avance físico + 10%
         const delayed = inExec.filter(p => {

@@ -1,10 +1,10 @@
 /**
  * BudgetTable - Tabla jerárquica de presupuestos
- * Refactorizado: componentes extraídos, hooks personalizados, reducción de duplicación
+ * Refactorizado con CRUD completo, edición inline y eliminación con confirmación
  */
 
-import React, { useState, useCallback, memo } from 'react';
-import { ChevronRight, ChevronDown, Pencil, Trash2, Plus } from 'lucide-react';
+import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
+import { ChevronRight, ChevronDown, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
 import { BudgetLine } from '../lib/budgetData';
 import { toast } from 'sonner';
 import { cn } from '../utils/cn';
@@ -20,7 +20,7 @@ interface BudgetTableProps {
 }
 
 /**
- * Componente de fila individual (memoizado)
+ * Componente de fila individual (memoizado) con CRUD completo
  */
 const BudgetTableRow = memo(function BudgetTableRow({
   line,
@@ -30,6 +30,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
   onToggleExpand,
   onEdit,
   onUpdateLine,
+  onDeleteLine,
   editingAllowed
 }: {
   line: BudgetLine;
@@ -39,9 +40,85 @@ const BudgetTableRow = memo(function BudgetTableRow({
   onToggleExpand: (id: string) => void;
   onEdit: (id: string) => void;
   onUpdateLine: (line: BudgetLine) => void;
+  onDeleteLine: (id: string) => void;
   editingAllowed: boolean;
 }) {
   const hasChildren = line.children && line.children.length > 0;
+  const [editingField, setEditingField] = useState<'qty' | 'materialCost' | 'laborCost' | null>(null);
+  const [editValue, setEditValue] = useState('');
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingField && inputRef.current) {
+      inputRef.current.focus();
+      inputRef.current.select();
+    }
+  }, [editingField]);
+
+  const startInlineEdit = (field: 'qty' | 'materialCost' | 'laborCost') => {
+    if (field === 'qty' && line.computationType === 'dynamic') return;
+    setEditValue(String(line[field]));
+    setEditingField(field);
+  };
+
+  const commitInlineEdit = () => {
+    if (!editingField) return;
+    const val = parseFloat(editValue);
+    if (!isNaN(val) && val >= 0) {
+      onUpdateLine({ ...line, [editingField]: val });
+    }
+    setEditingField(null);
+  };
+
+  const cancelInlineEdit = () => setEditingField(null);
+
+  const EditableCell = ({ field, value, prefix = '' }: { field: 'qty' | 'materialCost' | 'laborCost'; value: number; prefix?: string }) => {
+    if (editingField === field) {
+      return (
+        <td className="text-right p-0">
+          <div className="inline-flex items-center gap-0.5">
+            <input
+              ref={inputRef}
+              type="number"
+              step="any"
+              min="0"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') commitInlineEdit(); if (e.key === 'Escape') cancelInlineEdit(); }}
+              onBlur={commitInlineEdit}
+              className="w-20 text-[9px] text-right px-1 py-0.5 border border-blue-400 rounded bg-white focus:outline-none"
+            />
+            <button onClick={commitInlineEdit} className="p-0.5 text-green-600 hover:text-green-800"><Check size={10} /></button>
+            <button onClick={cancelInlineEdit} className="p-0.5 text-red-600 hover:text-red-800"><X size={10} /></button>
+          </div>
+        </td>
+      );
+    }
+    return (
+      <td
+        className={`text-[9px] text-right ${editingAllowed && field !== 'qty' ? 'cursor-pointer hover:bg-yellow-50' : ''}`}
+        onClick={() => editingAllowed && startInlineEdit(field)}
+        title={editingAllowed ? 'Click para editar' : undefined}
+      >
+        {prefix}{value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+      </td>
+    );
+  };
+
+  const handleDelete = () => {
+    const childCount = line.children?.length || 0;
+    const msg = childCount > 0
+      ? `¿Eliminar "${line.description}" y sus ${childCount} sub-renglones?`
+      : `¿Eliminar "${line.description}"?`;
+    toast(msg, {
+      description: 'Esta acción no se puede deshacer.',
+      action: {
+        label: 'Eliminar',
+        onClick: () => onDeleteLine(line.id)
+      },
+      cancel: { label: 'Cancelar', onClick: () => {} }
+    });
+  };
 
   return (
     <>
@@ -71,21 +148,17 @@ const BudgetTableRow = memo(function BudgetTableRow({
           </div>
         </td>
         <td className="text-[9px] text-slate-600 text-right">{line.unit}</td>
-        <td className="text-[9px] text-slate-600 text-right">
-          {line.computationType === 'dynamic' ? (
-            <span className="text-blue-600 font-medium">
+        {line.computationType === 'dynamic' ? (
+          <td className="text-[9px] text-right">
+            <span className="text-blue-600 font-medium cursor-pointer hover:bg-blue-50" onClick={() => onEdit(line.id)}>
               {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} (calc)
             </span>
-          ) : (
-            line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })
-          )}
-        </td>
-        <td className="text-[9px] text-slate-600 text-right">
-          Q {line.materialCost.toLocaleString()}
-        </td>
-        <td className="text-[9px] text-slate-600 text-right">
-          Q {line.laborCost.toLocaleString()}
-        </td>
+          </td>
+        ) : (
+          <EditableCell field="qty" value={line.qty} />
+        )}
+        <EditableCell field="materialCost" value={line.materialCost} prefix="Q " />
+        <EditableCell field="laborCost" value={line.laborCost} prefix="Q " />
         <td className="text-[9px] font-bold text-slate-800 text-right">
           Q {(line.subtotal ?? 0).toLocaleString(undefined, { maximumFractionDigits: 2 })}
         </td>
@@ -94,12 +167,14 @@ const BudgetTableRow = memo(function BudgetTableRow({
             <button
               onClick={() => onEdit(line.id)}
               className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 transition-all"
+              title="Editar dimensiones"
             >
               <Pencil size={12} />
             </button>
             <button
-              onClick={() => toast.info('Eliminar línea no implementado aún')}
+              onClick={handleDelete}
               className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-red-600 transition-all"
+              title="Eliminar renglón"
             >
               <Trash2 size={12} />
             </button>
@@ -131,6 +206,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
           onToggleExpand={onToggleExpand}
           onEdit={onEdit}
           onUpdateLine={onUpdateLine}
+          onDeleteLine={onDeleteLine}
           editingAllowed={editingAllowed}
         />
       ))}
@@ -151,6 +227,7 @@ export default function BudgetTable({
   editingAllowed = true
 }: BudgetTableProps) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   /**
    * Alterna expansión de línea
@@ -160,12 +237,34 @@ export default function BudgetTable({
   }, []);
 
   /**
-   * Alterna modo edición
+   * Alterna modo edición de dimensiones
    */
-  const [editingId, setEditingId] = useState<string | null>(null);
   const handleEdit = useCallback((id: string) => {
     setEditingId(prev => prev === id ? null : id);
   }, []);
+
+  /**
+   * Elimina una línea del árbol (recursivo)
+   */
+  const deleteLineRecursive = useCallback((
+    list: BudgetLine[],
+    idToDelete: string
+  ): BudgetLine[] => {
+    return list
+      .filter(l => l.id !== idToDelete)
+      .map(l => ({
+        ...l,
+        children: l.children ? deleteLineRecursive(l.children, idToDelete) : []
+      }));
+  }, []);
+
+  const handleDeleteLine = useCallback((id: string) => {
+    const newLines = deleteLineRecursive(lines, id);
+    if (newLines.length !== lines.length || JSON.stringify(newLines) !== JSON.stringify(lines)) {
+      onUpdate(newLines);
+      toast.success('Renglón eliminado');
+    }
+  }, [lines, onUpdate, deleteLineRecursive]);
 
   /**
    * Actualiza una línea en el árbol (recursivo)
@@ -178,7 +277,6 @@ export default function BudgetTable({
     return list.map(l => {
       if (l.id === updatedLine.id) {
         let line = { ...updatedLine };
-        // Si es línea dinámica con dimensiones, recalcular cantidad
         if (line.computationType === 'dynamic' && line.dimensions) {
           const newQty = calculateDynamicQuantity(line);
           line = { ...line, qty: newQty };
@@ -216,10 +314,11 @@ export default function BudgetTable({
         onToggleExpand={toggleExpand}
         onEdit={handleEdit}
         onUpdateLine={handleUpdateLine}
+        onDeleteLine={handleDeleteLine}
         editingAllowed={editingAllowed}
       />
     ));
-  }, [expanded, toggleExpand, handleEdit, handleUpdateLine, editingAllowed, editingId]);
+  }, [expanded, toggleExpand, handleEdit, handleUpdateLine, handleDeleteLine, editingAllowed, editingId]);
 
   return (
     <div className="overflow-x-auto">

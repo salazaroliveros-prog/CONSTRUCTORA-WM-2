@@ -57,29 +57,38 @@ const fmtDate = (date?: string) => {
 };
 
 // Calcular totales del proyecto
-export const calculateProjectTotals = (project: Project) => {
-  const directCost = project.items.reduce((acc, item) => {
+export const calculateProjectTotals = (project: Project, totalsOverride?: {
+  directCost?: number;
+  materialsTotal?: number;
+  laborTotal?: number;
+  indirectCost?: number;
+  adminCost?: number;
+  personalCost?: number;
+  totalBudget?: number;
+  estimatedDays?: number;
+}) => {
+  const directCost = totalsOverride?.directCost ?? project.items.reduce((acc, item) => {
     const matSum = item.materials.reduce((m, mat) => m + (mat.price * mat.quantity), 0);
     const labSum = item.labor.reduce((l, lab) => l + (lab.price * lab.quantity), 0);
     return acc + (matSum + labSum) * item.projectQuantity;
   }, 0);
 
-  const materialsTotal = project.items.reduce((acc, item) => {
+  const materialsTotal = totalsOverride?.materialsTotal ?? project.items.reduce((acc, item) => {
     const mat = item.materials.reduce((m, mat) => m + (mat.price * mat.quantity), 0);
     return acc + (mat * item.projectQuantity);
   }, 0);
 
-  const laborTotal = project.items.reduce((acc, item) => {
+  const laborTotal = totalsOverride?.laborTotal ?? project.items.reduce((acc, item) => {
     const lab = item.labor.reduce((l, lab) => l + (lab.price * lab.quantity), 0);
     return acc + (lab * item.projectQuantity);
   }, 0);
 
-  const indirectCost = directCost * ((project.indirectCosts || 0) / 100);
-  const adminCost = directCost * ((project.administrativeCosts || 0) / 100);
-  const personalCost = directCost * ((project.personalCosts || 0) / 100);
-  const totalBudget = directCost + indirectCost + adminCost + personalCost;
+  const indirectCost = totalsOverride?.indirectCost ?? directCost * ((project.indirectCosts || 0) / 100);
+  const adminCost = totalsOverride?.adminCost ?? directCost * ((project.administrativeCosts || 0) / 100);
+  const personalCost = totalsOverride?.personalCost ?? directCost * ((project.personalCosts || 0) / 100);
+  const totalBudget = totalsOverride?.totalBudget ?? directCost + indirectCost + adminCost + personalCost;
 
-  const estimatedDays = project.items.reduce((acc, item) => acc + (item.durationDays || 1) * item.projectQuantity, 0);
+  const estimatedDays = totalsOverride?.estimatedDays ?? project.items.reduce((acc, item) => acc + (item.durationDays || 1) * item.projectQuantity, 0);
 
   return { directCost, materialsTotal, laborTotal, indirectCost, adminCost, personalCost, totalBudget, estimatedDays };
 };
@@ -253,15 +262,14 @@ const addExecutiveSummary = (doc: jsPDF, project: Project, totals: ReturnType<ty
 };
 
 // Generar PDF de Presupuesto Ejecutivo
-export const generateBudgetPDF = (project: Project, overrides?: { totalBudget?: number }) => {
+export const generateBudgetPDF = (project: Project, totalsOverride?: {
+  directCost?: number; materialsTotal?: number; laborTotal?: number;
+  indirectCost?: number; adminCost?: number; personalCost?: number;
+  totalBudget?: number; estimatedDays?: number;
+}) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  let totals = calculateProjectTotals(project);
-
-  // Aplicar overrides si se proporcionan
-  if (overrides?.totalBudget !== undefined) {
-    totals = { ...totals, totalBudget: overrides.totalBudget };
-  }
+  let totals = calculateProjectTotals(project, totalsOverride);
   
   // Página 1 - Portada y Resumen
   addHeader(doc, 'PRESUPUESTO DE OBRA', `Ref: ${project.id?.slice(0, 8) || 'NUEVO'}`);
@@ -505,10 +513,14 @@ export const generateBudgetPDF = (project: Project, overrides?: { totalBudget?: 
 };
 
 // ── Plantilla EJECUTIVA (1 página, resumen compacto) ─────────────────────────
-export const generateBudgetPDFEjecutivo = (project: Project) => {
+export const generateBudgetPDFEjecutivo = (project: Project, totalsOverride?: {
+  directCost?: number; materialsTotal?: number; laborTotal?: number;
+  indirectCost?: number; adminCost?: number; personalCost?: number;
+  totalBudget?: number; estimatedDays?: number;
+}) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const totals = calculateProjectTotals(project);
+  const totals = calculateProjectTotals(project, totalsOverride);
 
   addHeader(doc, 'COTIZACIÓN EJECUTIVA', `Ref: ${project.id?.slice(0, 8) || 'NUEVO'}`);
 
@@ -588,10 +600,14 @@ export const generateBudgetPDFEjecutivo = (project: Project) => {
 };
 
 // ── Plantilla EJECUTIVA CLIENTE (solo resumen total + tiempo) ─────────────────
-export const generateBudgetPDFCliente = (project: Project) => {
+export const generateBudgetPDFCliente = (project: Project, totalsOverride?: {
+  directCost?: number; materialsTotal?: number; laborTotal?: number;
+  indirectCost?: number; adminCost?: number; personalCost?: number;
+  totalBudget?: number; estimatedDays?: number;
+}) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const totals = calculateProjectTotals(project);
+  const totals = calculateProjectTotals(project, totalsOverride);
 
   addHeader(doc, 'PRESUPUESTO PARA CLIENTE', `Ref: ${project.id?.slice(0, 8) || 'NUEVO'}`);
 
@@ -690,10 +706,14 @@ export const generateBudgetPDFCliente = (project: Project) => {
 };
 
 // ── Plantilla APU COMPLETO (análisis de precios unitarios por renglón) ────────
-export const generateBudgetPDFAPU = (project: Project) => {
+export const generateBudgetPDFAPU = (project: Project, totalsOverride?: {
+  directCost?: number; materialsTotal?: number; laborTotal?: number;
+  indirectCost?: number; adminCost?: number; personalCost?: number;
+  totalBudget?: number; estimatedDays?: number;
+}) => {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
-  const totals = calculateProjectTotals(project);
+  const totals = calculateProjectTotals(project, totalsOverride);
   let pageNum = 1;
 
   // Portada
@@ -994,6 +1014,64 @@ export const generateBudgetCSV = (project: Project) => {
   link.setAttribute('href', url);
   link.setAttribute('download', `Presupuesto_${project.name.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`);
   link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
+// ── Exportación JSON estructurada ────────────────────────────────────────────
+export const generateBudgetJSON = (project: Project, totalsOverride?: {
+  directCost?: number; materialsTotal?: number; laborTotal?: number;
+  indirectCost?: number; adminCost?: number; personalCost?: number;
+  totalBudget?: number; estimatedDays?: number;
+}) => {
+  const totals = calculateProjectTotals(project, totalsOverride);
+  const projectMaterials = calculateProjectMaterials(project);
+  const items = project.items.map((item, index) => {
+    const matSum = item.materials.reduce((a, m) => a + m.price * m.quantity, 0);
+    const labSum = item.labor.reduce((a, l) => a + l.price * l.quantity, 0);
+    return {
+      index: index + 1,
+      code: item.code,
+      description: item.description,
+      unit: item.unit,
+      quantity: item.projectQuantity,
+      category: item.category,
+      unitCost: matSum + labSum,
+      subtotal: (matSum + labSum) * item.projectQuantity,
+      materials: item.materials.map(m => ({ name: m.name, unit: m.unit, quantity: m.quantity, total: m.price * m.quantity })),
+      labor: item.labor.map(l => ({ role: l.role, unit: l.unit, quantity: l.quantity, total: l.price * l.quantity })),
+    };
+  });
+
+  const json = {
+    metadata: {
+      exportedAt: new Date().toISOString(),
+      projectName: project.name,
+      clientName: project.clientName,
+      typology: project.typology,
+      status: project.status,
+    },
+    totals: {
+      directCost: totals.directCost,
+      materialsTotal: totals.materialsTotal,
+      laborTotal: totals.laborTotal,
+      indirectCost: totals.indirectCost,
+      adminCost: totals.adminCost,
+      personalCost: totals.personalCost,
+      totalBudget: totals.totalBudget,
+      estimatedDays: totals.estimatedDays,
+    },
+    items,
+    materialsSummary: projectMaterials.map(m => ({
+      name: m.name, unit: m.unit, totalQuantity: m.totalQuantity, category: m.category
+    })),
+  };
+
+  const blob = new Blob([JSON.stringify(json, null, 2)], { type: 'application/json;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `Presupuesto_${project.name.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.json`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

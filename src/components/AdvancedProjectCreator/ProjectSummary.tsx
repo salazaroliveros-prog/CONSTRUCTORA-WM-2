@@ -30,6 +30,7 @@ interface ProjectSummaryProps {
   projectName: string;
   clientName: string;
   onExportPDF: (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => void;
+  onExportJSON: () => void;
   onSaveProject: () => void;
   isSaving: boolean;
 }
@@ -45,6 +46,7 @@ export function ProjectSummary({
   projectName,
   clientName,
   onExportPDF,
+  onExportJSON,
   onSaveProject,
   isSaving
 }: ProjectSummaryProps) {
@@ -86,6 +88,13 @@ export function ProjectSummary({
           >
             <Printer size={10} />
             APU
+          </button>
+          <button
+            onClick={onExportJSON}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-cyan-100 text-cyan-700 rounded hover:bg-cyan-200 transition-colors"
+          >
+            <FileDown size={10} />
+            JSON
           </button>
           <button
             onClick={onSaveProject}
