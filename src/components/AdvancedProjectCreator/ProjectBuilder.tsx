@@ -3,7 +3,7 @@
  * Refactorizado: usa hooks personalizados, componentes extraídos, lógica centralizada
  */
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Typology } from '../../constants';
 import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON } from '../../lib/reports';
 import { addDocument } from '../../services/firestoreService';
@@ -16,7 +16,6 @@ import BudgetTable from '../BudgetTable';
 import { PurchaseOrderPanel } from './PurchaseOrderPanel';
 import { subscribeToCollection } from '../../services/firestoreService';
 import { toast } from 'sonner';
-import { getBudgetLinesByTypology } from '../../lib/budgetData';
 import { APU_BY_TYPOLOGY } from '../../lib/apuLibrary';
 import { parseError } from '../../services/firestoreService';
 
@@ -77,76 +76,10 @@ export default function ProjectBuilder({ onComplete }: ProjectBuilderProps) {
     return () => { u1(); u2(); };
   }, []);
 
-  /**
-   * Carga líneas de presupuesto para la tipología seleccionada
-   */
-  const loadTypologyBudget = () => {
-    const typologyLines = getBudgetLinesByTypology(selectedTypology);
-    const newItems = typologyLines.map(line => ({
-      id: line.id,
-      code: line.code,
-      description: line.description,
-      unit: line.unit,
-      typology: selectedTypology,
-      durationDays: 1,
-      category: line.description.includes('Cimentación') ? 'Cimentación' :
-                line.description.includes('Columna') ? 'Estructura' :
-                line.description.includes('Losa') ? 'Entrepiso' :
-                line.description.includes('Carretera') ? 'Infraestructura' :
-                line.description.includes('Puente') ? 'Ingeniería' : 'General',
-      projectQuantity: line.qty || 0,
-      selected: true,
-      materials: line.materialCost > 0 ? [{
-        name: 'Materiales',
-        unit: line.unit,
-        quantity: 1, // Se multiplica por projectQuantity
-        price: line.materialCost
-      }] : [],
-      labor: line.laborCost > 0 ? [{
-        role: 'Mano de Obra',
-        unit: line.unit,
-        quantity: 1,
-        price: line.laborCost
-      }] : [],
-      wasteFactor: line.wasteFactor,
-    }));
-
-    setProject(prev => ({
-      ...prev,
-      items: newItems,
-      name: 'Nuevo Proyecto',
-      clientName: 'Cliente Sin Nombre'
-    }));
-    setAreaTotal(0); // Reset área
-
-    toast.success(`Se cargaron ${typologyLines.length} renglones para ${selectedTypology}`);
-  };
-
-  // Protección contra pérdida de datos al cambiar tipología
-  const pendingTypologyRef = useRef<string | null>(null);
+  // Simple change handler — ya no carga renglones por defecto
   const handleTypologyChange = (newTypology: Typology) => {
-    if (project.items.length > 0 && newTypology !== selectedTypology) {
-      pendingTypologyRef.current = newTypology;
-      toast('¿Cambiar tipología?', {
-        description: 'Se perderán todos los renglones actuales del presupuesto.',
-        action: {
-          label: 'Cambiar',
-          onClick: () => { pendingTypologyRef.current = null; setSelectedTypology(newTypology); }
-        },
-        cancel: {
-          label: 'Cancelar',
-          onClick: () => { pendingTypologyRef.current = null; }
-        }
-      });
-    } else {
-      setSelectedTypology(newTypology);
-    }
+    setSelectedTypology(newTypology);
   };
-
-  // Cargar presupuesto cuando cambia la tipología
-  useEffect(() => {
-    loadTypologyBudget();
-  }, [selectedTypology]);
 
   /**
    * Maneja el guardado del proyecto
