@@ -97,6 +97,7 @@
   box-shadow: var(--glass-shadow) !important;
   transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.28s ease, background 0.2s ease, border-color 0.2s ease !important;
   will-change: transform;
+  transform: translateZ(0);
   isolation: isolate;
   z-index: 0;
 }
@@ -143,6 +144,22 @@
 .action-card:hover {
   transform: translateY(var(--card-hover-lift, -4px)) scale(1.005) !important;
   box-shadow: var(--card-hover-shadow, 0 20px 48px rgba(15,23,42,0.14)) !important;
+}
+
+/* ── Performance: GPU acceleration for card grids ───────── */
+.grid > .card-hover,
+.grid > .rounded-xl,
+.grid > .rounded-2xl {
+  content-visibility: auto;
+  contain-intrinsic-size: 120px;
+}
+
+/* ── Reduced motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ── Card Style overrides (data-card) ────────────────────── */

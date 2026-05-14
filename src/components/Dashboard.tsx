@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { 
   TrendingUp, 
   Package,
@@ -415,50 +415,45 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
   // Sync executingProjects to context for topbar filter
   useEffect(() => { setExecutingProjects(projects.filter((p: any) => p.status === 'EJECUCION')); }, [projects]);
 
-  // Calculations
-  const executingProjects = projects.filter(p => p.status === 'EJECUCION');
-  const finishedOrPausedProjects = projects.filter(p => p.status === 'FINALIZADO' || p.status === 'PAUSADO');
+  // Calculations — memoized for performance
+  const executingProjects = useMemo(() => projects.filter(p => p.status === 'EJECUCION'), [projects]);
+  const finishedOrPausedProjects = useMemo(() => projects.filter(p => p.status === 'FINALIZADO' || p.status === 'PAUSADO'), [projects]);
 
-  const filteredProjects = selectedProjectId === 'ALL'
+  const filteredProjects = useMemo(() => selectedProjectId === 'ALL'
     ? executingProjects
-    : executingProjects.filter(p => p.id === selectedProjectId);
+    : executingProjects.filter(p => p.id === selectedProjectId),
+  [executingProjects, selectedProjectId]);
 
-  const availableYears = ['todos', ...new Set(projects.map(p => p.startDate ? new Date(p.startDate).getFullYear().toString() : '').filter(Boolean))].sort();
-  const projectsByYear = selectedYear === 'todos' ? filteredProjects : filteredProjects.filter(p => p.startDate && new Date(p.startDate).getFullYear().toString() === selectedYear);
+  const availableYears = useMemo(() => ['todos', ...new Set(projects.map(p => p.startDate ? new Date(p.startDate).getFullYear().toString() : '').filter(Boolean))].sort(), [projects]);
+  const projectsByYear = useMemo(() => selectedYear === 'todos' ? filteredProjects : filteredProjects.filter(p => p.startDate && new Date(p.startDate).getFullYear().toString() === selectedYear), [filteredProjects, selectedYear]);
 
-  // Transactions filtered by project when one is selected, or by existing project IDs globally
-  const existingProjectIds = new Set(projects.filter(p => p.id).map(p => p.id));
-  const filteredTransactions = selectedProjectId === 'ALL'
+  const existingProjectIds = useMemo(() => new Set(projects.filter(p => p.id).map(p => p.id)), [projects]);
+  const filteredTransactions = useMemo(() => selectedProjectId === 'ALL'
     ? transactions.filter(t => t.projectId && existingProjectIds.has(t.projectId))
-    : transactions.filter(t => t.projectId === selectedProjectId);
+    : transactions.filter(t => t.projectId === selectedProjectId),
+  [transactions, existingProjectIds, selectedProjectId]);
 
-  // Financial KPIs — respect project filter
-  const totalIncome = filteredTransactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0);
-  const totalExpenses = filteredTransactions.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0);
+  const totalIncome = useMemo(() => filteredTransactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0), [filteredTransactions]);
+  const totalExpenses = useMemo(() => filteredTransactions.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0), [filteredTransactions]);
   const netCash = totalIncome - totalExpenses;
 
-  // Global values for sidebar (always all transactions)
-  const globalIncome = transactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0);
-  const globalExpenses = transactions.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0);
+  const globalIncome = useMemo(() => transactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0), [transactions]);
+  const globalExpenses = useMemo(() => transactions.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0), [transactions]);
 
-  // Budget KPIs — respect the project filter
-  const executingBudget = filteredProjects.reduce((acc, p) => acc + (p.budget || 0), 0);
-  const finishedPausedBudget = finishedOrPausedProjects.reduce((acc, p) => acc + (p.budget || 0), 0);
+  const executingBudget = useMemo(() => filteredProjects.reduce((acc, p) => acc + (p.budget || 0), 0), [filteredProjects]);
+  const finishedPausedBudget = useMemo(() => finishedOrPausedProjects.reduce((acc, p) => acc + (p.budget || 0), 0), [finishedOrPausedProjects]);
 
-  const criticalStock = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (i.projectId && existingProjectIds.has(i.projectId)))).length;
+  const criticalStock = useMemo(() => inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (i.projectId && existingProjectIds.has(i.projectId)))).length, [inventory, existingProjectIds, selectedProjectId]);
 
-  // Progress averages for mini ring charts in KPI cards
-  const avgFisico = filteredProjects.length
+  const avgFisico = useMemo(() => filteredProjects.length
     ? Math.round(filteredProjects.reduce((a, p) => a + (p.progress || 0), 0) / filteredProjects.length)
-    : 0;
-  // Financial progress: use real transaction expenses vs budget (consistent with Seguimiento)
-  const avgFinanciero = filteredProjects.length
+    : 0, [filteredProjects]);
+  const avgFinanciero = useMemo(() => filteredProjects.length
     ? Math.round(filteredProjects.reduce((a, p) => {
-        const txExpense = transactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((s: number, t: any) => s + (t.amount || 0), 0);
-        const budget = p.budget || 1;
-        return a + Math.round((txExpense / budget) * 100);
+        const txExpense = transactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((s, t) => s + (t.amount || 0), 0);
+        return a + Math.round((txExpense / (p.budget || 1)) * 100);
       }, 0) / filteredProjects.length)
-    : 0;
+    : 0, [filteredProjects, transactions]);
 
   // Sparkline data — last 8 weeks using filtered transactions
   const sparkWeeks = Array.from({ length: 8 }, (_, i) => {
