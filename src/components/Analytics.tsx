@@ -85,6 +85,7 @@ export default function AnalyticsModule() {
 
   // Filter out data linked to deleted/non-existent projects (same pattern as Dashboard)
   const existingProjectIds = useMemo(() => new Set(projects.filter(p => p.id).map(p => p.id)), [projects]);
+  const validInventoryItems = useMemo(() => inventory.filter(i => !i.projectId || existingProjectIds.has(i.projectId)), [inventory, existingProjectIds]);
 
   const stats = {
     cotizados: displayProjects.filter(p => p.status === 'COTIZACION'),
@@ -291,7 +292,7 @@ export default function AnalyticsModule() {
         {[
           { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-purple-600', bg: 'bg-purple-50', trend: null },
           { label: 'Personal Activo', value: `${activeStaff.length}`, icon: <Users size={14}/>, color: 'text-blue-600', bg: 'bg-blue-50', trend: null, sub: `Q ${Math.round(totalSalaries/1000)}k salarios` },
-          { label: 'Stock Crítico', value: `${criticalInventory.length}`, icon: <Package size={14}/>, color: criticalInventory.length > 0 ? 'text-red-600' : 'text-green-600', bg: criticalInventory.length > 0 ? 'bg-red-50' : 'bg-green-50', trend: criticalInventory.length > 0 ? 'down' : 'up', sub: `de ${inventory.length} items` },
+          { label: 'Stock Crítico', value: `${criticalInventory.length}`, icon: <Package size={14}/>, color: criticalInventory.length > 0 ? 'text-red-600' : 'text-green-600', bg: criticalInventory.length > 0 ? 'bg-red-50' : 'bg-green-50', trend: criticalInventory.length > 0 ? 'down' : 'up', sub: `de ${validInventoryItems.length} items` },
           { label: 'OC Pendientes', value: `${pendingOrders.length}`, icon: <ShoppingCart size={14}/>, color: pendingOrders.length > 0 ? 'text-amber-600' : 'text-green-600', bg: pendingOrders.length > 0 ? 'bg-amber-50' : 'bg-green-50', trend: null, sub: `Q ${Math.round(totalPendingValue/1000)}k` },
           { label: 'Ingresos Reales', value: `Q ${Math.round(totalIngresos/1000)}k`, icon: <ArrowUpRight size={14}/>, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'up' },
           { label: 'Neto en Caja', value: `Q ${Math.round(netoCaja/1000)}k`, icon: <DollarSign size={14}/>, color: netoCaja >= 0 ? 'text-emerald-600' : 'text-red-600', bg: netoCaja >= 0 ? 'bg-emerald-50' : 'bg-red-50', trend: netoCaja >= 0 ? 'up' : 'down' },
@@ -1037,8 +1038,17 @@ export default function AnalyticsModule() {
                 },
                 {
                   title: 'Analytics ↔ All',
-                  value: '100%',
-                  desc: 'Conectividad completa',
+                  value: (() => {
+                    const connected = displayProjects.length > 0 ? 1 : 0;
+                    const allData = [
+                      transactions.some(t => !t.projectId || existingProjectIds.has(t.projectId)) ? 1 : 0,
+                      validInventoryItems.length > 0 ? 1 : 0,
+                      purchaseOrders.some(po => !po.projectId || existingProjectIds.has(po.projectId)) ? 1 : 0,
+                    ].filter(Boolean).length;
+                    const total = 3;
+                    return `${Math.round(((connected + allData) / (1 + total)) * 100)}%`;
+                  })(),
+                  desc: 'Módulos con datos vinculados',
                   color: 'bg-secondary/10 border-secondary/20 text-secondary',
                   icon: <BarChart3 size={14} />
                 }
@@ -1096,8 +1106,8 @@ export default function AnalyticsModule() {
                   },
                   {
                     module: 'Inventario',
-                    total: inventory.length,
-                    connected: inventory.filter(i => i.projectId).length,
+                    total: validInventoryItems.length,
+                    connected: validInventoryItems.filter(i => i.projectId && existingProjectIds.has(i.projectId)).length,
                     icon: <Package size={12} className="text-emerald-500" />
                   }
                 ].map((row, i) => {
