@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useCallback, memo, useRef, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Pencil, Trash2, Plus, Check, X } from 'lucide-react';
+import { ChevronRight, ChevronDown, Pencil, Trash2, Plus, Check, X, Clock } from 'lucide-react';
 import { BudgetLine } from '../lib/budgetData';
 import { toast } from 'sonner';
 import { DimensionEditor } from './BudgetTable/DimensionEditor';
@@ -19,33 +19,50 @@ interface BudgetTableProps {
 }
 
 /**
- * Computa subtotal en tiempo real para una línea (incluye hijos)
+ * Motor de cálculo en tiempo real para líneas de presupuesto
+ * Computa costos, duración y consolidación jerárquica
  */
+
+// Costo material de una línea (qty × unitCost × perf)
 function calcLineMaterial(line: BudgetLine): number {
   return line.qty * line.materialCost * (line.materialPerf ?? 1);
 }
+// Costo mano de obra de una línea
 function calcLineLabor(line: BudgetLine): number {
   return line.qty * line.laborCost * (line.laborPerf ?? 1);
 }
+// Subtotal propio (sin hijos)
 function calcLineSelf(line: BudgetLine): number {
   return calcLineMaterial(line) + calcLineLabor(line);
 }
+// Subtotal total (propio + recursivo hijos)
 function calcLineTotal(line: BudgetLine): number {
   const self = calcLineSelf(line);
   const children = line.children?.reduce((s, c) => s + calcLineTotal(c), 0) ?? 0;
   return self + children;
 }
+// Costo material efectivo (incluye hijos si los tiene)
+function calcLineMatTotal(line: BudgetLine): number {
+  if (!line.children?.length) return calcLineMaterial(line);
+  return line.children.reduce((s, c) => s + calcLineMaterial(c), 0);
+}
+// Costo mano de obra efectivo (incluye hijos)
+function calcLineLabTotal(line: BudgetLine): number {
+  if (!line.children?.length) return calcLineLabor(line);
+  return line.children.reduce((s, c) => s + calcLineLabor(c), 0);
+}
+// Duración estimada de la línea en días
+function calcLineDuration(line: BudgetLine): number {
+  if (!line.children?.length) return 0;
+  return line.children.length * 0.5; // estimación: 0.5 día por sub-renglón
+}
 
-/**
- * Muestra valor formateado o vacío si es cero
- */
 function fmtQVal(v: number): string {
   return v > 0 ? `Q ${v.toLocaleString(undefined, { maximumFractionDigits: 2 })}` : '';
 }
 
 /**
- * Componente de fila individual (memoizado) con CRUD completo
- * y cálculo automático en tiempo real
+ * Componente de fila individual con motor de cálculo en tiempo real
  */
 const BudgetTableRow = memo(function BudgetTableRow({
   line,
@@ -69,17 +86,26 @@ const BudgetTableRow = memo(function BudgetTableRow({
   editingAllowed: boolean;
 }) {
   const hasChildren = line.children && line.children.length > 0;
+  const isLeaf = !hasChildren;
   const [editingField, setEditingField] = useState<'qty' | 'materialCost' | 'laborCost' | null>(null);
   const [editValue, setEditValue] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Cálculos en tiempo real
+  // ── Cálculos en tiempo real ──────────────────────────────────────────────────
   const rtMaterial = calcLineMaterial(line);
   const rtLabor = calcLineLabor(line);
-  const rtSelf = rtMaterial + rtLabor;
   const rtChildrenTotal = line.children?.reduce((s, c) => s + calcLineTotal(c), 0) ?? 0;
-  const rtSubtotal = rtSelf + rtChildrenTotal;
+  const rtSubtotal = calcLineSelf(line) + rtChildrenTotal;
   const showSubtotal = rtSubtotal > 0 || hasChildren;
+
+  // Costos efectivos: para padres, muestra suma de hijos; para hojas, unitario
+  const effMaterial = hasChildren ? calcLineMatTotal(line) : rtMaterial;
+  const effLabor = hasChildren ? calcLineLabTotal(line) : rtLabor;
+  const showMaterial = effMaterial > 0 || hasChildren;
+  const showLabor = effLabor > 0 || hasChildren;
+
+  // Duración estimada de la línea
+  const lineDuration = calcLineDuration(line);
 
   useEffect(() => {
     if (editingField && inputRef.current) {
@@ -90,6 +116,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
 
   const startInlineEdit = (field: 'qty' | 'materialCost' | 'laborCost') => {
     if (field === 'qty' && line.computationType === 'dynamic') return;
+    if (field !== 'qty' && hasChildren) return; // padres: no editar unitario
     setEditValue(String(line[field]));
     setEditingField(field);
   };
@@ -105,16 +132,19 @@ const BudgetTableRow = memo(function BudgetTableRow({
 
   const cancelInlineEdit = () => setEditingField(null);
 
-  const EditableCell = ({ field, value, prefix = '' }: { field: 'qty' | 'materialCost' | 'laborCost'; value: number; prefix?: string }) => {
-    if (editingField === field) {
+  // Celda para costo material/labor — padres muestran total, hojas muestran unitario
+  const CostCell = ({ field, label }: { field: 'materialCost' | 'laborCost'; label: string }) => {
+    const effective = field === 'materialCost' ? effMaterial : effLabor;
+    const show = field === 'materialCost' ? showMaterial : showLabor;
+
+    if (!show) {
+      return <td className="text-[9px] text-right text-slate-300">—</td>;
+    }
+    if (isLeaf && editingField === field) {
       return (
         <td className="text-right p-0">
           <div className="inline-flex items-center gap-0.5">
-            <input
-              ref={inputRef}
-              type="number"
-              step="any"
-              min="0"
+            <input ref={inputRef} type="number" step="any" min="0"
               value={editValue}
               onChange={(e) => setEditValue(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') commitInlineEdit(); if (e.key === 'Escape') cancelInlineEdit(); }}
@@ -127,25 +157,13 @@ const BudgetTableRow = memo(function BudgetTableRow({
         </td>
       );
     }
-    // No mostrar "0.00" — mostrar vacío si es cero
-    if (value === 0 && field !== 'qty') {
-      return (
-        <td
-          className="text-[9px] text-right text-slate-300 cursor-pointer hover:bg-yellow-50"
-          onClick={() => editingAllowed && startInlineEdit(field)}
-          title="Click para editar"
-        >
-          —
-        </td>
-      );
-    }
     return (
       <td
-        className={`text-[9px] text-right ${editingAllowed ? 'cursor-pointer hover:bg-yellow-50' : ''}`}
-        onClick={() => editingAllowed && startInlineEdit(field)}
-        title={editingAllowed ? 'Click para editar' : undefined}
+        className={`text-[9px] text-right ${isLeaf && editingAllowed ? 'cursor-pointer hover:bg-yellow-50' : ''} ${hasChildren ? 'font-bold text-slate-800' : 'text-slate-600'}`}
+        onClick={() => { if (isLeaf && editingAllowed) startInlineEdit(field); else if (hasChildren) onToggleExpand(line.id); }}
+        title={hasChildren ? `Click para ver desglose de ${label}` : (editingAllowed ? 'Click para editar' : undefined)}
       >
-        {prefix}{value.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+        {fmtQVal(effective) || (hasChildren ? 'Q 0.00' : '—')}
       </td>
     );
   };
@@ -167,27 +185,17 @@ const BudgetTableRow = memo(function BudgetTableRow({
 
   return (
     <>
-      {/* Fila principal */}
       <tr className="group hover:bg-slate-50/50 transition-colors">
         <td style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}>
           <div className="flex items-center gap-2 py-2">
             {hasChildren ? (
-              <button
-                onClick={() => onToggleExpand(line.id)}
-                className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 transition-colors"
-              >
+              <button onClick={() => onToggleExpand(line.id)}
+                className="w-5 h-5 flex items-center justify-center rounded hover:bg-slate-200 transition-colors">
                 {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
               </button>
-            ) : (
-              <span className="w-5 inline-block" />
-            )}
-            <span className="text-[9px] font-black text-slate-700 uppercase truncate">
-              {line.code}
-            </span>
-            <span
-              className="text-[9px] font-bold text-slate-600 truncate max-w-[200px]"
-              title={line.description}
-            >
+            ) : <span className="w-5 inline-block" />}
+            <span className="text-[9px] font-black text-slate-700 uppercase truncate">{line.code}</span>
+            <span className="text-[9px] font-bold text-slate-600 truncate max-w-[200px]" title={line.description}>
               {line.description}
             </span>
           </div>
@@ -199,61 +207,76 @@ const BudgetTableRow = memo(function BudgetTableRow({
               {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })} (calc)
             </span>
           </td>
+        ) : isLeaf ? (
+          (() => {
+            if (editingField === 'qty') {
+              return (
+                <td className="text-right p-0">
+                  <div className="inline-flex items-center gap-0.5">
+                    <input ref={inputRef} type="number" step="any" min="0"
+                      value={editValue} onChange={(e) => setEditValue(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === 'Enter') commitInlineEdit(); if (e.key === 'Escape') cancelInlineEdit(); }}
+                      onBlur={commitInlineEdit}
+                      className="w-20 text-[9px] text-right px-1 py-0.5 border border-blue-400 rounded bg-white focus:outline-none"
+                    />
+                    <button onClick={commitInlineEdit} className="p-0.5 text-green-600 hover:text-green-800"><Check size={10} /></button>
+                    <button onClick={cancelInlineEdit} className="p-0.5 text-red-600 hover:text-red-800"><X size={10} /></button>
+                  </div>
+                </td>
+              );
+            }
+            return (
+              <td className="text-[9px] text-right cursor-pointer hover:bg-yellow-50"
+                onClick={() => editingAllowed && startInlineEdit('qty')} title="Click para editar cantidad">
+                {line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+              </td>
+            );
+          })()
         ) : (
-          <EditableCell field="qty" value={line.qty} />
+          <td className="text-[9px] text-right text-slate-600">{line.qty.toLocaleString(undefined, { maximumFractionDigits: 2 })}</td>
         )}
-        <EditableCell field="materialCost" value={line.materialCost} prefix="Q " />
-        <EditableCell field="laborCost" value={line.laborCost} prefix="Q " />
+
+        <CostCell field="materialCost" label="materiales" />
+        <CostCell field="laborCost" label="mano de obra" />
+
         <td className={`text-[9px] font-bold text-right ${showSubtotal ? 'text-slate-800' : 'text-slate-300'}`}>
           {showSubtotal ? fmtQVal(rtSubtotal) : '—'}
         </td>
         {editingAllowed && (
           <td className="text-right">
-            <button
-              onClick={() => onEdit(line.id)}
-              className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 transition-all"
-              title="Editar dimensiones"
-            >
-              <Pencil size={12} />
-            </button>
-            <button
-              onClick={handleDelete}
+            {line.computationType === 'dynamic' && (
+              <button onClick={() => onEdit(line.id)}
+                className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-slate-200 transition-all"
+                title="Editar dimensiones"><Pencil size={12} /></button>
+            )}
+            {lineDuration > 0 && (
+              <span className="text-[7px] text-slate-400 ml-1" title="Duración estimada">
+                <Clock size={10} className="inline" /> {lineDuration.toFixed(1)}d
+              </span>
+            )}
+            <button onClick={handleDelete}
               className="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-red-100 text-red-600 transition-all"
-              title="Eliminar renglón"
-            >
-              <Trash2 size={12} />
-            </button>
+              title="Eliminar renglón"><Trash2 size={12} /></button>
           </td>
         )}
       </tr>
 
-      {/* Fila de edición de dimensiones */}
+      {/* Edición de dimensiones */}
       {editingAllowed && isEditing && (
         <tr key={`${line.id}_edit`} className="bg-blue-50 border-t border-blue-200">
           <td colSpan={editingAllowed ? 7 : 6} className="p-0">
-            <DimensionEditor
-              line={line}
-              onUpdate={onUpdateLine}
-              onClose={() => onEdit(line.id)}
-            />
+            <DimensionEditor line={line} onUpdate={onUpdateLine} onClose={() => onEdit(line.id)} />
           </td>
         </tr>
       )}
 
-      {/* Filas hijas (recursivas) — despliegue automático con sus propios cálculos */}
+      {/* Hijos recursivos con sus propios cálculos */}
       {hasChildren && isExpanded && line.children!.map(child => (
-        <BudgetTableRow
-          key={child.id}
-          line={child}
-          depth={depth + 1}
-          isExpanded={false}
-          isEditing={false}
-          onToggleExpand={onToggleExpand}
-          onEdit={onEdit}
-          onUpdateLine={onUpdateLine}
-          onDeleteLine={onDeleteLine}
-          editingAllowed={editingAllowed}
-        />
+        <BudgetTableRow key={child.id} line={child} depth={depth + 1}
+          isExpanded={false} isEditing={false}
+          onToggleExpand={onToggleExpand} onEdit={onEdit}
+          onUpdateLine={onUpdateLine} onDeleteLine={onDeleteLine}
+          editingAllowed={editingAllowed} />
       ))}
     </>
   );
@@ -390,8 +413,8 @@ export default function BudgetTable({
               Subtotal Q
             </th>
             {editingAllowed && (
-              <th className="px-4 py-2 text-[9px] font-black text-slate-700 uppercase tracking-wider text-right w-16">
-                Acciones
+              <th className="px-4 py-2 text-[9px] font-black text-slate-700 uppercase tracking-wider text-right w-20">
+                Acción / Dur.
               </th>
             )}
           </tr>
