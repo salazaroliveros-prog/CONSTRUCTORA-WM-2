@@ -426,10 +426,10 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
   const availableYears = ['todos', ...new Set(projects.map(p => p.startDate ? new Date(p.startDate).getFullYear().toString() : '').filter(Boolean))].sort();
   const projectsByYear = selectedYear === 'todos' ? filteredProjects : filteredProjects.filter(p => p.startDate && new Date(p.startDate).getFullYear().toString() === selectedYear);
 
-  // Transactions filtered by project when one is selected
-  // Transactions store optional projectId; fall back to global when ALL
+  // Transactions filtered by project when one is selected, or by existing project IDs globally
+  const existingProjectIds = new Set(projects.filter(p => p.id).map(p => p.id));
   const filteredTransactions = selectedProjectId === 'ALL'
-    ? transactions
+    ? transactions.filter(t => !t.projectId || existingProjectIds.has(t.projectId))
     : transactions.filter(t => t.projectId === selectedProjectId);
 
   // Financial KPIs — respect project filter
@@ -445,7 +445,7 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
   const executingBudget = filteredProjects.reduce((acc, p) => acc + (p.budget || 0), 0);
   const finishedPausedBudget = finishedOrPausedProjects.reduce((acc, p) => acc + (p.budget || 0), 0);
 
-  const criticalStock = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0)).length;
+  const criticalStock = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (!i.projectId || existingProjectIds.has(i.projectId)))).length;
 
   // Progress averages for mini ring charts in KPI cards
   const avgFisico = filteredProjects.length
@@ -481,7 +481,7 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
   const expenseByCategory = (() => {
     const txSource = selectedProjectId !== 'ALL'
       ? filteredTransactions.filter(t => t.type === 'GASTO')
-      : transactions.filter(t => t.type === 'GASTO');
+      : filteredTransactions.filter(t => t.type === 'GASTO');
     const cats = selectedProjectId !== 'ALL' ? [...exitCategories, 'Indirectos', 'Administrativo', 'Personal'] : exitCategories;
     return cats.map(cat => ({
       name: cat,
