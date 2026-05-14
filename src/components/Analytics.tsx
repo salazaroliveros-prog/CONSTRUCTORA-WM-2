@@ -16,12 +16,14 @@ import {
   LineChart, Line, AreaChart, Area, ComposedChart
 } from 'recharts';
 import { motion } from 'motion/react';
-import { subscribeToCollection } from '../services/firestoreService';
-import { useCountUp } from '../hooks/useCountUp';
 import { generateProjectPDF, generateProjectCSV, PDF_TEMPLATES, CSV_TEMPLATES } from '../lib/exportUtils';
-import { calculateProjectTotals } from '../lib/reports';
+import { calculateFullProject } from '../engine/budgetEngine';
 import { Project, Transaction } from '../constants';
 import { trackEvent, trackExport } from '../utils/logger';
+import { useCountUp } from '../hooks/useCountUp';
+import { PMath, precise, fmtQ } from '../engine/precision';
+import { useStore, useExistingProjectFilter } from '../store/DataStore';
+import { itemsToBudgetTree } from '../utils/budgetConverter';
 
 function AnimatedNum({ v }: { v: number }) { const n = useCountUp(v, 800); return <>{n}</>; }
 
@@ -46,33 +48,27 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 function calcItemCost(item: any) {
-  const matCost = (item.materials || []).reduce((a: number, m: any) => a + (m.price * m.quantity * (item.projectQuantity || 1)), 0);
-  const labCost = (item.labor || []).reduce((a: number, l: any) => a + (l.price * l.quantity * (item.projectQuantity || 1)), 0);
-  return matCost + labCost;
+  const matCost = (item.materials || []).reduce((a: number, m: any) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1)), 0);
+  const labCost = (item.labor || []).reduce((a: number, l: any) => PMath.add(a, PMath.mul(PMath.mul(l.price, l.quantity), item.projectQuantity || 1)), 0);
+  return PMath.add(matCost, labCost);
 }
 
 export default function AnalyticsModule() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [staff, setStaff] = useState<any[]>([]);
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const store = useStore();
   const [selectedProjectId, setSelectedProjectId] = useState<string>('ALL');
   const [exportTemplate, setExportTemplate] = useState<string>('modern');
   const [exportCsvTemplate, setExportCsvTemplate] = useState<string>('completo');
   const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'ranking' | 'connectivity'>('overview');
 
-  useEffect(() => {
-    const u1 = subscribeToCollection('projects', (data) => { setProjects(data as Project[]); setLoading(false); });
-    const u2 = subscribeToCollection('transactions', (data) => setTransactions(data));
-    const u3 = subscribeToCollection('staff', (data) => setStaff(data));
-    const u4 = subscribeToCollection('suppliers', (data) => setSuppliers(data));
-    const u5 = subscribeToCollection('inventory', (data) => setInventory(data));
-    const u6 = subscribeToCollection('purchaseOrders', (data) => setPurchaseOrders(data));
-    return () => { u1(); u2(); u3(); u4(); u5(); u6(); };
-  }, []);
+  const loading = store.projects.isLoading || store.transactions.isLoading || store.staff.isLoading || store.suppliers.isLoading || store.inventory.isLoading || store.purchaseOrders.isLoading;
+
+  // DataStore data
+  const projects = store.projects.items;
+  const transactions = store.transactions.items;
+  const staff = store.staff.items;
+  const suppliers = store.suppliers.items;
+  const inventory = store.inventory.items;
+  const purchaseOrders = store.purchaseOrders.items;
 
   // Filtered data based on selected project
   const displayProjects = selectedProjectId === 'ALL'
@@ -83,9 +79,10 @@ export default function AnalyticsModule() {
     ? projects.find(p => p.id === selectedProjectId) || null
     : null;
 
-  // Filter out data linked to deleted/non-existent projects (same pattern as Dashboard)
+  // Anti-orphan filter using DataStore helper
+  const validInventoryItems = useExistingProjectFilter(inventory, 'projectId' as any);
+  const activeProjectIds = useMemo(() => new Set(store.projects.items.filter(p => p.status === 'EJECUCION').map(p => p.id)), [store.projects.items]);
   const existingProjectIds = useMemo(() => new Set(projects.filter(p => p.id).map(p => p.id)), [projects]);
-  const validInventoryItems = useMemo(() => inventory.filter(i => !i.projectId || existingProjectIds.has(i.projectId)), [inventory, existingProjectIds]);
 
   const stats = {
     cotizados: displayProjects.filter(p => p.status === 'COTIZACION'),
@@ -93,20 +90,24 @@ export default function AnalyticsModule() {
     finalizados: displayProjects.filter(p => p.status === 'FINALIZADO'),
   };
 
-  const rentabilidadData = displayProjects
-    .filter(p => p.budget > 0)
-    .map(p => {
-      const totals = calculateProjectTotals(p);
-      const costoReal = totals.totalBudget;
-      const utilidad = (p.budget || 0) - costoReal;
-      return {
-        name: (p.name || "").substring(0, 14),
-        Presupuesto: Math.round(p.budget || 0),
-        Costo: Math.round(costoReal),
-        Utilidad: Math.round(utilidad),
-        Margen: p.budget > 0 ? Math.round((utilidad / p.budget) * 100) : 0,
-      };
-    }).slice(0, 8);
+const rentabilidadData = displayProjects
+      .filter(p => p.budget > 0 && (p.items || []).length > 0)
+      .map(p => {
+        const totals = calculateFullProject(itemsToBudgetTree(p.items || []), {
+          indirectCosts: p.indirectCosts,
+          adminCosts: p.administrativeCosts,
+          personalCosts: p.personalCosts,
+        });
+        const costoReal = totals.totalBudget;
+        const utilidad = PMath.sub(p.budget || 0, costoReal);
+        return {
+          name: (p.name || "").substring(0, 14),
+          Presupuesto: Math.round(p.budget || 0),
+          Costo: Math.round(costoReal),
+          Utilidad: Math.round(utilidad),
+          Margen: p.budget > 0 ? Math.round(PMath.div(PMath.mul(utilidad, 100), p.budget)) : 0,
+        };
+      }).slice(0, 8);
 
   const pieData = [
     { name: 'Cotizado', value: stats.cotizados.length, color: '#94a3b8' },
@@ -114,15 +115,15 @@ export default function AnalyticsModule() {
     { name: 'Finalizado', value: stats.finalizados.length, color: '#1A1A1A' },
   ];
 
-  // Per-project breakdown charts (only when a project is selected)
-  const itemsBreakdown = selectedProject
-    ? (selectedProject.items || []).map(item => ({
-        name: (item.description || '').substring(0, 16),
-        Materiales: Math.round((item.materials || []).reduce((a: number, m: any) => a + m.price * m.quantity * (item.projectQuantity || 1), 0)),
-        ManoObra: Math.round((item.labor || []).reduce((a: number, l: any) => a + l.price * l.quantity * (item.projectQuantity || 1), 0)),
-        Total: Math.round(calcItemCost(item)),
-      }))
-    : [];
+// Per-project breakdown charts (only when a project is selected)
+   const itemsBreakdown = selectedProject
+     ? (selectedProject.items || []).map(item => ({
+         name: (item.description || '').substring(0, 16),
+         Materiales: Math.round((item.materials || []).reduce((a: number, m: any) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1)), 0)),
+         ManoObra: Math.round((item.labor || []).reduce((a: number, l: any) => PMath.add(a, PMath.mul(PMath.mul(l.price, l.quantity), item.projectQuantity || 1)), 0)),
+         Total: Math.round(calcItemCost(item)),
+       }))
+     : [];
 
   const handleExportPDF = () => {
     if (!selectedProject) return;
@@ -134,94 +135,99 @@ export default function AnalyticsModule() {
     generateProjectCSV(selectedProject, exportCsvTemplate as any);
   };
 
-  // ── Tendencias mensuales (últimos 6 meses) ──────────────────────────────────
-  const monthlyTrends = useMemo(() => {
-    const months: Record<string, { mes: string; Ingresos: number; Gastos: number; Neto: number }> = {};
-    const now = new Date();
-    for (let i = 5; i >= 0; i--) {
-      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const label = d.toLocaleDateString('es-GT', { month: 'short', year: '2-digit' }).toUpperCase();
-      months[key] = { mes: label, Ingresos: 0, Gastos: 0, Neto: 0 };
-    }
-    transactions.forEach(t => {
-      if (!t.date) return;
-      if (t.projectId && !existingProjectIds.has(t.projectId)) return;
-      const key = t.date.substring(0, 7);
-      if (!months[key]) return;
-      if (t.type === 'INGRESO') months[key].Ingresos += Number(t.amount || 0);
-      else if (t.type === 'GASTO') months[key].Gastos += Number(t.amount || 0);
-    });
-    return Object.values(months).map(m => ({ ...m, Neto: m.Ingresos - m.Gastos }));
-  }, [transactions]);
+// ── Tendencias mensuales (últimos 6 meses) ──────────────────────────────────
+   const monthlyTrends = useMemo(() => {
+     const months: Record<string, { mes: string; Ingresos: number; Gastos: number; Neto: number }> = {};
+     const now = new Date();
+     for (let i = 5; i >= 0; i--) {
+       const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+       const label = d.toLocaleDateString('es-GT', { month: 'short', year: '2-digit' }).toUpperCase();
+       months[key] = { mes: label, Ingresos: 0, Gastos: 0, Neto: 0 };
+     }
+     transactions.forEach(t => {
+       if (!t.date) return;
+       if (t.projectId && !existingProjectIds.has(t.projectId)) return;
+       const key = t.date.substring(0, 7);
+       if (!months[key]) return;
+       const amount = Number(t.amount || 0);
+       if (t.type === 'INGRESO') months[key].Ingresos = PMath.add(months[key].Ingresos, amount);
+       else if (t.type === 'GASTO') months[key].Gastos = PMath.add(months[key].Gastos, amount);
+     });
+     return Object.values(months).map(m => ({ ...m, Neto: PMath.sub(m.Ingresos, m.Gastos) }));
+   }, [transactions]);
 
-  // ── Ranking de proyectos por margen ────────────────────────────────────────
-  const projectRanking = useMemo(() =>
-    displayProjects
-      .filter(p => p.budget > 0)
-      .map(p => {
-        const totals = calculateProjectTotals(p);
-        const costoReal = totals.totalBudget;
-        const utilidad = (p.budget || 0) - costoReal;
-        const margen = p.budget > 0 ? (utilidad / p.budget) * 100 : 0;
-        return { ...p, costoReal, utilidad, margen };
-      })
-      .sort((a, b) => b.margen - a.margen),
-    [displayProjects]
-  );
+// ── Ranking de proyectos por margen ────────────────────────────────────────
+    const projectRanking = useMemo(() =>
+      displayProjects
+        .filter(p => p.budget > 0 && (p.items || []).length > 0)
+        .map(p => {
+          const totals = calculateFullProject(itemsToBudgetTree(p.items || []), {
+            indirectCosts: p.indirectCosts,
+            adminCosts: p.administrativeCosts,
+            personalCosts: p.personalCosts,
+          });
+          const costoReal = totals.totalBudget;
+          const utilidad = PMath.sub(p.budget || 0, costoReal);
+          const margen = p.budget > 0 ? PMath.div(PMath.mul(utilidad, 100), p.budget) : 0;
+          return { ...p, costoReal, utilidad, margen };
+        })
+        .sort((a, b) => b.margen - a.margen),
+      [displayProjects]
+    );
 
-  // ── Distribución por tipología ──────────────────────────────────────────────
-  const typologyData = useMemo(() => {
-    const map: Record<string, { count: number; budget: number }> = {};
-    displayProjects.forEach(p => {
-      const t = p.typology || 'OTRO';
-      if (!map[t]) map[t] = { count: 0, budget: 0 };
-      map[t].count++;
-      map[t].budget += p.budget || 0;
-    });
-    const COLORS = ['#F15A24','#1A1A1A','#0071BC','#10b981','#a78bfa'];
-    return Object.entries(map).map(([name, v], i) => ({ name, ...v, color: COLORS[i % COLORS.length] }));
-  }, [displayProjects]);
+// ── Distribución por tipología ──────────────────────────────────────────────
+   const typologyData = useMemo(() => {
+     const map: Record<string, { count: number; budget: number }> = {};
+     displayProjects.forEach(p => {
+       const t = p.typology || 'OTRO';
+       if (!map[t]) map[t] = { count: 0, budget: 0 };
+       map[t].count++;
+       map[t].budget = PMath.add(map[t].budget, p.budget || 0);
+     });
+     const COLORS = ['#F15A24','#1A1A1A','#0071BC','#10b981','#a78bfa'];
+     return Object.entries(map).map(([name, v], i) => ({ name, ...v, color: COLORS[i % COLORS.length] }));
+   }, [displayProjects]);
 
-  // ── KPIs financieros y operativos mejorados ────────────────────────────────────────────────────────
-  const totalIngresos = transactions.filter(t => t.type === 'INGRESO' && (!t.projectId || existingProjectIds.has(t.projectId))).reduce((a, t) => a + Number(t.amount || 0), 0);
-  const totalGastos = transactions.filter(t => t.type === 'GASTO' && (!t.projectId || existingProjectIds.has(t.projectId))).reduce((a, t) => a + Number(t.amount || 0), 0);
-  const netoCaja = totalIngresos - totalGastos;
-  const totalPresupuesto = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
-  
-  // Nuevas métricas cruzadas
-  const activeStaff = staff.filter(s => s.status === 'ACTIVO');
-  const totalSalaries = activeStaff.reduce((a, s) => a + Number(s.salary || 0), 0);
-  const criticalInventory = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (!i.projectId || existingProjectIds.has(i.projectId)));
-  const pendingOrders = purchaseOrders.filter(po => po.status === 'PENDIENTE' && (!po.projectId || existingProjectIds.has(po.projectId)));
-  const totalPendingValue = pendingOrders.reduce((a, po) => a + Number(po.total || 0), 0);
-  
-  // Eficiencia de personal por proyecto
-  const staffEfficiency = displayProjects.map(p => {
-    const projectStaff = activeStaff.filter(s => s.projectIds?.includes(p.id));
-    const staffCost = projectStaff.reduce((a, s) => a + Number(s.salary || 0), 0);
-    const efficiency = p.budget > 0 && staffCost > 0 ? (p.progress || 0) / (staffCost / 1000) : 0;
-    return { ...p, staffCount: projectStaff.length, staffCost, efficiency };
-  }).filter(p => p.staffCount > 0);
-  
-  // Análisis de proveedores
-  const supplierAnalysis = suppliers.map(s => {
-    const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id && (!po.projectId || existingProjectIds.has(po.projectId)));
-    const totalSpent = supplierOrders.reduce((a, po) => a + Number(po.total || 0), 0);
-    const avgOrderValue = supplierOrders.length > 0 ? totalSpent / supplierOrders.length : 0;
-    const pendingCount = supplierOrders.filter(po => po.status === 'PENDIENTE').length;
-    return { ...s, totalSpent, avgOrderValue, orderCount: supplierOrders.length, pendingCount };
-  }).sort((a, b) => b.totalSpent - a.totalSpent);
-  
-  // Análisis de inventario por proyecto
-  const inventoryByProject = displayProjects.map(p => {
-    const projectInventory = inventory.filter(i => i.projectId === p.id);
-    const totalBudgetedValue = projectInventory.reduce((a, i) => a + (i.budgetedQty || 0) * (i.budgetedCost || 0), 0);
-    const totalCurrentValue = projectInventory.reduce((a, i) => a + (i.stock || 0) * (i.budgetedCost || 0), 0);
-    const criticalItems = projectInventory.filter(i => (i.stock || 0) <= (i.minStock || 0));
-    const completeness = totalBudgetedValue > 0 ? (totalCurrentValue / totalBudgetedValue) * 100 : 0;
-    return { ...p, inventoryItems: projectInventory.length, totalBudgetedValue, totalCurrentValue, criticalItems: criticalItems.length, completeness };
-  }).filter(p => p.inventoryItems > 0);
+// ── KPIs financieros y operativos mejorados ────────────────────────────────────────────────────────
+   const totalIngresos = PMath.sum(transactions.filter(t => t.type === 'INGRESO' && (!t.projectId || existingProjectIds.has(t.projectId))).map(t => Number(t.amount || 0)));
+   const totalGastos = PMath.sum(transactions.filter(t => t.type === 'GASTO' && (!t.projectId || existingProjectIds.has(t.projectId))).map(t => Number(t.amount || 0)));
+   const netoCaja = PMath.sub(totalIngresos, totalGastos);
+   const totalPresupuesto = PMath.sum(displayProjects.map(p => p.budget || 0));
+
+   // Nuevas métricas cruzadas
+   const activeStaff = staff.filter(s => s.status === 'Activo');
+   const totalSalaries = PMath.sum(activeStaff.map(s => Number(s.salary || 0)));
+   const criticalInventory = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (!i.projectId || existingProjectIds.has(i.projectId)));
+   const pendingOrders = purchaseOrders.filter(po => po.status === 'PENDIENTE' && (!po.projectId || existingProjectIds.has(po.projectId)));
+   const totalPendingValue = PMath.sum(pendingOrders.map(po => Number(po.total || 0)));
+
+   // Eficiencia de personal por proyecto
+   const staffEfficiency = displayProjects.map(p => {
+     const projectStaff = activeStaff.filter(s => s.projectIds?.includes(p.id));
+     const staffCost = PMath.sum(projectStaff.map(s => Number(s.salary || 0)));
+     const efficiency = p.budget > 0 && staffCost > 0 ? PMath.div(p.progress || 0, PMath.div(staffCost, 1000)) : 0;
+     return { ...p, staffCount: projectStaff.length, staffCost, efficiency };
+   }).filter(p => p.staffCount > 0);
+
+   // Análisis de proveedores
+   const supplierAnalysis = suppliers.map(s => {
+     const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id && (!po.projectId || existingProjectIds.has(po.projectId)));
+     const totalSpent = PMath.sum(supplierOrders.map(po => Number(po.total || 0)));
+     const avgOrderValue = supplierOrders.length > 0 ? PMath.div(totalSpent, supplierOrders.length) : 0;
+     const pendingCount = supplierOrders.filter(po => po.status === 'PENDIENTE').length;
+     return { ...s, totalSpent, avgOrderValue, orderCount: supplierOrders.length, pendingCount };
+   }).sort((a, b) => b.totalSpent - a.totalSpent);
+
+   // Análisis de inventario por proyecto
+   const inventoryByProject = displayProjects.map(p => {
+     const projectInventory = inventory.filter(i => i.projectId === p.id);
+     const totalBudgetedValue = PMath.sum(projectInventory.map(i => PMath.mul(i.budgetedQty || 0, i.budgetedCost || 0)));
+     const totalCurrentValue = PMath.sum(projectInventory.map(i => PMath.mul(i.stock || 0, i.budgetedCost || 0)));
+     const criticalItems = projectInventory.filter(i => (i.stock || 0) <= (i.minStock || 0));
+     const completeness = totalBudgetedValue > 0 ? PMath.div(PMath.mul(totalCurrentValue, 100), totalBudgetedValue) : 0;
+     return { ...p, inventoryItems: projectInventory.length, totalBudgetedValue, totalCurrentValue, criticalItems: criticalItems.length, completeness };
+   }).filter(p => p.inventoryItems > 0);
 
   if (loading) {
     return (
@@ -341,32 +347,32 @@ export default function AnalyticsModule() {
         ))}
       </div>
 
-      {/* Budget total */}
-      <div className="bg-slate-900 rounded-2xl p-3 text-white text-left flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
-        <div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-            {selectedProject ? `Presupuesto: ${selectedProject.name}` : 'Presupuesto Total Portafolio'}
-          </p>
-          <span className="text-2xl md:text-3xl font-black text-white">
-            Q. {displayProjects.reduce((a, p) => a + (p.budget || 0), 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
-          </span>
-        </div>
-        {selectedProject && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
-            {[
-              { label: 'Costo Directo', val: selectedProject.directCosts || 0 },
-              { label: `Indirecto ${selectedProject.indirectCosts || 0}%`, val: (selectedProject.directCosts || 0) * (selectedProject.indirectCosts || 0) / 100 },
-              { label: `Admin ${selectedProject.administrativeCosts || 0}%`, val: (selectedProject.directCosts || 0) * (selectedProject.administrativeCosts || 0) / 100 },
-              { label: `Personal ${selectedProject.personalCosts || 0}%`, val: (selectedProject.directCosts || 0) * (selectedProject.personalCosts || 0) / 100 },
-            ].map((c, i) => (
-              <div key={i} className="bg-slate-800/60 rounded-xl p-3">
-                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{c.label}</p>
-                <p className="text-[11px] font-black text-white mt-1">Q {c.val.toLocaleString('es-GT', { minimumFractionDigits: 0 })}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+{/* Budget total */}
+       <div className="bg-slate-900 rounded-2xl p-3 text-white text-left flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+         <div>
+           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+             {selectedProject ? `Presupuesto: ${selectedProject.name}` : 'Presupuesto Total Portafolio'}
+           </p>
+           <span className="text-2xl md:text-3xl font-black text-white">
+             Q. {fmtQ(PMath.sum(displayProjects.map(p => p.budget || 0)))}
+           </span>
+         </div>
+         {selectedProject && (
+           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-center">
+             {[
+               { label: 'Costo Directo', val: selectedProject.directCosts || 0 },
+               { label: `Indirecto ${selectedProject.indirectCosts || 0}%`, val: PMath.div(PMath.mul(selectedProject.directCosts || 0, selectedProject.indirectCosts || 0), 100) },
+               { label: `Admin ${selectedProject.administrativeCosts || 0}%`, val: PMath.div(PMath.mul(selectedProject.directCosts || 0, selectedProject.administrativeCosts || 0), 100) },
+               { label: `Personal ${selectedProject.personalCosts || 0}%`, val: PMath.div(PMath.mul(selectedProject.directCosts || 0, selectedProject.personalCosts || 0), 100) },
+             ].map((c, i) => (
+               <div key={i} className="bg-slate-800/60 rounded-xl p-3">
+                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{c.label}</p>
+                 <p className="text-[11px] font-black text-white mt-1">Q {fmtQ(c.val)}</p>
+               </div>
+             ))}
+           </div>
+         )}
+       </div>
 
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -416,11 +422,11 @@ export default function AnalyticsModule() {
               <RadialBarChart
                 cx="50%" cy="50%"
                 innerRadius="30%" outerRadius="90%"
-                data={[
-                  { name: 'Carga', value: Math.min(Math.round((displayProjects.length / 20) * 100), 100), fill: '#60a5fa' },
-                  { name: 'Cierre', value: Math.min(Math.round((stats.finalizados.length / (displayProjects.length || 1)) * 100), 100), fill: '#34d399' },
-                  { name: 'Activos', value: Math.min(Math.round((stats.ejecucion.length / (displayProjects.length || 1)) * 100), 100), fill: '#f59e0b' },
-                ]}
+data={[
+                    { name: 'Carga', value: precise(PMath.div(PMath.mul(displayProjects.length, 100), 20), 0), fill: '#60a5fa' },
+                    { name: 'Cierre', value: precise(PMath.div(PMath.mul(stats.finalizados.length, 100), displayProjects.length || 1), 0), fill: '#34d399' },
+                    { name: 'Activos', value: precise(PMath.div(PMath.mul(stats.ejecucion.length, 100), displayProjects.length || 1), 0), fill: '#f59e0b' },
+                  ]}
                 startAngle={180} endAngle={0}
               >
                 <RadialBar dataKey="value" cornerRadius={4} background={{ fill: 'rgba(255,255,255,0.05)' }} />
@@ -521,12 +527,12 @@ export default function AnalyticsModule() {
                     <td className="py-2 font-black text-secondary text-right">Q {row.Total.toLocaleString('es-GT')}</td>
                   </tr>
                 ))}
-                <tr className="bg-slate-50 font-black">
-                  <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
-                  <td className="py-2 pr-4 text-right text-primary">Q {itemsBreakdown.reduce((a, r) => a + r.Materiales, 0).toLocaleString('es-GT')}</td>
-                  <td className="py-2 pr-4 text-right text-primary">Q {itemsBreakdown.reduce((a, r) => a + r.ManoObra, 0).toLocaleString('es-GT')}</td>
-                  <td className="py-2 text-right text-secondary">Q {itemsBreakdown.reduce((a, r) => a + r.Total, 0).toLocaleString('es-GT')}</td>
-                </tr>
+<tr className="bg-slate-50 font-black">
+                   <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
+                   <td className="py-2 pr-4 text-right text-primary">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.Materiales)))}</td>
+                   <td className="py-2 pr-4 text-right text-primary">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.ManoObra)))}</td>
+                   <td className="py-2 text-right text-secondary">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.Total)))}</td>
+                 </tr>
               </tbody>
             </table>
           </div>
@@ -664,12 +670,12 @@ export default function AnalyticsModule() {
                     <td className={`py-2 font-black text-right ${m.Neto >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>Q {m.Neto.toLocaleString('es-GT')}</td>
                   </tr>
                 ))}
-                <tr className="bg-slate-50 font-black border-t border-slate-200">
-                  <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
-                  <td className="py-2 pr-4 text-right text-emerald-600">Q {monthlyTrends.reduce((a,m)=>a+m.Ingresos,0).toLocaleString('es-GT')}</td>
-                  <td className="py-2 pr-4 text-right text-red-500">Q {monthlyTrends.reduce((a,m)=>a+m.Gastos,0).toLocaleString('es-GT')}</td>
-                  <td className={`py-2 text-right ${netoCaja>=0?'text-emerald-600':'text-red-500'}`}>Q {netoCaja.toLocaleString('es-GT')}</td>
-                </tr>
+<tr className="bg-slate-50 font-black border-t border-slate-200">
+                   <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
+                   <td className="py-2 pr-4 text-right text-emerald-600">Q {fmtQ(PMath.sum(monthlyTrends.map(m => m.Ingresos)))}</td>
+                   <td className="py-2 pr-4 text-right text-red-500">Q {fmtQ(PMath.sum(monthlyTrends.map(m => m.Gastos)))}</td>
+                   <td className={`py-2 text-right ${netoCaja >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>Q {fmtQ(netoCaja)}</td>
+                 </tr>
               </tbody>
             </table>
           </div>
@@ -762,19 +768,19 @@ export default function AnalyticsModule() {
                     </motion.tr>
                   ))}
                 </tbody>
-                <tfoot className="bg-slate-50 border-t border-slate-200">
-                  <tr>
-                    <td colSpan={3} className="py-2 pr-4 font-black text-slate-400 uppercase text-[8px] tracking-widest">TOTALES ({projectRanking.length} proyectos)</td>
-                    <td className="py-2 pr-4 font-black text-primary text-right">Q {projectRanking.reduce((a,p)=>a+(p.budget||0),0).toLocaleString('es-GT')}</td>
-                    <td className="py-2 pr-4 font-black text-primary text-right hidden md:table-cell">Q {Math.round(projectRanking.reduce((a,p)=>a+p.costoReal,0)).toLocaleString('es-GT')}</td>
-                    <td className={`py-2 pr-4 font-black text-right ${projectRanking.reduce((a,p)=>a+p.utilidad,0)>=0?'text-emerald-600':'text-red-500'}`}>
-                      Q {Math.round(projectRanking.reduce((a,p)=>a+p.utilidad,0)).toLocaleString('es-GT')}
-                    </td>
-                    <td className="py-2 font-black text-right text-secondary">
-                      {projectRanking.length > 0 ? Math.round(projectRanking.reduce((a,p)=>a+p.margen,0)/projectRanking.length) : 0}%
-                    </td>
-                  </tr>
-                </tfoot>
+<tfoot className="bg-slate-50 border-t border-slate-200">
+                    <tr>
+                      <td colSpan={3} className="py-2 pr-4 font-black text-slate-400 uppercase text-[8px] tracking-widest">TOTALES ({projectRanking.length} proyectos)</td>
+                      <td className="py-2 pr-4 font-black text-primary text-right">Q {fmtQ(PMath.sum(projectRanking.map(p => p.budget || 0)))}</td>
+                      <td className="py-2 pr-4 font-black text-primary text-right hidden md:table-cell">Q {fmtQ(PMath.sum(projectRanking.map(p => p.costoReal)))}</td>
+                      <td className={`py-2 pr-4 font-black text-right ${PMath.sum(projectRanking.map(p => p.utilidad)) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                        Q {fmtQ(PMath.sum(projectRanking.map(p => p.utilidad)))}
+                      </td>
+                      <td className="py-2 font-black text-right text-secondary">
+                        {projectRanking.length > 0 ? `${precise(PMath.div(PMath.sum(projectRanking.map(p => p.margen)), projectRanking.length))}%` : 0}%
+                      </td>
+                    </tr>
+                  </tfoot>
               </table>
             )}
           </div>
@@ -1111,7 +1117,7 @@ export default function AnalyticsModule() {
                     icon: <Package size={12} className="text-emerald-500" />
                   }
                 ].map((row, i) => {
-                  const percentage = row.total > 0 ? Math.round((row.connected / row.total) * 100) : 0;
+                  const percentage = row.total > 0 ? precise((row.connected / row.total) * 100, 0) : 0;
                   return (
                     <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
                       <td className="py-2 pr-4">

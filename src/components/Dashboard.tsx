@@ -4,8 +4,8 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { 
-  TrendingUp, 
+import {
+  TrendingUp,
   Package,
   CheckCircle2,
   Plus,
@@ -17,20 +17,20 @@ import {
   X,
   CreditCard,
   ArrowDownLeft,
-   ArrowUpRight,
-   RotateCcw,
-   AlertTriangle,
-   Pencil,
-   Trash2,
-   HardHat,
-   Calendar,
-   Printer
- } from 'lucide-react';
+    ArrowUpRight,
+    RotateCcw,
+    AlertTriangle,
+    Pencil,
+    Trash2,
+    HardHat,
+    Calendar,
+    Printer
+  } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../utils/cn';
-import { fmtQ } from '../utils/format';
+import { fmtQ, precise } from '../engine/precision';
 import { toast } from 'sonner';
-import { subscribeToCollection, addDocument, updateDocument, getDocumentsForCollection, deleteDocument, parseError } from '../services/firestoreService';
+import { addDocument, updateDocument, deleteDocument, getDocumentsForCollection, parseError } from '../services/firestoreService';
 import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { Transaction } from '../constants';
@@ -38,16 +38,18 @@ import { useCountUp } from '../hooks/useCountUp';
 import Modal from './ui/Modal';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
 import { trackCRUD, trackEvent } from '../utils/logger';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as ChartTooltip, 
-  ResponsiveContainer, 
-  PieChart, 
-  Pie, 
+import { PMath } from '../engine/precision';
+import { useStore, useExistingProjectFilter } from '../store/DataStore';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as ChartTooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
   Cell,
   LineChart,
   Line,
@@ -300,299 +302,286 @@ function CustomTooltip({ active, payload, label }: any) {
 }
 
 export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
-  const { settings } = useSettings();
-  const [projects, setProjects] = useState<any[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [loaded, setLoaded] = useState({ projects: false, inventory: false, transactions: false });
-  const [resetting, setResetting] = useState(false);
-  const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
-  const [editTx, setEditTx] = useState<any | null>(null);
-  const [editTxForm, setEditTxForm] = useState({ description: '', amount: 0, type: 'GASTO', category: '', date: '' });
-  const [isResetModalOpen, setIsResetModalOpen] = useState(false);
-  const [resetData, setResetData] = useState<Record<string, {items: any[], selected: string[]}>>({});
-  const [resetLoading, setResetLoading] = useState(false);
-  const { selectedProjectId, setSelectedProjectId, executingProjects: ctxExecutingProjects, setExecutingProjects } = useProjectFilter();
-  const [selectedYear, setSelectedYear] = useState<string>('todos');
-  const [reportDateFrom, setReportDateFrom] = useState(() => {
-    const d = new Date(); d.setMonth(d.getMonth() - 1); return d.toISOString().split('T')[0];
-  });
-  const [reportDateTo, setReportDateTo] = useState(() => new Date().toISOString().split('T')[0]);
-  const [reportProjectId, setReportProjectId] = useState<string>('ALL');
-  const [generating, setGenerating] = useState(false);
-  const reportCaptureRef = useRef<HTMLDivElement>(null);
+   const { settings } = useSettings();
+   const store = useStore();
+   const [resetting, setResetting] = useState(false);
+   const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
+   const [editTx, setEditTx] = useState<any | null>(null);
+   const [editTxForm, setEditTxForm] = useState({ description: '', amount: 0, type: 'GASTO', category: '', date: '' });
+   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [resetData, setResetData] = useState<Record<string, {items: any[], selected: string[]}>>({});
+    const { selectedProjectId, setSelectedProjectId, executingProjects: ctxExecutingProjects, setExecutingProjects } = useProjectFilter();
+   const [selectedYear, setSelectedYear] = useState<string>('todos');
+   const [reportDateFrom, setReportDateFrom] = useState(() => {
+     const d = new Date(); d.setMonth(d.getMonth() - 1); return d.toISOString().split('T')[0];
+   });
+   const [reportDateTo, setReportDateTo] = useState(() => new Date().toISOString().split('T')[0]);
+   const [reportProjectId, setReportProjectId] = useState<string>('ALL');
+   const [generating, setGenerating] = useState(false);
+   const reportCaptureRef = useRef<HTMLDivElement>(null);
 
-  const [accountingForm, setAccountingForm] = useState({
-    type: 'Salida' as 'Entrada' | 'Salida',
-    quantity: 1,
-    cost: 0,
-    description: '',
-    category: 'Materiales',
-    date: new Date().toISOString().split('T')[0],
-    projectId: ''
-  });
+const [accountingForm, setAccountingForm] = useState({
+      type: 'Salida' as 'Entrada' | 'Salida',
+      quantity: 1,
+      cost: 0,
+      description: '',
+      category: 'Materiales',
+      date: new Date().toISOString().split('T')[0],
+      projectId: ''
+    });
 
-const entryCategories = ['Aporte Cliente', 'Anticipo de Obra', 'Pago por Avance', 'Pago Final', 'Anteproyecto', 'Estudios y Diseno', 'Agrimensura', 'Cuantificacion', 'Venta de Material', 'Devolucion de Proveedor', 'Subvencion / Subsidio', 'Prestamo / Financiamiento', 'Otros Ingresos'];
-const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'Sub-contratos', 'Administrativo', 'Personales', 'Hogar'];
+    const entryCategories = ['Aporte Cliente', 'Anticipo de Obra', 'Pago por Avance', 'Pago Final', 'Anteproyecto', 'Estudios y Diseno', 'Agrimensura', 'Cuantificacion', 'Venta de Material', 'Devolucion de Proveedor', 'Subvencion / Subsidio', 'Prestamo / Financiamiento', 'Otros Ingresos'];
+    const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'Sub-contratos', 'Administrativo', 'Personales', 'Hogar'];
 
-  useEffect(() => {
-    const unsubProjects = subscribeToCollection('projects', (data) => {
-      setProjects(data);
-      setLoaded(p => ({ ...p, projects: true }));
-    });
-    const unsubInventory = subscribeToCollection('inventory', (data) => {
-      setInventory(data);
-      setLoaded(p => ({ ...p, inventory: true }));
-    });
-    const unsubTransactions = subscribeToCollection('transactions', (data) => {
-      setTransactions(data);
-      setLoaded(p => ({ ...p, transactions: true }));
-    });
-    
-    return () => {
-      unsubProjects();
-      unsubInventory();
-      unsubTransactions();
+    // ── DataStore: datos centralizados ──────────────────────────────────────
+    const projects = store.projects.items;
+    const transactions = store.transactions.items;
+    const allTransactions = store.transactions.items;
+    const inventory = store.inventory.items;
+    const loaded = store.projects.isLoading || store.transactions.isLoading || store.inventory.isLoading;
+
+    // ── Handlers ──────────────────────────────────────────────────────────────
+    const handleAccountingSubmit = async () => {
+      try {
+        const isEntry = accountingForm.type === 'Entrada';
+        const doc = {
+          date: accountingForm.date,
+          description: accountingForm.description,
+          type: isEntry ? 'INGRESO' : 'GASTO',
+          category: accountingForm.category,
+          amount: isEntry ? accountingForm.quantity * accountingForm.cost : -(accountingForm.quantity * accountingForm.cost),
+          projectId: accountingForm.projectId || undefined,
+          unitCost: accountingForm.cost,
+          qty: accountingForm.quantity,
+          createdAt: new Date().toISOString(),
+        };
+        await addDocument('transactions', doc);
+        toast.success('Movimiento registrado');
+        setAccountingForm({ type: 'Salida', quantity: 1, cost: 0, description: '', category: 'Materiales', date: new Date().toISOString().split('T')[0], projectId: '' });
+      } catch (e) { toast.error('Error', { description: parseError(e) }); }
     };
-  }, []);
 
-  const handleAccountingSubmit = () => {
-    const label = accountingForm.type === 'Entrada' ? 'ingreso' : 'gasto';
-    toast('¿Confirmar registro contable?', {
-      description: accountingForm.description || 'Registro Contable Directo',
-      action: { label: 'Confirmar', onClick: async () => {
-        try {
-          await addDocument('transactions', { description: accountingForm.description || 'Registro Contable Directo', amount: accountingForm.cost * accountingForm.quantity, qty: accountingForm.quantity, unitCost: accountingForm.cost, type: accountingForm.type === 'Entrada' ? 'INGRESO' : 'GASTO', category: accountingForm.category, date: accountingForm.date, projectId: accountingForm.projectId || null, createdAt: new Date().toISOString() });
-          setIsAccountingModalOpen(false);
-          setAccountingForm({ type: 'Salida', quantity: 1, cost: 0, description: '', category: exitCategories[0], date: new Date().toISOString().split('T')[0], projectId: '' });
-          toast.success('Registro contable guardado');
-        } catch (e) { toast.error('Error al registrar contabilidad', { description: parseError(e) }); }
-      }},
-      cancel: { label: 'Cancelar', onClick: () => {} }
-    });
-  };
-
-  const handleSystemReset = async () => {
-    if (!window.confirm('¿ESTÁ SEGURO? Esta acción eliminará permanentemente TODOS los datos de proyectos, inventario, transacciones, clientes, proveedores y personal. Esta acción no se puede deshacer.')) return;
-    
-    const collections = ['projects', 'inventory', 'transactions', 'staff', 'suppliers', 'clients'];
-    setResetting(true);
-    
-    try {
-      for (const collName of collections) {
-        const docs = await getDocumentsForCollection(collName);
-        for (const d of docs) {
-          await deleteDocument(collName, d.id);
+    const handleConfirmReset = async () => {
+      setResetting(true);
+      try {
+        for (const [col, { selected }] of Object.entries(resetData)) {
+          for (const id of selected) await deleteDocument(col as any, id);
         }
-      }
-      toast.success('Sistema reiniciado', { description: 'Todos los datos han sido eliminados' });
-    } catch (e) {
-      console.error(e);
-      toast.error('Error al reiniciar', { description: parseError(e) });
-    } finally {
-      setResetting(false);
-    }
-  };
+        toast.success('Datos eliminados');
+        setResetData({});
+        setIsResetModalOpen(false);
+      } catch (e) { toast.error('Error', { description: parseError(e) }); } finally { setResetting(false); }
+    };
 
-  const handleConfirmReset = async () => {
-    setResetting(true);
-    try {
-      for (const [col, { selected }] of Object.entries(resetData)) {
-        for (const id of selected) {
-          await deleteDocument(col, id);
+    const handleSystemReset = async () => {
+      if (!confirm('¿Está seguro de reiniciar el sistema? Esto eliminará TODOS los datos.')) return;
+      setResetting(true);
+      try {
+        const cols = ['projects', 'transactions', 'inventory', 'staff', 'suppliers', 'clients'] as const;
+        for (const col of cols) {
+          const docs = await getDocumentsForCollection(col);
+          for (const d of docs) await deleteDocument(col, d.id);
         }
-      }
-      toast.success('Datos eliminados');
-      setIsResetModalOpen(false);
-      setResetData({});
-    } catch (e) {
-      console.error(e);
-      toast.error('Error al eliminar', { description: parseError(e) });
-    } finally {
-      setResetting(false);
-    }
-  };
-  // Sync executingProjects to context for topbar filter
-  useEffect(() => { setExecutingProjects(projects.filter((p: any) => p.status === 'EJECUCION')); }, [projects]);
+        toast.success('Sistema reiniciado');
+        setResetData({});
+      } catch (e) { toast.error('Error', { description: parseError(e) }); } finally { setResetting(false); }
+    };
 
-  // Calculations — memoized for performance
-  const executingProjects = useMemo(() => projects.filter(p => p.status === 'EJECUCION'), [projects]);
-  const finishedOrPausedProjects = useMemo(() => projects.filter(p => p.status === 'FINALIZADO' || p.status === 'PAUSADO'), [projects]);
+    // Sync executingProjects to context for topbar filter
+   useEffect(() => { setExecutingProjects(projects.filter((p: any) => p.status === 'EJECUCION')); }, [projects]);
 
-  const filteredProjects = useMemo(() => selectedProjectId === 'ALL'
-    ? executingProjects
-    : executingProjects.filter(p => p.id === selectedProjectId),
-  [executingProjects, selectedProjectId]);
+   // ── Cálculos derivados con PMath ────────────────────────────────────────
+   const executingProjects = useMemo(() => projects.filter(p => p.status === 'EJECUCION'), [projects]);
+   const finishedOrPausedProjects = useMemo(() => projects.filter(p => p.status === 'FINALIZADO' || p.status === 'PAUSADO'), [projects]);
 
-  const availableYears = useMemo(() => ['todos', ...new Set(projects.map(p => p.startDate ? new Date(p.startDate).getFullYear().toString() : '').filter(Boolean))].sort(), [projects]);
-  const projectsByYear = useMemo(() => selectedYear === 'todos' ? filteredProjects : filteredProjects.filter(p => p.startDate && new Date(p.startDate).getFullYear().toString() === selectedYear), [filteredProjects, selectedYear]);
+   const filteredProjects = useMemo(() => selectedProjectId === 'ALL'
+     ? executingProjects
+     : executingProjects.filter(p => p.id === selectedProjectId),
+   [executingProjects, selectedProjectId]);
 
-  const existingProjectIds = useMemo(() => new Set(projects.filter(p => p.id).map(p => p.id)), [projects]);
-  const filteredTransactions = useMemo(() => selectedProjectId === 'ALL'
-    ? transactions.filter(t => t.projectId && existingProjectIds.has(t.projectId))
-    : transactions.filter(t => t.projectId === selectedProjectId),
-  [transactions, existingProjectIds, selectedProjectId]);
+   const finishedFilteredProjects = useMemo(() => selectedProjectId === 'ALL'
+     ? finishedOrPausedProjects
+     : finishedOrPausedProjects.filter(p => p.id === selectedProjectId),
+   [finishedOrPausedProjects, selectedProjectId]);
 
-  const totalIncome = useMemo(() => filteredTransactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0), [filteredTransactions]);
-  const totalExpenses = useMemo(() => filteredTransactions.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0), [filteredTransactions]);
-  const netCash = totalIncome - totalExpenses;
+   const availableYears = useMemo(() => ['todos', ...new Set(projects.map(p => p.startDate ? new Date(p.startDate).getFullYear().toString() : '').filter(Boolean))].sort(), [projects]);
+   const projectsByYear = useMemo(() => selectedYear === 'todos' ? filteredProjects : filteredProjects.filter(p => p.startDate && new Date(p.startDate).getFullYear().toString() === selectedYear), [filteredProjects, selectedYear]);
 
-  const globalIncome = useMemo(() => transactions.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0), [transactions]);
-  const globalExpenses = useMemo(() => transactions.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0), [transactions]);
+   const existingProjectIds = useMemo(() => new Set(projects.filter(p => p.id).map(p => p.id)), [projects]);
 
-  const executingBudget = useMemo(() => filteredProjects.reduce((acc, p) => acc + (p.budget || 0), 0), [filteredProjects]);
-  const finishedPausedBudget = useMemo(() => finishedOrPausedProjects.reduce((acc, p) => acc + (p.budget || 0), 0), [finishedOrPausedProjects]);
+   // Filtrar transacciones huérfanas con DataStore
+   const filteredTransactions = useMemo(() => {
+     const txs = selectedProjectId === 'ALL'
+       ? allTransactions.filter(t => t.projectId && existingProjectIds.has(t.projectId))
+       : allTransactions.filter(t => t.projectId === selectedProjectId);
+     return txs;
+   }, [allTransactions, existingProjectIds, selectedProjectId]);
 
-  const criticalStock = useMemo(() => inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (i.projectId && existingProjectIds.has(i.projectId)))).length, [inventory, existingProjectIds, selectedProjectId]);
+   const totalIncome = useMemo(() => PMath.sum(filteredTransactions.filter(t => t.type === 'INGRESO').map(t => t.amount || 0)), [filteredTransactions]);
+   const totalExpenses = useMemo(() => PMath.sum(filteredTransactions.filter(t => t.type === 'GASTO').map(t => t.amount || 0)), [filteredTransactions]);
+   const netCash = PMath.sub(totalIncome, totalExpenses);
 
-  const avgFisico = useMemo(() => filteredProjects.length
-    ? Math.round(filteredProjects.reduce((a, p) => a + (p.progress || 0), 0) / filteredProjects.length)
-    : 0, [filteredProjects]);
-  const avgFinanciero = useMemo(() => filteredProjects.length
-    ? Math.round(filteredProjects.reduce((a, p) => {
-        const txExpense = transactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((s, t) => s + (t.amount || 0), 0);
-        return a + Math.round((txExpense / (p.budget || 1)) * 100);
-      }, 0) / filteredProjects.length)
-    : 0, [filteredProjects, transactions]);
+   const globalIncome = useMemo(() => PMath.sum(allTransactions.filter(t => t.type === 'INGRESO').map(t => t.amount || 0)), [allTransactions]);
+   const globalExpenses = useMemo(() => PMath.sum(allTransactions.filter(t => t.type === 'GASTO').map(t => t.amount || 0)), [allTransactions]);
 
-  // Sparkline data — last 8 weeks using filtered transactions
-  const sparkWeeks = Array.from({ length: 8 }, (_, i) => {
-    const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - (7 * (7 - i)));
-    const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() - (7 * (6 - i)));
-    const weekTx = filteredTransactions.filter(t => {
-      if (!t.date) return false;
-      const td = new Date(t.date);
-      return td >= weekStart && td < weekEnd;
-    });
-    const inc = weekTx.filter(t => t.type === 'INGRESO').reduce((a, t) => a + (t.amount || 0), 0);
-    const exp = weekTx.filter(t => t.type === 'GASTO').reduce((a, t) => a + (t.amount || 0), 0);
-    return { v: inc - exp, inc, exp };
-  });
+   const executingBudget = useMemo(() => PMath.sum(filteredProjects.map(p => p.budget || 0)), [filteredProjects]);
+   const finishedPausedBudget = useMemo(() => PMath.sum(finishedFilteredProjects.map(p => p.budget || 0)), [finishedFilteredProjects]);
+
+   const criticalStock = useMemo(() => inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (i.projectId && existingProjectIds.has(i.projectId)))).length, [inventory, existingProjectIds, selectedProjectId]);
+
+const avgFisico = useMemo(() => filteredProjects.length
+      ? precise(PMath.div(filteredProjects.reduce((a, p) => PMath.add(a, p.progress || 0), 0), filteredProjects.length), 0)
+      : 0, [filteredProjects]);
+    const avgFinanciero = useMemo(() => filteredProjects.length
+      ? precise(PMath.div(
+          filteredProjects.reduce((a, p) => {
+            const txExpense = allTransactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((s, t) => PMath.add(s, t.amount || 0), 0);
+            return PMath.add(a, precise(PMath.div(PMath.mul(txExpense, 100), p.budget || 1), 0));
+          }, 0),
+          filteredProjects.length
+        ), 0)
+      : 0, [filteredProjects, allTransactions]);
+
+// Sparkline data — last 8 weeks using filtered transactions
+   const sparkWeeks = Array.from({ length: 8 }, (_, i) => {
+     const weekStart = new Date(); weekStart.setDate(weekStart.getDate() - (7 * (7 - i)));
+     const weekEnd = new Date(); weekEnd.setDate(weekEnd.getDate() - (7 * (6 - i)));
+     const weekTx = filteredTransactions.filter(t => {
+       if (!t.date) return false;
+       const td = new Date(t.date);
+       return td >= weekStart && td < weekEnd;
+     });
+     const inc = PMath.sum(weekTx.filter(t => t.type === 'INGRESO').map(t => t.amount || 0));
+     const exp = PMath.sum(weekTx.filter(t => t.type === 'GASTO').map(t => t.amount || 0));
+     return { v: PMath.sub(inc, exp), inc, exp };
+   });
   const sparkInc = sparkWeeks.map(d => ({ v: d.inc }));
   const sparkExp = sparkWeeks.map(d => ({ v: d.exp }));
   const sparkNet = sparkWeeks.map(d => ({ v: d.v }));
 
-  // Pie Chart Data: Expenses by Category — use real transactions
-  const expenseByCategory = (() => {
-    const txSource = selectedProjectId !== 'ALL'
-      ? filteredTransactions.filter(t => t.type === 'GASTO')
-      : filteredTransactions.filter(t => t.type === 'GASTO');
-    const cats = selectedProjectId !== 'ALL' ? [...exitCategories, 'Indirectos', 'Administrativo', 'Personal'] : exitCategories;
-    return cats.map(cat => ({
-      name: cat,
-      value: txSource.filter(t => t.category === cat).reduce((acc, t) => acc + (t.amount || 0), 0)
-    })).filter(cat => cat.value > 0);
-  })();
+// Pie Chart Data: Expenses by Category — use real transactions
+   const expenseByCategory = (() => {
+     const txSource = selectedProjectId !== 'ALL'
+       ? filteredTransactions.filter(t => t.type === 'GASTO')
+       : filteredTransactions.filter(t => t.type === 'GASTO');
+     const cats = selectedProjectId !== 'ALL' ? [...exitCategories, 'Indirectos', 'Administrativo', 'Personal'] : exitCategories;
+     return cats.map(cat => ({
+       name: cat,
+       value: PMath.sum(txSource.filter(t => t.category === cat).map(t => t.amount || 0))
+     })).filter(cat => cat.value > 0);
+   })();
 
-  // Cash flow chart: when project selected, show project transactions by month;
-    // when ALL, show global transactions by month
-    const chartData = (() => {
-      const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
-      const currentMonthIndex = new Date().getMonth();
-      const lastMonths = [
-        (currentMonthIndex - 2 + 12) % 12,
-        (currentMonthIndex - 1 + 12) % 12,
-        currentMonthIndex
-      ];
+   // Cash flow chart: when project selected, show project transactions by month;
+     // when ALL, show global transactions by month
+     const chartData = (() => {
+       const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+       const currentMonthIndex = new Date().getMonth();
+       const lastMonths = [
+         (currentMonthIndex - 2 + 12) % 12,
+         (currentMonthIndex - 1 + 12) % 12,
+         currentMonthIndex
+       ];
 
-      return lastMonths.map(monthIdx => {
-        const monthTx = filteredTransactions.filter(t => {
-          if (!t.date) return false;
-          const d = new Date(t.date);
-          return d.getMonth() === monthIdx && d.getFullYear() === new Date().getFullYear();
-        });
-        return {
-          name: months[monthIdx],
-          ingresos: monthTx.filter(t => t.type === 'INGRESO').reduce((acc, t) => acc + (t.amount || 0), 0),
-          gastos: monthTx.filter(t => t.type === 'GASTO').reduce((acc, t) => acc + (t.amount || 0), 0)
-        };
-      });
-    })();
+       return lastMonths.map(monthIdx => {
+         const monthTx = filteredTransactions.filter(t => {
+           if (!t.date) return false;
+           const d = new Date(t.date);
+           return d.getMonth() === monthIdx && d.getFullYear() === new Date().getFullYear();
+         });
+         return {
+           name: months[monthIdx],
+           ingresos: PMath.sum(monthTx.filter(t => t.type === 'INGRESO').map(t => t.amount || 0)),
+           gastos: PMath.sum(monthTx.filter(t => t.type === 'GASTO').map(t => t.amount || 0))
+         };
+       });
+     })();
 
-  const generateReport = async () => {
-    setGenerating(true);
-    try {
-      const { default: jsPDF } = await import('jspdf');
-      const target = reportCaptureRef.current;
-      if (!target) { toast.error('Error al generar reporte'); setGenerating(false); return; }
+const generateReport = async () => {
+     setGenerating(true);
+     try {
+       const { default: jsPDF } = await import('jspdf');
+       const target = reportCaptureRef.current;
+       if (!target) { toast.error('Error al generar reporte'); setGenerating(false); return; }
 
-      // Populate report data
-      const projList = reportProjectId === 'ALL' ? projects : projects.filter(p => p.id === reportProjectId);
-      const from = new Date(reportDateFrom);
-      const to = new Date(reportDateTo);
-      const txRange = transactions.filter(t => t.date && new Date(t.date) >= from && new Date(t.date) <= to);
-      const income = txRange.filter(t => t.type === 'INGRESO').reduce((a, t) => a + (t.amount || 0), 0);
-      const expenses = txRange.filter(t => t.type === 'GASTO').reduce((a, t) => a + (t.amount || 0), 0);
+       // Populate report data
+       const projList = reportProjectId === 'ALL' ? projects : projects.filter(p => p.id === reportProjectId);
+       const from = new Date(reportDateFrom);
+       const to = new Date(reportDateTo);
+       const allTxs = store.transactions.items;
+       const txRange = allTxs.filter(t => t.date && new Date(t.date) >= from && new Date(t.date) <= to);
+       const income = PMath.sum(txRange.filter(t => t.type === 'INGRESO').map(t => t.amount || 0));
+       const expenses = PMath.sum(txRange.filter(t => t.type === 'GASTO').map(t => t.amount || 0));
 
-      // Build hidden report HTML
-      target.innerHTML = `
-        <div style="font-family:Inter,sans-serif;padding:30px;color:#0f172a;background:#fff;width:780px">
-          <div style="text-align:center;border-bottom:2px solid #f59e0b;padding-bottom:16px;margin-bottom:20px">
-            <h1 style="font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;margin:0">${settings.companyName}</h1>
-            <p style="font-size:9px;color:#64748b;margin:4px 0 0">Reporte de Gestión · ${reportDateFrom} al ${reportDateTo}</p>
-            <p style="font-size:9px;color:#64748b;margin:2px 0 0">${reportProjectId === 'ALL' ? 'Todos los proyectos' : (projects.find(p => p.id === reportProjectId)?.name || 'Proyecto específico')}</p>
-          </div>
-          <div style="display:flex;gap:12px;margin-bottom:20px">
-            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
-              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Ingresos</p>
-              <p style="font-size:18px;font-weight:900;color:#10b981;margin:4px 0">Q${income.toLocaleString()}</p>
-            </div>
-            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
-              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Gastos</p>
-              <p style="font-size:18px;font-weight:900;color:#ef4444;margin:4px 0">Q${expenses.toLocaleString()}</p>
-            </div>
-            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
-              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Neto</p>
-              <p style="font-size:18px;font-weight:900;color:${income - expenses >= 0 ? '#10b981' : '#ef4444'};margin:4px 0">Q${(income - expenses).toLocaleString()}</p>
-            </div>
-            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
-              <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Proyectos</p>
-              <p style="font-size:18px;font-weight:900;color:#0f172a;margin:4px 0">${projList.length}</p>
-            </div>
-          </div>
-          <div style="display:flex;gap:12px;margin-bottom:20px">
-            <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;min-height:160px">
-              <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Transacciones por Categoría</p>
-              <div id="report-pie" style="height:140px;display:flex;align-items:center;justify-content:center;gap:12px;">
-                ${entryCategories.filter(c => txRange.filter(t => t.category === c).length > 0).slice(0,5).map((cat, i) => {
-                  const val = txRange.filter(t => t.category === cat).reduce((a, t) => a + (t.amount || 0), 0);
-                  const colors = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#f43f5e'];
-                  return `<div style="display:flex;align-items:center;gap:4px;font-size:7px"><div style="width:8px;height:8px;border-radius:2px;background:${colors[i%5]}"></div>${cat}</div>`;
-                }).join('')}
-              </div>
-            </div>
-            <div style="flex:2;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
-              <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Proyectos — Estado de Cuentas</p>
-              <table style="width:100%;font-size:7px;border-collapse:collapse">
-                <thead><tr style="border-bottom:1px solid #e2e8f0">
-                  <th style="text-align:left;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Proyecto</th>
-                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Presupuesto</th>
-                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Avance</th>
-                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Ingresos</th>
-                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Gastos</th>
-                  <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Neto</th>
-                </tr></thead>
-                <tbody>${projList.slice(0, 15).map(p => {
-                  const pin = txRange.filter(t => t.type === 'INGRESO' && t.projectId === p.id).reduce((a, t) => a + (t.amount || 0), 0);
-                  const pout = txRange.filter(t => t.type === 'GASTO' && t.projectId === p.id).reduce((a, t) => a + (t.amount || 0), 0);
-                  return `<tr style="border-bottom:1px solid #f1f5f9">
-                    <td style="padding:3px 6px;font-weight:700">${p.name || '—'}</td>
-                    <td style="padding:3px 6px;text-align:right;font-family:monospace">Q${(p.budget || 0).toLocaleString()}</td>
-                    <td style="padding:3px 6px;text-align:right">${p.progress || 0}%</td>
-                    <td style="padding:3px 6px;text-align:right;font-family:monospace;color:#10b981">Q${pin.toLocaleString()}</td>
-                    <td style="padding:3px 6px;text-align:right;font-family:monospace;color:#ef4444">Q${pout.toLocaleString()}</td>
-                    <td style="padding:3px 6px;text-align:right;font-family:monospace;color:${pin - pout >= 0 ? '#10b981' : '#ef4444'}">Q${(pin - pout).toLocaleString()}</td>
-                  </tr>`;
-                }).join('')}</tbody>
-              </table>
-              ${projList.length > 15 ? `<p style="font-size:7px;color:#94a3b8;text-align:center;margin-top:4px">Mostrando 15 de ${projList.length} proyectos</p>` : ''}
-            </div>
-          </div>
-          <div style="font-size:6px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px">
-            Generado el ${new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · WM/M&S Constructora ERP
-          </div>
-        </div>
-      `;
+       // Build hidden report HTML
+       target.innerHTML = `
+         <div style="font-family:Inter,sans-serif;padding:30px;color:#0f172a;background:#fff;width:780px">
+           <div style="text-align:center;border-bottom:2px solid #f59e0b;padding-bottom:16px;margin-bottom:20px">
+             <h1 style="font-size:22px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;margin:0">${settings.companyName}</h1>
+             <p style="font-size:9px;color:#64748b;margin:4px 0 0">Reporte de Gestión · ${reportDateFrom} al ${reportDateTo}</p>
+             <p style="font-size:9px;color:#64748b;margin:2px 0 0">${reportProjectId === 'ALL' ? 'Todos los proyectos' : (projects.find(p => p.id === reportProjectId)?.name || 'Proyecto específico')}</p>
+           </div>
+           <div style="display:flex;gap:12px;margin-bottom:20px">
+             <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+               <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Ingresos</p>
+               <p style="font-size:18px;font-weight:900;color:#10b981;margin:4px 0">Q. ${fmtQ(income)}</p>
+             </div>
+             <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+               <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Gastos</p>
+               <p style="font-size:18px;font-weight:900;color:#ef4444;margin:4px 0">Q. ${fmtQ(expenses)}</p>
+             </div>
+             <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+               <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Neto</p>
+               <p style="font-size:18px;font-weight:900;color:${PMath.sub(income, expenses) >= 0 ? '#10b981' : '#ef4444'};margin:4px 0">Q. ${fmtQ(PMath.sub(income, expenses))}</p>
+             </div>
+             <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;text-align:center;border:1px solid #e2e8f0">
+               <p style="font-size:8px;color:#64748b;text-transform:uppercase;font-weight:900;letter-spacing:0.1em;margin:0">Proyectos</p>
+               <p style="font-size:18px;font-weight:900;color:#0f172a;margin:4px 0">${projList.length}</p>
+             </div>
+           </div>
+           <div style="display:flex;gap:12px;margin-bottom:20px">
+             <div style="flex:1;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0;min-height:160px">
+               <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Transacciones por Categoría</p>
+               <div id="report-pie" style="height:140px;display:flex;align-items:center;justify-content:center;gap:12px;">
+                 ${entryCategories.filter(c => txRange.filter(t => t.category === c).length > 0).slice(0,5).map((cat, i) => {
+                   const val = PMath.sum(txRange.filter(t => t.category === cat).map(t => t.amount || 0));
+                   const colors = ['#f59e0b','#3b82f6','#10b981','#8b5cf6','#f43f5e'];
+                   return `<div style="display:flex;align-items:center;gap:4px;font-size:7px"><div style="width:8px;height:8px;border-radius:2px;background:${colors[i%5]}"></div>${cat}</div>`;
+                 }).join('')}
+               </div>
+             </div>
+             <div style="flex:2;padding:12px;background:#f8fafc;border-radius:8px;border:1px solid #e2e8f0">
+               <p style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 8px">Proyectos — Estado de Cuentas</p>
+               <table style="width:100%;font-size:7px;border-collapse:collapse">
+                 <thead><tr style="border-bottom:1px solid #e2e8f0">
+                   <th style="text-align:left;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Proyecto</th>
+                   <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Presupuesto</th>
+                   <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Avance</th>
+                   <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Ingresos</th>
+                   <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Gastos</th>
+                   <th style="text-align:right;padding:4px 6px;font-weight:900;color:#64748b;text-transform:uppercase">Neto</th>
+                 </tr></thead>
+                 <tbody>${projList.slice(0, 15).map(p => {
+                   const pin = PMath.sum(txRange.filter(t => t.type === 'INGRESO' && t.projectId === p.id).map(t => t.amount || 0));
+                   const pout = PMath.sum(txRange.filter(t => t.type === 'GASTO' && t.projectId === p.id).map(t => t.amount || 0));
+                   const neto = PMath.sub(pin, pout);
+                   return `<tr style="border-bottom:1px solid #f1f5f9">
+                     <td style="padding:3px 6px;font-weight:700">${p.name || '—'}</td>
+                     <td style="padding:3px 6px;text-align:right;font-family:monospace">Q. ${fmtQ(p.budget || 0)}</td>
+                     <td style="padding:3px 6px;text-align:right">${p.progress || 0}%</td>
+                     <td style="padding:3px 6px;text-align:right;font-family:monospace;color:#10b981">Q. ${fmtQ(pin)}</td>
+                     <td style="padding:3px 6px;text-align:right;font-family:monospace;color:#ef4444">Q. ${fmtQ(pout)}</td>
+                     <td style="padding:3px 6px;text-align:right;font-family:monospace;color:${neto >= 0 ? '#10b981' : '#ef4444'}">Q. ${fmtQ(neto)}</td>
+                   </tr>`;
+                 }).join('')}</tbody>
+               </table>
+               ${projList.length > 15 ? `<p style="font-size:7px;color:#94a3b8;text-align:center;margin-top:4px">Mostrando 15 de ${projList.length} proyectos</p>` : ''}
+             </div>
+           </div>
+           <div style="font-size:6px;color:#94a3b8;text-align:center;border-top:1px solid #e2e8f0;padding-top:12px;margin-top:8px">
+             Generado el ${new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })} · WM/M&S Constructora ERP
+           </div>
+         </div>
+       `;
       target.style.display = 'block';
       target.style.position = 'fixed';
       target.style.left = '-9999px';
@@ -629,34 +618,36 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
 
   const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#f43f5e', '#8b5cf6', '#06b6d4', '#fb923c', '#a3e635'];
 
-  // Radar chart data - Rendimiento por área
-  const radarData = [
-    { area: 'Presupuesto', value: executingBudget > 0 ? Math.min(100, (totalIncome / executingBudget) * 100) : 0, fullMark: 100 },
-    { area: 'Avance', value: avgFisico, fullMark: 100 },
-    { area: 'Liquidez', value: netCash > 0 && totalIncome > 0 ? Math.min(100, (netCash / totalIncome) * 100) : 0, fullMark: 100 },
-    { area: 'Inventario', value: inventory.length > 0 ? Math.max(0, 100 - (criticalStock * 10)) : 0, fullMark: 100 },
-    { area: 'Proyectos', value: Math.min(100, executingProjects.length * 15), fullMark: 100 },
-    { area: 'Eficiencia', value: avgFinanciero > 0 ? Math.min(100, (avgFisico / avgFinanciero) * 100) : 0, fullMark: 100 },
-  ];
+// Radar chart data - Rendimiento por área
+   const radarData = [
+     { area: 'Presupuesto', value: executingBudget > 0 ? Math.min(100, PMath.div(PMath.mul(totalIncome, 100), executingBudget)) : 0, fullMark: 100 },
+     { area: 'Avance', value: avgFisico, fullMark: 100 },
+     { area: 'Liquidez', value: netCash > 0 && totalIncome > 0 ? Math.min(100, PMath.div(PMath.mul(netCash, 100), totalIncome)) : 0, fullMark: 100 },
+     { area: 'Inventario', value: inventory.length > 0 ? Math.max(0, 100 - (criticalStock * 10)) : 0, fullMark: 100 },
+     { area: 'Proyectos', value: Math.min(100, executingProjects.length * 15), fullMark: 100 },
+     { area: 'Eficiencia', value: avgFinanciero > 0 ? Math.min(100, PMath.div(PMath.mul(avgFisico, 100), avgFinanciero)) : 0, fullMark: 100 },
+   ];
 
-  // Table data - Estado de cuentas por proyecto
-  const tableData = projectsByYear.map(p => {
-    const aportes = transactions
-      .filter(t => t.type === 'INGRESO' && t.category === 'Aporte Cliente' && t.projectId === p.id)
-      .reduce((acc, t) => acc + (t.amount || 0), 0);
-    const costoTotal = p.budget || 0;
-    const pendiente = Math.max(0, costoTotal - aportes);
-    return { id: p.id, name: p.name || 'Sin nombre', costoTotal, aportes, pendiente, progress: p.progress || 0 };
-  }).sort((a, b) => b.pendiente - a.pendiente);
+// Table data - Estado de cuentas por proyecto
+   const tableData = projectsByYear.map(p => {
+     const aportes = PMath.sum(
+       transactions
+         .filter(t => t.type === 'INGRESO' && t.category === 'Aporte Cliente' && t.projectId === p.id)
+         .map(t => t.amount || 0)
+     );
+     const costoTotal = p.budget || 0;
+     const pendiente = PMath.sub(costoTotal, aportes);
+     return { id: p.id, name: p.name || 'Sin nombre', costoTotal, aportes, pendiente: Math.max(0, pendiente), progress: p.progress || 0 };
+   }).sort((a, b) => b.pendiente - a.pendiente);
 
-  // Activity heatmap data - Últimos 84 días de actividad
-  const heatmapData = Array.from({ length: 84 }).map((_, i) => {
-    const date = new Date();
-    date.setDate(date.getDate() - (83 - i));
-    const dateStr = date.toISOString().split('T')[0];
-    const dayTx = transactions.filter(t => t.date === dateStr).length;
-    return { date: dateStr, value: dayTx };
-  });
+   // Activity heatmap data - Últimos 84 días de actividad
+   const heatmapData = Array.from({ length: 84 }).map((_, i) => {
+     const date = new Date();
+     date.setDate(date.getDate() - (83 - i));
+     const dateStr = date.toISOString().split('T')[0];
+     const dayTx = allTransactions.filter(t => t.date === dateStr).length;
+     return { date: dateStr, value: dayTx };
+   });
 
   const getCardStyle = () => {
     switch (settings.cardStyle) {
@@ -694,7 +685,7 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
       cancel: { label: 'Cancelar', onClick: () => {} }
     });
   };
-  const loading = !loaded.projects || !loaded.inventory || !loaded.transactions || resetting;
+  const loading = loaded || resetting;
 
   return loading ? (
     <div className="h-full flex items-center justify-center">
@@ -1103,9 +1094,9 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
                   {tableData.map(row => (
                     <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
                       <td className="py-1 pr-2 font-bold text-primary truncate max-w-[130px] sm:max-w-[180px]">{row.name}</td>
-                      <td className="py-1 text-right font-mono font-bold px-1">{fmtQ(row.costoTotal)}</td>
-                      <td className="py-1 text-right font-mono font-bold text-emerald-600 px-1">{fmtQ(row.aportes)}</td>
-                      <td className={cn("py-1 text-right font-mono font-bold pl-1", row.pendiente > 0 ? "text-amber-600" : "text-slate-400")}>{fmtQ(row.pendiente)}</td>
+                      <td className="py-1 text-right font-mono font-bold px-1">Q. {fmtQ(row.costoTotal)}</td>
+                      <td className="py-1 text-right font-mono font-bold text-emerald-600 px-1">Q. {fmtQ(row.aportes)}</td>
+                      <td className={cn("py-1 text-right font-mono font-bold pl-1", row.pendiente > 0 ? "text-amber-600" : "text-slate-400")}>Q. {fmtQ(row.pendiente)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1113,9 +1104,9 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
                   <tfoot>
                     <tr className="border-t-2 border-slate-300">
                       <td className="py-1.5 pr-2 font-black text-primary text-[10px]">TOTAL</td>
-                      <td className="py-1.5 text-right font-mono font-black text-[10px] px-1">{fmtQ(tableData.reduce((a, r) => a + r.costoTotal, 0))}</td>
-                      <td className="py-1.5 text-right font-mono font-black text-emerald-600 text-[10px] px-1">{fmtQ(tableData.reduce((a, r) => a + r.aportes, 0))}</td>
-                      <td className={cn("py-1.5 text-right font-mono font-black text-[10px] pl-1", tableData.some(r => r.pendiente > 0) ? "text-amber-600" : "text-slate-400")}>{fmtQ(tableData.reduce((a, r) => a + r.pendiente, 0))}</td>
+<td className="py-1.5 text-right font-mono font-black text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.costoTotal)))}</td>
+                       <td className="py-1.5 text-right font-mono font-black text-emerald-600 text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.aportes)))}</td>
+                       <td className={cn("py-1.5 text-right font-mono font-black text-[10px] pl-1", tableData.some(r => r.pendiente > 0) ? "text-amber-600" : "text-slate-400")}>Q. {fmtQ(PMath.sum(tableData.map(r => r.pendiente)))}</td>
                     </tr>
                   </tfoot>
                 )}

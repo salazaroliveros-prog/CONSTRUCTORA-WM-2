@@ -177,7 +177,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
         selectedSlabType={selectedSlabType}
         onSlabTypeChange={setSelectedSlabType}
         showAdvancedConfig={showAdvancedConfig}
-        onToggleAdvanced={() => setShowAdvancedConfig(v => !v)}
+        onToggleAdvanced={() => setShowAdvancedConfig(!showAdvancedConfig)}
         areaTotal={areaTotal}
         onAreaTotalChange={setAreaTotal}
         wasteFactors={wasteFactors}

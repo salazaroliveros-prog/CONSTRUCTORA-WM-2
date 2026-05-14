@@ -7,14 +7,16 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { Project, WarehouseItem } from '../constants';
 import { cn } from '../utils/cn';
-import { fmtQ } from '../utils/format';
+import { fmtQ, precise } from '../engine/precision';
 import { toast } from 'sonner';
 import { useAuth } from '../contexts/AuthContext';
-import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
 import { sanitizeString, sanitizeEmail } from '../utils/sanitize';
 import { trackCRUD, trackEvent, trackExport } from '../utils/logger';
+import { useStore } from '../store/DataStore';
+import { PMath } from '../engine/precision';
 
 const LOG_TYPES = [
   { id: 'AVANCE',    label: 'Avance Físico',   color: 'bg-blue-100 text-blue-700 border-blue-200' },
@@ -53,42 +55,35 @@ function exportLogsCSV(logs: any[], projectName: string) {
 }
 
 export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
-  const { user } = useAuth();
-  const [projects, setProjects]     = useState<Project[]>([]);
-  const [inventory, setInventory]   = useState<WarehouseItem[]>([]);
-  const [logs, setLogs]             = useState<any[]>([]);
-  const [loading, setLoading]       = useState(true);
+   const { user } = useAuth();
+   const store = useStore();
 
-  // Bitácora form
-  const [logMsg, setLogMsg]         = useState('');
-  const [logType, setLogType]       = useState('AVANCE');
-  const [logProjectId, setLogProjectId] = useState('');
-  const [logItemId, setLogItemId]   = useState('');
-  const [savingLog, setSavingLog]   = useState(false);
+   // Bitácora form
+   const [logMsg, setLogMsg]         = useState('');
+   const [logType, setLogType]       = useState('AVANCE');
+   const [logProjectId, setLogProjectId] = useState('');
+   const [logItemId, setLogItemId]   = useState('');
+   const [savingLog, setSavingLog]   = useState(false);
 
-  // Filtros bitácora
-  const [filterProject, setFilterProject] = useState('ALL');
-  const [filterType, setFilterType]       = useState('ALL');
-  const [searchLog, setSearchLog]         = useState('');
+   // Filtros bitácora
+   const [filterProject, setFilterProject] = useState('ALL');
+   const [filterType, setFilterType]       = useState('ALL');
+   const [searchLog, setSearchLog]         = useState('');
 
-  // Avance por renglón
-  const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [itemProgress, setItemProgress]   = useState<Record<string, number>>({});
-  const [savingProgress, setSavingProgress] = useState(false);
-  const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
+   // Avance por renglón
+   const [selectedProjectId, setSelectedProjectId] = useState('');
+   const [itemProgress, setItemProgress]   = useState<Record<string, number>>({});
+   const [savingProgress, setSavingProgress] = useState(false);
+   const [collapsedCats, setCollapsedCats] = useState<Set<string>>(new Set());
 
-  useEffect(() => {
-    const u1 = subscribeToCollection('projects', d => setProjects(d));
-    const u2 = subscribeToCollection('inventory', d => setInventory(d));
-    const u3 = subscribeToCollection('logs', d => {
-      setLogs(d.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()));
-      setLoading(false);
-    });
-    return () => { u1(); u2(); u3(); };
-  }, []);
+   // DataStore data
+   const projects = store.projects.items;
+   const inventory = store.inventory.items;
+   const logs = store.logs.items.sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+   const loading = store.projects.isLoading || store.inventory.isLoading || store.logs.isLoading;
 
-  const execProjects = projects.filter(p => p.status === 'EJECUCION');
-  const activeProject = execProjects.find(p => p.id === selectedProjectId) ?? execProjects[0] ?? null;
+   const execProjects = projects.filter(p => p.status === 'EJECUCION');
+   const activeProject = execProjects.find(p => p.id === selectedProjectId) ?? execProjects[0] ?? null;
 
   useEffect(() => {
     if (!activeProject) return;
@@ -113,26 +108,26 @@ export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab:
   const toggleCat = (cat: string) =>
     setCollapsedCats(prev => { const s = new Set(prev); s.has(cat) ? s.delete(cat) : s.add(cat); return s; });
 
-  // Guardar avance por renglón
-  const handleSaveProgress = async () => {
-    if (!activeProject) return;
-    setSavingProgress(true);
-    try {
-      const items = allItems;
-      const totalDays = items.reduce((s: number, i: any) => s + Math.max(1, (i.projectQuantity || 1) * (i.durationDays || 1)), 0);
-      const done = items.reduce((s: number, i: any) => {
-        const dur = Math.max(1, (i.projectQuantity || 1) * (i.durationDays || 1));
-        return s + (itemProgress[i.id] ?? 0) * dur;
-      }, 0);
-      const globalProgress = Math.round(done / (totalDays || 1));
-      await updateDocument('projects', activeProject.id, {
-        progress: globalProgress,
-        ganttConfig: { ...(activeProject.ganttConfig ?? {}), progress: itemProgress }
-      });
-      toast.success(`Avance guardado — ${globalProgress}% global`);
-    } catch { toast.error('Error al guardar avance'); }
-    finally { setSavingProgress(false); }
-  };
+// Guardar avance por renglón
+   const handleSaveProgress = async () => {
+     if (!activeProject) return;
+     setSavingProgress(true);
+     try {
+       const items = allItems;
+       const totalDays = PMath.sum(items.map((i: any) => Math.max(1, (i.projectQuantity || 1) * (i.durationDays || 1))));
+       const done = PMath.sum(items.map((i: any) => {
+         const dur = Math.max(1, (i.projectQuantity || 1) * (i.durationDays || 1));
+         return PMath.mul(itemProgress[i.id] || 0, dur);
+       }));
+       const globalProgress = Math.round(PMath.div(done, totalDays || 1));
+       await updateDocument('projects', activeProject.id, {
+         progress: globalProgress,
+         ganttConfig: { ...(activeProject.ganttConfig ?? {}), progress: itemProgress }
+       });
+       toast.success(`Avance guardado — ${globalProgress}% global`);
+     } catch { toast.error('Error al guardar avance'); }
+     finally { setSavingProgress(false); }
+   };
 
   // Agregar entrada de bitácora con contexto completo
 const handleAddLog = async (e: React.FormEvent) => {
@@ -188,18 +183,18 @@ const handleAddLog = async (e: React.FormEvent) => {
     return map;
   }, [logs]);
 
-  // KPIs
-  const stats = useMemo(() => ({
-    performance:  projects.length > 0 ? Math.round(projects.filter(p => p.status === 'FINALIZADO').length / projects.length * 100) : 0,
-    criticalStock: inventory.filter(i => (i.stock || 0) <= (i.minStock || 0)).length,
-    totalBudget:  execProjects.reduce((a, p) => a + (p.budget || 0), 0),
-    delayed:      execProjects.filter(p => {
-      if (!p.startDate || !p.endDate) return false;
-      const total   = new Date(p.endDate).getTime() - new Date(p.startDate).getTime();
-      const elapsed = Date.now() - new Date(p.startDate).getTime();
-      return (p.progress || 0) < Math.min(100, (elapsed / total) * 100) - 10;
-    }).length,
-  }), [projects, inventory, execProjects]);
+// KPIs
+   const stats = useMemo(() => ({
+     performance:  projects.length > 0 ? Math.round(PMath.div(PMath.mul(projects.filter(p => p.status === 'FINALIZADO').length, 100), projects.length)) : 0,
+     criticalStock: inventory.filter(i => (i.stock || 0) <= (i.minStock || 0)).length,
+     totalBudget:  PMath.sum(execProjects.map(p => p.budget || 0)),
+     delayed:      execProjects.filter(p => {
+       if (!p.startDate || !p.endDate) return false;
+       const total   = new Date(p.endDate).getTime() - new Date(p.startDate).getTime();
+       const elapsed = Date.now() - new Date(p.startDate).getTime();
+       return (p.progress || 0) < Math.min(100, PMath.div(PMath.mul(elapsed, 100), total)) - 10;
+     }).length,
+   }), [projects, inventory, execProjects]);
 
   const { currentItems: paginatedProjects, currentPage, totalPages, nextPage, prevPage, goToPage, startIndex, totalItems } =
     usePagination<Project>(projects, 8);

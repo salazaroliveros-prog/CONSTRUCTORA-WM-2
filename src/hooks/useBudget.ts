@@ -1,39 +1,100 @@
-// src/hooks/useBudget.ts
-
-import { useState, useEffect, useCallback } from 'react';
-import { BudgetLine, defaultBudget } from '../lib/budgetData';
-import { calculateBudget } from '../utils/budgetCalc';
-import { getPerformanceData } from '../lib/performanceLib';
-
 /**
- * Hook to manage the budget tree for a project.
- * @param initialBudget Optional initial budget lines (if not provided, uses defaultBudget)
- * @returns An object with the budget lines and functions to manipulate them.
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ * 
+ * useBudget — Refactorizado para usar el Engine Unificado
+ * 
+ * Cambios vs versión anterior:
+ * - Usa BudgetEngine en lugar de cálculos inline
+ * - Operaciones de precisión con PMath
+ * - Compatible con marketMultipliers del proyecto
  */
-export function useBudget(initialBudget: BudgetLine[] = defaultBudget) {
-  const [budgetLines, setBudgetLines] = useState<BudgetLine[]>([]);
-  const [calculatedBudget, setCalculatedBudget] = useState<BudgetLine[]>([]);
 
-  // Initialize budget lines with the provided initial data (or default)
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { BudgetLine, defaultBudget } from '../lib/budgetData';
+import { calculateTree, calculateProject, BudgetTotals as ProjectTotals, LineResult } from '../engine/budgetEngine';
+import { MarketLevel, SLAB_TYPOLOGIES, MARKET_LEVELS, applyMarketParameters } from '../lib/marketParams';
+import { itemsToBudgetTree, budgetTreeToItems } from '../utils/budgetConverter';
+import { PMath, precise } from '../engine/precision';
+
+interface UseBudgetProps {
+  initialBudget?: BudgetLine[];
+  projectConfig?: {
+    indirectCosts?: number;
+    administrativeCosts?: number;
+    personalCosts?: number;
+    wasteFactors?: { materials: number; labor: number };
+    marketLevel?: MarketLevel;
+    slabType?: typeof SLAB_TYPOLOGIES[0];
+    areaTotal?: number;
+  };
+}
+
+interface UseBudgetResult {
+  budgetLines: BudgetLine[];
+  calculatedBudget: LineResult[];
+  totals: ProjectTotals & {
+    costPerM2WithArea: number;
+    totalWithIndirects: number;
+  };
+  addLine: (line: Omit<BudgetLine, 'id' | 'parentId' | 'order' | 'children'>, parentId?: string, index?: number) => void;
+  updateLine: (id: string, updates: Partial<BudgetLine>) => void;
+  deleteLine: (id: string) => void;
+  getLineById: (id: string) => BudgetLine | undefined;
+  setBudgetLines: (lines: BudgetLine[]) => void;
+}
+
+export function useBudget(props: UseBudgetProps = {}): UseBudgetResult {
+  const { initialBudget = defaultBudget, projectConfig } = props;
+
+  const [budgetLines, setBudgetLines] = useState<BudgetLine[]>([]);
+  const [calculatedBudget, setCalculatedBudget] = useState<LineResult[]>([]);
+  const [totals, setTotals] = useState<UseBudgetResult['totals']>({} as any);
+
+  // Calcular market multipliers
+  const marketMultipliers = useMemo(() => {
+    if (!projectConfig?.marketLevel || !projectConfig?.slabType) {
+      return { material: 1, labor: 1 };
+    }
+    return {
+      material: (projectConfig.slabType.costMultipliers?.material ?? 1) * 
+                (projectConfig.marketLevel.costPerSqm.recommended / 3750),
+      labor: projectConfig.marketLevel.laborMultiplier,
+    };
+  }, [projectConfig?.marketLevel, projectConfig?.slabType]);
+
+  // Recalcular cuando cambian los datos
   useEffect(() => {
     setBudgetLines(initialBudget);
-    // Initial calculation
-    const calculated = calculateBudget(initialBudget);
-    setCalculatedBudget(calculated);
   }, [initialBudget]);
 
-  // Recalculate whenever budgetLines change
-  useEffect(() => {
-    const calculated = calculateBudget(budgetLines);
-    setCalculatedBudget(calculated);
-  }, [budgetLines]);
+   useEffect(() => {
+     // Calcular con engine unificado
+     const result = calculateTree(budgetLines);
+     setCalculatedBudget(result.lines);
 
-  /**
-   * Add a new budget line.
-   * @param line The line to add (without id, parentId, order, children - these will be set)
-   * @param parentId Optional parent ID. If undefined, the line is added at the root level.
-   * @param index Optional index at which to insert the line. If undefined, it's appended.
-   */
+     // Calcular totales completos del proyecto
+     const fullResult = calculateProject(budgetLines, {
+       marketMultipliers,
+       indirectCosts: projectConfig?.indirectCosts,
+       adminCosts: projectConfig?.administrativeCosts,
+       personalCosts: projectConfig?.personalCosts,
+       area: projectConfig?.areaTotal,
+     });
+
+    // Calcular costo por m² con área
+    const area = projectConfig?.areaTotal || 0;
+    const costPerM2WithArea = area > 0 ? PMath.div(fullResult.totalBudget, area) : 0;
+
+    setTotals({
+      ...fullResult,
+      costPerM2WithArea,
+      totalWithIndirects: fullResult.totalBudget,
+    });
+   }, [budgetLines, marketMultipliers, projectConfig?.indirectCosts, 
+       projectConfig?.administrativeCosts, projectConfig?.personalCosts, projectConfig?.areaTotal, projectConfig?.slabType]);
+
+  // ─── Operaciones CRUD ─────────────────────────────────────────────────────────
   const addLine = useCallback((
     line: Omit<BudgetLine, 'id' | 'parentId' | 'order' | 'children'>,
     parentId?: string,
@@ -43,117 +104,90 @@ export function useBudget(initialBudget: BudgetLine[] = defaultBudget) {
       ...line,
       id: `line_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       parentId: parentId ?? undefined,
-      order: Date.now(), // Simple chronological order; in a real app, you might want to sort by a displayed order.
+      order: Date.now(),
       children: [],
     };
 
     setBudgetLines(prev => {
       const newLines = [...prev];
       if (parentId === undefined) {
-        // Adding to root
         if (index === undefined) {
           newLines.push(newLine);
         } else {
           newLines.splice(index, 0, newLine);
         }
       } else {
-        // Adding to a parent's children
-        const parent = newLines.find(l => l.id === parentId);
-        if (parent) {
-          if (index === undefined) {
-            parent.children.push(newLine);
-          } else {
-            parent.children.splice(index, 0, newLine);
-          }
-        } else {
-          // Parent not found, add to root as fallback
-          if (index === undefined) {
-            newLines.push(newLine);
-          } else {
-            newLines.splice(index, 0, newLine);
-          }
-        }
+        const addToParent = (lines: BudgetLine[]): BudgetLine[] => {
+          return lines.map(l => {
+            if (l.id === parentId) {
+              const children = [...(l.children || [])];
+              if (index === undefined) {
+                children.push(newLine);
+              } else {
+                children.splice(index, 0, newLine);
+              }
+              return { ...l, children };
+            }
+            return { ...l, children: addToParent(l.children || []) };
+          });
+        };
+        return addToParent(newLines);
       }
       return newLines;
     });
   }, []);
 
-  /**
-   * Update an existing budget line (by id).
-   * @param id The id of the line to update.
-   * @param updates Partial object of fields to update.
-   */
   const updateLine = useCallback((id: string, updates: Partial<BudgetLine>) => {
-    const updateLineRecursive = (lines: BudgetLine[]): BudgetLine[] => {
-      return lines.map(line => {
-        if (line.id === id) {
-          return { ...line, ...updates };
-        }
-        if (line.children && line.children.length > 0) {
-          return {
-            ...line,
-            children: updateLineRecursive(line.children),
-          };
-        }
-        return line;
-      });
-    };
-
-    setBudgetLines(prev => updateLineRecursive(prev));
+    setBudgetLines(prev => {
+      const updateRecursive = (lines: BudgetLine[]): BudgetLine[] => {
+        return lines.map(line => {
+          if (line.id === id) {
+            return { ...line, ...updates };
+          }
+          if (line.children?.length) {
+            return { ...line, children: updateRecursive(line.children) };
+          }
+          return line;
+        });
+      };
+      return updateRecursive(prev);
+    });
   }, []);
 
-  /**
-   * Delete a budget line (by id) and all its children.
-   * @param id The id of the line to delete.
-   */
   const deleteLine = useCallback((id: string) => {
-    const deleteLineRecursive = (lines: BudgetLine[]): BudgetLine[] => {
-      return lines.filter(line => {
-        if (line.id === id) {
-          // Do not include this line (and thus its children are removed)
-          return false;
-        }
-        if (line.children && line.children.length > 0) {
-          return {
-            ...line,
-            children: deleteLineRecursive(line.children),
-          };
-        }
-        return line;
-      });
-    };
-
-    setBudgetLines(prev => deleteLineRecursive(prev));
+    setBudgetLines(prev => {
+      const deleteRecursive = (lines: BudgetLine[]): BudgetLine[] => {
+        return lines.filter(line => {
+          if (line.id === id) return false;
+          if (line.children?.length) {
+            return { ...line, children: deleteRecursive(line.children) };
+          }
+          return true;
+        });
+      };
+      return deleteRecursive(prev);
+    });
   }, []);
 
-  /**
-   * Move a line (and its children) to a new parent or position.
-   * This is a more advanced function; for now, we'll leave it out but note that it might be needed.
-   */
-
-  /**
-   * Get a line by id (including searching in children).
-   */
   const getLineById = useCallback((id: string, lines: BudgetLine[] = budgetLines): BudgetLine | undefined => {
     for (const line of lines) {
-      if (line.id === id) {
-        return line;
+      if (line.id === id) return line;
+      if (line.children?.length) {
+        const found = getLineById(id, line.children);
+        if (found) return found;
       }
-      const found = getLineById(id, line.children);
-      if (found) return found;
     }
     return undefined;
   }, [budgetLines]);
 
-  // Return the state and functions
   return {
     budgetLines,
     calculatedBudget,
+    totals,
     addLine,
     updateLine,
     deleteLine,
     getLineById,
-    // We expose the setter for budgetLines if needed elsewhere, but prefer using the functions above.
     setBudgetLines,
   };
 }

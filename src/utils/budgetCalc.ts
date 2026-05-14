@@ -34,7 +34,10 @@ export function precise(value: number, decimals: number = 2): number {
 
 /** Formatea un número a string con formato 00.00 */
 export function fmtInput(value: number): string {
-  return value.toFixed(2);
+  return precise(value, 2).toLocaleString('es-GT', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
 }
 
 // ─── Cálculo de cantidad dinámica por dimensiones ───────────────────────────

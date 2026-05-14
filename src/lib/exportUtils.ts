@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import Papa from 'papaparse';
 import { Project } from '../constants';
-import { fmtQ } from '../utils/format';
+import { PMath, fmtQ } from '../engine/precision';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -46,22 +46,22 @@ const FOOTER_EMAILS = 'salazaroliveros@gmail.com, multiserviciosdeguatemal@gmail
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function calcItemMaterials(item: any): number {
-  return (item.materials || []).reduce((a: number, m: any) => a + (m.price * m.quantity * (item.projectQuantity || 1)), 0);
-}
+   return (item.materials || []).reduce((a: number, m: any) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1)), 0);
+ }
 function calcItemLabor(item: any): number {
-  return (item.labor || []).reduce((a: number, l: any) => a + (l.price * l.quantity * (item.projectQuantity || 1)), 0);
-}
+   return (item.labor || []).reduce((a: number, l: any) => PMath.add(a, PMath.mul(PMath.mul(l.price, l.quantity), item.projectQuantity || 1)), 0);
+ }
 function calcItemTotal(item: any): number {
-  return calcItemMaterials(item) + calcItemLabor(item);
-}
+   return PMath.add(calcItemMaterials(item), calcItemLabor(item));
+ }
 function calcProjectDirectCost(project: Project): number {
-  return (project.items || []).reduce((a, item) => a + calcItemTotal(item), 0);
-}
+   return (project.items || []).reduce((a, item) => PMath.add(a, calcItemTotal(item)), 0);
+ }
 function calcProjectTotalCost(project: Project): number {
-  const direct = project.directCosts || calcProjectDirectCost(project);
-  const factor = 1 + ((project.indirectCosts || 0) + (project.administrativeCosts || 0) + (project.personalCosts || 0)) / 100;
-  return direct * factor;
-}
+   const direct = project.directCosts || calcProjectDirectCost(project);
+   const indirectRate = PMath.div(PMath.add(PMath.add(project.indirectCosts || 0, project.administrativeCosts || 0), project.personalCosts || 0), 100);
+   return PMath.mul(direct, PMath.add(1, indirectRate));
+ }
 
 // ─── Duration calculator ──────────────────────────────────────────────────────
 
@@ -140,13 +140,13 @@ export async function generateProjectPDF(project: Project, templateId: string = 
   const colors = getTemplateColors(templateId);
   const items = project.items || [];
 
-  const directCost = project.directCosts || calcProjectDirectCost(project);
-  const indirectAmt = directCost * (project.indirectCosts || 0) / 100;
-  const adminAmt    = directCost * (project.administrativeCosts || 0) / 100;
-  const personalAmt = directCost * (project.personalCosts || 0) / 100;
-  const totalCost   = directCost + indirectAmt + adminAmt + personalAmt;
-  const utilidad    = (project.budget || 0) - totalCost;
-  const margen      = project.budget > 0 ? (utilidad / project.budget) * 100 : 0;
+const directCost = project.directCosts || calcProjectDirectCost(project);
+   const indirectAmt = PMath.mul(directCost, PMath.div(project.indirectCosts || 0, 100));
+   const adminAmt    = PMath.mul(directCost, PMath.div(project.administrativeCosts || 0, 100));
+   const personalAmt = PMath.mul(directCost, PMath.div(project.personalCosts || 0, 100));
+   const totalCost   = PMath.sum([directCost, indirectAmt, adminAmt, personalAmt]);
+   const utilidad    = PMath.sub(project.budget || 0, totalCost);
+   const margen      = project.budget > 0 ? PMath.div(PMath.mul(utilidad, 100), project.budget) : 0;
   const duration    = calcProjectDuration(project);
 
   const templateLabel = PDF_TEMPLATES.find(t => t.id === templateId)?.label || templateId;
@@ -191,7 +191,7 @@ export async function generateProjectPDF(project: Project, templateId: string = 
         fmtQ(calcItemLabor(item)),
         fmtQ(calcItemTotal(item)),
       ]),
-      foot: [['', '', '', 'TOTAL', fmtQ(items.reduce((a, i) => a + calcItemMaterials(i), 0)), fmtQ(items.reduce((a, i) => a + calcItemLabor(i), 0)), fmtQ(items.reduce((a, i) => a + calcItemTotal(i), 0))]],
+      foot: [['', '', '', 'TOTAL', fmtQ(items.reduce((a, i) => PMath.add(a, calcItemMaterials(i)), 0)), fmtQ(items.reduce((a, i) => PMath.add(a, calcItemLabor(i)), 0)), fmtQ(items.reduce((a, i) => PMath.add(a, calcItemTotal(i)), 0))]],
       headStyles: { fillColor: colors.header, textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold' },
       footStyles: { fillColor: colors.accent, textColor: [255, 255, 255], fontSize: 7, fontStyle: 'bold' },
       bodyStyles: { fontSize: 7 },
@@ -225,14 +225,14 @@ export async function generateProjectPDF(project: Project, templateId: string = 
         autoTable(doc, {
           startY: y,
           head: [['Material', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'P. Unit. (Q)', 'Subtotal (Q)']],
-          body: (item.materials || []).map((m: any) => [
-            m.name,
-            m.unit,
-            m.quantity,
-            (m.quantity * (item.projectQuantity || 1)).toFixed(2),
-            fmtQ(m.price),
-            fmtQ(m.price * m.quantity * (item.projectQuantity || 1)),
-          ]),
+body: (item.materials || []).map((m: any) => [
+             m.name,
+             m.unit,
+             m.quantity,
+             PMath.mul(m.quantity, item.projectQuantity || 1).toFixed(2),
+             fmtQ(m.price),
+             fmtQ(PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1)),
+           ]),
           headStyles: { fillColor: [100, 100, 100], textColor: [255, 255, 255], fontSize: 7 },
           bodyStyles: { fontSize: 7 },
           alternateRowStyles: { fillColor: [250, 250, 250] },
@@ -253,14 +253,14 @@ export async function generateProjectPDF(project: Project, templateId: string = 
         autoTable(doc, {
           startY: y,
           head: [['Rol', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'P. Unit. (Q)', 'Subtotal (Q)']],
-          body: (item.labor || []).map((l: any) => [
-            l.role,
-            l.unit,
-            l.quantity,
-            (l.quantity * (item.projectQuantity || 1)).toFixed(2),
-            fmtQ(l.price),
-            fmtQ(l.price * l.quantity * (item.projectQuantity || 1)),
-          ]),
+body: (item.labor || []).map((l: any) => [
+             l.role,
+             l.unit,
+             l.quantity,
+             PMath.mul(l.quantity, item.projectQuantity || 1).toFixed(2),
+             fmtQ(l.price),
+             fmtQ(PMath.mul(PMath.mul(l.price, l.quantity), item.projectQuantity || 1)),
+           ]),
           headStyles: { fillColor: [50, 50, 50], textColor: [255, 255, 255], fontSize: 7 },
           bodyStyles: { fontSize: 7 },
           alternateRowStyles: { fillColor: [250, 250, 250] },
@@ -339,148 +339,148 @@ export function generateProjectCSV(project: Project, templateId: string = 'compl
   let rows: any[][] = [];
 
   switch (templateId) {
-    case 'renglones':
-      rows = [
-        [COMPANY, '', '', '', '', '', ''],
-        [`Resumen de Renglones — ${project.name}`, '', '', '', '', '', ''],
-        [`Cliente: ${project.clientName}`, '', '', '', '', '', ''],
-        [],
-        ['Código', 'Descripción', 'Unidad', 'Cantidad', 'Materiales (Q)', 'Mano de Obra (Q)', 'Total (Q)'],
-        ...items.map(item => [
-          item.code || '',
-          item.description || '',
-          item.unit || '',
-          item.projectQuantity || 0,
-          calcItemMaterials(item).toFixed(2),
-          calcItemLabor(item).toFixed(2),
-          calcItemTotal(item).toFixed(2),
-        ]),
-        [],
-        ['', '', '', 'TOTAL',
-          items.reduce((a, i) => a + calcItemMaterials(i), 0).toFixed(2),
-          items.reduce((a, i) => a + calcItemLabor(i), 0).toFixed(2),
-          items.reduce((a, i) => a + calcItemTotal(i), 0).toFixed(2),
-        ],
-      ];
-      break;
+case 'renglones':
+       rows = [
+         [COMPANY, '', '', '', '', '', ''],
+          [`Resumen de Renglones — ${project.name}`, '', '', '', '', '', ''],
+          [`Cliente: ${project.clientName}`, '', '', '', '', '', ''],
+          [],
+          ['Código', 'Descripción', 'Unidad', 'Cantidad', 'Materiales (Q)', 'Mano de Obra (Q)', 'Total (Q)'],
+          ...items.map(item => [
+            item.code || '',
+            item.description || '',
+            item.unit || '',
+            item.projectQuantity || 0,
+            fmtQ(calcItemMaterials(item)),
+            fmtQ(calcItemLabor(item)),
+            fmtQ(calcItemTotal(item)),
+          ]),
+         [],
+         ['', '', '', 'TOTAL',
+           items.reduce((a, i) => PMath.add(a, calcItemMaterials(i)), 0).toFixed(2),
+           items.reduce((a, i) => PMath.add(a, calcItemLabor(i)), 0).toFixed(2),
+           items.reduce((a, i) => PMath.add(a, calcItemTotal(i)), 0).toFixed(2),
+         ],
+       ];
+       break;
 
-    case 'materiales':
-      rows = [
-        [COMPANY],
-        [`Desglose de Materiales — ${project.name}`],
-        [`Cliente: ${project.clientName}`],
-        [],
-        ['Renglón', 'Material', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'Precio Unit. (Q)', 'Subtotal (Q)'],
-        ...items.flatMap(item =>
-          (item.materials || []).map((m: any) => [
-            item.description || item.code,
-            m.name,
-            m.unit,
-            m.quantity,
-            (m.quantity * (item.projectQuantity || 1)).toFixed(2),
-            m.price.toFixed(2),
-            (m.price * m.quantity * (item.projectQuantity || 1)).toFixed(2),
-          ])
-        ),
-      ];
-      break;
+case 'materiales':
+       rows = [
+         [COMPANY],
+         [`Desglose de Materiales — ${project.name}`],
+         [`Cliente: ${project.clientName}`],
+         [],
+         ['Renglón', 'Material', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'Precio Unit. (Q)', 'Subtotal (Q)'],
+         ...items.flatMap(item =>
+           (item.materials || []).map((m: any) => [
+             item.description || item.code,
+             m.name,
+             m.unit,
+             m.quantity,
+             PMath.mul(m.quantity, item.projectQuantity || 1).toFixed(2),
+             m.price.toFixed(2),
+             PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1).toFixed(2),
+           ])
+         ),
+       ];
+       break;
 
-    case 'costos':
-      rows = [
-        [COMPANY],
-        [`Costos y Presupuesto — ${project.name}`],
-        [`Cliente: ${project.clientName}`],
-        [],
-        ['Concepto', 'Monto (Q)'],
-        ['Costo Directo', directCost.toFixed(2)],
-        [`Indirecto (${project.indirectCosts || 0}%)`, (directCost * (project.indirectCosts || 0) / 100).toFixed(2)],
-        [`Administrativo (${project.administrativeCosts || 0}%)`, (directCost * (project.administrativeCosts || 0) / 100).toFixed(2)],
-        [`Personal (${project.personalCosts || 0}%)`, (directCost * (project.personalCosts || 0) / 100).toFixed(2)],
-        ['COSTO TOTAL', totalCost.toFixed(2)],
-        ['PRESUPUESTO', (project.budget || 0).toFixed(2)],
-        ['UTILIDAD', utilidad.toFixed(2)],
-        ['MARGEN %', project.budget > 0 ? ((utilidad / project.budget) * 100).toFixed(1) + '%' : '0%'],
-      ];
-      break;
+case 'costos':
+       rows = [
+         [COMPANY],
+         [`Costos y Presupuesto — ${project.name}`],
+         [`Cliente: ${project.clientName}`],
+         [],
+         ['Concepto', 'Monto (Q)'],
+         ['Costo Directo', directCost.toFixed(2)],
+         [`Indirecto (${project.indirectCosts || 0}%)`, PMath.mul(directCost, PMath.div(project.indirectCosts || 0, 100)).toFixed(2)],
+         [`Administrativo (${project.administrativeCosts || 0}%)`, PMath.mul(directCost, PMath.div(project.administrativeCosts || 0, 100)).toFixed(2)],
+         [`Personal (${project.personalCosts || 0}%)`, PMath.mul(directCost, PMath.div(project.personalCosts || 0, 100)).toFixed(2)],
+         ['COSTO TOTAL', totalCost.toFixed(2)],
+         ['PRESUPUESTO', (project.budget || 0).toFixed(2)],
+         ['UTILIDAD', utilidad.toFixed(2)],
+         ['MARGEN %', project.budget > 0 ? PMath.div(PMath.mul(utilidad, 100), project.budget).toFixed(1) + '%' : '0%'],
+       ];
+       break;
 
-    case 'ejecutivo':
-      rows = [
-        ['Proyecto', 'Cliente', 'Estado', 'Tipología', 'Ubicación', 'Inicio', 'Fin', 'Progreso', 'Presupuesto (Q)', 'Costo Total (Q)', 'Utilidad (Q)', 'Margen %'],
-        [
-          project.name,
-          project.clientName,
-          project.status,
-          project.typology,
-          project.location || 'N/A',
-          project.startDate || 'N/A',
-          project.endDate || 'N/A',
-          `${project.progress || 0}%`,
-          (project.budget || 0).toFixed(2),
-          totalCost.toFixed(2),
-          utilidad.toFixed(2),
-          project.budget > 0 ? ((utilidad / project.budget) * 100).toFixed(1) + '%' : '0%',
-        ],
-      ];
-      break;
+case 'ejecutivo':
+       rows = [
+         ['Proyecto', 'Cliente', 'Estado', 'Tipología', 'Ubicación', 'Inicio', 'Fin', 'Progreso', 'Presupuesto (Q)', 'Costo Total (Q)', 'Utilidad (Q)', 'Margen %'],
+         [
+           project.name,
+           project.clientName,
+           project.status,
+           project.typology,
+           project.location || 'N/A',
+           project.startDate || 'N/A',
+           project.endDate || 'N/A',
+           `${project.progress || 0}%`,
+           (project.budget || 0).toFixed(2),
+           totalCost.toFixed(2),
+           utilidad.toFixed(2),
+           project.budget > 0 ? PMath.div(PMath.mul(utilidad, 100), project.budget).toFixed(1) + '%' : '0%',
+         ],
+       ];
+       break;
 
-    default: // completo
-      rows = [
-        [COMPANY],
-        [`Informe Completo — ${project.name}`],
-        [`Cliente: ${project.clientName}  |  Estado: ${project.status}  |  Fecha: ${new Date().toLocaleDateString('es-GT')}`],
-        [],
-        ['=== INFORMACIÓN GENERAL ==='],
-        ['Campo', 'Valor'],
-        ['Nombre', project.name],
-        ['Cliente', project.clientName],
-        ['Estado', project.status],
-        ['Tipología', project.typology],
-        ['Ubicación', project.location || 'N/A'],
-        ['Fecha Inicio', project.startDate || 'N/A'],
-        ['Fecha Fin', project.endDate || 'N/A'],
-        ['Progreso', `${project.progress || 0}%`],
-        [],
-        ['=== RESUMEN DE RENGLONES ==='],
-        ['Código', 'Descripción', 'Unidad', 'Cantidad', 'Materiales (Q)', 'Mano de Obra (Q)', 'Total (Q)'],
-        ...items.map(item => [
-          item.code || '',
-          item.description || '',
-          item.unit || '',
-          item.projectQuantity || 0,
-          calcItemMaterials(item).toFixed(2),
-          calcItemLabor(item).toFixed(2),
-          calcItemTotal(item).toFixed(2),
-        ]),
-        [],
-        ['=== DESGLOSE DE MATERIALES ==='],
-        ['Renglón', 'Material', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'Precio Unit. (Q)', 'Subtotal (Q)'],
-        ...items.flatMap(item =>
-          (item.materials || []).map((m: any) => [
-            item.description || item.code,
-            m.name,
-            m.unit,
-            m.quantity,
-            (m.quantity * (item.projectQuantity || 1)).toFixed(2),
-            m.price.toFixed(2),
-            (m.price * m.quantity * (item.projectQuantity || 1)).toFixed(2),
-          ])
-        ),
-        [],
-        ['=== TOTALES DE LA CONSTRUCCIÓN ==='],
-        ['Concepto', 'Monto (Q)'],
-        ['Costo Directo', directCost.toFixed(2)],
-        [`Indirecto (${project.indirectCosts || 0}%)`, (directCost * (project.indirectCosts || 0) / 100).toFixed(2)],
-        [`Administrativo (${project.administrativeCosts || 0}%)`, (directCost * (project.administrativeCosts || 0) / 100).toFixed(2)],
-        [`Personal (${project.personalCosts || 0}%)`, (directCost * (project.personalCosts || 0) / 100).toFixed(2)],
-        ['COSTO TOTAL', totalCost.toFixed(2)],
-        ['PRESUPUESTO', (project.budget || 0).toFixed(2)],
-        ['UTILIDAD', utilidad.toFixed(2)],
-        ['MARGEN %', project.budget > 0 ? ((utilidad / project.budget) * 100).toFixed(1) + '%' : '0%'],
-        [],
-        [FOOTER_SLOGAN],
-        [FOOTER_ADDRESS],
-      ];
-      break;
+     default: // completo
+       rows = [
+         [COMPANY],
+         [`Informe Completo — ${project.name}`],
+         [`Cliente: ${project.clientName}  |  Estado: ${project.status}  |  Fecha: ${new Date().toLocaleDateString('es-GT')}`],
+         [],
+         ['=== INFORMACIÓN GENERAL ==='],
+         ['Campo', 'Valor'],
+         ['Nombre', project.name],
+         ['Cliente', project.clientName],
+         ['Estado', project.status],
+         ['Tipología', project.typology],
+         ['Ubicación', project.location || 'N/A'],
+         ['Fecha Inicio', project.startDate || 'N/A'],
+         ['Fecha Fin', project.endDate || 'N/A'],
+         ['Progreso', `${project.progress || 0}%`],
+         [],
+          ['=== RESUMEN DE RENGLONES ==='],
+          ['Código', 'Descripción', 'Unidad', 'Cantidad', 'Materiales (Q)', 'Mano de Obra (Q)', 'Total (Q)'],
+          ...items.map(item => [
+            item.code || '',
+            item.description || '',
+            item.unit || '',
+            item.projectQuantity || 0,
+            fmtQ(calcItemMaterials(item)),
+            fmtQ(calcItemLabor(item)),
+            fmtQ(calcItemTotal(item)),
+          ]),
+         [],
+         ['=== DESGLOSE DE MATERIALES ==='],
+         ['Renglón', 'Material', 'Unidad', 'Cant. Unit.', 'Cant. Total', 'Precio Unit. (Q)', 'Subtotal (Q)'],
+         ...items.flatMap(item =>
+           (item.materials || []).map((m: any) => [
+             item.description || item.code,
+             m.name,
+             m.unit,
+             m.quantity,
+             PMath.mul(m.quantity, item.projectQuantity || 1).toFixed(2),
+             m.price.toFixed(2),
+             PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1).toFixed(2),
+           ])
+         ),
+         [],
+         ['=== TOTALES DE LA CONSTRUCCIÓN ==='],
+         ['Concepto', 'Monto (Q)'],
+         ['Costo Directo', directCost.toFixed(2)],
+         [`Indirecto (${project.indirectCosts || 0}%)`, PMath.mul(directCost, PMath.div(project.indirectCosts || 0, 100)).toFixed(2)],
+         [`Administrativo (${project.administrativeCosts || 0}%)`, PMath.mul(directCost, PMath.div(project.administrativeCosts || 0, 100)).toFixed(2)],
+         [`Personal (${project.personalCosts || 0}%)`, PMath.mul(directCost, PMath.div(project.personalCosts || 0, 100)).toFixed(2)],
+         ['COSTO TOTAL', totalCost.toFixed(2)],
+         ['PRESUPUESTO', (project.budget || 0).toFixed(2)],
+         ['UTILIDAD', utilidad.toFixed(2)],
+         ['MARGEN %', project.budget > 0 ? PMath.div(PMath.mul(utilidad, 100), project.budget).toFixed(1) + '%' : '0%'],
+         [],
+         [FOOTER_SLOGAN],
+         [FOOTER_ADDRESS],
+       ];
+       break;
   }
 
   const templateLabel = CSV_TEMPLATES.find(t => t.id === templateId)?.label || templateId;

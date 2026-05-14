@@ -209,6 +209,37 @@ export interface PurchaseOrder {
   notes?: string;
 }
 
+export interface Supplier {
+  id: string;
+  name: string;
+  contact: string;
+  email: string;
+  phone: string;
+  address: string;
+  nit?: string;
+  status: 'ACTIVO' | 'INACTIVO';
+  rating?: number;
+  projects?: string[];
+  createdAt?: string;
+}
+
+export interface LogEntry {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warn' | 'error' | 'success';
+  action: string;
+  details?: string;
+  userId?: string;
+  projectId?: string;
+  projectName?: string;
+  itemId?: string;
+  itemName?: string;
+  msg?: string;
+  author?: string;
+  type?: string;
+  createdAt?: string;
+}
+
 export const WAREHOUSE_DATA: WarehouseItem[] = [];
 
 const IVA = 1.12; // IVA Guatemala 12%

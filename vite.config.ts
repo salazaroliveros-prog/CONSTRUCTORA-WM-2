@@ -31,6 +31,8 @@ export default defineConfig(({mode}) => {
       },
     },
     server: {
+      port: 5173,
+      strictPort: true,
       // Proxy API requests to Vercel Dev (run `npx vercel dev` in parallel)
       proxy: {
         '/api': {

@@ -4,17 +4,18 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { cn } from '../utils/cn';
-import { fmtQ } from '../utils/format';
-import { subscribeToCollection } from '../services/firestoreService';
+import { fmtQ, precise } from '../engine/precision';
+import { useStore } from '../store/DataStore';
 import { Transaction } from '../constants';
 import { trackEvent } from '../utils/logger';
+import { PMath } from '../engine/precision';
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
   AreaChart, Area, LineChart, Line, ComposedChart
 } from 'recharts';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2, FileDown, Calendar } from 'lucide-react';
-import { generateProgressReport } from '../lib/reports';
+import { generateProgressReport } from '../lib/reportEngine';
 
 function pct(n: number) { return Math.min(100, Math.max(0, Math.round(n))); }
 
@@ -51,33 +52,30 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
 }
 
 export default function Seguimiento() {
-  const [projects, setProjects] = useState<any[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
-  const [selectedId, setSelectedId] = useState<string>('ALL');
+   const store = useStore();
+   const [selectedId, setSelectedId] = useState<string>('ALL');
 
-  useEffect(() => {
-    const u1 = subscribeToCollection('projects', setProjects);
-    const u2 = subscribeToCollection('transactions', setTransactions);
-    const u3 = subscribeToCollection('inventory', setInventory);
-    return () => { u1(); u2(); u3(); };
-  }, []);
+   // DataStore data
+   const projects = store.projects.items;
+   const allTransactions = store.transactions.items;
+   const inventory = store.inventory.items;
+   const loading = store.projects.isLoading || store.transactions.isLoading || store.inventory.isLoading;
 
-  const active = projects.filter(p => p.status === 'EJECUCION');
-  const selected = selectedId === 'ALL' ? null : active.find(p => p.id === selectedId);
+   const active = projects.filter(p => p.status === 'EJECUCION');
+   const selected = selectedId === 'ALL' ? null : active.find(p => p.id === selectedId);
 
-  // Aggregate data
-  const projectsData = active.map(p => {
-    // Use real transaction expenses for financiero, fallback to budget items cost
-    const txExpense = transactions.filter(t => t.projectId === p.id && t.type === 'GASTO').reduce((a: number, t: any) => a + (t.amount || 0), 0);
-    const txIncome  = transactions.filter(t => t.projectId === p.id && t.type === 'INGRESO').reduce((a: number, t: any) => a + (t.amount || 0), 0);
-    const totalCost  = txExpense;
-    const budget     = p.budget || 1;
-    const financieroRaw = (totalCost / budget) * 100;
-    const financiero = Math.round(financieroRaw);
-    const fisico = pct(p.progress || 0);
-    return { ...p, totalCost, financiero, fisico, txIncome, txExpense };
-  });
+   // Aggregate data
+   const projectsData = active.map(p => {
+     // Use real transaction expenses for financiero, fallback to budget items cost
+     const txExpense = PMath.sum(allTransactions.filter(t => t.projectId === p.id && t.type === 'GASTO').map(t => t.amount || 0));
+     const txIncome  = PMath.sum(allTransactions.filter(t => t.projectId === p.id && t.type === 'INGRESO').map(t => t.amount || 0));
+     const totalCost  = txExpense;
+     const budget     = p.budget || 1;
+     const financieroRaw = PMath.div(PMath.mul(totalCost, 100), budget);
+     const financiero = Math.round(financieroRaw);
+     const fisico = pct(p.progress || 0);
+     return { ...p, totalCost, financiero, fisico, txIncome, txExpense };
+   });
 
   const displayProjects = selected ? projectsData.filter(p => p.id === selectedId) : projectsData;
 
@@ -95,41 +93,41 @@ export default function Seguimiento() {
     fill: p.fisico >= p.financiero ? '#10b981' : '#ef4444',
   }));
 
-  // Budget vs cost area
-  const areaData = displayProjects.map(p => {
-    const indirectRate = ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100;
-    const totalCostWithIndirect = (p.totalCost || 0) * (1 + indirectRate);
-    return {
-      name: p.name?.slice(0, 14) || 'Proyecto',
-      Presupuesto: p.budget || 0,
-      'Costo Directo': p.totalCost || 0,
-      'Costo Total': Math.round(totalCostWithIndirect),
-      Ingresos: p.txIncome || 0,
-      Egresos: p.txExpense || 0,
-    };
-  });
+// Budget vs cost area
+   const areaData = displayProjects.map(p => {
+     const indirectRate = PMath.div(PMath.add(PMath.add(p.indirectCosts || 0, p.administrativeCosts || 0), p.personalCosts || 0), 100);
+     const totalCostWithIndirect = PMath.mul(p.totalCost || 0, PMath.add(1, indirectRate));
+     return {
+       name: p.name?.slice(0, 14) || 'Proyecto',
+       Presupuesto: p.budget || 0,
+       'Costo Directo': p.totalCost || 0,
+       'Costo Total': Math.round(totalCostWithIndirect),
+       Ingresos: p.txIncome || 0,
+       Egresos: p.txExpense || 0,
+     };
+   });
 
-  // Pie: status distribution
-  const statusMap: Record<string, number> = {};
-  projects.forEach(p => { statusMap[p.status] = (statusMap[p.status] || 0) + 1; });
-  const pieData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
+   // Pie: status distribution
+   const statusMap: Record<string, number> = {};
+   projects.forEach(p => { statusMap[p.status] = (statusMap[p.status] || 0) + 1; });
+   const pieData = Object.entries(statusMap).map(([name, value]) => ({ name, value }));
 
-  const avgFisico = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.fisico, 0) / displayProjects.length) : 0;
-  const avgFinanciero = displayProjects.length ? Math.round(displayProjects.reduce((a, p) => a + p.financiero, 0) / displayProjects.length) : 0;
-  const totalBudget = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
-  const totalCostAll = displayProjects.reduce((a, p) => a + (p.totalCost || 0), 0);
+   const avgFisico = displayProjects.length ? Math.round(PMath.div(PMath.sum(displayProjects.map(p => p.fisico)), displayProjects.length)) : 0;
+   const avgFinanciero = displayProjects.length ? Math.round(PMath.div(PMath.sum(displayProjects.map(p => p.financiero)), displayProjects.length)) : 0;
+   const totalBudget = PMath.sum(displayProjects.map(p => p.budget || 0));
+   const totalCostAll = PMath.sum(displayProjects.map(p => p.totalCost || 0));
 
-  // Materials: budgeted vs used per project
-  const materialData = (() => {
-    const projectsToShow = selectedId === 'ALL' ? projects.filter(p => p.status === 'EJECUCION') : projects.filter(p => p.id === selectedId);
-    return projectsToShow.map(p => {
-      const projItems = inventory.filter((i: any) => i.projectId === p.id && i.budgetedQty != null);
-      const budgeted = projItems.reduce((a: number, i: any) => a + ((i.budgetedQty || 0) * (i.budgetedCost || 0)), 0);
-      const used = projItems.reduce((a: number, i: any) => a + ((i.usedQty || 0) * (i.budgetedCost || 0)), 0);
-      const received = projItems.reduce((a: number, i: any) => a + ((i.stock || 0) * (i.budgetedCost || 0)), 0);
-      return { name: p.name?.slice(0, 14) || 'Proyecto', Presupuestado: budgeted, Ejecutado: used, 'En Bodega': received };
-    }).filter(d => d.Presupuestado > 0 || d.Ejecutado > 0);
-  })();
+   // Materials: budgeted vs used per project
+   const materialData = (() => {
+     const projectsToShow = selectedId === 'ALL' ? projects.filter(p => p.status === 'EJECUCION') : projects.filter(p => p.id === selectedId);
+     return projectsToShow.map(p => {
+       const projItems = inventory.filter((i: any) => i.projectId === p.id && i.budgetedQty != null);
+       const budgeted = PMath.sum(projItems.map((i: any) => PMath.mul(i.budgetedQty || 0, i.budgetedCost || 0)));
+       const used = PMath.sum(projItems.map((i: any) => PMath.mul(i.usedQty || 0, i.budgetedCost || 0)));
+       const received = PMath.sum(projItems.map((i: any) => PMath.mul(i.stock || 0, i.budgetedCost || 0)));
+       return { name: p.name?.slice(0, 14) || 'Proyecto', Presupuestado: budgeted, Ejecutado: used, 'En Bodega': received };
+     }).filter(d => d.Presupuestado > 0 || d.Ejecutado > 0);
+   })();
 
   return (
     <div className="flex flex-col h-full p-3 gap-3 overflow-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
@@ -149,10 +147,10 @@ export default function Seguimiento() {
             {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
 {selected && (
-             <button
-               onClick={() => generateProgressReport(selected, transactions)}
-               className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95"
-             >
+              <button
+                onClick={() => generateProgressReport(selected, undefined, allTransactions)}
+                className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95"
+              >
                <FileDown size={14} className="text-secondary" />
                <span className="hidden sm:inline">Informe PDF</span>
              </button>
@@ -203,11 +201,11 @@ export default function Seguimiento() {
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
                 <div className="bg-amber-50 rounded-xl p-2 text-center">
                   <p className="text-[7px] font-black text-amber-600 uppercase tracking-widest">Presupuesto</p>
-                  <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.budget || 0)}</p>
+                  <p className="text-[11px] font-black text-slate-800 ">Q. {fmtQ(displayProjects[0]?.budget || 0)}</p>
                 </div>
                 <div className="bg-blue-50 rounded-xl p-2 text-center">
                   <p className="text-[7px] font-black text-blue-600 uppercase tracking-widest">Ejecutado</p>
-                  <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
+                  <p className="text-[11px] font-black text-slate-800 ">Q. {fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
               <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
@@ -281,7 +279,7 @@ export default function Seguimiento() {
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: any) => fmtQ(v)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
+              <Tooltip formatter={(v: any) => `Q. ${fmtQ(v as number)}`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
               <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
               <Bar dataKey="Presupuesto" fill="#10b981" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Costo Directo" fill="#f59e0b" radius={[4, 4, 0, 0]} />
@@ -327,7 +325,7 @@ export default function Seguimiento() {
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                   <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
                   <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
-                  <Tooltip formatter={(v: any) => fmtQ(v)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
+                  <Tooltip formatter={(v: any) => `Q. ${fmtQ(v as number)}`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
                   <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
                   <Bar dataKey="Presupuestado" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Ejecutado" fill="#f43f5e" radius={[4, 4, 0, 0]} />

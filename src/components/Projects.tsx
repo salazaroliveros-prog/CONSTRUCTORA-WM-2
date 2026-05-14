@@ -42,7 +42,7 @@ import { calcRealDuration } from '../lib/ganttCPM';
 import AdvancedProjectCreator from './AdvancedProjectCreator';
 import Modal from './ui/Modal';
 import { cn } from '../utils/cn';
-import {subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
+import { subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
@@ -52,6 +52,8 @@ import Pagination from './ui/Pagination';
 import { Users, MapPin, CalendarDays, DollarSign, TrendingDown } from 'lucide-react';
 import { BudgetLine } from '../lib/budgetData';
 import { itemsToBudgetTree } from '../utils/budgetConverter';
+import { PMath, precise, fmtQ } from '../engine/precision';
+import { calculateFullProject } from '../engine/budgetEngine';
 
 import { sanitizeString } from '../utils/sanitize';
 import { trackCRUD, trackEvent } from '../utils/logger';
@@ -394,19 +396,16 @@ const handleSaveEdit = () => {
     setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
   };
 
-  // Recalculates directCosts and budget from items array
-  const calcBudget = (items: any[], project: Project) => {
-    const directCosts = items.reduce((acc, item) => {
-      const matCost = (item.materials || []).reduce((a: number, m: any) => a + m.price * m.quantity * (item.projectQuantity || 1), 0);
-      const labCost = (item.labor || []).reduce((a: number, l: any) => a + l.price * l.quantity * (item.projectQuantity || 1), 0);
-      return acc + matCost + labCost;
-    }, 0);
-    const indirect = directCosts * (project.indirectCosts || 0) / 100;
-    const admin = directCosts * (project.administrativeCosts || 0) / 100;
-    const personal = directCosts * (project.personalCosts || 0) / 100;
-    const budget = directCosts + indirect + admin + personal;
-    return { directCosts, budget };
-  };
+// Recalculates directCosts and budget from items array using the unified Engine
+   const calcBudget = (items: any[], project: Project) => {
+     const budgetTree = itemsToBudgetTree(items);
+     const result = calculateFullProject(budgetTree, {
+       indirectCosts: project.indirectCosts,
+       adminCosts: project.administrativeCosts,
+       personalCosts: project.personalCosts,
+     });
+     return { directCosts: result.directCost, budget: result.totalBudget };
+   };
 
 const addItem = async () => {
      if (!selectedProject) return;
@@ -636,18 +635,18 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
 
       {/* ── KPIs financieros ── */}
       {(() => {
-        const totalBudget   = projects.reduce((s, p) => s + (p.budget || 0), 0);
-        const inExec        = projects.filter(p => p.status === 'EJECUCION');
-        const inExecIds     = inExec.map(p => p.id);
-        const execBudget    = inExec.reduce((s, p) => s + (p.budget || 0), 0);
-        const totalExecuted = (() => {
-          const fromTx = transactions
-            .filter(t => t.type === 'GASTO' && t.projectId && inExecIds.includes(t.projectId))
-            .reduce((s, t) => s + (t.amount || 0), 0);
-          if (fromTx > 0) return fromTx;
-          return inExec.reduce((s, p) => s + (p.budget || 0) * ((p.progress || 0) / 100), 0);
-        })();
-        const deviation     = execBudget > 0 ? ((totalExecuted - execBudget) / execBudget) * 100 : 0;
+const totalBudget   = PMath.sum(projects.map(p => p.budget || 0));
+         const inExec        = projects.filter(p => p.status === 'EJECUCION');
+         const inExecIds     = inExec.map(p => p.id);
+         const execBudget    = PMath.sum(inExec.map(p => p.budget || 0));
+         const totalExecuted = (() => {
+           const fromTx = transactions
+             .filter(t => t.type === 'GASTO' && t.projectId && inExecIds.includes(t.projectId))
+             .reduce((s, t) => PMath.add(s, t.amount || 0), 0);
+           if (fromTx > 0) return fromTx;
+           return inExec.reduce((s, p) => PMath.add(s, PMath.div(PMath.mul(p.budget || 0, p.progress || 0), 100)), 0);
+         })();
+         const deviation     = execBudget > 0 ? PMath.div(PMath.mul(PMath.sub(totalExecuted, execBudget), 100), execBudget) : 0;
         // Proyectos con retraso real: tiempo transcurrido > avance físico + 10%
         const delayed = inExec.filter(p => {
           if (!p.startDate || !p.endDate) return false;
@@ -660,8 +659,8 @@ return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 {[
                  { icon: <Building2 size={12} className="text-blue-500" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-blue-700' },
-                 { icon: <DollarSign size={12} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${Math.round(totalBudget/1000)}k`, sub: `Q ${Math.round(execBudget/1000)}k activo`, color: 'text-amber-700' },
-{ icon: <TrendingUp size={12} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${Math.round(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
+{ icon: <DollarSign size={12} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${fmtQ(totalBudget/1000)}k`, sub: `Q ${fmtQ(execBudget/1000)}k activo`, color: 'text-amber-700' },
+                  { icon: <TrendingUp size={12} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${fmtQ(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${precise(deviation, 1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-red-600' : 'text-green-700' },
                  { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-red-500' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-red-600' : 'text-green-700' },
               ].map(k => (
                 <div key={k.label} className="bg-white  border border-slate-200  rounded-lg p-2 sm:p-3 shadow-sm ">
@@ -1086,10 +1085,10 @@ return (
                   })()}
                   <div className="h-48 bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={[
-                        { name: 'Materiales', value: selectedProject.items.reduce((acc, item) => acc + (item.materials?.reduce((a, m) => a + (m.price * m.quantity * (item.projectQuantity || 1)), 0) || 0), 0) },
-                        { name: 'Mano de Obra', value: selectedProject.items.reduce((acc, item) => acc + (item.labor?.reduce((a, l) => a + (l.price * l.quantity * (item.projectQuantity || 1)), 0) || 0), 0) }
-                      ]}>
+<BarChart data={[
+                         { name: 'Materiales', value: selectedProject.items.reduce((acc, item) => PMath.add(acc, (item.materials || []).reduce((a, m) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1)), 0)), 0) },
+                         { name: 'Mano de Obra', value: selectedProject.items.reduce((acc, item) => PMath.add(acc, (item.labor || []).reduce((a, l) => PMath.add(a, PMath.mul(PMath.mul(l.price, l.quantity), item.projectQuantity || 1)), 0)), 0) }
+                       ]}>
                         <XAxis dataKey="name" fontSize={10} />
                         <YAxis fontSize={10} />
                         <Tooltip content={<CustomTooltip />} />
@@ -1107,15 +1106,15 @@ return (
                     </div>
                     <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                       <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Indirecto ({selectedProject.indirectCosts || 0}%)</p>
-                      <p className="text-sm font-black text-slate-600 uppercase">Q {((selectedProject.directCosts || 0) * (selectedProject.indirectCosts || 0) / 100).toLocaleString()}</p>
+                      <p className="text-sm font-black text-slate-600 uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.indirectCosts || 0, 100)))}</p>
                     </div>
                     <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                       <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Admin ({selectedProject.administrativeCosts || 0}%)</p>
-                      <p className="text-sm font-black text-slate-600 uppercase">Q {((selectedProject.directCosts || 0) * (selectedProject.administrativeCosts || 0) / 100).toLocaleString()}</p>
+                      <p className="text-sm font-black text-slate-600 uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.administrativeCosts || 0, 100)))}</p>
                     </div>
                     <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
                       <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-1">Personal ({selectedProject.personalCosts || 0}%)</p>
-                      <p className="text-sm font-black text-slate-600 uppercase">Q {((selectedProject.directCosts || 0) * (selectedProject.personalCosts || 0) / 100).toLocaleString()}</p>
+                      <p className="text-sm font-black text-slate-600 uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.personalCosts || 0, 100)))}</p>
                     </div>
                   </div>
                 </div>
@@ -1356,10 +1355,12 @@ return (
                           <div className="bg-white border border-emerald-100 rounded-xl px-3 py-2 flex justify-between items-center">
                             <span className="text-[8px] font-black text-slate-400 uppercase">Costo estimado renglon</span>
                             <span className="text-[10px] font-black text-emerald-700">
-                              Q {(
-                                newItemForm.materials.reduce((a,m)=>a+m.price*m.quantity*newItemForm.projectQuantity,0) +
-                                newItemForm.labor.reduce((a,l)=>a+l.price*l.quantity*newItemForm.projectQuantity,0)
-                              ).toLocaleString(undefined,{maximumFractionDigits:2})}
+Q {PMath.fmtQ(
+                                 PMath.add(
+                                   newItemForm.materials.reduce((a,m) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), newItemForm.projectQuantity)), 0),
+                                   newItemForm.labor.reduce((a,l) => PMath.add(a, PMath.mul(PMath.mul(l.price, l.quantity), newItemForm.projectQuantity)), 0)
+                                 )
+                               )}
                             </span>
                           </div>
                         )}

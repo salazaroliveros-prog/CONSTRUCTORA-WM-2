@@ -7,7 +7,7 @@ import React, { useState } from 'react';
 import { X, Save, Calculator } from 'lucide-react';
 import { BudgetLine } from '../../lib/budgetData';
 import { cn } from '../../utils/cn';
-import { calculateDynamicQuantity } from '../../utils/budgetCalc';
+import { calcDynamicQty, ENGINEERING, fmtQ } from '../../engine/budgetEngine';
 
 interface DimensionEditorProps {
   line: BudgetLine;
@@ -173,10 +173,17 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
           if (!isNaN(num) && num > 0) dims[key] = num;
         });
         const previewLine = { ...line, dimensions: Object.keys(dims).length > 0 ? dims : undefined, computationType: 'dynamic' as const };
-        const previewQty = Object.keys(dims).length > 0 ? calculateDynamicQuantity(previewLine) : 0;
-        const previewMat = previewQty * line.materialCost * (line.materialPerf ?? 1);
-        const previewLab = previewQty * line.laborCost * (line.laborPerf ?? 1);
-        const previewSub = previewMat + previewLab;
+        const previewQty = Object.keys(dims).length > 0 ? calcDynamicQty(previewLine) : 0;
+        const matCost = previewQty * (line.materialCost || 0) * (line.materialPerf ?? 1);
+        const labCost = previewQty * (line.laborCost || 0) * (line.laborPerf ?? 1);
+        const eqCost = previewQty * (line.equipmentCost || 0);
+        const wasteF = line.wasteFactor ?? 1;
+        const wasteAmt = (matCost + labCost + eqCost) * (wasteF - 1);
+        const subtotal = matCost + labCost + eqCost + wasteAmt;
+        const taxAmt = subtotal * (line.taxRate ?? ENGINEERING.taxRate);
+        const profitAmt = subtotal * (line.profitMargin ?? ENGINEERING.profitMargin);
+        const contingAmt = subtotal * (line.contingency ?? ENGINEERING.contingency);
+        const total = subtotal + taxAmt + profitAmt + contingAmt;
         const hasValidDims = Object.keys(dims).length > 0 && previewQty > 0;
         return hasValidDims ? (
           <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
@@ -187,19 +194,19 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
             <div className="grid grid-cols-4 gap-3 text-[9px]">
               <div>
                 <span className="text-slate-500">Cant. calculada:</span>
-                <span className="ml-1 font-bold text-slate-800">{previewQty.toFixed(2)} {line.unit}</span>
+                <span className="ml-1 font-bold text-slate-800">{previewQty.toFixed(4)} {line.unit}</span>
               </div>
               <div>
                 <span className="text-slate-500">Material:</span>
-                <span className="ml-1 font-bold text-slate-800">Q {previewMat.toFixed(2)}</span>
+                <span className="ml-1 font-bold text-slate-800">{fmtQ(matCost)}</span>
               </div>
               <div>
                 <span className="text-slate-500">Mano Obra:</span>
-                <span className="ml-1 font-bold text-slate-800">Q {previewLab.toFixed(2)}</span>
+                <span className="ml-1 font-bold text-slate-800">{fmtQ(labCost)}</span>
               </div>
               <div>
                 <span className="text-slate-500">Subtotal:</span>
-                <span className="ml-1 font-bold text-blue-700">Q {previewSub.toFixed(2)}</span>
+                <span className="ml-1 font-bold text-blue-700">{fmtQ(total)}</span>
               </div>
             </div>
           </div>

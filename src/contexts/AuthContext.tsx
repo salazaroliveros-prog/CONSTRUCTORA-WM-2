@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { auth, signInWithGoogle, logout, onAuthStateChanged, User } from '../lib/firebase';
+import { auth, signInWithGoogle, logout, onAuthStateChanged, getRedirectAuthResult, User } from '../lib/firebase';
 
 // Usuario principal autorizado - solo este correo puede ver todos los datos
 const AUTHORIZED_EMAIL = 'salazaroliveros@gmail.com';
@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       setLoading(true);
       await signInWithGoogle();
+      // signInWithRedirect redirige a Google, no retorna acá
     } catch (error: any) {
       if (error?.code !== 'auth/cancelled-popup-request' && error?.code !== 'auth/popup-closed-by-user') {
         console.error('Login error:', error);
@@ -40,6 +41,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setLoading(false);
     }
   };
+
+  // Manejar resultado del redirect (cuando Google redirige de vuelta)
+  useEffect(() => {
+    const handleRedirectResult = async () => {
+      const user = await getRedirectAuthResult();
+      if (user) {
+        // Usuario autenticado exitosamente vía redirect
+        console.log('Redirect login successful:', user.email);
+      }
+    };
+    handleRedirectResult();
+  }, []);
 
   const signOut = async () => {
     await logout();

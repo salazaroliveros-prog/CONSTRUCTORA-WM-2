@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { BudgetItem, SensitivityScenario } from '../../types/budget';
 import { BudgetLine } from '../../lib/budgetData';
-import { calculateSensitivity, checkDeviations, DeviationAlert, precise } from '../../utils/budgetCalc';
+import { calculateSensitivity, checkDeviations, Deviation, precise, fmtQ } from '../../engine/budgetEngine';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 interface ProfessionalTotals {
@@ -94,7 +94,7 @@ export function ProjectSummary({
   }, [budgetLines]);
 
   // ── Alertas de desviación ────────────────────────────────────────────────
-  const deviations = useMemo<DeviationAlert[]>(() => {
+  const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
     if (!budgetLines?.length) return [];
     return checkDeviations(budgetLines, 5);
   }, [budgetLines]);
@@ -255,14 +255,14 @@ export function ProjectSummary({
                 'bg-yellow-50 text-yellow-700'
               }`}>
                 <div className="flex items-center gap-2">
-                  <span className="font-bold">{d.lineCode}</span>
+                  <span className="font-bold">{d.code}</span>
                   <span className="text-slate-600">{d.description}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span>Presup: {formatQ(d.budgeted)}</span>
-                  <span>Real: {formatQ(d.actual)}</span>
-                  <span className={`font-black ${d.deviationPercent > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                    {fmtPct(d.deviationPercent)}
+                  <span>Presup: {fmtQ(d.budgeted)}</span>
+                  <span>Real: {fmtQ(d.actual)}</span>
+                  <span className={`font-black ${d.deviationPct > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                    {d.deviationPct.toFixed(1)}%
                   </span>
                   <span className={`px-1.5 py-0.5 rounded text-[7px] font-bold uppercase ${
                     d.severity === 'critical' ? 'bg-red-600 text-white' :
