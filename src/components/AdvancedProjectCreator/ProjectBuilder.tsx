@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Typology } from '../../constants';
-import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON } from '../../lib/reports';
+import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON, generateBOM } from '../../lib/reports';
 import { addDocument } from '../../services/firestoreService';
 import { fmtQ } from '../../utils/format';
 import { useProjectBuilder } from '../../hooks/useProjectBuilder';
@@ -264,10 +264,17 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
         />
       </div>
 
-      {/* Resumen de costos */}
+      {/* Resumen de costos profesional */}
       <ProjectSummary
         items={project.items}
-        totals={totals}
+        totals={{
+          ...totals,
+          equipmentTotal: budgetTree.reduce((s, l) => s + (l.equipmentTotal ?? (l.equipmentCost || 0) * l.qty), 0),
+          taxTotal: totals.totalDirect * 0.12,
+          profitTotal: totals.totalDirect * 0.15,
+          contingencyTotal: totals.totalDirect * 0.05,
+        }}
+        budgetLines={budgetTree}
         estimatedDays={estimatedDays}
         projectName={project.name}
         clientName={project.clientName}

@@ -1077,4 +1077,46 @@ export const generateBudgetJSON = (project: Project, totalsOverride?: {
   document.body.removeChild(link);
 };
 
+// ── Exportación BOM (Bill of Materials) ─────────────────────────────────────
+export const generateBOM = (project: Project) => {
+  const materialsMap: Record<string, { name: string; unit: string; totalQty: number; unitCost: number; totalCost: number }> = {};
+
+  project.items.forEach(item => {
+    (item.materials || []).forEach(mat => {
+      const key = mat.name;
+      const qty = mat.quantity * (item.projectQuantity || 1);
+      const cost = mat.price * qty;
+      if (materialsMap[key]) {
+        materialsMap[key].totalQty += qty;
+        materialsMap[key].totalCost += cost;
+      } else {
+        materialsMap[key] = { name: mat.name, unit: mat.unit, totalQty: qty, unitCost: mat.price, totalCost: cost };
+      }
+    });
+  });
+
+  const bomRows = Object.values(materialsMap).sort((a, b) => a.name.localeCompare(b.name));
+  const totalCost = bomRows.reduce((s, r) => s + r.totalCost, 0);
+
+  const bomCsv = [
+    ['BILL OF MATERIALS (BOM)', '', '', '', ''],
+    [`Proyecto: ${project.name}`, '', '', '', ''],
+    [`Cliente: ${project.clientName}`, '', '', '', ''],
+    [`Fecha: ${new Date().toLocaleDateString('es-GT')}`, '', '', '', ''],
+    [],
+    ['#', 'Material', 'Unidad', 'Cantidad Total', 'Costo Unit. (Q)', 'Costo Total (Q)'],
+    ...bomRows.map((r, i) => [i + 1, `"${r.name}"`, r.unit, r.totalQty.toFixed(2), r.unitCost.toFixed(2), r.totalCost.toFixed(2)]),
+    [],
+    ['', '', '', 'TOTAL MATERIALES', '', totalCost.toFixed(2)],
+  ].map(e => e.join(',')).join('\n');
+
+  const blob = new Blob(['\ufeff' + bomCsv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `BOM_${project.name.replace(/\s/g, '_')}_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
+
 
