@@ -6,17 +6,13 @@
 
 import React, { useState, useMemo } from 'react';
 import {
-  FileDown, Printer, DollarSign, TrendingUp, Package, Users, AlertTriangle,
-  BarChart3, ShieldAlert, Box, Clock, Calculator, Percent, Receipt,
+  FileDown, Printer, TrendingUp, Package, Users, AlertTriangle,
+  BarChart3, ShieldAlert, Box, Calculator, Percent, Receipt,
   TrendingDown, TrendingUp as TrendUp
 } from 'lucide-react';
-import { generateBudgetPDF, generateBudgetCSV, generateBudgetPDFEjecutivo, generateBudgetPDFAPU, generateBudgetPDFCliente, generateBudgetJSON } from '../../lib/reports';
 import { BudgetItem, SensitivityScenario } from '../../types/budget';
 import { BudgetLine } from '../../lib/budgetData';
-import { cn } from '../../utils/cn';
-import { toast } from 'sonner';
-import { fmtQ } from '../../utils/format';
-import { calculateSensitivity, checkDeviations, DeviationAlert, precise, calcProjectTotals } from '../../utils/budgetCalc';
+import { calculateSensitivity, checkDeviations, DeviationAlert, precise } from '../../utils/budgetCalc';
 
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 interface ProfessionalTotals {
