@@ -429,7 +429,7 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
   // Transactions filtered by project when one is selected, or by existing project IDs globally
   const existingProjectIds = new Set(projects.filter(p => p.id).map(p => p.id));
   const filteredTransactions = selectedProjectId === 'ALL'
-    ? transactions.filter(t => !t.projectId || existingProjectIds.has(t.projectId))
+    ? transactions.filter(t => t.projectId && existingProjectIds.has(t.projectId))
     : transactions.filter(t => t.projectId === selectedProjectId);
 
   // Financial KPIs — respect project filter
@@ -445,7 +445,7 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
   const executingBudget = filteredProjects.reduce((acc, p) => acc + (p.budget || 0), 0);
   const finishedPausedBudget = finishedOrPausedProjects.reduce((acc, p) => acc + (p.budget || 0), 0);
 
-  const criticalStock = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (!i.projectId || existingProjectIds.has(i.projectId)))).length;
+  const criticalStock = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (i.projectId && existingProjectIds.has(i.projectId)))).length;
 
   // Progress averages for mini ring charts in KPI cards
   const avgFisico = filteredProjects.length
