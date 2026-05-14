@@ -16,8 +16,8 @@ interface BudgetTableProps {
   onUpdate: (lines: BudgetLine[]) => void;
   onAddCustom: () => void;
   editingAllowed?: boolean;
-  marketMultipliers?: { material: number; labor: number };
-  wasteFactors?: { materials: number; labor: number };
+  marketMultipliers?: { material: number; labor: number } | null;
+  wasteFactors?: { materials: number; labor: number } | null;
 }
 
 /**
@@ -25,31 +25,31 @@ interface BudgetTableProps {
  * Computa costos, duración y consolidación jerárquica
  */
 
-// Costo material exacto con precisión 2 decimales
-function calcLineMaterial(line: BudgetLine, matMul = 1): number {
-  return precise(line.qty * line.materialCost * (line.materialPerf ?? 1) * matMul);
+// Costo material exacto con precisión 2 decimales (mult = multiplicador de mercado)
+function calcLineMaterial(line: BudgetLine, mult = 1): number {
+  return precise(line.qty * line.materialCost * (line.materialPerf ?? 1) * mult);
 }
-function calcLineLabor(line: BudgetLine, labMul = 1): number {
-  return precise(line.qty * line.laborCost * (line.laborPerf ?? 1) * labMul);
+function calcLineLabor(line: BudgetLine, mult = 1): number {
+  return precise(line.qty * line.laborCost * (line.laborPerf ?? 1) * mult);
 }
 function calcLineEquipment(line: BudgetLine): number {
   return precise(line.qty * (line.equipmentCost ?? 0));
 }
-function calcLineSelf(line: BudgetLine, matMul = 1, labMul = 1): number {
-  return calcLineMaterial(line, matMul) + calcLineLabor(line, labMul) + calcLineEquipment(line);
+function calcLineSelf(line: BudgetLine, mM = 1, lM = 1): number {
+  return calcLineMaterial(line, mM) + calcLineLabor(line, lM) + calcLineEquipment(line);
 }
-function calcLineTotal(line: BudgetLine, matMul = 1, labMul = 1): number {
-  const self = calcLineSelf(line, matMul, labMul);
-  const children = line.children?.reduce((s, c) => s + calcLineTotal(c, matMul, labMul), 0) ?? 0;
+function calcLineTotal(line: BudgetLine, mM = 1, lM = 1): number {
+  const self = calcLineSelf(line, mM, lM);
+  const children = line.children?.reduce((s, c) => s + calcLineTotal(c, mM, lM), 0) ?? 0;
   return precise(self + children);
 }
-function calcLineMatTotal(line: BudgetLine, matMul = 1): number {
-  if (!line.children?.length) return calcLineMaterial(line, matMul);
-  return precise(line.children.reduce((s, c) => s + calcLineMaterial(c, matMul), 0));
+function calcLineMatTotal(line: BudgetLine, mM = 1): number {
+  if (!line.children?.length) return calcLineMaterial(line, mM);
+  return precise(line.children.reduce((s, c) => s + calcLineMaterial(c, mM), 0));
 }
-function calcLineLabTotal(line: BudgetLine, labMul = 1): number {
-  if (!line.children?.length) return calcLineLabor(line, labMul);
-  return precise(line.children.reduce((s, c) => s + calcLineLabor(c, labMul), 0));
+function calcLineLabTotal(line: BudgetLine, lM = 1): number {
+  if (!line.children?.length) return calcLineLabor(line, lM);
+  return precise(line.children.reduce((s, c) => s + calcLineLabor(c, lM), 0));
 }
 function calcLineEqTotal(line: BudgetLine): number {
   if (!line.children?.length) return calcLineEquipment(line);
@@ -86,11 +86,11 @@ const BudgetTableRow = memo(function BudgetTableRow({
   onUpdateLine: (line: BudgetLine) => void;
   onDeleteLine: (id: string) => void;
   editingAllowed: boolean;
-  matMul?: number;
-  labMul?: number;
+  matMult?: number;
+  labMult?: number;
 }) {
-  const mMul = matMul ?? 1;
-  const lMul = labMul ?? 1;
+  const mMul = matMult ?? 1;
+  const lMul = labMult ?? 1;
   const hasChildren = line.children && line.children.length > 0;
   const isLeaf = !hasChildren;
   const [editingField, setEditingField] = useState<'qty' | 'materialCost' | 'laborCost' | null>(null);
@@ -294,7 +294,7 @@ const BudgetTableRow = memo(function BudgetTableRow({
           isExpanded={false} isEditing={false}
           onToggleExpand={onToggleExpand} onEdit={onEdit}
           onUpdateLine={onUpdateLine} onDeleteLine={onDeleteLine}
-          editingAllowed={editingAllowed} matMul={mMul} labMul={lMul} />
+          editingAllowed={editingAllowed} matMult={mMul} labMult={lMul} />
       ))}
     </>
   );
@@ -314,8 +314,8 @@ export default function BudgetTable({
   marketMultipliers,
   wasteFactors,
 }: BudgetTableProps) {
-  const matMul = marketMultipliers?.material ?? 1;
-  const labMul = marketMultipliers?.labor ?? 1;
+  const matMult = marketMultipliers?.material ?? 1;
+  const labMult = marketMultipliers?.labor ?? 1;
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -407,11 +407,11 @@ export default function BudgetTable({
         onUpdateLine={handleUpdateLine}
         onDeleteLine={handleDeleteLine}
         editingAllowed={editingAllowed}
-        matMul={matMul}
-        labMul={labMul}
+        matMult={matMult}
+        labMult={labMult}
       />
     ));
-  }, [expanded, toggleExpand, handleEdit, handleUpdateLine, handleDeleteLine, editingAllowed, editingId, matMul, labMul]);
+  }, [expanded, toggleExpand, handleEdit, handleUpdateLine, handleDeleteLine, editingAllowed, editingId, matMult, labMult]);
 
   return (
     <div className="overflow-x-auto">
