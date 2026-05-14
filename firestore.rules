@@ -5,6 +5,7 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Para colecciones principales: require ownerId
     function ownsExistingDoc() {
       return signedIn() && resource.data.ownerId == request.auth.uid;
     }
@@ -13,11 +14,19 @@ service cloud.firestore {
       return signedIn() && request.resource.data.ownerId == request.auth.uid;
     }
 
-    match /{document=**} {
+    // Regla genérica para colecciones con ownerId
+    match /{collection}/{document} {
       allow read, update, delete: if ownsExistingDoc();
       allow create: if ownsIncomingDoc();
     }
 
+    // Regla especial para userSettings: usa uid del documento en lugar de ownerId
+    match /userSettings/{userId} {
+      allow read, update, delete: if signedIn() && request.auth.uid == userId;
+      allow create: if signedIn() && request.auth.uid == userId;
+    }
+
+    // Regla especial para _diagnostico
     match /_diagnostico/{docId} {
       allow read, update, delete: if ownsExistingDoc();
       allow create: if ownsIncomingDoc();
