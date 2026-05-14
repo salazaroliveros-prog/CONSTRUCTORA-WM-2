@@ -636,12 +636,12 @@ const exitCategories = ['Materiales', 'Mano de Obra', 'Herramienta y Equipo', 'S
 
   // Radar chart data - Rendimiento por área
   const radarData = [
-    { area: 'Presupuesto', value: Math.min(100, (executingBudget > 0 ? (totalIncome / executingBudget) * 100 : 0)), fullMark: 100 },
+    { area: 'Presupuesto', value: executingBudget > 0 ? Math.min(100, (totalIncome / executingBudget) * 100) : 0, fullMark: 100 },
     { area: 'Avance', value: avgFisico, fullMark: 100 },
-    { area: 'Liquidez', value: Math.min(100, netCash > 0 ? 85 : 30), fullMark: 100 },
-    { area: 'Inventario', value: Math.max(0, 100 - (criticalStock * 10)), fullMark: 100 },
+    { area: 'Liquidez', value: netCash > 0 && totalIncome > 0 ? Math.min(100, (netCash / totalIncome) * 100) : 0, fullMark: 100 },
+    { area: 'Inventario', value: inventory.length > 0 ? Math.max(0, 100 - (criticalStock * 10)) : 0, fullMark: 100 },
     { area: 'Proyectos', value: Math.min(100, executingProjects.length * 15), fullMark: 100 },
-    { area: 'Eficiencia', value: avgFinanciero > 0 ? Math.min(100, (avgFisico / avgFinanciero) * 100) : 50, fullMark: 100 },
+    { area: 'Eficiencia', value: avgFinanciero > 0 ? Math.min(100, (avgFisico / avgFinanciero) * 100) : 0, fullMark: 100 },
   ];
 
   // Table data - Estado de cuentas por proyecto

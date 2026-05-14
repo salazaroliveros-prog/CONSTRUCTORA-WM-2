@@ -97,7 +97,7 @@ export default function Seguimiento() {
 
   // Budget vs cost area
   const areaData = displayProjects.map(p => {
-    const indirectRate = ((p.indirectCosts || 15) + (p.administrativeCosts || 5) + (p.personalCosts || 10)) / 100;
+    const indirectRate = ((p.indirectCosts || 0) + (p.administrativeCosts || 0) + (p.personalCosts || 0)) / 100;
     const totalCostWithIndirect = (p.totalCost || 0) * (1 + indirectRate);
     return {
       name: p.name?.slice(0, 14) || 'Proyecto',
@@ -393,45 +393,11 @@ export default function Seguimiento() {
           </div>
 
           <div className="space-y-3">
-            {/* Project phases with progress bars */}
-            {[
-              { phase: 'Cimentación', start: '2024-01-01', end: '2024-01-15', progress: 100, color: '#ef4444' },
-              { phase: 'Estructura', start: '2024-01-16', end: '2024-02-28', progress: 85, color: '#f59e0b' },
-              { phase: 'Techos', start: '2024-03-01', end: '2024-03-10', progress: 60, color: '#3b82f6' },
-              { phase: 'Instalaciones', start: '2024-03-11', end: '2024-04-15', progress: 30, color: '#10b981' },
-              { phase: 'Acabados', start: '2024-04-16', end: '2024-05-30', progress: 10, color: '#8b5cf6' }
-            ].map((item, i) => (
-              <div key={i} className="space-y-1">
-                <div className="flex justify-between text-[8px] font-bold">
-                  <span className="text-slate-700 ">{item.phase}</span>
-                  <span className="text-slate-500">{item.progress}%</span>
-                </div>
-                <div className="relative h-3 bg-slate-100  rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-1000 ease-out"
-                    style={{
-                      width: `${item.progress}%`,
-                      backgroundColor: item.color,
-                      boxShadow: `0 0 8px ${item.color}30`
-                    }}
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-[8px] sm:text-[7px] font-black text-white drop-shadow-sm">
-                    {item.start.split('-')[1]}/{item.start.split('-')[2]} - {item.end.split('-')[1]}/{item.end.split('-')[2]}
-                  </span>
-                  </div>
-                </div>
-              </div>
-            ))}
-
-            {/* Timeline markers */}
-            <div className="flex justify-between mt-4 pt-2 border-t border-slate-200">
-              <span className="text-[7px] font-bold text-slate-400">Ene</span>
-              <span className="text-[7px] font-bold text-slate-400">Feb</span>
-              <span className="text-[7px] font-bold text-slate-400">Mar</span>
-              <span className="text-[7px] font-bold text-slate-400">Abr</span>
-              <span className="text-[7px] font-bold text-slate-400">May</span>
-            </div>
+            {selected ? (
+              <p className="text-[9px] text-slate-400 text-center py-6">Vista Gantt disponible desde el módulo Gantt</p>
+            ) : (
+              <p className="text-[9px] text-slate-400 text-center py-6">Selecciona un proyecto para ver su cronograma</p>
+            )}
           </div>
         </div>
 
@@ -443,27 +409,11 @@ export default function Seguimiento() {
           </div>
 
           <div className="space-y-3">
-            {[
-              { task: 'Cimentación', duration: 15, status: 'completed', critical: false },
-              { task: 'Columnas', duration: 20, status: 'in-progress', critical: true },
-              { task: 'Vigas', duration: 12, status: 'pending', critical: true },
-              { task: 'Losas', duration: 18, status: 'pending', critical: false },
-              { task: 'Acabados', duration: 25, status: 'planned', critical: false }
-            ].map((task, i) => (
-              <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-50 ">
-                <div className="flex items-center gap-2">
-                  <div className={cn(
-                    "w-2 h-2 rounded-full",
-                    task.status === 'completed' ? 'bg-green-500' :
-                    task.status === 'in-progress' ? 'bg-blue-500' :
-                    task.status === 'pending' ? 'bg-amber-500' : 'bg-slate-400'
-                  )} />
-                  <span className="text-[8px] font-bold text-slate-700 ">{task.task}</span>
-                  {task.critical && <span className="text-[6px] font-black text-red-500 uppercase">Crítico</span>}
-                </div>
-                <span className="text-[7px] font-bold text-slate-500">{task.duration} días</span>
-              </div>
-            ))}
+            {selected ? (
+              <p className="text-[9px] text-slate-400 text-center py-6">Vista de ruta crítica disponible desde el módulo Gantt</p>
+            ) : (
+              <p className="text-[9px] text-slate-400 text-center py-6">Selecciona un proyecto para ver su ruta crítica</p>
+            )}
           </div>
         </div>
 

@@ -74,9 +74,9 @@ export const calculateProjectTotals = (project: Project) => {
     return acc + (lab * item.projectQuantity);
   }, 0);
 
-  const indirectCost = directCost * ((project.indirectCosts || 15) / 100);
-  const adminCost = directCost * ((project.administrativeCosts || 5) / 100);
-  const personalCost = directCost * ((project.personalCosts || 10) / 100);
+  const indirectCost = directCost * ((project.indirectCosts || 0) / 100);
+  const adminCost = directCost * ((project.administrativeCosts || 0) / 100);
+  const personalCost = directCost * ((project.personalCosts || 0) / 100);
   const totalBudget = directCost + indirectCost + adminCost + personalCost;
 
   const estimatedDays = project.items.reduce((acc, item) => acc + (item.durationDays || 1) * item.projectQuantity, 0);
