@@ -1,16 +1,3 @@
-{
-  "hosting": {
-    "public": "dist",
-    "ignore": [
-      "firebase.json",
-      "**/.*",
-      "**/node_modules/**"
-    ],
-    "rewrites": [
-      {
-        "source": "**",
-        "destination": "/index.html"
-      }
-    ]
-  }
-}
+# Hosting config — NO se usa. Solo para referencia si necesitas Firebase Hosting
+# La configuración oficial está en firebase.json (reglas Firestore/Storage)
+# y vercel.json (configuración de despliegue Vercel)
