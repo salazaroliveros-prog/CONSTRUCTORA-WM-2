@@ -83,6 +83,9 @@ export default function AnalyticsModule() {
     ? projects.find(p => p.id === selectedProjectId) || null
     : null;
 
+  // Filter out data linked to deleted/non-existent projects (same pattern as Dashboard)
+  const existingProjectIds = useMemo(() => new Set(projects.filter(p => p.id).map(p => p.id)), [projects]);
+
   const stats = {
     cotizados: displayProjects.filter(p => p.status === 'COTIZACION'),
     ejecucion: displayProjects.filter(p => p.status === 'EJECUCION'),
@@ -142,6 +145,7 @@ export default function AnalyticsModule() {
     }
     transactions.forEach(t => {
       if (!t.date) return;
+      if (t.projectId && !existingProjectIds.has(t.projectId)) return;
       const key = t.date.substring(0, 7);
       if (!months[key]) return;
       if (t.type === 'INGRESO') months[key].Ingresos += Number(t.amount || 0);
@@ -179,16 +183,16 @@ export default function AnalyticsModule() {
   }, [displayProjects]);
 
   // ── KPIs financieros y operativos mejorados ────────────────────────────────────────────────────────
-  const totalIngresos = transactions.filter(t => t.type === 'INGRESO').reduce((a, t) => a + Number(t.amount || 0), 0);
-  const totalGastos = transactions.filter(t => t.type === 'GASTO').reduce((a, t) => a + Number(t.amount || 0), 0);
+  const totalIngresos = transactions.filter(t => t.type === 'INGRESO' && (!t.projectId || existingProjectIds.has(t.projectId))).reduce((a, t) => a + Number(t.amount || 0), 0);
+  const totalGastos = transactions.filter(t => t.type === 'GASTO' && (!t.projectId || existingProjectIds.has(t.projectId))).reduce((a, t) => a + Number(t.amount || 0), 0);
   const netoCaja = totalIngresos - totalGastos;
   const totalPresupuesto = displayProjects.reduce((a, p) => a + (p.budget || 0), 0);
   
   // Nuevas métricas cruzadas
   const activeStaff = staff.filter(s => s.status === 'ACTIVO');
   const totalSalaries = activeStaff.reduce((a, s) => a + Number(s.salary || 0), 0);
-  const criticalInventory = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0));
-  const pendingOrders = purchaseOrders.filter(po => po.status === 'PENDIENTE');
+  const criticalInventory = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (!i.projectId || existingProjectIds.has(i.projectId)));
+  const pendingOrders = purchaseOrders.filter(po => po.status === 'PENDIENTE' && (!po.projectId || existingProjectIds.has(po.projectId)));
   const totalPendingValue = pendingOrders.reduce((a, po) => a + Number(po.total || 0), 0);
   
   // Eficiencia de personal por proyecto
@@ -201,7 +205,7 @@ export default function AnalyticsModule() {
   
   // Análisis de proveedores
   const supplierAnalysis = suppliers.map(s => {
-    const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id);
+    const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id && (!po.projectId || existingProjectIds.has(po.projectId)));
     const totalSpent = supplierOrders.reduce((a, po) => a + Number(po.total || 0), 0);
     const avgOrderValue = supplierOrders.length > 0 ? totalSpent / supplierOrders.length : 0;
     const pendingCount = supplierOrders.filter(po => po.status === 'PENDIENTE').length;

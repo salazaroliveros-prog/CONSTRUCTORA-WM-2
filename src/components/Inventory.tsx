@@ -376,7 +376,13 @@ const createPurchaseOrder = async () => {
 
   const categories = ['Todos', 'Materiales', 'Herramientas', 'EPP'];
 
-  const filteredItems = items.filter(item => {
+  // Filter out inventory from deleted/non-existent projects (same pattern as Dashboard)
+  const existingProjectIds = useMemo(() => new Set((projects as any[]).filter((p: any) => p.id).map((p: any) => p.id)), [projects]);
+  const validItems = useMemo(() =>
+    items.filter(i => !i.projectId || existingProjectIds.has(i.projectId)),
+  [items, existingProjectIds]);
+
+  const filteredItems = validItems.filter(item => {
     const matchesSearch = item.name?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCat    = activeCategory === 'Todos' || item.cat === activeCategory;
     const matchesZone   = !selectedZone || item.location?.includes(selectedZone);
@@ -385,8 +391,8 @@ const createPurchaseOrder = async () => {
   });
 
   // KPI: valor real = stock × budgetedCost (costo unitario del presupuesto)
-  const totalRealValue = items.reduce((acc, i) => acc + (i.stock || 0) * (i.budgetedCost || 0), 0);
-  const criticalItems  = items.filter(i => (i.stock || 0) <= (i.minStock || 0));
+  const totalRealValue = validItems.reduce((acc, i) => acc + (i.stock || 0) * (i.budgetedCost || 0), 0);
+  const criticalItems  = validItems.filter(i => (i.stock || 0) <= (i.minStock || 0));
   // Días restantes por item según tasa de consumo
   const withDaysLeft = (item: WarehouseItem): number | null => {
     const days = item.lastEntry ? Math.max(1, Math.floor((Date.now() - new Date(item.lastEntry).getTime()) / 86_400_000)) : 30;
@@ -530,10 +536,10 @@ const createPurchaseOrder = async () => {
           <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Proyecto</span>
           <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
             className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary min-w-[160px]">
-            <option value="ALL">Todos los proyectos ({items.length})</option>
-            <option value="GENERAL">Sin proyecto ({items.filter(i => !i.projectId).length})</option>
+            <option value="ALL">Todos los proyectos ({validItems.length})</option>
+            <option value="GENERAL">Sin proyecto ({validItems.filter(i => !i.projectId).length})</option>
             {projects.filter(p => p.status === 'EJECUCION').map((p: any) => {
-              const projectItems = items.filter(i => i.projectId === p.id);
+              const projectItems = validItems.filter(i => i.projectId === p.id);
               return (
                 <option key={p.id} value={p.id}>{p.name} ({projectItems.length})</option>
               );
