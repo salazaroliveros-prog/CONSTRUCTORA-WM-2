@@ -103,7 +103,7 @@ export default function GradientHeader({
         className={cn(
           'absolute inset-0 bg-gradient-to-r',
           config.gradient,
-          isAnimated && 'animate-gradient bg-[length:200%_200%]'
+          isAnimated && 'animate-gradient bg-length-200'
         )}
         style={isAnimated ? {
           animation: 'gradient-shift 8s ease infinite',

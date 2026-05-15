@@ -4,82 +4,83 @@
    ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 
 /* ──────────────────────────────────────────────────────
    DESIGN TOKENS — CSS Custom Properties
    All values sourced from src/styles/tokens.ts
    ────────────────────────────────────────────────────── */
 @theme {
+  /* Fonts */
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
 
-  /* Primary accent — Amber/Gold for key actions */
-  --primary: #0f172a;
-  --primary-light: #1e293b;
-  --primary-rgb: 15, 23, 42;
+  /* Colors */
+  --color-primary: #0f172a;
+  --color-primary-light: #1e293b;
+  --color-secondary: #f59e0b;
+  --color-secondary-light: #fbbf24;
+  --color-secondary-dark: #d97706;
+  --color-success: #10b981;
+  --color-success-bg: #ecfdf5;
+  --color-warning: #f59e0b;
+  --color-warning-bg: #fffbeb;
+  --color-error: #ef4444;
+  --color-error-bg: #fef2f2;
+  --color-info: #3b82f6;
+  --color-info-bg: #eff6ff;
+  --color-neutral-50: #fafafa;
+  --color-neutral-100: #f4f4f5;
+  --color-neutral-200: #e4e4e7;
+  --color-neutral-300: #d4d4d8;
+  --color-neutral-400: #a1a1aa;
+  --color-neutral-500: #71717a;
+  --color-neutral-600: #52525b;
+  --color-neutral-700: #3f3f46;
+  --color-neutral-800: #27272a;
+  --color-neutral-900: #18181b;
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-hover: rgba(255, 255, 255, 0.95);
+  --color-surface-solid: #ffffff;
+  --color-surface-alt: rgba(248, 250, 252, 0.9);
+  --color-surface-dark: rgba(15, 23, 42, 0.88);
+  --color-surface-dark-hover: rgba(26, 35, 50, 0.95);
+  --color-border: rgba(226, 232, 240, 0.8);
+  --color-border-light: rgba(226, 232, 240, 0.4);
+  --color-border-strong: rgba(226, 232, 240, 0.95);
+  --color-glass-bg: rgba(255, 255, 255, 0.7);
+  --color-glass-border: rgba(255, 255, 255, 0.8);
+  --color-glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+  --color-glass-hover-shadow: var(--shadow-lg);
+  --color-chart-1: #f59e0b;
+  --color-chart-2: #3b82f6;
+  --color-chart-3: #10b981;
+  --color-chart-4: #f43f5e;
+  --color-chart-5: #8b5cf6;
+  --color-chart-6: #06b6d4;
+  --color-chart-7: #fb923c;
+  --color-chart-8: #a3e635;
+  --color-projects: #8b5cf6;
+  --color-clients: #06b6d4;
+  --color-inventory: #10b981;
+  --color-finance: #f59e0b;
+  --color-staff: #f43f5e;
+  --color-analytics: #3b82f6;
 
-  --secondary: #f59e0b;
-  --secondary-rgb: 245, 158, 11;
-  --secondary-light: #fbbf24;
-  --secondary-dark: #d97706;
-
-  /* Semantic colors */
-  --success: #10b981;
-  --success-bg: #ecfdf5;
-  --warning: #f59e0b;
-  --warning-bg: #fffbeb;
-  --error: #ef4444;
-  --error-bg: #fef2f2;
-  --info: #3b82f6;
-  --info-bg: #eff6ff;
-
-  /* Neutral palette */
-  --neutral-50: #fafafa;
-  --neutral-100: #f4f4f5;
-  --neutral-200: #e4e4e7;
-  --neutral-300: #d4d4d8;
-  --neutral-400: #a1a1aa;
-  --neutral-500: #71717a;
-  --neutral-600: #52525b;
-  --neutral-700: #3f3f46;
-  --neutral-800: #27272a;
-  --neutral-900: #18181b;
-
-  /* Surface colors — Glassmorphism system */
-  --surface: rgba(255, 255, 255, 0.85);
-  --surface-hover: rgba(255, 255, 255, 0.95);
-  --surface-solid: #ffffff;
-  --surface-alt: rgba(248, 250, 252, 0.9);
-  --surface-dark: rgba(15, 23, 42, 0.88);
-  --surface-dark-hover: rgba(26, 35, 50, 0.95);
-
-  /* Borders */
-  --border: rgba(226, 232, 240, 0.8);
-  --border-light: rgba(226, 232, 240, 0.4);
-  --border-strong: rgba(226, 232, 240, 0.95);
-
-/* Glass effect */
-   --glass-bg: rgba(255, 255, 255, 0.7);
-   --glass-blur: blur(24px) saturate(180%);
-   --glass-border: rgba(255, 255, 255, 0.8);
-   --glass-shadow: 0 8px 32px rgba(15, 23, 42, 0.08),
-                   0 1px 3px rgba(15, 23, 42, 0.04),
-                   inset 0 1px 0 rgba(255, 255, 255, 0.6);
-   --glass-hover-shadow: var(--shadow-lg);
-
-/* Shadows */
-   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-   --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07),
-                0 2px 4px -2px rgba(15, 23, 42, 0.05);
-   --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1),
-                0 4px 6px -4px rgba(15, 23, 42, 0.05);
-   --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1),
-                0 8px 10px -6px rgba(15, 23, 42, 0.04);
-   --shadow-2xl: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
-   --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
-   --shadow-card: var(--shadow-md);
-   --shadow-card-hover: var(--shadow-lg);
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.07), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.05);
+  --shadow-xl: 0 20px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-2xl: 0 25px 50px -12px rgba(15, 23, 42, 0.25);
+  --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.15);
+  --shadow-card: var(--shadow-md);
+  --shadow-card-hover: var(--shadow-lg);
+  --shadow-glass: 0 8px 32px rgba(15, 23, 42, 0.08);
+  --shadow-glass-hover: var(--shadow-lg);
 
   /* Radii */
   --radius-sm: 0.25rem;
@@ -90,7 +91,7 @@
   --radius-3xl: 1.5rem;
   --radius-full: 9999px;
 
-  /* Spacing scale */
+  /* Spacing */
   --space-0: 0px;
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -103,32 +104,34 @@
   --space-12: 3rem;
   --space-16: 4rem;
 
-  /* Chart palette */
-  --chart-1: #f59e0b;
-  --chart-2: #3b82f6;
-  --chart-3: #10b981;
-  --chart-4: #f43f5e;
-  --chart-5: #8b5cf6;
-  --chart-6: #06b6d4;
-  --chart-7: #fb923c;
-  --chart-8: #a3e635;
-
-  /* Module colors */
-  --projects-color: #8b5cf6;
-  --clients-color: #06b6d4;
-  --inventory-color: #10b981;
-  --finance-color: #f59e0b;
-  --staff-color: #f43f5e;
-  --analytics-color: #3b82f6;
-
-  /* Fonts */
-  --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
-
-  /* Transition tokens */
+  /* Transitions */
   --ease-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
   --ease-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --ease-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
+  --shadow-cardHover: 0 10px 30px rgba(0, 0, 0, 0.15);
+  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+
+  @keyframes skeletonWave {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% { background-position: 0% 50%; }
+    25% { background-position: 50% 100%; }
+    50% { background-position: 100% 50%; }
+    75% { background-position: 50% 0%; }
+  }
+
+  --animate-gradient: gradient-shift 8s ease infinite;
+  --animate-shimmer: skeletonWave 2s linear infinite;
+}
+
+/* Custom Utilities for background size needed by animated gradients */
+@utility bg-length-200 {
+  background-size: 200% 200%;
 }
 
 /* ──────────────────────────────────────────────────────

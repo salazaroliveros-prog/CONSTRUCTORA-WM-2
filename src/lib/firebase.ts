@@ -3,9 +3,14 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup,
   signInWithRedirect, getRedirectResult,
   signOut, onAuthStateChanged, User, getIdToken,
-  browserLocalPersistence, setPersistence
+  browserLocalPersistence, setPersistence, connectAuthEmulator
 } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import {
+  getFirestore,
+  connectFirestoreEmulator,
+  enableNetwork,
+  disableNetwork
+} from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import firebaseConfig from './firebaseConfig'
 
@@ -77,5 +82,34 @@ export async function setSessionCookie(idToken: string): Promise<boolean> {
   }
 }
 
-export { onAuthStateChanged, getIdToken }
+export { onAuthStateChanged, getIdToken, enableNetwork, disableNetwork }
 export type { User }
+
+// Network control functions for offline handling
+let isNetworkDisabled = false
+
+export async function disableFirestoreNetwork(): Promise<void> {
+  if (isNetworkDisabled) return
+  try {
+    await disableNetwork(db)
+    isNetworkDisabled = true
+    console.log('[Firebase] Firestore network disabled for offline mode')
+  } catch (error) {
+    console.warn('[Firebase] Failed to disable network:', error)
+  }
+}
+
+export async function enableFirestoreNetwork(): Promise<void> {
+  if (!isNetworkDisabled) return
+  try {
+    await enableNetwork(db)
+    isNetworkDisabled = false
+    console.log('[Firebase] Firestore network enabled for online mode')
+  } catch (error) {
+    console.warn('[Firebase] Failed to enable network:', error)
+  }
+}
+
+export function isFirestoreNetworkDisabled(): boolean {
+  return isNetworkDisabled
+}

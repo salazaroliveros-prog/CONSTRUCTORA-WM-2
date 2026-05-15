@@ -1,0 +1,84 @@
+{
+  "$schema": "https://app.kilo.ai/config.json",
+  "mcp": {
+    "figma-dev-mode": {
+      "type": "remote",
+      "url": "http://127.0.0.1:3845/sse"
+    },
+    "firebase": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "firebase-tools@14.15.2",
+        "experimental:mcp"
+      ]
+    },
+    "git": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/inspector",
+        "uvx",
+        "mcp-server-git",
+        "--repository",
+        "https://github.com/salazaroliveros-prog"
+      ]
+    },
+    "git-mcp": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "mcp-remote@0.1.29",
+        "https://gitmcp.io/https://github.com//https://github.com/salazaroliveros-prog/CONSTRUCTORA-WM-2.git"
+      ]
+    },
+    "n8n-mcp": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "n8n-mcp@2.12.2"
+      ],
+      "environment": {
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "error",
+        "DISABLE_CONSOLE_OUTPUT": "true"
+      }
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@0.0.38"
+      ]
+    },
+    "youtube": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@anaisbetts/mcp-installer",
+        "@anaisbetts/mcp-youtube"
+      ]
+    },
+    "clickup": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@taazkareem/clickup-mcp-server@0.8.4",
+        "--hash",
+        "sha512:TuWPCubHFrRNbghj34th+QFdOqwGljs0QP55s+d73JhsFVoKaXFuS4c5bHat8qwV9UyF6hAeX87UP0SmeH/QRg=="
+      ],
+      "environment": {
+        "CLICKUP_API_KEY": "pk_210156957_2F3JI9UWATVLH0Z6V9SD38206ALHDZY9",
+        "CLICKUP_TEAM_ID": "210156957",
+        "DOCUMENT_SUPPORT": "{{DOCUMENT_SUPPORT}}"
+      }
+    }
+  }
+}
