@@ -180,12 +180,25 @@ const previewLine = { ...line, dimensions: Object.keys(dims).length > 0 ? dims :
 const previewQtyRaw = calcDynamicQty(previewLine);
          const hasValidDims = Object.keys(dims).length > 0 && previewQtyRaw.qty > 0;
          const previewQty = hasValidDims ? previewQtyRaw.qty : 0;
-         const matCost = previewQty * (line.materialCost || 0) * (line.materialPerf ?? 1);
-         const labCost = previewQty * (line.laborCost || 0) * (line.laborPerf ?? 1);
-         const eqCost = previewQty * (line.equipmentCost || 0);
-         const wasteF = line.wasteFactor ?? 1;
-         const wasteAmt = (matCost + labCost + eqCost) * (wasteF - 1);
-         const subtotal = matCost + labCost + eqCost + wasteAmt;
+
+         // Per-unit material cost con desperdicio por material, con fallback a legacy
+         const perUnitMat = line.materials.length > 0
+           ? line.materials.reduce((s, m) => {
+               const wf = m.wasteFactor ?? 1.03;
+               return s + m.unitPrice * m.quantity * wf;
+             }, 0)
+           : (line.materialCost || 0) * (line.wasteFactor ?? 1.03);
+         const perUnitLab = line.labor.length > 0
+           ? line.labor.reduce((s, l) => s + l.dailyWage * l.quantity, 0)
+           : (line.laborCost || 0);
+         const perUnitEq = line.equipment.length > 0
+           ? line.equipment.reduce((s, e) => s + e.hourlyRate * e.quantity, 0)
+           : (line.equipmentCost || 0);
+
+         const matCost = previewQty * perUnitMat;
+         const labCost = previewQty * perUnitLab;
+         const eqCost = previewQty * perUnitEq;
+         const subtotal = matCost + labCost + eqCost;
          const taxAmt = subtotal * (line.taxRate ?? ENGINEERING.taxRate);
          const profitAmt = subtotal * (line.profitMargin ?? ENGINEERING.profitMargin);
          const contingAmt = subtotal * (line.contingency ?? ENGINEERING.contingency);

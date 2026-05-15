@@ -158,10 +158,6 @@ export function calcDynamicQty(line: BudgetLineDocument): { qty: number; unit: s
       unit = line.unit || 'm²';
   }
 
-  // Aplicar factor de desperdicio del primer material
-  const wf = line.materials?.[0]?.wasteFactor ?? 1.03;
-  qty = precise(qty * wf);
-
   return { qty, unit };
 }
 
@@ -229,16 +225,34 @@ function calcLine(
   // Cantidad dinámica o fija
   const { qty, unit } = calcDynamicQty(line);
 
-  // Costos base
-  const materialCost = line.materials.reduce(
-    (s, m) => PMath.add(s, PMath.mul(m.unitPrice, m.quantity)), 0
-  );
-  const laborCost = line.labor.reduce(
-    (s, l) => PMath.add(s, PMath.mul(l.dailyWage, l.quantity)), 0
-  );
-  const equipmentCost = line.equipment.reduce(
-    (s, e) => PMath.add(s, PMath.mul(e.hourlyRate, e.quantity)), 0
-  );
+  // Costos base — con fallback a legacy fields si el array está vacío
+  const hasMaterials = line.materials.length > 0;
+  const hasLabor = line.labor.length > 0;
+  const hasEquipment = line.equipment.length > 0;
+
+  // Per-unit material cost with per-material waste baked in
+  const materialCost = hasMaterials
+    ? line.materials.reduce((s, m) => {
+        const wf = m.wasteFactor ?? 1.03;
+        return PMath.add(s, PMath.mul(PMath.mul(m.unitPrice, m.quantity), wf));
+      }, 0)
+    : (line.materialCost ?? 0);
+
+  // Per-unit waste amount (for reporting)
+  const wastePerUnit = hasMaterials
+    ? PMath.sub(
+        materialCost,
+        line.materials.reduce((s, m) => PMath.add(s, PMath.mul(m.unitPrice, m.quantity)), 0)
+      )
+    : 0;
+
+  const laborCost = hasLabor
+    ? line.labor.reduce((s, l) => PMath.add(s, PMath.mul(l.dailyWage, l.quantity)), 0)
+    : (line.laborCost ?? 0);
+
+  const equipmentCost = hasEquipment
+    ? line.equipment.reduce((s, e) => PMath.add(s, PMath.mul(e.hourlyRate, e.quantity)), 0)
+    : (line.equipmentCost ?? 0);
 
   // Aplicar multiplicadores de mercado
   const adjMatCost = PMath.mul(materialCost, mm);
@@ -250,16 +264,14 @@ function calcLine(
   const laborTotal = PMath.mul(adjLabCost, qty);
   const equipmentTotal = PMath.mul(adjEquCost, qty);
 
-  // Desperdicios
-  const wf = line.materials?.[0]?.wasteFactor ?? 1.03;
-  const subtotalRaw = PMath.sum([materialTotal, laborTotal, equipmentTotal]);
-  const wasteTotal = PMath.mul(subtotalRaw, wf - 1);
-  const subtotal = PMath.add(subtotalRaw, wasteTotal);
+  // Desperdicio total (solo materiales, cada uno con su propio wasteFactor)
+  const wasteTotal = hasMaterials ? PMath.mul(wastePerUnit, qty) : 0;
+  const subtotal = PMath.sum([materialTotal, laborTotal, equipmentTotal]);
 
-  // Impuestos y márgenes
-  const taxRate = (line.taxRate ?? ENGINEERING.taxRate) / 100;
-  const profitRate = (line.profitMargin ?? ENGINEERING.profitMargin) / 100;
-  const contingRate = (line.contingency ?? ENGINEERING.contingency) / 100;
+  // Impuestos y márgenes (ENGINEERING values are already decimal: 0.12 = 12%)
+  const taxRate = line.taxRate ?? ENGINEERING.taxRate;
+  const profitRate = line.profitMargin ?? ENGINEERING.profitMargin;
+  const contingRate = line.contingency ?? ENGINEERING.contingency;
 
   const taxAmount = PMath.mul(subtotal, taxRate);
   const profitAmount = PMath.mul(subtotal, profitRate);
@@ -433,9 +445,11 @@ export function calculateSchedule(lines: BudgetLineDocument[]): ScheduleEstimate
     for (const node of nodeLines) {
       if (node.isActive === false) continue;
 
+      // Usar calcDynamicQty para obtener la cantidad real (fixed o dinámica)
+      const { qty } = calcDynamicQty(node);
       const dailyOutput = Math.max(node.dailyOutput ?? 1, 0.01);
       const crew = Math.max(node.crewSize ?? 2, 1);
-      const days = Math.ceil((node.durationDays ?? Math.ceil(node.projectQuantity / dailyOutput)) / crew);
+      const days = Math.ceil((node.durationDays ?? Math.ceil(qty / dailyOutput)) / crew);
 
       totalDays += days;
       if (crew > maxCrewSize) maxCrewSize = crew;
@@ -552,7 +566,7 @@ export function generateMaterialSummary(lines: LineCalcResult[]): MaterialSummar
     const cat = line.category || 'varios';
     const existing = map.get(cat);
     if (existing) {
-      existing.totalQuantity += line.qty;
+      existing.totalQuantity = PMath.add(existing.totalQuantity, line.qty);
     } else {
       map.set(cat, {
         name: cat.charAt(0).toUpperCase() + cat.slice(1),
@@ -583,15 +597,60 @@ export interface BillOfMaterials {
   }[];
 }
 
-export function generateBOM(lines: LineCalcResult[]): BillOfMaterials[] {
-  return lines.map(line => ({
-    lineId: line.id,
-    lineCode: line.code,
-    lineDescription: line.description,
-    materials: [
-      { name: `Material: ${line.description}`, unit: line.unit, totalQuantity: line.qty, unitPrice: line.materialCost, costWithWaste: line.materialTotal },
-    ],
-  }));
+export function generateBOMLine(line: BudgetLineDocument): BillOfMaterials {
+  const { qty } = calcDynamicQty(line);
+  return {
+    lineId: line.id ?? '',
+    lineCode: line.code ?? '',
+    lineDescription: line.description ?? '',
+    materials: line.materials.map(mat => {
+      const wf = mat.wasteFactor ?? 1.03;
+      return {
+        name: mat.name,
+        unit: mat.unit,
+        totalQuantity: precise(mat.quantity * qty),
+        unitPrice: mat.unitPrice,
+        costWithWaste: PMath.mul(PMath.mul(mat.unitPrice, PMath.mul(mat.quantity, wf)), qty),
+      };
+    }),
+  };
+}
+
+export function generateBOM(lines: BudgetLineDocument[]): BillOfMaterials[] {
+  const aggregated = new Map<string, { name: string; unit: string; totalQuantity: number; unitPrice: number; costWithWaste: number }>();
+
+  for (const line of lines) {
+    if (line.isActive === false) continue;
+    const { qty } = calcDynamicQty(line);
+    for (const mat of line.materials) {
+      const wf = mat.wasteFactor ?? 1.03;
+      const costWithWaste = PMath.mul(PMath.mul(mat.unitPrice, mat.quantity), wf);
+      const totalQty = precise(mat.quantity * qty);
+      const totalCost = PMath.mul(costWithWaste, qty);
+
+      const key = `${mat.name}|${mat.unit}`;
+      const existing = aggregated.get(key);
+      if (existing) {
+        existing.totalQuantity = PMath.add(existing.totalQuantity, totalQty);
+        existing.costWithWaste = PMath.add(existing.costWithWaste, totalCost);
+      } else {
+        aggregated.set(key, {
+          name: mat.name,
+          unit: mat.unit,
+          totalQuantity: totalQty,
+          unitPrice: mat.unitPrice,
+          costWithWaste: totalCost,
+        });
+      }
+    }
+  }
+
+  return [{
+    lineId: 'bom',
+    lineCode: 'BOM',
+    lineDescription: 'Bill of Materials — Todos los materiales agregados',
+    materials: Array.from(aggregated.values()).sort((a, b) => a.name.localeCompare(b.name)),
+  }];
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

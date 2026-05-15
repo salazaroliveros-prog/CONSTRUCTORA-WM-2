@@ -243,9 +243,9 @@ const hasDeviation = line.actualCost !== undefined && line.actualCost > 0 && lin
         {/* DESPERDICIO */}
         <td className="text-right">
 {editingAllowed ? (
-             <InlineEdit id={`waste-${line.id}`} label={`Desperdicio ${line.code}`} value={line.wasteFactor ?? 1} display={line.wasteFactor && line.wasteFactor !== 1 ? fmtPct(line.wasteFactor) : '—'} type="percent" onCommit={v => commit('wasteFactor', v / 100)} />
+             <InlineEdit id={`waste-${line.id}`} label={`Desperdicio ${line.code}`} value={line.wasteFactor ?? 1} display={line.wasteFactor && line.wasteFactor !== 1 ? `${((line.wasteFactor - 1) * 100).toFixed(0)}%` : '—'} type="percent" onCommit={v => commit('wasteFactor', v / 100)} />
            ) : (
-              <span className="text-[9px] text-[var(--color-neutral-500)]">{line.wasteFactor && line.wasteFactor !== 1 ? fmtPct(line.wasteFactor) : '—'}</span>
+               <span className="text-[9px] text-[var(--color-neutral-500)]">{line.wasteFactor && line.wasteFactor !== 1 ? `${((line.wasteFactor - 1) * 100).toFixed(0)}%` : '—'}</span>
            )}
         </td>
 
