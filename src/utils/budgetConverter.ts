@@ -6,18 +6,27 @@
 import { BudgetItem } from '../types/budget';
 import { BudgetLine } from '../lib/budgetData';
 import { Typology } from '../models/engineering';
+import { PMath } from '../engine/precision';
 
 /**
  * Convierte un arreglo de BudgetItem a un árbol de BudgetLine.
  * Preserva: dimensions, wasteFactor, typology, durationDays, category, computationType
+ *
+ * CAMBIO CRÍTICO v5: Se mantienen materials[] y labor[] en el nodo padre
+ * para que el motor de cálculo (calcLine) pueda procesarlos correctamente.
+ * Los hijos se usan SÓLO para mostrar desglose en la BudgetTable.
  */
 export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
   return items.map(item => {
     const hasDimensions = !!item.dimensions && Object.keys(item.dimensions).length > 0;
-const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fixed');
-     const computationType: 'fixed' | 'dynamic' = rawType === 'steel' ? 'dynamic' : (rawType as 'fixed' | 'dynamic');
-
+    const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fixed');
+    const computationType: 'fixed' | 'dynamic' = rawType === 'steel' ? 'dynamic' : (rawType as 'fixed' | 'dynamic');
     const typology = (item.typology as Typology) || Typology.RESIDENCIAL;
+
+    // Costos directos del item para usar en el padre
+    const totalMatCost = (item.materials || []).reduce((s, m) => PMath.add(s, PMath.mul(m.price, m.quantity)), 0);
+    const totalLabCost = (item.labor || []).reduce((s, l) => PMath.add(s, PMath.mul(l.price, l.quantity)), 0);
+    const totalEqCost = (item.equipment || []).reduce((s, e) => PMath.add(s, PMath.mul(e.hourlyRate, e.quantity)), 0);
 
     const parentLine: BudgetLine = {
       id: item.id,
@@ -25,9 +34,9 @@ const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fi
       description: item.description,
       unit: item.unit,
       qty: item.projectQuantity,
-      materialCost: 0,
-      laborCost: 0,
-      equipmentCost: 0,
+      materialCost: totalMatCost,
+      laborCost: totalLabCost,
+      equipmentCost: totalEqCost,
       materialPerf: 1,
       laborPerf: 1,
       order: 0,
@@ -40,22 +49,42 @@ const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fi
       category: item.category,
       isActive: true,
       projectQuantity: item.projectQuantity,
-      materials: [],
-      labor: [],
-      equipment: [],
+      // CRÍTICO: Mantener materials[] y labor[] en el padre para que calcLine() funcione
+      materials: (item.materials || []).map(m => ({
+        name: m.name,
+        unit: m.unit,
+        quantity: m.quantity,
+        unitPrice: m.price,
+        wasteFactor: item.wasteFactor || 1.03,
+        totalCost: PMath.mul(m.price, m.quantity),
+      })),
+      labor: (item.labor || []).map(l => ({
+        role: l.role,
+        quantity: l.quantity,
+        dailyWage: l.price,
+        totalCost: PMath.mul(l.price, l.quantity),
+      })),
+      equipment: (item.equipment || []).map(e => ({
+        name: e.name || '',
+        unit: e.unit || '',
+        quantity: e.quantity || 0,
+        hourlyRate: e.hourlyRate || 0,
+        hoursPerUnit: e.hoursPerUnit || 0,
+        totalCost: (e.hourlyRate || 0) * (e.quantity || 0),
+      })),
       dailyOutput: 1,
       crewSize: 2,
       estimatedDays: 0,
     };
 
-    // Materiales como hijos
+    // Hijo: Desglose de materiales (solo para visualización en BudgetTable)
     const materialChildren = (item.materials || []).map((mat, idx) => ({
       id: `${item.id}-mat-${idx}`,
       parentId: item.id,
       code: `${item.code}-M${idx + 1}`,
       description: mat.name,
       unit: mat.unit,
-      qty: mat.quantity * item.projectQuantity,
+      qty: mat.quantity,
       materialCost: mat.price,
       laborCost: 0,
       equipmentCost: 0,
@@ -65,11 +94,11 @@ const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fi
       children: [] as BudgetLine[],
       computationType: 'fixed' as const,
       dimensions: undefined,
-      wasteFactor: 1,
+      wasteFactor: item.wasteFactor || 1.03,
       typology,
       durationDays: item.durationDays || 1,
       category: item.category || 'Materiales',
-      isActive: true,
+      isActive: false,
       projectQuantity: item.projectQuantity,
       materials: [] as any,
       labor: [] as any,
@@ -78,14 +107,14 @@ const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fi
       crewSize: 2,
     }));
 
-    // Mano de obra como hijos
+    // Hijo: Desglose de mano de obra (solo para visualización)
     const laborChildren = (item.labor || []).map((lab, idx) => ({
       id: `${item.id}-lab-${idx}`,
       parentId: item.id,
       code: `${item.code}-L${idx + 1}`,
       description: lab.role,
       unit: lab.unit,
-      qty: lab.quantity * item.projectQuantity,
+      qty: lab.quantity,
       materialCost: 0,
       laborCost: lab.price,
       equipmentCost: 0,
@@ -99,7 +128,7 @@ const rawType: string = item.computationType || (hasDimensions ? 'dynamic' : 'fi
       typology,
       durationDays: item.durationDays || 1,
       category: item.category || 'Mano de Obra',
-      isActive: true,
+      isActive: false,
       projectQuantity: item.projectQuantity,
       materials: [] as any,
       labor: [] as any,
