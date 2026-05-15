@@ -1,18 +1,11 @@
-import { 
-  collection, 
-  query, 
-  where, 
-  onSnapshot, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  Timestamp,
-  serverTimestamp,
-  FirestoreError,
-  getDocs
+import {
+  collection, query, where, onSnapshot,
+  addDoc, updateDoc, deleteDoc, doc, setDoc,
+  Timestamp, serverTimestamp, getDoc,
+  FirestoreError, getDocs
 } from 'firebase/firestore';
 import { db, auth } from '../lib/firebase';
+import { SyncEngine } from '../lib/sync/SyncEngine';
 
 export const parseError = (error: unknown): string => {
   if (error instanceof Error) {
@@ -123,15 +116,53 @@ export const addDocument = async (collectionName: string, data: any) => {
   }
 };
 
+/**
+ * Actualiza un documento y, si el estado cambia a EJECUCION,
+ * genera automáticamente el inventario desde el presupuesto.
+ */
 export const updateDocument = async (collectionName: string, id: string, data: any) => {
   try {
     const docRef = doc(db, collectionName, id);
-    await updateDoc(docRef, {
-      ...sanitize(data),
-      updatedAt: serverTimestamp()
-    });
+    const newData = { ...sanitize(data), updatedAt: serverTimestamp() };
+
+    // Auto-generar stock al entrar en EJECUCION
+    if (collectionName === 'projects' && data.status === 'EJECUCION') {
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const currentData = snap.data();
+        // Solo generar si realmente cambió de estado
+        if (currentData.status !== 'EJECUCION') {
+          await updateDoc(docRef, newData);
+          await generateProjectStock({ id, ...currentData, ...data } as any);
+          return;
+        }
+      }
+    }
+
+    await updateDoc(docRef, newData);
   } catch (error) {
     handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id}`);
+  }
+};
+
+// ─── User Settings (colección especial con UID como ID) ────────────────────────────
+
+/** Cargar configuración del usuario desde Firestore. Retorna null si no existe. */
+export const loadUserSettings = async (uid: string): Promise<Record<string, unknown> | null> => {
+  try {
+    const snap = await getDoc(doc(db, 'userSettings', uid));
+    return snap.exists() ? snap.data() : null;
+  } catch {
+    return null;
+  }
+};
+
+/** Guardar/actualizar configuración del usuario. */
+export const saveUserSettings = async (uid: string, data: Record<string, unknown>): Promise<void> => {
+  try {
+    await setDoc(doc(db, 'userSettings', uid), sanitize(data), { merge: true });
+  } catch (error) {
+    handleFirestoreError(error, OperationType.UPDATE, `userSettings/${uid}`);
   }
 };
 
@@ -159,6 +190,52 @@ export const checkUniqueField = async (
     return snapshot.docs.length > 0;
   } catch {
     return false;
+  }
+};
+
+/**
+ * Escritura con soporte offline-first.
+ * Escribe en Firestore si está online, y encola en SyncEngine para sincronización offline.
+ * La UI puede usar la caché local inmediatamente vía optimisticWrite.
+ */
+export const writeWithOfflineQueue = async (
+  collectionName: string,
+  docId: string,
+  data: any,
+  operation: 'create' | 'update' | 'delete' = 'create'
+): Promise<void> => {
+  if (!auth.currentUser) throw new Error('Not authenticated');
+
+  try {
+    // Intentar escritura directa en Firestore
+    const docRef = doc(db, collectionName, docId);
+
+    if (operation === 'delete') {
+      await deleteDoc(docRef);
+    } else if (operation === 'create') {
+      await addDoc(collection(db, collectionName), {
+        ...sanitize(data),
+        ownerId: auth.currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    } else {
+      await updateDoc(docRef, {
+        ...sanitize(data),
+        updatedAt: serverTimestamp(),
+      });
+    }
+  } catch (error: any) {
+    // Si falla (offline), encolar para sync posterior
+    console.warn(`[firestoreService] Escritura offline detectada, encolando: ${collectionName}/${docId}`);
+  }
+
+  // Siempre encolar en SyncEngine para garantizar consistencia offline
+  try {
+    const engine = SyncEngine.getInstance();
+    await engine.enqueue(collectionName, operation, docId, sanitize(data));
+  } catch (e) {
+    console.error('[firestoreService] Error enqueuing sync operation:', e);
   }
 };
 

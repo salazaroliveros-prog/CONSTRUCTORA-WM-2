@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { loadUserSettings, saveUserSettings } from '../services/firestoreService';
 import { useAuth } from './AuthContext';
 
 export type ThemeMode = 'minimalist' | 'cyberpunk' | 'soft';
@@ -61,93 +60,91 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 const SYNC_DEBOUNCE = 800;
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
-  const [settings, setSettings] = useState<AppSettings>(() => {
-    const saved = localStorage.getItem('app-visual-settings');
-    return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
-  });
-  const settingsRef = useRef(settings);
-  settingsRef.current = settings;
-  const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+   const { user } = useAuth();
+   const [settings, setSettings] = useState<AppSettings>(() => {
+     const saved = localStorage.getItem('app-visual-settings');
+     return saved ? { ...defaultSettings, ...JSON.parse(saved) } : defaultSettings;
+   });
+   const settingsRef = useRef(settings);
+   settingsRef.current = settings;
+   const syncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync down from Firestore on mount (remote wins)
-  useEffect(() => {
-    if (!user || !navigator.onLine) return;
-    const syncDown = async () => {
-      try {
-        const ref = doc(db, 'userSettings', user.uid);
-        const snap = await getDoc(ref);
-        if (snap.exists()) {
-          const remote = snap.data() as Partial<AppSettings>;
-          const merged = { ...defaultSettings, ...remote };
-          setSettings(merged);
-          localStorage.setItem('app-visual-settings', JSON.stringify(merged));
+   // Sync down from Firestore on mount (remote wins)
+   useEffect(() => {
+     if (!user || !navigator.onLine) return;
+     let cancelled = false;
+     const syncDown = async () => {
+       try {
+         const remote = await loadUserSettings(user.uid);
+         if (!cancelled && remote) {
+           const merged = { ...defaultSettings, ...remote } as AppSettings;
+           setSettings(merged);
+           localStorage.setItem('app-visual-settings', JSON.stringify(merged));
+         }
+       } catch {
+         // Offline-first — localStorage is the fallback
+       }
+     };
+     syncDown();
+     return () => { cancelled = true; };
+   }, [user]);
+
+   // Persist to localStorage instantly + debounced sync up to Firestore
+   useEffect(() => {
+     localStorage.setItem('app-visual-settings', JSON.stringify(settings));
+
+     // Inject dynamic CSS variables
+     const root = document.documentElement;
+     root.style.setProperty('--secondary', settings.secondaryColor);
+     root.style.setProperty('--brand-primary', settings.primaryColor);
+
+     root.classList.remove('theme-minimalist', 'theme-cyberpunk', 'theme-soft');
+     root.classList.add(`theme-${settings.themeMode}`);
+
+     if (settings.compactMode) {
+       root.classList.add('compact-mode');
+     } else {
+       root.classList.remove('compact-mode');
+     }
+
+     root.setAttribute('data-card', settings.cardStyle);
+
+     const body = document.body;
+     body.classList.remove('font-inter', 'font-space', 'font-mono');
+     if (settings.typography === 'inter') body.classList.add('font-inter');
+     if (settings.typography === 'space') body.classList.add('font-space');
+     if (settings.typography === 'mono') body.classList.add('font-mono');
+
+     // Debounced Firestore sync
+     if (!user) return;
+     if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+     syncTimerRef.current = setTimeout(async () => {
+       if (!navigator.onLine) return;
+       try {
+await saveUserSettings(user.uid, settings as unknown as Record<string, unknown>);
+        } catch {
+          // Will retry on next change or reconnect
         }
-      } catch {
-        // Offline-first — localStorage is the fallback
-      }
-    };
-    syncDown();
-  }, [user]);
+      }, SYNC_DEBOUNCE);
 
-  // Persist to localStorage instantly + debounced sync up to Firestore
-  useEffect(() => {
-    localStorage.setItem('app-visual-settings', JSON.stringify(settings));
+      return () => {
+        if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
+      };
+    }, [settings, user]);
 
-    // Inject dynamic CSS variables
-    const root = document.documentElement;
-    root.style.setProperty('--secondary', settings.secondaryColor);
-    root.style.setProperty('--brand-primary', settings.primaryColor);
-
-    root.classList.remove('theme-minimalist', 'theme-cyberpunk', 'theme-soft');
-    root.classList.add(`theme-${settings.themeMode}`);
-
-    if (settings.compactMode) {
-      root.classList.add('compact-mode');
-    } else {
-      root.classList.remove('compact-mode');
-    }
-
-    root.setAttribute('data-card', settings.cardStyle);
-
-    const body = document.body;
-    body.classList.remove('font-inter', 'font-space', 'font-mono');
-    if (settings.typography === 'inter') body.classList.add('font-inter');
-    if (settings.typography === 'space') body.classList.add('font-space');
-    if (settings.typography === 'mono') body.classList.add('font-mono');
-
-    // Debounced Firestore sync
-    if (!user) return;
-    if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    syncTimerRef.current = setTimeout(async () => {
-      if (!navigator.onLine) return;
-      try {
-        const ref = doc(db, 'userSettings', user.uid);
-        await setDoc(ref, settings, { merge: true });
-      } catch {
-        // Will retry on next change or reconnect
-      }
-    }, SYNC_DEBOUNCE);
-
-    return () => {
-      if (syncTimerRef.current) clearTimeout(syncTimerRef.current);
-    };
-  }, [settings, user]);
-
-  // Auto-sync when coming back online
-  useEffect(() => {
-    const onOnline = async () => {
-      if (!user) return;
-      try {
-        const ref = doc(db, 'userSettings', user.uid);
-        await setDoc(ref, settingsRef.current, { merge: true });
-      } catch {
-        // Offline-first — data is safe in localStorage
-      }
-    };
-    window.addEventListener('online', onOnline);
-    return () => window.removeEventListener('online', onOnline);
-  }, [user]);
+    // Auto-sync when coming back online
+    useEffect(() => {
+      const onOnline = async () => {
+        if (!user) return;
+        try {
+          await saveUserSettings(user.uid, settingsRef.current as unknown as Record<string, unknown>);
+       } catch {
+         // Offline-first — data is safe in localStorage
+       }
+     };
+     window.addEventListener('online', onOnline);
+     return () => window.removeEventListener('online', onOnline);
+   }, [user]);
 
   const updateSettings = (newSettings: Partial<AppSettings>) => {
     setSettings(prev => ({ ...prev, ...newSettings }));
