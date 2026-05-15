@@ -21,10 +21,22 @@ export const storage = getStorage(app);
 
 // ─── Network control for offline handling ─────────────────────────────────────
 let networkDisabled = false;
+let stopRealtimeSyncCallback: (() => void) | null = null;
+
+export const setRealtimeSyncStopCallback = (cb: (() => void) | null) => {
+  stopRealtimeSyncCallback = cb;
+};
 
 export const disableFirestoreNetwork = async (): Promise<void> => {
   if (!networkDisabled) {
     try {
+      // Stop realtime sync first to prevent connection attempts
+      if (stopRealtimeSyncCallback) {
+        try {
+          stopRealtimeSyncCallback();
+        } catch { /* ignore */ }
+        stopRealtimeSyncCallback = null;
+      }
       await disableNetwork(db);
       networkDisabled = true;
       console.log('[Firebase] Network disabled');
