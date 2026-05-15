@@ -1,39 +1,42 @@
 /**
- * Motor principal de sincronización offline-first.
+ * Motor principal de sincronizacion offline-first.
  * src/lib/sync/SyncEngine.ts
+ *
+ * Sincroniza operaciones pendientes con Firestore cuando hay conectividad.
+ * Usa el guard isFirestoreNetworkDisabled() para evitar llamadas cuando esta offline.
  */
 
 import {
-   writeBatch, doc, getDoc, collection, query, orderBy,
-   Timestamp, deleteDoc, setDoc
-} from 'firebase/firestore';
-import { db as firestoreDb, auth, isFirestoreTerminated, reinitializeFirestore } from '../../lib/firebase';
-import { getDb } from './store';
+  writeBatch, doc, getDoc, collection, query, orderBy,
+  Timestamp, deleteDoc, setDoc
+} from 'firebase/firestore'
+import { db as firestoreDb, auth, isFirestoreNetworkDisabled } from '../../lib/firebase'
+import { getDb } from './store'
 import {
   SyncOperation, SyncStatus, VectorClockEntry, SyncState
-} from './types';
+} from './types'
 
-// ─── Configuración ───────────────────────────────────────────────────────────
-const SYNC_BATCH_SIZE = 50;
-const MAX_RETRIES = 5;
-const BACKOFF_BASE_MS = 1000;
-const HEARTBEAT_MS = 30_000;
+// Configuracion
+const SYNC_BATCH_SIZE = 50
+const MAX_RETRIES = 5
+const BACKOFF_BASE_MS = 1000
+const HEARTBEAT_MS = 30_000
 
-/** Identificador único de este dispositivo/navegador */
+// Identificador unico de este dispositivo/navegador
 function getClientId(): string {
-  let cid = localStorage.getItem('_sync_client_id');
+  let cid = localStorage.getItem('_sync_client_id')
   if (!cid) {
-    cid = crypto.randomUUID?.() || Math.random().toString(36).slice(2);
-    localStorage.setItem('_sync_client_id', cid);
+    cid = crypto.randomUUID?.() || Math.random().toString(36).slice(2)
+    localStorage.setItem('_sync_client_id', cid)
   }
-  return cid;
+  return cid
 }
 
 // ─── Vector Clock ────────────────────────────────────────────────────────────
 
 function tickClock(clock: VectorClockEntry): VectorClockEntry {
-  const cid = getClientId();
-  return { ...clock, [cid]: (clock[cid] || 0) + 1 };
+  const cid = getClientId()
+  return { ...clock, [cid]: (clock[cid] || 0) + 1 }
 }
 
 /**
@@ -42,157 +45,142 @@ function tickClock(clock: VectorClockEntry): VectorClockEntry {
  *          'concurrent' si son concurrentes (conflicto).
  */
 function compareClocks(a: VectorClockEntry, b: VectorClockEntry): 'before' | 'after' | 'concurrent' {
-  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-  let aGreater = false;
-  let bGreater = false;
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)])
+  let aGreater = false
+  let bGreater = false
   for (const k of keys) {
-    const av = a[k] || 0;
-    const bv = b[k] || 0;
-    if (av > bv) aGreater = true;
-    if (bv > av) bGreater = true;
+    const av = a[k] || 0
+    const bv = b[k] || 0
+    if (av > bv) aGreater = true
+    if (bv > av) bGreater = true
   }
-  if (aGreater && !bGreater) return 'after';
-  if (bGreater && !aGreater) return 'before';
-  return 'concurrent';
+  if (aGreater && !bGreater) return 'after'
+  if (bGreater && !aGreater) return 'before'
+  return 'concurrent'
 }
 
-// ─── Detección de conectividad ───────────────────────────────────────────────
+// ─── Deteccion de conectividad ───────────────────────────────────────────────
 
 function checkOnline(): boolean {
-  if (typeof navigator === 'undefined') return true;
-  if (!navigator.onLine) return false;
+  if (typeof navigator === 'undefined') return true
+  if (!navigator.onLine) return false
   try {
-    const conn = (navigator as any).connection;
-    if (conn && conn.type === 'none') return false;
+    const conn = (navigator as any).connection
+    if (conn && conn.type === 'none') return false
   } catch { /* ignorar */ }
-  return true;
+  return true
 }
 
 // ─── Sync Engine ────────────────────────────────────────────────────────────
 
-let _instance: SyncEngine | null = null;
+let _instance: SyncEngine | null = null
 
 export class SyncEngine {
-  private online = false;
-  private syncing = false;
-  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-  private listeners: ((state: SyncState) => void)[] = [];
-  private _destroyed = false;
+  private online = false
+  private syncing = false
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null
+  private listeners: ((state: SyncState) => void)[] = []
+  private _destroyed = false
 
   static getInstance(): SyncEngine {
-    if (!_instance) _instance = new SyncEngine();
-    return _instance;
+    if (!_instance) _instance = new SyncEngine()
+    return _instance
   }
 
   static resetInstance(): void {
-    _instance?.destroy();
-    _instance = null;
+    _instance?.destroy()
+    _instance = null
   }
 
-async init(): Promise<void> {
-      // NOTA: No se usa enableIndexedDbPersistence de Firestore porque
-      // la app ya usa Dexie.js para persistencia offline local.
-      // Habilitar ambos causa conflictos de schema en IndexedDB y
-      // duplicación innecesaria de datos.
-      // Dexie + RealtimeSync ya proveen offline-first con caché local.
-      try {
-        // Solo activar persistencia si NO estamos usando Dexie para la misma colección
-        // Esto es seguro porque Firestore persistence y Dexie usan bases de datos separadas,
-        // pero causa comportamiento inesperado al duplicar el almacenamiento offline.
-        // Desactivado para estabilidad: await enableIndexedDbPersistence(firestoreDb);
-      } catch (e: any) {
-        if (e.code === 'failed-precondition') {
-          console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña');
-        } else {
-          console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message);
-        }
+  async init(): Promise<void> {
+    try {
+      // Desactivado para estabilidad: await enableIndexedDbPersistence(firestoreDb)
+    } catch (e: any) {
+      if (e.code === 'failed-precondition') {
+        console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña')
+      } else {
+        console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message)
       }
-
-      // Si Firestore fue terminado (por offline), re-inicializar
-      if (isFirestoreTerminated()) {
-        try {
-          await reinitializeFirestore();
-        } catch (e) {
-          console.warn('[SyncEngine] Error re-inicializando Firestore:', e);
-        }
-      }
-
-      this.online = checkOnline();
-
-      window.addEventListener('online', this._onConnect);
-      window.addEventListener('offline', this._onDisconnect);
-
-      this._startHeartbeat();
-
-      if (this.online) {
-        setTimeout(() => this.sync().catch(console.error), 1000);
-      }
-
-      console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() });
     }
 
-private _onConnect = (): void => {
-     // Re-initialize Firestore if it was terminated before syncing
-     if (isFirestoreTerminated()) {
-       console.log('[SyncEngine] Firestore was terminated, reinitializing before sync');
-       reinitializeFirestore().catch(console.error);
-     }
-     this.online = true;
-     console.log('[SyncEngine] Reconectado → iniciando push');
-     this.sync().catch((e) => console.error('[SyncEngine] Sync falló:', e));
-     this._notify();
-   };
+    this.online = checkOnline() && !isFirestoreNetworkDisabled()
+
+    window.addEventListener('online', this._onConnect)
+    window.addEventListener('offline', this._onDisconnect)
+
+    this._startHeartbeat()
+
+    if (this.online) {
+      setTimeout(() => this.sync().catch(console.error), 1000)
+    }
+
+    console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() })
+  }
+
+  private _onConnect = (): void => {
+    if (isFirestoreNetworkDisabled()) {
+      console.log('[SyncEngine] Network disabled, skipping connect')
+      return
+    }
+    this.online = true
+    console.log('[SyncEngine] Reconectado')
+    this.sync().catch((e) => console.error('[SyncEngine] Sync error:', e))
+    this._notify()
+  }
 
   private _onDisconnect = (): void => {
-    this.online = false;
-    console.log('[SyncEngine] Desconectado → modo offline');
-    this._notify();
-  };
+    this.online = false
+    console.log('[SyncEngine] Desconectado -> modo offline')
+    this._notify()
+  }
 
   private _startHeartbeat(): void {
     this.heartbeatTimer = setInterval(async () => {
-      if (this._destroyed) return;
-      const wasOnline = this.online;
-      this.online = checkOnline();
-      if (this.online && !wasOnline) {
-        this._onConnect();
-      } else if (!this.online && wasOnline) {
-        this._onDisconnect();
+      if (this._destroyed) return
+      const wasOnline = this.online
+      const nowOnline = checkOnline() && !isFirestoreNetworkDisabled()
+      this.online = nowOnline
+
+      if (nowOnline && !wasOnline) {
+        this._onConnect()
+      } else if (!nowOnline && wasOnline) {
+        this._onDisconnect()
       }
-      this._notify();
-    }, HEARTBEAT_MS);
+      this._notify()
+    }, HEARTBEAT_MS)
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
   //  SYNC PRINCIPAL
   // ═══════════════════════════════════════════════════════════════════════════
 
-async sync(): Promise<void> {
-     if (this.syncing || !this.online || isFirestoreTerminated()) return;
-    this.syncing = true;
-    this._notify();
+  async sync(): Promise<void> {
+    if (this.syncing || !this.online || isFirestoreNetworkDisabled()) return
 
-    const localDb = getDb();
+    this.syncing = true
+    this._notify()
+
+    const localDb = getDb()
 
     try {
       const pendingOps = await localDb.syncQueue
         .where('status')
         .equals(SyncStatus.PENDING)
-        .sortBy('createdAt');
+        .sortBy('createdAt')
 
-      console.log(`[SyncEngine] ${pendingOps.length} ops pendientes`);
+      console.log(`[SyncEngine] ${pendingOps.length} ops pendientes`)
 
       for (let i = 0; i < pendingOps.length; i += SYNC_BATCH_SIZE) {
-        const batch = pendingOps.slice(i, i + SYNC_BATCH_SIZE);
-        await this._pushBatch(localDb, batch);
+        const batch = pendingOps.slice(i, i + SYNC_BATCH_SIZE)
+        await this._pushBatch(localDb, batch)
       }
 
-      await this._pull(localDb);
+      await this._pull(localDb)
     } catch (error: any) {
-      console.error('[SyncEngine] Error de sincronización:', error);
+      console.error('[SyncEngine] Error de sincronizacion:', error.message || error)
     } finally {
-      this.syncing = false;
-      this._notify();
+      this.syncing = false
+      this._notify()
     }
   }
 
@@ -204,86 +192,92 @@ async sync(): Promise<void> {
     localDb: ReturnType<typeof getDb>,
     ops: SyncOperation[]
   ): Promise<void> {
-    const uid = auth.currentUser?.uid;
-    if (!uid) throw new Error('[SyncEngine] No autenticado');
+    const uid = auth.currentUser?.uid
+    if (!uid) throw new Error('[SyncEngine] No autenticado')
 
-    const tasks: (() => Promise<void>)[] = [];
+    // Guard: no intentar si red esta deshabilitada
+    if (isFirestoreNetworkDisabled()) {
+      console.warn('[SyncEngine] Network disabled, skipping batch push')
+      return
+    }
+
+    const tasks: (() => Promise<void>)[] = []
 
     for (const op of ops) {
-      await localDb.syncQueue.update(op.id, { status: SyncStatus.IN_FLIGHT });
+      await localDb.syncQueue.update(op.id, { status: SyncStatus.IN_FLIGHT })
 
-      const ref = doc(firestoreDb, op.entity, op.entityId);
+      const ref = doc(firestoreDb, op.entity, op.entityId)
 
       tasks.push(async () => {
         try {
-          const snap = await getDoc(ref);
+          const snap = await getDoc(ref)
 
           if (snap.exists()) {
-            const remoteClock = snap.data()._vectorClock || {};
+            const remoteClock = snap.data()._vectorClock || {}
 
             if (op.operation !== 'delete') {
-              const relation = compareClocks(op.vectorClock, remoteClock);
+              const relation = compareClocks(op.vectorClock, remoteClock)
 
               if (relation === 'concurrent') {
-                await this._resolveConflict(localDb, op, snap);
-                return;
+                await this._resolveConflict(localDb, op, snap)
+                return
               }
               if (relation === 'before') {
                 await localDb.syncQueue.update(op.id, {
                   status: SyncStatus.STALE,
-                  completedAt: Date.now(),
-                });
+                  completedAt: Date.now()
+                })
                 await localDb.localCache.put({
                   ...snap.data(),
                   id: snap.id,
-                  entity: op.entity,
-                });
-                return;
+                  entity: op.entity
+                })
+                return
               }
             }
           }
 
-          const newClock = tickClock(op.vectorClock);
+          const newClock = tickClock(op.vectorClock)
 
           if (op.operation === 'delete') {
-            await deleteDoc(ref);
+            await deleteDoc(ref)
           } else {
             await setDoc(ref, {
               ...op.payload,
               _vectorClock: newClock,
               _updatedAt: Timestamp.fromMillis(op.clientTimestamp),
-              _updatedBy: uid,
-            }, { merge: true });
+              _updatedBy: uid
+            }, { merge: true })
           }
 
           await localDb.syncQueue.update(op.id, {
             status: SyncStatus.CONFIRMED,
-            serverTimestamp: Timestamp.now().toMillis(),
-          });
+            serverTimestamp: Timestamp.now().toMillis()
+          })
         } catch (error: any) {
-          console.error(`[SyncEngine] Error push ${op.id}:`, error.message);
-          op.retryCount++;
+          console.error(`[SyncEngine] Error push ${op.id}:`, error.message || error)
+          op.retryCount++
           if (op.retryCount >= op.maxRetries) {
-            await localDb.syncQueue.update(op.id, { status: SyncStatus.FAILED });
+            await localDb.syncQueue.update(op.id, { status: SyncStatus.FAILED })
           } else {
-            const delay = BACKOFF_BASE_MS * Math.pow(2, op.retryCount);
-            setTimeout(() => this.retry(op.id), delay);
+            const delay = BACKOFF_BASE_MS * Math.pow(2, op.retryCount)
+            setTimeout(() => this.retry(op.id), delay)
           }
         }
-      });
+      })
     }
 
-    await Promise.allSettled(tasks.map((fn) => fn()));
-    await this.cleanup(localDb);
+    await Promise.allSettled(tasks.map((fn) => fn()))
+    await this.cleanup(localDb)
   }
 
   async retry(opId: string): Promise<void> {
-    if (!this.online) return;
-    const localDb = getDb();
-    const op = await localDb.syncQueue.get(opId);
-    if (!op || op.status === SyncStatus.CONFIRMED || op.status === SyncStatus.STALE) return;
-    await localDb.syncQueue.update(opId, { status: SyncStatus.PENDING });
-    setTimeout(() => this.sync().catch(console.error), 300);
+    if (!this.online || isFirestoreNetworkDisabled()) return
+    const localDb = getDb()
+    const op = await localDb.syncQueue.get(opId)
+    if (!op || op.status === SyncStatus.CONFIRMED || op.status === SyncStatus.STALE) return
+    await localDb.syncQueue.update(opId, { status: SyncStatus.PENDING })
+    setTimeout(() => this.sync().catch(console.error), 300)
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -295,61 +289,61 @@ async sync(): Promise<void> {
     op: SyncOperation,
     serverSnap: any
   ): Promise<void> {
-    const serverData = serverSnap.data();
-    const localData = op.payload;
+    const serverData = serverSnap.data()
+    const localData = op.payload
 
-    const META = new Set(['_vectorClock', '_updatedAt', '_updatedBy', 'id']);
-    const merged: Record<string, unknown> = {};
-    const unresolved: string[] = [];
+    const META = new Set(['_vectorClock', '_updatedAt', '_updatedBy', 'id'])
+    const merged: Record<string, unknown> = {}
+    const unresolved: string[] = []
 
     const allKeys = new Set([
       ...Object.keys(localData),
-      ...Object.keys(serverData),
-    ]);
+      ...Object.keys(serverData)
+    ])
 
     for (const key of allKeys) {
-      if (META.has(key)) continue;
+      if (META.has(key)) continue
 
-      const lv = localData[key];
-      const sv = serverData[key];
+      const lv = localData[key]
+      const sv = serverData[key]
 
       if (lv === undefined) {
-        merged[key] = sv;
+        merged[key] = sv
       } else if (sv === undefined) {
-        merged[key] = lv;
+        merged[key] = lv
       } else if (lv === sv) {
-        merged[key] = lv;
+        merged[key] = lv
       } else {
         if (typeof lv === 'number' && typeof sv === 'number') {
-          merged[key] = lv > sv ? lv : sv;
+          merged[key] = lv > sv ? lv : sv
         } else if (typeof lv === 'string' && typeof sv === 'string') {
-          merged[key] = lv;
+          merged[key] = lv
         } else if (Array.isArray(lv) && Array.isArray(sv)) {
-          merged[key] = this._mergeArrays(lv, sv);
+          merged[key] = this._mergeArrays(lv, sv)
         } else if (
           typeof lv === 'object' && typeof sv === 'object' &&
           lv !== null && sv !== null
         ) {
-          merged[key] = { ...sv, ...lv };
+          merged[key] = { ...sv, ...lv }
         } else {
-          merged[key] = sv;
-          unresolved.push(key);
+          merged[key] = sv
+          unresolved.push(key)
         }
       }
     }
 
-    const newClock = tickClock(op.vectorClock);
-    const ref = doc(firestoreDb, op.entity, op.entityId);
+    const newClock = tickClock(op.vectorClock)
+    const ref = doc(firestoreDb, op.entity, op.entityId)
 
     await setDoc(
       ref,
       {
         ...merged,
         _vectorClock: newClock,
-        _resolvedBy: 'auto-merge',
+        _resolvedBy: 'auto-merge'
       },
       { merge: true }
-    );
+    )
 
     if (unresolved.length > 0) {
       await localDb.conflicts.add({
@@ -358,32 +352,32 @@ async sync(): Promise<void> {
           server: serverData,
           local: localData,
           merged,
-          unresolvedFields: unresolved,
-        },
-      });
+          unresolvedFields: unresolved
+        }
+      })
     }
 
     await localDb.syncQueue.update(op.id, {
       status: SyncStatus.CONFIRMED,
-      serverTimestamp: Timestamp.now().toMillis(),
-    });
+      serverTimestamp: Timestamp.now().toMillis()
+    })
   }
 
   private _mergeArrays(localArr: any[], remoteArr: any[]): any[] {
-    const key = 'id';
-    const remoteMap = new Map(remoteArr.map((item: any) => [item[key], item]));
-    const result = remoteArr.map((item: any) => ({ ...item }));
+    const key = 'id'
+    const remoteMap = new Map(remoteArr.map((item: any) => [item[key], item]))
+    const result = remoteArr.map((item: any) => ({ ...item }))
 
     for (const item of localArr) {
-      const existingIdx = result.findIndex((r: any) => r[key] === item[key]);
+      const existingIdx = result.findIndex((r: any) => r[key] === item[key])
       if (existingIdx >= 0) {
-        result[existingIdx] = { ...result[existingIdx], ...item };
+        result[existingIdx] = { ...result[existingIdx], ...item }
       } else {
-        result.push(item);
+        result.push(item)
       }
     }
 
-    return result;
+    return result
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -391,31 +385,33 @@ async sync(): Promise<void> {
   // ═══════════════════════════════════════════════════════════════════════════
 
   private async _pull(localDb: ReturnType<typeof getDb>): Promise<void> {
-    const localDocs = await localDb.localCache.toArray();
+    if (isFirestoreNetworkDisabled()) return
+
+    const localDocs = await localDb.localCache.toArray()
 
     for (const localDoc of localDocs) {
-      const entity = (localDoc as any).entity as string;
-      const id = (localDoc as any).id as string;
-      if (!entity || !id) continue;
+      const entity = (localDoc as any).entity as string
+      const id = (localDoc as any).id as string
+      if (!entity || !id) continue
 
       try {
-        const ref = doc(firestoreDb, entity, id);
-        const snap = await getDoc(ref);
+        const ref = doc(firestoreDb, entity, id)
+        const snap = await getDoc(ref)
 
-        if (!snap.exists()) continue;
+        if (!snap.exists()) continue
 
-        const remoteData = snap.data();
-        const remoteClock = remoteData._vectorClock || {};
-        const localClock = (localDoc as any)._vectorClock || {};
+        const remoteData = snap.data()
+        const remoteClock = remoteData._vectorClock || {}
+        const localClock = (localDoc as any)._vectorClock || {}
 
-        const relation = compareClocks(remoteClock, localClock);
+        const relation = compareClocks(remoteClock, localClock)
 
         if (relation === 'after') {
           await localDb.localCache.put({
             ...remoteData,
             id: snap.id,
-            entity,
-          });
+            entity
+          })
         }
       } catch {
         /* ignorar errores individuales */
@@ -423,13 +419,13 @@ async sync(): Promise<void> {
     }
 
     // Limpiar conflictos resueltos
-    const conflicts = await localDb.conflicts.toArray();
+    const conflicts = await localDb.conflicts.toArray()
     for (const c of conflicts) {
       try {
-        const ref = doc(firestoreDb, c.entity, c.entityId);
-        const snap = await getDoc(ref);
+        const ref = doc(firestoreDb, c.entity, c.entityId)
+        const snap = await getDoc(ref)
         if (snap.exists() && !(snap.data()._conflictFields && snap.data()._conflictFields.length > 0)) {
-          await localDb.conflicts.delete(c.id);
+          await localDb.conflicts.delete(c.id)
         }
       } catch {
         /* ignorar */
@@ -441,77 +437,57 @@ async sync(): Promise<void> {
   //  COLA DE OPERACIONES
   // ═══════════════════════════════════════════════════════════════════════════
 
-async enqueue(
-     entity: string,
-     operation: 'create' | 'update' | 'delete',
-     entityId: string,
-     payload: Record<string, unknown>
-   ): Promise<void> {
-     // Don't enqueue if Firestore is terminated
-     if (isFirestoreTerminated()) {
-       console.warn('[SyncEngine] Cannot enqueue - Firestore is terminated, saving to local cache only');
-       // Still save to local cache for offline access
-       const localDb = getDb();
-       if (operation === 'delete') {
-         const allKeys = await localDb.localCache
-           .where(['entity', 'id'])
-           .equals([entity, entityId])
-           .primaryKeys();
-         for (const k of allKeys) {
-           await localDb.localCache.delete(k);
-         }
-       } else {
-         await localDb.localCache.put({
-           ...payload,
-           id: entityId,
-           entity,
-           updatedAt: Date.now(),
-         });
-       }
-       return;
-     }
+  async enqueue(
+    entity: string,
+    operation: 'create' | 'update' | 'delete',
+    entityId: string,
+    payload: Record<string, unknown>
+  ): Promise<void> {
+    if (isFirestoreNetworkDisabled()) {
+      console.warn('[SyncEngine] Network disabled, only saving to local cache')
+    }
 
-     const localDb = getDb();
+    const localDb = getDb()
     const op: SyncOperation = {
-      id:              crypto.randomUUID?.() || Math.random().toString(36).slice(2),
+      id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
       entity,
       entityId,
       operation,
       payload,
-      vectorClock:     { [getClientId()]: 1 },
+      vectorClock: { [getClientId()]: 1 },
       clientTimestamp: Date.now(),
       serverTimestamp: null,
-      status:          SyncStatus.PENDING,
-      retryCount:      0,
-      maxRetries:      MAX_RETRIES,
-      createdAt:       Date.now(),
-      completedAt:     null,
-      conflictData:    null,
-    };
+      status: SyncStatus.PENDING,
+      retryCount: 0,
+      maxRetries: MAX_RETRIES,
+      createdAt: Date.now(),
+      completedAt: null,
+      conflictData: null
+    }
 
-    await localDb.syncQueue.add(op);
+    await localDb.syncQueue.add(op)
 
-    // Actualizar caché local para lectura inmediata
+    // Actualizar cache local para lectura inmediata
     if (operation === 'delete') {
       const allKeys = await localDb.localCache
         .where(['entity', 'id'])
         .equals([entity, entityId])
-        .primaryKeys();
+        .primaryKeys()
       for (const k of allKeys) {
-        await localDb.localCache.delete(k);
+        await localDb.localCache.delete(k)
       }
     } else {
       await localDb.localCache.put({
         ...payload,
         id: entityId,
         entity,
-        updatedAt: Date.now(),
-      });
+        updatedAt: Date.now()
+      })
     }
 
     // Trigger sync si estamos online
-    if (this.online && !this.syncing) {
-      setTimeout(() => this.sync().catch(console.error), 500);
+    if (this.online && !this.syncing && !isFirestoreNetworkDisabled()) {
+      setTimeout(() => this.sync().catch(console.error), 500)
     }
   }
 
@@ -522,35 +498,35 @@ async enqueue(
   async cleanup(
     localDb?: ReturnType<typeof getDb>
   ): Promise<{ confirmed: number; failed: number; stale: number }> {
-    const d = localDb || getDb();
-    const cutoff = Date.now() - 24 * 60 * 60 * 1000;
+    const d = localDb || getDb()
+    const cutoff = Date.now() - 24 * 60 * 60 * 1000
 
     const confirmedOps = await d.syncQueue
       .where('status')
       .equals(SyncStatus.CONFIRMED)
       .filter((op: SyncOperation) => op.completedAt != null && op.completedAt < cutoff)
-      .toArray();
+      .toArray()
     for (const op of confirmedOps) {
-      await d.syncQueue.delete(op.id);
+      await d.syncQueue.delete(op.id)
     }
 
     const failedOps = await d.syncQueue
       .where('status')
       .equals(SyncStatus.FAILED)
-      .toArray();
+      .toArray()
     for (const op of failedOps) {
-      await d.syncQueue.delete(op.id);
+      await d.syncQueue.delete(op.id)
     }
 
-    const staleOps = await d.syncQueue.where('status').equals(SyncStatus.STALE).toArray();
+    const staleOps = await d.syncQueue.where('status').equals(SyncStatus.STALE).toArray()
     for (const op of staleOps) {
-      await d.syncQueue.delete(op.id);
+      await d.syncQueue.delete(op.id)
     }
 
     console.log(
       `[SyncEngine] Cleanup: ${confirmedOps.length} confirmed, ${failedOps.length} failed, ${staleOps.length} stale`
-    );
-    return { confirmed: confirmedOps.length, failed: failedOps.length, stale: staleOps.length };
+    )
+    return { confirmed: confirmedOps.length, failed: failedOps.length, stale: staleOps.length }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -558,39 +534,39 @@ async enqueue(
   // ═══════════════════════════════════════════════════════════════════════════
 
   async getState(): Promise<SyncState> {
-    const localDb = getDb();
+    const localDb = getDb()
     const [pending, failed, conflicts] = await Promise.all([
       localDb.syncQueue.where('status').equals(SyncStatus.PENDING).count(),
       localDb.syncQueue.where('status').equals(SyncStatus.FAILED).count(),
-      localDb.conflicts.count(),
-    ]);
+      localDb.conflicts.count()
+    ])
     return {
-      isOnline:       this.online,
-      isSyncing:      this.syncing,
-      pendingCount:   pending,
-      failedCount:    failed,
-      conflictCount:  conflicts,
-      lastSyncAt:     this.listeners.length ? Date.now() : null,
-    };
+      isOnline: this.online,
+      isSyncing: this.syncing,
+      pendingCount: pending,
+      failedCount: failed,
+      conflictCount: conflicts,
+      lastSyncAt: this.listeners.length ? Date.now() : null
+    }
   }
 
   onStateChange(cb: (state: SyncState) => void): () => void {
-    this.listeners.push(cb);
+    this.listeners.push(cb)
     return () => {
-      this.listeners = this.listeners.filter((l) => l !== cb);
-    };
+      this.listeners = this.listeners.filter((l) => l !== cb)
+    }
   }
 
   private _notify(): void {
-    this.getState().then((s) => this.listeners.forEach((l) => l(s)));
+    this.getState().then((s) => this.listeners.forEach((l) => l(s)))
   }
 
-  /** Limpieza completa — cerrar sesión */
+  /** Limpieza completa — cerrar sesion */
   async destroy(): Promise<void> {
-    this._destroyed = true;
-    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
-    window.removeEventListener('online', this._onConnect);
-    window.removeEventListener('offline', this._onDisconnect);
-    _instance = null;
+    this._destroyed = true
+    if (this.heartbeatTimer) clearInterval(this.heartbeatTimer)
+    window.removeEventListener('online', this._onConnect)
+    window.removeEventListener('offline', this._onDisconnect)
+    _instance = null
   }
 }

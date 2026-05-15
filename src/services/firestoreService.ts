@@ -4,7 +4,7 @@ import {
   Timestamp, serverTimestamp, getDoc,
   FirestoreError, getDocs
 } from 'firebase/firestore';
-import { db, auth, isFirestoreTerminated } from '../lib/firebase';
+import { db, auth, isFirestoreNetworkDisabled } from '../lib/firebase';
 import { SyncEngine } from '../lib/sync/SyncEngine';
 
 export const parseError = (error: unknown): string => {
@@ -76,11 +76,11 @@ export const subscribeToCollection = (
  ) => {
    if (!auth.currentUser) return () => {};
 
-   // Don't subscribe if Firestore is terminated
-   if (isFirestoreTerminated()) {
-     console.warn('[firestoreService] Firestore terminated - cannot subscribe to', collectionName);
-     return () => {};
-   }
+// Don't subscribe if Firestore network is disabled
+    if (isFirestoreNetworkDisabled()) {
+      console.warn('[firestoreService] Network disabled - cannot subscribe to', collectionName);
+      return () => {};
+    }
 
    const q = query(
      collection(db, collectionName),
