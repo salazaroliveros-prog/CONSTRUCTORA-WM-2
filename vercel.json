@@ -4,7 +4,7 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "framework": "vite",
-  "regions": ["gru"],
+  "regions": ["gru1"],
   "headers": [
     {
       "source": "/(.*)",
