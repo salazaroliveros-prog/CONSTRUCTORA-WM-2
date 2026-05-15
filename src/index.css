@@ -656,6 +656,7 @@
       background: linear-gradient(90deg, transparent, var(--border), transparent);
     }
   }
+}
 
 /* ── Skeleton ── */
 .skeleton {

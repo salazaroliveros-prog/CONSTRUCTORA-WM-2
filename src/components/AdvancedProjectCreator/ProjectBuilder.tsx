@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Typology } from '../../constants';
-import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON, generateBOM } from '../../lib/reports';
+import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON, generateBOM } from '../../lib/reportEngine';
 import { addDocument } from '../../services/firestoreService';
 import { fmtQ } from '../../utils/format';
 import { useProjectBuilder } from '../../hooks/useProjectBuilder';
@@ -138,16 +138,16 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       };
       switch (type) {
         case 'completo':
-          generateBudgetPDF(fullProject as any, totalsOverride);
+          generateBudgetPDF(fullProject as any, undefined, totalsOverride);
           break;
         case 'apu':
-          generateBudgetPDFAPU(fullProject as any, totalsOverride);
+          generateBudgetPDFAPU(fullProject as any, undefined, totalsOverride);
           break;
         case 'ejecutivo':
-          generateBudgetPDFEjecutivo(fullProject as any, totalsOverride);
+          generateBudgetPDFEjecutivo(fullProject as any, undefined, totalsOverride);
           break;
         case 'cliente':
-          generateBudgetPDFCliente(fullProject as any, totalsOverride);
+          generateBudgetPDFCliente(fullProject as any, undefined, totalsOverride);
           break;
       }
       toast.success(`PDF generado: ${type}`);
@@ -292,7 +292,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
         onExportPDF={handleExportPDF}
         onExportJSON={() => {
           const fullProject = { ...project, directCosts: totals.totalDirect, budget: totals.totalBudget } as any;
-          generateBudgetJSON(fullProject, {
+          generateBudgetJSON(fullProject, undefined, {
             directCost: totals.totalDirect, materialsTotal: totals.materialsTotal, laborTotal: totals.laborTotal,
             indirectCost: totals.indirectCost, adminCost: totals.adminCost, personalCost: totals.personalCost,
             totalBudget: totals.totalBudget, estimatedDays,

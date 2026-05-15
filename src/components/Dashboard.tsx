@@ -1302,7 +1302,7 @@ const generateReport = async () => {
            </div>
           )}
       </aside>
-      </div>
+      </motion.div>
 
       {/* Edit Transaction Modal */}
       {editTx && (
