@@ -28,19 +28,26 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/sw.js')
       .then((registration) => {
         console.log('SW registered:', registration.scope);
-        
+
         // Check for updates automatically
         registration.addEventListener('updatefound', () => {
           const newWorker = registration.installing;
           if (newWorker) {
             newWorker.addEventListener('statechange', () => {
-              // When the new service worker is ready, reload to activate it
+              // When the new service worker is ready, prompt reload
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                console.log('New content available, will refresh...');
-                // Auto-refresh after a short delay to let user finish their task
-                setTimeout(() => {
-                  window.location.reload();
-                }, 1000);
+                console.log('New SW content available, refreshing...');
+                // Skip waiting for the new SW and reload
+                newWorker.addEventListener('statechange', () => {
+                  if (newWorker.state === 'activated') {
+                    window.location.reload();
+                  }
+                });
+                registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
+              }
+              // First install - no old SW to replace
+              if (newWorker.state === 'installed' && !navigator.serviceWorker.controller) {
+                console.log('SW installed for first time');
               }
             });
           }
@@ -50,13 +57,13 @@ if ('serviceWorker' in navigator) {
         console.log('SW registration failed:', error);
       });
   });
-  
+
   // Handle online/offline events
   window.addEventListener('online', () => {
     console.log('App is online');
     document.body.classList.remove('offline-mode');
   });
-  
+
   window.addEventListener('offline', () => {
     console.log('App is offline');
     document.body.classList.add('offline-mode');

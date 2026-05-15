@@ -16,3 +16,4 @@ ts-errors.txt
 
 # Firebase config local (usa .env.local en su lugar)
 firebase-applet-config.json
+.vercel

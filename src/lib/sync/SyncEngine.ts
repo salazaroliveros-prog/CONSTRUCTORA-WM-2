@@ -4,8 +4,8 @@
  */
 
 import {
-  writeBatch, doc, getDoc, collection, query, orderBy,
-  Timestamp, deleteDoc, setDoc, enableIndexedDbPersistence
+   writeBatch, doc, getDoc, collection, query, orderBy,
+   Timestamp, deleteDoc, setDoc
 } from 'firebase/firestore';
 import { db as firestoreDb, auth } from '../../lib/firebase';
 import { getDb } from './store';
@@ -89,31 +89,38 @@ export class SyncEngine {
     _instance = null;
   }
 
-  async init(): Promise<void> {
-    // Persistencia offline de Firestore
-    try {
-      await enableIndexedDbPersistence(firestoreDb);
-    } catch (e: any) {
-      if (e.code === 'failed-precondition') {
-        console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña');
-      } else {
-        console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message);
-      }
-    }
+async init(): Promise<void> {
+     // NOTA: No se usa enableIndexedDbPersistence de Firestore porque
+     // la app ya usa Dexie.js para persistencia offline local.
+     // Habilitar ambos causa conflictos de schema en IndexedDB y
+     // duplicación innecesaria de datos.
+     // Dexie + RealtimeSync ya proveen offline-first con caché local.
+     try {
+       // Solo activar persistencia si NO estamos usando Dexie para la misma colección
+       // Esto es seguro porque Firestore persistence y Dexie usan bases de datos separadas,
+       // pero causa comportamiento inesperado al duplicar el almacenamiento offline.
+       // Desactivado para estabilidad: await enableIndexedDbPersistence(firestoreDb);
+     } catch (e: any) {
+       if (e.code === 'failed-precondition') {
+         console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña');
+       } else {
+         console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message);
+       }
+     }
 
-    this.online = checkOnline();
+     this.online = checkOnline();
 
-    window.addEventListener('online', this._onConnect);
-    window.addEventListener('offline', this._onDisconnect);
+     window.addEventListener('online', this._onConnect);
+     window.addEventListener('offline', this._onDisconnect);
 
-    this._startHeartbeat();
+     this._startHeartbeat();
 
-    if (this.online) {
-      setTimeout(() => this.sync().catch(console.error), 1000);
-    }
+     if (this.online) {
+       setTimeout(() => this.sync().catch(console.error), 1000);
+     }
 
-    console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() });
-  }
+     console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() });
+   }
 
   private _onConnect = (): void => {
     this.online = true;

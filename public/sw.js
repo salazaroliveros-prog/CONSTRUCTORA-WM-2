@@ -1,19 +1,24 @@
-const CACHE_NAME = 'wm-erp-v9';
-const STATIC_CACHE = 'wm-static-v9';
+/**
+ * Service Worker — Offline-first PWA
+ * Estrategia: Network-first para navegación, Stale-While-Revalidate para assets.
+ * IMPORTANTE: Cambiar CACHE_VERSION invalida TODO el caché anterior.
+ */
+const CACHE_VERSION = 'v11';
+const CACHE_NAME = `wm-erp-${CACHE_VERSION}`;
+const STATIC_CACHE = `wm-static-${CACHE_VERSION}`;
 
-// Assets to cache for offline use
+// NO pre-cachear index.html aquí — se sirve siempre network-first
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
   '/manifest.json',
   '/logo.webp',
   '/logo.png',
+  '/favicon.ico',
 ];
 
 self.addEventListener('install', (event) => {
-  // Skip waiting and activate immediately
+  // Activate immediately
   self.skipWaiting();
-  
+
   event.waitUntil(
     caches.open(STATIC_CACHE).then((cache) => {
       console.log('[SW] Caching static assets');
@@ -24,7 +29,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   console.log('[SW] Activating new service worker');
-  
+
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
@@ -35,81 +40,61 @@ self.addEventListener('activate', (event) => {
             return caches.delete(name);
           })
       );
-    }).then(() => {
-      // Take control of all pages immediately
-      return self.clients.claim();
-    })
+    }).then(() => self.clients.claim())
   );
+});
+
+// Listen for skipWaiting message from client
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Fetch event handler
 self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url);
-  
+
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
-  
-  // Skip cross-origin requests (like Firebase)
+
+  // Skip cross-origin requests (Firebase APIs, fonts, etc.)
   if (url.origin !== location.origin) return;
-  
-  // API requests - network first, then cache
+
+  // API requests — network first, fallback to cache
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(networkFirst(event.request));
     return;
   }
-  
-  // HTML navigation - network first
-  if (event.request.mode === 'navigate') {
-    event.respondWith(networkFirst(event.request));
+
+  // HTML navigation — always network first (SPA fallback)
+  if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
+    event.respondWith(networkFirstOrFallback(event.request));
     return;
   }
-  
-  // Static assets (JS, CSS, images) - cache first
+
+  // Static assets (JS, CSS, images, fonts) — Stale-While-Revalidate
   if (isStaticAsset(url.pathname)) {
-    event.respondWith(cacheFirst(event.request));
+    event.respondWith(staleWhileRevalidate(event.request));
     return;
   }
-  
-  // Default - network first
+
+  // Default — network first
   event.respondWith(networkFirst(event.request));
 });
 
-// Cache-first strategy
-async function cacheFirst(request) {
-  const cached = await caches.match(request);
-  if (cached) {
-    return cached;
-  }
-  
-  try {
-    const response = await fetch(request);
-    if (response.ok) {
-      const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
-    }
-    return response;
-  } catch (error) {
-    console.log('[SW] Cache-first failed, returning offline page');
-    return caches.match('/index.html');
-  }
-}
-
-// Network-first strategy
+/** Network-first: try network, fallback to cache */
 async function networkFirst(request) {
   try {
     const response = await fetch(request);
     if (response.ok) {
       const cache = await caches.open(CACHE_NAME);
-      cache.put(request, response.clone());
+      cache.put(request, response.clone()).catch(() => {});
     }
     return response;
   } catch (error) {
-    console.log('[SW] Network failed, trying cache:', request.url);
     const cached = await caches.match(request);
-    if (cached) {
-      return cached;
-    }
-    // Return offline page for navigation
+    if (cached) return cached;
     if (request.mode === 'navigate') {
       return caches.match('/index.html');
     }
@@ -117,31 +102,65 @@ async function networkFirst(request) {
   }
 }
 
-// Check if URL is a static asset
+/** Network-first with fallback to cached index.html for SPA routing */
+async function networkFirstOrFallback(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone()).catch(() => {});
+      return response;
+    }
+  } catch (error) {
+    // Network failed — serve cached index.html
+  }
+  // Fallback: cached index.html for SPA routes (e.g., /dashboard, /projects)
+  return caches.match('/index.html') || new Response('Offline', { status: 503 });
+}
+
+/** Stale-While-Revalidate: serve from cache immediately, update in background */
+async function staleWhileRevalidate(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cached = await cache.match(request);
+
+  // Fire-and-forget network update
+  const fetchPromise = fetch(request).then((response) => {
+    if (response.ok) {
+      cache.put(request, response.clone()).catch(() => {});
+    }
+    return response;
+  }).catch(() => cached);
+
+  // Return cached version immediately if available
+  if (cached) return cached;
+
+  // Otherwise wait for network
+  return fetchPromise;
+}
+
+/** Check if URL is a static asset (JS, CSS, images, fonts) */
 function isStaticAsset(pathname) {
-  return /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot)$/i.test(pathname);
+  return /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json)$/i.test(pathname);
 }
 
 // Handle background sync for data
 self.addEventListener('sync', (event) => {
   console.log('[SW] Background sync:', event.tag);
-  
   if (event.tag === 'sync-data') {
     event.waitUntil(syncData());
   }
 });
 
 async function syncData() {
-  // This would sync any pending data when online
   console.log('[SW] Syncing offline data...');
 }
 
 // Handle push notifications
 self.addEventListener('push', (event) => {
   if (!event.data) return;
-  
+
   const data = event.data.json();
-  
+
   const options = {
     body: data.body || 'Nueva notificación de Constructora WM',
     icon: '/logo.webp',
@@ -151,7 +170,7 @@ self.addEventListener('push', (event) => {
       url: data.url || '/',
     },
   };
-  
+
   event.waitUntil(
     self.registration.showNotification(data.title || 'Constructora WM', options)
   );
@@ -160,18 +179,16 @@ self.addEventListener('push', (event) => {
 // Handle notification click
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
+
   const url = event.notification.data?.url || '/';
-  
+
   event.waitUntil(
     clients.matchAll({ type: 'window' }).then((clientList) => {
-      // If a window is already open, focus it
       for (const client of clientList) {
         if (client.url === url && 'focus' in client) {
           return client.focus();
         }
       }
-      // Otherwise open a new window
       if (clients.openWindow) {
         return clients.openWindow(url);
       }

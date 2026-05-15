@@ -38,55 +38,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthorizedUser = user?.email === AUTHORIZED_EMAIL;
 
-  useEffect(() => {
-    let cancelled = false;
+useEffect(() => {
+     let cancelled = false;
 
-    const init = async () => {
-      try {
-        const redirectUser = await getRedirectAuthResult();
-        if (redirectUser && !cancelled) {
-          setUser(redirectUser);
-          const token = await getIdToken(redirectUser);
-          if (token && !cancelled) {
-            await setSessionCookie(token);
-          }
-        }
-      } catch (err) {
-        console.error('Redirect auth error:', err);
-      }
+     const init = async () => {
+       try {
+         const redirectUser = await getRedirectAuthResult();
+         if (redirectUser && !cancelled) {
+           setUser(redirectUser);
+           const token = await getIdToken(redirectUser);
+           if (token && !cancelled) {
+             await setSessionCookie(token);
+           }
+         }
+       } catch (err) {
+         console.error('Redirect auth error:', err);
+       }
 
-      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        if (!cancelled) {
-          setUser(firebaseUser);
+       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+         if (!cancelled) {
+           setUser(firebaseUser);
 
-          if (firebaseUser && !cancelled) {
-            try {
-              const token = await getIdToken(firebaseUser);
-              if (token) await setSessionCookie(token);
-            } catch { /* ok */ }
+           if (firebaseUser && !cancelled) {
+             try {
+               const token = await getIdToken(firebaseUser);
+               if (token) await setSessionCookie(token);
+             } catch { /* ok */ }
 
-            // Inicializar SyncEngine al autenticarse
-            try {
-              const engine = SyncEngine.getInstance();
-              await engine.init();
-            } catch (e) {
-              console.error('[AuthProvider] SyncEngine init failed:', e);
-            }
-          }
+             // Inicializar SyncEngine al autenticarse
+             try {
+               const engine = SyncEngine.getInstance();
+               await engine.init();
+             } catch (e) {
+               console.error('[AuthProvider] SyncEngine init failed:', e);
+             }
+           }
 
-          setLoading(false);
-        }
-      });
+           setLoading(false);
+         }
+       });
 
-      return unsubscribe;
-    };
+       // Safety net: si onAuthStateChanged no dispara en 8s, dejar de cargar
+       const safetyTimeout = setTimeout(() => {
+         if (!cancelled) {
+           console.warn('[AuthProvider] Safety timeout: auth state not received');
+           setLoading(false);
+         }
+       }, 8000);
 
-    const unsubPromise = init();
-    return () => {
-      cancelled = true;
-      unsubPromise.then(unsub => unsub?.());
-    };
-  }, []);
+       return () => {
+         clearTimeout(safetyTimeout);
+         unsubscribe();
+       };
+     };
+
+     const unsubPromise = init();
+     return () => {
+       cancelled = true;
+       unsubPromise.then(unsub => typeof unsub === 'function' && unsub()).catch(() => {});
+     };
+   }, []);
 
   // Suscribirse a cambios de estado del SyncEngine
   useEffect(() => {
