@@ -419,13 +419,18 @@ const [accountingForm, setAccountingForm] = useState({
 
    const totalIncome = useMemo(() => PMath.sum(filteredTransactions.filter(t => t.type === 'INGRESO').map(t => t.amount || 0)), [filteredTransactions]);
    const totalExpenses = useMemo(() => PMath.sum(filteredTransactions.filter(t => t.type === 'GASTO').map(t => t.amount || 0)), [filteredTransactions]);
-   const netCash = PMath.sub(totalIncome, totalExpenses);
+const netCash = PMath.sub(totalIncome, totalExpenses);
 
-   const globalIncome = useMemo(() => PMath.sum(allTransactions.filter(t => t.type === 'INGRESO').map(t => t.amount || 0)), [allTransactions]);
-   const globalExpenses = useMemo(() => PMath.sum(allTransactions.filter(t => t.type === 'GASTO').map(t => t.amount || 0)), [allTransactions]);
+    const globalIncome = useMemo(() => PMath.sum(allTransactions.filter(t => t.type === 'INGRESO').map(t => t.amount || 0)), [allTransactions]);
+    const globalExpenses = useMemo(() => PMath.sum(allTransactions.filter(t => t.type === 'GASTO').map(t => t.amount || 0)), [allTransactions]);
 
-   const executingBudget = useMemo(() => PMath.sum(filteredProjects.map(p => p.budget || 0)), [filteredProjects]);
-   const finishedPausedBudget = useMemo(() => PMath.sum(finishedFilteredProjects.map(p => p.budget || 0)), [finishedFilteredProjects]);
+    const liquidityPct = useMemo(() => {
+      if (globalIncome <= 0) return 0;
+      return Math.min(100, Math.max(0, PMath.div(PMath.mul(netCash, 100), globalIncome)));
+    }, [globalIncome, globalExpenses, netCash]);
+
+    const executingBudget = useMemo(() => PMath.sum(filteredProjects.map(p => p.budget || 0)), [filteredProjects]);
+    const finishedPausedBudget = useMemo(() => PMath.sum(finishedFilteredProjects.map(p => p.budget || 0)), [finishedFilteredProjects]);
 
    const criticalStock = useMemo(() => inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (selectedProjectId !== 'ALL' ? i.projectId === selectedProjectId : (i.projectId && existingProjectIds.has(i.projectId)))).length, [inventory, existingProjectIds, selectedProjectId]);
 
@@ -1234,16 +1239,16 @@ const generateReport = async () => {
          <div className="bg-slate-900 rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estatus Financiero</h4>
-            <div className="space-y-4">
-               <div>
-                  <div className="flex justify-between text-[9px] font-black uppercase text-white mb-1">
-                     <span>Liquidez</span>
-                     <span className="text-secondary">{(globalIncome - globalExpenses) > 0 ? 'ALTA' : 'CRÍTICA'}</span>
-                  </div>
-                  <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
-                     <div className="progress-neon-fill h-full w-[85%] rounded-full" />
-                  </div>
-               </div>
+<div className="space-y-4">
+                <div>
+                   <div className="flex justify-between text-[9px] font-black uppercase text-white mb-1">
+                      <span>Liquidez</span>
+                      <span className="text-secondary">{liquidityPct >= 50 ? 'ALTA' : liquidityPct > 0 ? 'MEDIA' : 'CRÍTICA'}</span>
+                   </div>
+                   <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                      <div className="progress-neon-fill h-full rounded-full transition-all duration-700" style={{ width: `${liquidityPct}%` }} />
+                   </div>
+                </div>
                <div className="pt-4 border-t border-white/5 space-y-2">
                   <div className="flex justify-between text-[9px] font-bold uppercase text-slate-400">
                      <span>Ingresos</span>
@@ -1257,15 +1262,40 @@ const generateReport = async () => {
             </div>
          </div>
 
-         <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 p-5 rounded-2xl text-primary shadow-lg border-animated">
-             <div className="flex items-center gap-2 mb-3">
-                <Zap size={16} className="fill-current" />
-                <span className="text-[9px] font-black uppercase tracking-widest">Tip Constructivo</span>
-             </div>
-             <p className="text-[10px] font-black leading-relaxed uppercase tracking-tight">
-               Asegúrate de registrar cada factura inmediatamente para mantener el análisis de rentabilidad actualizado.
-             </p>
-          </div>
+{projects.length > 0 && (
+          <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 p-5 rounded-2xl text-primary shadow-lg border-animated">
+              <div className="flex items-center gap-2 mb-3">
+                 <Zap size={16} className="fill-current" />
+                 <span className="text-[9px] font-black uppercase tracking-widest">Tipología de Proyectos</span>
+              </div>
+              <div className="space-y-2">
+                {(() => {
+                  const typeCounts: Record<string, number> = {};
+                  projects.forEach(p => {
+                    const t = p.typology || 'SIN TIPO';
+                    typeCounts[t] = (typeCounts[t] || 0) + 1;
+                  });
+                  const total = projects.length;
+                  const COLORS: Record<string, string> = {
+                    RESIDENCIAL: 'bg-blue-400',
+                    COMERCIAL: 'bg-green-400',
+                    INDUSTRIAL: 'bg-purple-400',
+                    CIVIL: 'bg-red-400',
+                    PUBLICA: 'bg-amber-400',
+                  };
+                  return Object.entries(typeCounts)
+                    .sort((a, b) => b[1] - a[1])
+                    .map(([type, count]) => (
+                      <div key={type} className="flex items-center gap-2">
+                        <div className={`w-2 h-2 rounded-full ${COLORS[type as keyof typeof COLORS] || 'bg-slate-400'}`} />
+                        <span className="text-[8px] font-bold text-white uppercase">{type}</span>
+                        <span className="text-[8px] font-black text-white/80 ml-auto">{count} ({Math.round(count/total*100)}%)</span>
+                      </div>
+                    ));
+                })()}
+              </div>
+           </div>
+          )}
       </aside>
       </div>
 
