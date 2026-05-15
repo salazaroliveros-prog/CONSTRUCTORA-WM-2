@@ -7,7 +7,7 @@ import {
    writeBatch, doc, getDoc, collection, query, orderBy,
    Timestamp, deleteDoc, setDoc
 } from 'firebase/firestore';
-import { db as firestoreDb, auth } from '../../lib/firebase';
+import { db as firestoreDb, auth, isFirestoreTerminated, reinitializeFirestore } from '../../lib/firebase';
 import { getDb } from './store';
 import {
   SyncOperation, SyncStatus, VectorClockEntry, SyncState
@@ -90,44 +90,58 @@ export class SyncEngine {
   }
 
 async init(): Promise<void> {
-     // NOTA: No se usa enableIndexedDbPersistence de Firestore porque
-     // la app ya usa Dexie.js para persistencia offline local.
-     // Habilitar ambos causa conflictos de schema en IndexedDB y
-     // duplicación innecesaria de datos.
-     // Dexie + RealtimeSync ya proveen offline-first con caché local.
-     try {
-       // Solo activar persistencia si NO estamos usando Dexie para la misma colección
-       // Esto es seguro porque Firestore persistence y Dexie usan bases de datos separadas,
-       // pero causa comportamiento inesperado al duplicar el almacenamiento offline.
-       // Desactivado para estabilidad: await enableIndexedDbPersistence(firestoreDb);
-     } catch (e: any) {
-       if (e.code === 'failed-precondition') {
-         console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña');
-       } else {
-         console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message);
-       }
+      // NOTA: No se usa enableIndexedDbPersistence de Firestore porque
+      // la app ya usa Dexie.js para persistencia offline local.
+      // Habilitar ambos causa conflictos de schema en IndexedDB y
+      // duplicación innecesaria de datos.
+      // Dexie + RealtimeSync ya proveen offline-first con caché local.
+      try {
+        // Solo activar persistencia si NO estamos usando Dexie para la misma colección
+        // Esto es seguro porque Firestore persistence y Dexie usan bases de datos separadas,
+        // pero causa comportamiento inesperado al duplicar el almacenamiento offline.
+        // Desactivado para estabilidad: await enableIndexedDbPersistence(firestoreDb);
+      } catch (e: any) {
+        if (e.code === 'failed-precondition') {
+          console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña');
+        } else {
+          console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message);
+        }
+      }
+
+      // Si Firestore fue terminado (por offline), re-inicializar
+      if (isFirestoreTerminated()) {
+        try {
+          await reinitializeFirestore();
+        } catch (e) {
+          console.warn('[SyncEngine] Error re-inicializando Firestore:', e);
+        }
+      }
+
+      this.online = checkOnline();
+
+      window.addEventListener('online', this._onConnect);
+      window.addEventListener('offline', this._onDisconnect);
+
+      this._startHeartbeat();
+
+      if (this.online) {
+        setTimeout(() => this.sync().catch(console.error), 1000);
+      }
+
+      console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() });
+    }
+
+private _onConnect = (): void => {
+     // Re-initialize Firestore if it was terminated before syncing
+     if (isFirestoreTerminated()) {
+       console.log('[SyncEngine] Firestore was terminated, reinitializing before sync');
+       reinitializeFirestore().catch(console.error);
      }
-
-     this.online = checkOnline();
-
-     window.addEventListener('online', this._onConnect);
-     window.addEventListener('offline', this._onDisconnect);
-
-     this._startHeartbeat();
-
-     if (this.online) {
-       setTimeout(() => this.sync().catch(console.error), 1000);
-     }
-
-     console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() });
-   }
-
-  private _onConnect = (): void => {
-    this.online = true;
-    console.log('[SyncEngine] Reconectado → iniciando push');
-    this.sync().catch((e) => console.error('[SyncEngine] Sync falló:', e));
-    this._notify();
-  };
+     this.online = true;
+     console.log('[SyncEngine] Reconectado → iniciando push');
+     this.sync().catch((e) => console.error('[SyncEngine] Sync falló:', e));
+     this._notify();
+   };
 
   private _onDisconnect = (): void => {
     this.online = false;
@@ -153,8 +167,8 @@ async init(): Promise<void> {
   //  SYNC PRINCIPAL
   // ═══════════════════════════════════════════════════════════════════════════
 
-  async sync(): Promise<void> {
-    if (this.syncing || !this.online) return;
+async sync(): Promise<void> {
+     if (this.syncing || !this.online || isFirestoreTerminated()) return;
     this.syncing = true;
     this._notify();
 
@@ -427,13 +441,37 @@ async init(): Promise<void> {
   //  COLA DE OPERACIONES
   // ═══════════════════════════════════════════════════════════════════════════
 
-  async enqueue(
-    entity: string,
-    operation: 'create' | 'update' | 'delete',
-    entityId: string,
-    payload: Record<string, unknown>
-  ): Promise<void> {
-    const localDb = getDb();
+async enqueue(
+     entity: string,
+     operation: 'create' | 'update' | 'delete',
+     entityId: string,
+     payload: Record<string, unknown>
+   ): Promise<void> {
+     // Don't enqueue if Firestore is terminated
+     if (isFirestoreTerminated()) {
+       console.warn('[SyncEngine] Cannot enqueue - Firestore is terminated, saving to local cache only');
+       // Still save to local cache for offline access
+       const localDb = getDb();
+       if (operation === 'delete') {
+         const allKeys = await localDb.localCache
+           .where(['entity', 'id'])
+           .equals([entity, entityId])
+           .primaryKeys();
+         for (const k of allKeys) {
+           await localDb.localCache.delete(k);
+         }
+       } else {
+         await localDb.localCache.put({
+           ...payload,
+           id: entityId,
+           entity,
+           updatedAt: Date.now(),
+         });
+       }
+       return;
+     }
+
+     const localDb = getDb();
     const op: SyncOperation = {
       id:              crypto.randomUUID?.() || Math.random().toString(36).slice(2),
       entity,

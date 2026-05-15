@@ -7,12 +7,21 @@ import {
   collection, query, orderBy, onSnapshot, where,
   doc, getDoc, getDocs,
 } from 'firebase/firestore';
-import { db as firestoreDb, auth, isFirestoreNetworkDisabled, disableFirestoreNetwork, enableFirestoreNetwork } from '../../lib/firebase';
+import {
+  db as firestoreDb, auth,
+  isFirestoreNetworkDisabled, isFirestoreTerminated,
+  disableFirestoreNetwork, enableFirestoreNetwork
+} from '../../lib/firebase';
 import { getDb } from './store';
 import { SyncEngine } from './SyncEngine';
 
 // Polling interval when using manual sync (in ms)
 const POLLING_INTERVAL = 30000; // 30 seconds
+// Delay before restarting listeners after coming back online (ms)
+const RECONNECT_DELAY_MS = 1000;
+
+// Global lock to prevent multiple concurrent listener initializations
+let globalIsShuttingDown = false;
 
 /**
  * Suscripción en tiempo real a los cambios del servidor.
@@ -23,6 +32,7 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
   let isOffline = false;
   let pollingTimer: ReturnType<typeof setInterval> | null = null;
   const uid = auth.currentUser?.uid;
+  let localIsShuttingDown = false;
 
   // Guard: must have authenticated user
   if (!uid) {
@@ -30,53 +40,88 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
     return () => {};
   }
 
-  // Check if browser is online - use this flag to prevent connection attempts
-  const checkOnline = () => typeof navigator !== 'undefined' && navigator.onLine;
+  // Guard: if global shutdown is in progress, don't start
+  if (globalIsShuttingDown) {
+    console.log('[RealtimeSync] Global shutdown in progress - skipping start');
+    return () => {};
+  }
+
+  // Check if browser is online
+  const checkOnline = (): boolean => {
+    if (typeof navigator === 'undefined') return true;
+    return navigator.onLine;
+  };
+
+  // Check if we can start listeners (online + not disabled/terminated)
+  const canStartListeners = (): boolean => {
+    if (localIsShuttingDown || globalIsShuttingDown) return false;
+    if (isOffline) return false;
+    if (isFirestoreNetworkDisabled()) return false;
+    if (isFirestoreTerminated()) return false;
+    if (!checkOnline()) return false;
+    return true;
+  };
 
   // Handle offline detection to prevent retry spam
   const handleOffline = async () => {
     if (!isOffline) {
+      localIsShuttingDown = true;
       isOffline = true;
-      console.log('[RealtimeSync] Offline detected - disabling Firestore network');
-      // Disable Firestore network to stop all retry attempts immediately
-      try {
-        await disableFirestoreNetwork();
-      } catch (e) {
-        console.error('[RealtimeSync] Failed to disable network:', e);
-      }
-      unsubscribers.forEach(u => u());
+      console.log('[RealtimeSync] Offline detected - shutting down Firestore connections');
+
+      // Clean up all listeners first
+      const unsubs = [...unsubscribers];
       unsubscribers.length = 0;
       if (pollingTimer) {
         clearInterval(pollingTimer);
         pollingTimer = null;
       }
+
+      // Unsubscribe all listeners
+      for (const unsub of unsubs) {
+        try { unsub(); } catch { /* ignore */ }
+      }
+
+      // Disable Firestore network (will terminate connections)
+      await disableFirestoreNetwork();
+      localIsShuttingDown = false;
     }
   };
 
   const handleOnline = async () => {
     if (isOffline) {
-      console.log('[RealtimeSync] Connection restored - re-enabling Firestore network and resyncing');
+      isOffline = false;
+      console.log('[RealtimeSync] Connection restored - re-enabling Firestore');
+
       try {
         await enableFirestoreNetwork();
       } catch (e) {
         console.error('[RealtimeSync] Failed to enable network:', e);
+        return;
       }
-      isOffline = false;
-      // Do a full sync when coming back online
-      await syncAllCollections();
-      // Restart listeners if online
-      if (checkOnline() && !isFirestoreNetworkDisabled()) {
-        startListeners();
-        startPolling();
+
+      // Wait a moment for Firestore to fully reconnect
+      await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY_MS));
+
+      // Check again that we're still online after reconnection
+      if (checkOnline() && !isFirestoreNetworkDisabled() && !isFirestoreTerminated()) {
+        await syncAllCollections();
+        if (canStartListeners()) {
+          startListeners();
+          startPolling();
+        }
       }
     }
   };
 
   const startListeners = () => {
-    // Don't start if already offline or Firestore network disabled
-    if (isOffline || isFirestoreNetworkDisabled() || !checkOnline()) {
+    if (!canStartListeners()) {
+      console.log('[RealtimeSync] Cannot start listeners - offline or disabled');
       return;
     }
+
+    console.log('[RealtimeSync] Starting listeners for', entityTypes.length, 'collections');
+
     for (const entityType of entityTypes) {
       const q = query(
         collection(firestoreDb, entityType),
@@ -84,23 +129,28 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
         orderBy('_updatedAt', 'desc')
       );
 
-      // Wrap onSnapshot to catch connection errors
+      let listenerActive = true;
+
       const unsub = onSnapshot(q, {
         next: async (snapshot) => {
+          if (!listenerActive) return;
           for (const change of snapshot.docChanges()) {
             const data = change.doc.data();
 
             if (change.type === 'added' || change.type === 'modified') {
-              await getDb().localCache.put({
-                ...data,
-                id: change.doc.id,
-                entity: entityType,
-              });
+              try {
+                await getDb().localCache.put({
+                  ...data,
+                  id: change.doc.id,
+                  entity: entityType,
+                });
+              } catch (e) {
+                console.error(`[RealtimeSync] Error saving ${entityType} to cache:`, e);
+              }
             }
 
             if (change.type === 'removed') {
               try {
-                // Dexie: delete por clave primaria compuesta [entity, id]
                 const keys = await getDb().localCache
                   .where(['entity', 'id'])
                   .equals([entityType, change.doc.id])
@@ -115,17 +165,25 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
           }
         },
         error: (error: any) => {
-          // Check for offline errors first - these are expected
-          const isOfflineError = error.message?.includes('offline') || 
-            error.message?.includes('failed to connect') || 
-            error.message?.includes('ERR_INTERNET_DISCONNECTED') ||
-            error.message?.includes('unavailable');
-          
+          if (!listenerActive) return;
+
+          const isOfflineError =
+            error?.code === 'unavailable' ||
+            error?.code === 'failed-precondition' ||
+            error?.message?.includes('offline') ||
+            error?.message?.includes('failed to connect') ||
+            error?.message?.includes('ERR_INTERNET_DISCONNECTED') ||
+            error?.message?.includes('The Internet connection appears to be offline') ||
+            error?.message?.includes('Network');
+
           if (!isOfflineError) {
-            console.error(`[RealtimeSync] Error en ${entityType}:`, error.message);
+            console.error(`[RealtimeSync] Error en ${entityType}:`, error.message || error);
           }
-          // On any error, go offline mode
-          handleOffline();
+
+          // Only go offline if we're not already shutting down
+          if (!localIsShuttingDown && !globalIsShuttingDown) {
+            handleOffline().catch(console.error);
+          }
         },
       });
 
@@ -133,10 +191,10 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
     }
   };
 
-  // Manual polling for when realtime sync isn't available
+  // Manual polling for data synchronization
   const syncAllCollections = async () => {
-    if (isFirestoreNetworkDisabled() || !checkOnline()) return;
-    
+    if (isFirestoreNetworkDisabled() || isFirestoreTerminated() || !checkOnline()) return;
+
     for (const entityType of entityTypes) {
       try {
         const q = query(
@@ -146,16 +204,19 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
         );
         const snapshot = await getDocs(q);
         for (const doc of snapshot.docs) {
-          await getDb().localCache.put({
-            ...doc.data(),
-            id: doc.id,
-            entity: entityType,
-          });
+          try {
+            await getDb().localCache.put({
+              ...doc.data(),
+              id: doc.id,
+              entity: entityType,
+            });
+          } catch (e) {
+            console.error(`[RealtimeSync] Error caching ${entityType}/${doc.id}:`, e);
+          }
         }
       } catch (e: any) {
-        // Ignore offline errors during polling
-        if (!e.message?.includes('offline') && !e.message?.includes('failed to connect')) {
-          console.error(`[RealtimeSync] Poll error for ${entityType}:`, e);
+        if (!e?.message?.includes('offline') && !e?.message?.includes('failed to connect') && e?.code !== 'unavailable') {
+          console.error(`[RealtimeSync] Poll error for ${entityType}:`, e?.message || e);
         }
       }
     }
@@ -164,39 +225,63 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
   const startPolling = () => {
     if (pollingTimer) return;
     pollingTimer = setInterval(() => {
-      if (checkOnline() && !isFirestoreNetworkDisabled() && !isOffline) {
+      if (canStartListeners()) {
         syncAllCollections();
       }
     }, POLLING_INTERVAL);
   };
 
-  // Initial check - if offline, don't even try to start listeners
-  const isInitiallyOnline = checkOnline() && !isFirestoreNetworkDisabled();
-  if (!isInitiallyOnline) {
-    console.log('[RealtimeSync] Offline or network disabled - skipping initial listener start');
-    isOffline = true;
-  }
+  // ─── INITIAL START ─────────────────────────────────────────────────────────
 
-  // Initial start only if online
-  if (isInitiallyOnline) {
+  const shouldStartOnline = checkOnline() && !isFirestoreNetworkDisabled() && !isFirestoreTerminated();
+
+  if (shouldStartOnline) {
     startListeners();
     startPolling();
+  } else {
+    isOffline = true;
+    console.log('[RealtimeSync] Offline or network disabled - listeners deferred');
+    if (!shouldStartOnline && !isFirestoreNetworkDisabled() && !isFirestoreTerminated()) {
+      // We're offline — do an initial sync attempt if it's just navigator saying offline
+      syncAllCollections().catch(() => {});
+    }
   }
 
-  // Listen for connectivity changes
-  window.addEventListener('offline', () => handleOffline().catch(console.error));
-  window.addEventListener('online', () => handleOnline().catch(console.error));
+  // ─── CONNECTIVITY EVENTS ──────────────────────────────────────────────────
 
-  console.log(`[RealtimeSync] Escuchando ${entityTypes.length} colecciones`);
+  const onOffline = () => {
+    console.log('[RealtimeSync] Browser offline event');
+    handleOffline().catch(console.error);
+  };
+
+  const onOnline = () => {
+    console.log('[RealtimeSync] Browser online event');
+    handleOnline().catch(console.error);
+  };
+
+  window.addEventListener('offline', onOffline);
+  window.addEventListener('online', onOnline);
+
+  console.log(`[RealtimeSync] Initialized for ${entityTypes.length} collections (${shouldStartOnline ? 'online' : 'offline'})`);
+
+  // ─── CLEANUP ───────────────────────────────────────────────────────────────
 
   return () => {
-    unsubscribers.forEach((u) => u());
+    localIsShuttingDown = true;
+    unsubscribers.forEach((u) => {
+      try { u(); } catch { /* ignore */ }
+    });
+    unsubscribers.length = 0;
+
     if (pollingTimer) {
       clearInterval(pollingTimer);
       pollingTimer = null;
     }
-    window.removeEventListener('offline', () => handleOffline());
-    window.removeEventListener('online', () => handleOnline());
+
+    window.removeEventListener('offline', onOffline);
+    window.removeEventListener('online', onOnline);
+
+    console.log('[RealtimeSync] Cleaned up');
   };
 }
 
@@ -223,15 +308,17 @@ export async function getLocalData<K = Record<string, unknown>>(
   entityId: string
 ): Promise<K | null> {
   // Primero intentar desde Dexie
-  const cached = await getDb().localCache
-    .where(['entity', 'id'])
-    .equals([entity, entityId])
-    .first();
+  try {
+    const cached = await getDb().localCache
+      .where(['entity', 'id'])
+      .equals([entity, entityId])
+      .first();
 
-  if (cached) return cached as K;
+    if (cached) return cached as K;
+  } catch { /* ignore — Dexie error */ }
 
   // Si no hay caché local y estamos online, intentar Firestore
-  if (typeof navigator !== 'undefined' && navigator.onLine) {
+  if (typeof navigator !== 'undefined' && navigator.onLine && !isFirestoreTerminated()) {
     try {
       const snap = await getDoc(doc(firestoreDb, entity, entityId));
       if (snap.exists()) {

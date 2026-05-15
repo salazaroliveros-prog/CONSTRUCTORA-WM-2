@@ -5,11 +5,11 @@ import {
   signOut, onAuthStateChanged, User, getIdToken,
   browserLocalPersistence, setPersistence
 } from 'firebase/auth';
-import { 
-  getFirestore, 
-  disableNetwork, 
+import {
+  getFirestore,
+  disableNetwork,
   enableNetwork,
-  terminate as terminateFirestore 
+  terminate as terminateFirestore,
 } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from './firebaseConfig';
@@ -21,15 +21,38 @@ if (!getApps().length) {
 
 export const app = getApp();
 export const auth = getAuth(app);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const storage = getStorage(app);
+
+// Firestore instance — can be re-created after termination
+let _db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+export const db = new Proxy({}, {
+  get(_target, prop: string) {
+    return _db[prop as keyof typeof _db];
+  }
+}) as typeof _db;
 
 // ─── Network control for offline handling ─────────────────────────────────────
 let networkDisabled = false;
+let terminated = false;
 let stopRealtimeSyncCallback: (() => void) | null = null;
 
 export const setRealtimeSyncStopCallback = (cb: (() => void) | null) => {
   stopRealtimeSyncCallback = cb;
+};
+
+/**
+ * Re-inicializa Firestore después de un terminate().
+ * Necesario porque terminate() destruye la instancia y no se puede reutilizar.
+ */
+export const reinitializeFirestore = async (): Promise<void> => {
+  try {
+    const { getFirestore } = await import('firebase/firestore');
+    _db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+    terminated = false;
+    console.log('[Firebase] Firestore re-inicializado');
+  } catch (e) {
+    console.error('[Firebase] Error re-inicializando Firestore:', e);
+  }
 };
 
 export const disableFirestoreNetwork = async (): Promise<void> => {
@@ -42,11 +65,15 @@ export const disableFirestoreNetwork = async (): Promise<void> => {
         } catch { /* ignore */ }
         stopRealtimeSyncCallback = null;
       }
-      await disableNetwork(db);
+      // Use terminate() instead of disableNetwork() to kill all internal retry loops
+      try {
+        await terminateFirestore(_db);
+      } catch { /* ignore — may already be terminated */ }
+      terminated = true;
       networkDisabled = true;
-      console.log('[Firebase] Network disabled');
+      console.log('[Firebase] Network terminated (not just disabled)');
     } catch (e) {
-      console.error('[Firebase] Failed to disable network:', e);
+      console.error('[Firebase] Failed to disable/terminate network:', e);
     }
   }
 };
@@ -54,8 +81,14 @@ export const disableFirestoreNetwork = async (): Promise<void> => {
 export const enableFirestoreNetwork = async (): Promise<void> => {
   if (networkDisabled) {
     try {
-      await enableNetwork(db);
+      // Re-initialize Firestore if it was terminated
+      if (terminated) {
+        await reinitializeFirestore();
+      } else {
+        await enableNetwork(_db);
+      }
       networkDisabled = false;
+      terminated = false;
       console.log('[Firebase] Network enabled');
     } catch (e) {
       console.error('[Firebase] Failed to enable network:', e);
@@ -64,6 +97,7 @@ export const enableFirestoreNetwork = async (): Promise<void> => {
 };
 
 export const isFirestoreNetworkDisabled = (): boolean => networkDisabled;
+export const isFirestoreTerminated = (): boolean => terminated;
 
 // ─── Persistencia de sesión: LOCAL (sobrevive recargas y cierre de tab) ────────
 // Por defecto Firebase usa SESSION (se pierde al cerrar tab).

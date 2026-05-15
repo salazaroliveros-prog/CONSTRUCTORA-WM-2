@@ -4,7 +4,7 @@ import {
   Timestamp, serverTimestamp, getDoc,
   FirestoreError, getDocs
 } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
+import { db, auth, isFirestoreTerminated } from '../lib/firebase';
 import { SyncEngine } from '../lib/sync/SyncEngine';
 
 export const parseError = (error: unknown): string => {
@@ -71,23 +71,39 @@ export const getDocumentsForCollection = async (collectionName: string) => {
 };
 
 export const subscribeToCollection = (
-  collectionName: string, 
-  callback: (data: any[]) => void
-) => {
-  if (!auth.currentUser) return () => {};
+   collectionName: string,
+   callback: (data: any[]) => void
+ ) => {
+   if (!auth.currentUser) return () => {};
 
-  const q = query(
-    collection(db, collectionName), 
-    where('ownerId', '==', auth.currentUser.uid)
-  );
+   // Don't subscribe if Firestore is terminated
+   if (isFirestoreTerminated()) {
+     console.warn('[firestoreService] Firestore terminated - cannot subscribe to', collectionName);
+     return () => {};
+   }
 
-  return onSnapshot(q, (snapshot) => {
-    const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    callback(data);
-  }, (error: FirestoreError) => {
-    handleFirestoreError(error, OperationType.LIST, collectionName);
-  });
-};
+   const q = query(
+     collection(db, collectionName),
+     where('ownerId', '==', auth.currentUser.uid)
+   );
+
+   return onSnapshot(q, (snapshot) => {
+     const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+     callback(data);
+   }, (error: FirestoreError) => {
+     // Silently handle offline errors to prevent spam
+     if (
+       error?.code === 'unavailable' ||
+       error?.code === 'failed-precondition' ||
+       error?.message?.includes('offline') ||
+       error?.message?.includes('ERR_INTERNET_DISCONNECTED')
+     ) {
+       console.log('[firestoreService] Offline error for subscription:', collectionName);
+       return;
+     }
+     handleFirestoreError(error, OperationType.LIST, collectionName);
+   });
+ };
 
 const sanitize = (obj: any): any => {
   if (Array.isArray(obj)) return obj.map(sanitize);

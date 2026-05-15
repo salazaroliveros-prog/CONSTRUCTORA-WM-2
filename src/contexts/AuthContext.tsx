@@ -11,6 +11,7 @@ import {
   enableFirestoreNetwork,
   disableFirestoreNetwork,
   setRealtimeSyncStopCallback,
+  isFirestoreTerminated,
 } from '../lib/firebase';
 import { SyncEngine } from '../lib/sync/SyncEngine';
 import { startRealtimeSync } from '../lib/sync/RealtimeSync';
@@ -76,14 +77,17 @@ useEffect(() => {
                 const engine = SyncEngine.getInstance();
                 await engine.init();
 
-                // Check connectivity BEFORE doing anything else
-                const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-                if (!isOnline) {
-                  console.log('[AuthProvider] Browser offline - disabling Firestore network before sync');
-                  await disableFirestoreNetwork();
-                } else {
-                  await enableFirestoreNetwork();
-                }
+// Check connectivity BEFORE doing anything else
+                 const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+                 if (!isOnline) {
+                   console.log('[AuthProvider] Browser offline - terminating Firestore before sync');
+                   await disableFirestoreNetwork();
+                 } else {
+                   // Only enable if previously terminated (from offline)
+                   if (isFirestoreTerminated()) {
+                     await enableFirestoreNetwork();
+                   }
+                 }
 
                 // Start realtime sync for all required collections
                 stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
