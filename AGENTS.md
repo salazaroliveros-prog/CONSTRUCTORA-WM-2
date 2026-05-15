@@ -208,6 +208,28 @@ import { Project, Typology } from '../constants';
 
 ---
 
+## Recent Improvements (2026-05-15)
+
+### 5. Headers COOP + CORS — corrección de errores de navegador
+- **vercel.json**: Agregados `Cross-Origin-Opener-Policy: same-origin-allow-popups`, `Cross-Origin-Embedder-Policy: unsafe-none`, y headers CORS globales + específicos para `/api/*`
+- **middleware.ts**: Agregados headers COOP, COEP, y CORS con origin dinámico para rutas API
+- **api/auth/session.ts**: CORS dinámico con `ALLOWED_ORIGINS` array (vercel.app + localhost:5173/3000), `Access-Control-Allow-Credentials: true`, y cookie con Domain para cross-subdomain
+
+### 6. Service Worker v12 — mejoras offline
+- Cache version bump `v11` → `v12` para invalidar caché anterior
+- `networkFirstWithFallback()` para API requests: graceful fallback a caché sin spam de console
+- `networkFirstOrFallback()` mejorado: retorna cached index.html siempre que sea posible
+- Pre-cacheo de Google Fonts CDN para evitar FOUT
+- Respuestas offline con JSON estructurado para errores de API
+- Exclusión explícita de requests cross-origin (Firebase APIs) — no interceptados
+
+### 7. CSS cleanup — eliminado duplicado `.skeleton`
+- Eliminada definición duplicada de `.skeleton` (existía dos veces con diferentes estilos)
+- Consolidado en una sola definición con `@keyframes skeletonWave`
+- Mantenido estilo light/dark via herencia de variables CSS
+
+---
+
 ## Recent Improvements (2026-05-14)
 
 ### 1. SettingsContext now uses `firestoreService` centralizado

@@ -1,8 +1,7 @@
 /**
  * Vercel Edge Middleware — Transparent Security Headers
  * No intercepta el contenido de la app ni las rutas API.
- * Los headers de seguridad se configuran en vercel.json.
- * Solo se usa para rutas de assets estáticos.
+ * Headers de seguridad + COOP para soporte de popups Firebase Auth.
  */
 
 export default async function middleware(request: Request) {
@@ -10,7 +9,13 @@ export default async function middleware(request: Request) {
 
   // NO interceptar rutas API — dejar que las serverless functions manejen
   if (url.pathname.startsWith('/api/')) {
-    return fetch(request);
+    const response = await fetch(request);
+    const newResponse = new Response(response.body, response);
+    newResponse.headers.set('Access-Control-Allow-Origin', 'https://constructora-wm-2.vercel.app');
+    newResponse.headers.set('Access-Control-Allow-Methods', 'POST, DELETE, OPTIONS, GET');
+    newResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    newResponse.headers.set('Access-Control-Allow-Credentials', 'true');
+    return newResponse;
   }
 
   // Solo agregar headers a recursos estáticos y navegación
@@ -26,6 +31,8 @@ export default async function middleware(request: Request) {
     'camera=(), microphone=(), geolocation=()'
   );
   newResponse.headers.set('X-Robots-Tag', 'noindex, nofollow');
+  newResponse.headers.set('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
+  newResponse.headers.set('Cross-Origin-Embedder-Policy', 'unsafe-none');
 
   return newResponse;
 }

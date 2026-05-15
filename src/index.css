@@ -1351,12 +1351,15 @@ th:last-child, td:last-child { white-space: normal; overflow: visible; }
 .skeleton-title { height: 1.25rem;  border-radius: 0.5rem; width: 60%; }
 .skeleton-card  { height: 7rem;     border-radius: 1rem; }
 
-/* ── Responsive overflow fix para contenedores principales ── */
-.page-container {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: hidden;
-  padding: 1.25rem 1rem 5rem;
+.skeleton {
+  background: linear-gradient(90deg, #e2e8f0 0%, #edf2f7 20%, #f1f5f9 40%, #edf2f7 60%, #e2e8f0 80%);
+  background-size: 1600px 100%;
+  animation: skeletonWave 1.8s ease-in-out infinite;
+  border-radius: 8px;
+}
+@keyframes skeletonWave {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
 }
 @media (min-width: 768px) {
   .page-container { padding: 1.5rem 1.5rem 2.5rem; }

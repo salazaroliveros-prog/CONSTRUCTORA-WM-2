@@ -3,7 +3,7 @@
  * Estrategia: Network-first para navegación, Stale-While-Revalidate para assets.
  * IMPORTANTE: Cambiar CACHE_VERSION invalida TODO el caché anterior.
  */
-const CACHE_VERSION = 'v11';
+const CACHE_VERSION = 'v12';
 const CACHE_NAME = `wm-erp-${CACHE_VERSION}`;
 const STATIC_CACHE = `wm-static-${CACHE_VERSION}`;
 
@@ -13,6 +13,7 @@ const STATIC_ASSETS = [
   '/logo.webp',
   '/logo.png',
   '/favicon.ico',
+  '/fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap',
 ];
 
 self.addEventListener('install', (event) => {
@@ -58,12 +59,12 @@ self.addEventListener('fetch', (event) => {
   // Skip non-GET requests
   if (event.request.method !== 'GET') return;
 
-  // Skip cross-origin requests (Firebase APIs, fonts, etc.)
+  // Skip cross-origin requests (Firebase APIs, fonts, etc.) — don't intercept them
   if (url.origin !== location.origin) return;
 
   // API requests — network first, fallback to cache
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(event.request));
+    event.respondWith(networkFirstWithFallback(event.request));
     return;
   }
 
@@ -98,7 +99,31 @@ async function networkFirst(request) {
     if (request.mode === 'navigate') {
       return caches.match('/index.html');
     }
-    return new Response('Offline', { status: 503 });
+    return new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
+  }
+}
+
+/** Network-first with graceful fallback (no console spam on failure) */
+async function networkFirstWithFallback(request) {
+  try {
+    const response = await fetch(request);
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(request, response.clone()).catch(() => {});
+      return response;
+    }
+    // If server returns error (4xx, 5xx), try cache
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    return response; // return the error response as-is
+  } catch (error) {
+    // Network failure — try cache, otherwise return offline response
+    const cached = await caches.match(request);
+    if (cached) return cached;
+    return new Response(
+      JSON.stringify({ error: 'offline', message: 'Sin conexión a internet' }),
+      { status: 503, headers: { 'Content-Type': 'application/json' } }
+    );
   }
 }
 
@@ -112,10 +137,11 @@ async function networkFirstOrFallback(request) {
       return response;
     }
   } catch (error) {
-    // Network failed — serve cached index.html
+    // Network failed — fall through to cache
   }
   // Fallback: cached index.html for SPA routes (e.g., /dashboard, /projects)
-  return caches.match('/index.html') || new Response('Offline', { status: 503 });
+  const cached = await caches.match('/index.html');
+  return cached || new Response('Offline', { status: 503, statusText: 'Service Unavailable' });
 }
 
 /** Stale-While-Revalidate: serve from cache immediately, update in background */
@@ -140,7 +166,7 @@ async function staleWhileRevalidate(request) {
 
 /** Check if URL is a static asset (JS, CSS, images, fonts) */
 function isStaticAsset(pathname) {
-  return /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json)$/i.test(pathname);
+  return /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json|map)$/i.test(pathname);
 }
 
 // Handle background sync for data

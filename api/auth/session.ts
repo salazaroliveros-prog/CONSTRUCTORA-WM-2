@@ -17,6 +17,19 @@ const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBA
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+// CORS origin dinámico: permite el dominio de la app y localhost para desarrollo
+const ALLOWED_ORIGINS = [
+  'https://constructora-wm-2.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+];
+
+function getCorsOrigin(req: VercelRequest): string {
+  const origin = req.headers.origin || '';
+  if (ALLOWED_ORIGINS.includes(origin)) return origin;
+  return ALLOWED_ORIGINS[0];
+}
+
 async function verifyIdToken(idToken: string): Promise<any> {
   const res = await fetch(
     `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
@@ -39,10 +52,13 @@ async function verifyIdToken(idToken: string): Promise<any> {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  const origin = getCorsOrigin(req);
+
   // Permitir CORS desde el dominio de la app
-  res.setHeader('Access-Control-Allow-Origin', 'https://constructora-wm-2.vercel.app');
+  res.setHeader('Access-Control-Allow-Origin', origin);
   res.setHeader('Access-Control-Allow-Methods', 'POST, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
@@ -50,7 +66,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // DELETE: Logout — limpiar cookie
   if (req.method === 'DELETE') {
-    res.setHeader('Set-Cookie', '__session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
+    const deleteOrigin = req.headers.origin || '';
+    if (ALLOWED_ORIGINS.includes(deleteOrigin)) {
+      res.setHeader('Set-Cookie', '__session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax; Domain=.vercel.app');
+    }
     return res.status(200).json({ success: true });
   }
 
