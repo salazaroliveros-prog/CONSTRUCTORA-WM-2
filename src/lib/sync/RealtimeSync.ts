@@ -17,53 +17,89 @@ import { SyncEngine } from './SyncEngine';
  */
 export function startRealtimeSync(entityTypes: string[]): () => void {
   const unsubscribers: (() => void)[] = [];
+  let isOffline = false;
 
-  for (const entityType of entityTypes) {
-    const q = query(
-      collection(firestoreDb, entityType),
-      orderBy('_updatedAt', 'desc')
-    );
+  // Handle offline detection to prevent retry spam
+  const handleOffline = () => {
+    if (!isOffline) {
+      isOffline = true;
+      console.log('[RealtimeSync] Offline detected - pausing listeners');
+      unsubscribers.forEach(u => u());
+      unsubscribers.length = 0;
+    }
+  };
 
-    const unsub = onSnapshot(q, {
-      next: async (snapshot) => {
-        for (const change of snapshot.docChanges()) {
-          const data = change.doc.data();
+  const handleOnline = () => {
+    if (isOffline) {
+      isOffline = false;
+      console.log('[RealtimeSync] Connection restored - resyncing');
+      startListeners();
+    }
+  };
 
-          if (change.type === 'added' || change.type === 'modified') {
-            await getDb().localCache.put({
-              ...data,
-              id: change.doc.id,
-              entity: entityType,
-            });
-          }
+  const startListeners = () => {
+    for (const entityType of entityTypes) {
+      const q = query(
+        collection(firestoreDb, entityType),
+        orderBy('_updatedAt', 'desc')
+      );
 
-          if (change.type === 'removed') {
-            try {
-              // Dexie: delete por clave primaria compuesta [entity, id]
-              const keys = await getDb().localCache
-                .where(['entity', 'id'])
-                .equals([entityType, change.doc.id])
-                .primaryKeys();
-              for (const k of keys) {
-                await getDb().localCache.delete(k);
+      const unsub = onSnapshot(q, {
+        next: async (snapshot) => {
+          for (const change of snapshot.docChanges()) {
+            const data = change.doc.data();
+
+            if (change.type === 'added' || change.type === 'modified') {
+              await getDb().localCache.put({
+                ...data,
+                id: change.doc.id,
+                entity: entityType,
+              });
+            }
+
+            if (change.type === 'removed') {
+              try {
+                // Dexie: delete por clave primaria compuesta [entity, id]
+                const keys = await getDb().localCache
+                  .where(['entity', 'id'])
+                  .equals([entityType, change.doc.id])
+                  .primaryKeys();
+                for (const k of keys) {
+                  await getDb().localCache.delete(k);
+                }
+              } catch {
+                // El doc puede no existir localmente
               }
-            } catch {
-              // El doc puede no existir localmente
             }
           }
-        }
-      },
-      error: (error: any) => {
-        console.error(`[RealtimeSync] Error en ${entityType}:`, error.message);
-      },
-    });
+        },
+        error: (error: any) => {
+          if (error.message?.includes('offline') || error.message?.includes('failed to connect')) {
+            handleOffline();
+          } else {
+            console.error(`[RealtimeSync] Error en ${entityType}:`, error.message);
+          }
+        },
+      });
 
-    unsubscribers.push(unsub);
-  }
+      unsubscribers.push(unsub);
+    }
+  };
+
+  // Initial start
+  startListeners();
+
+  // Listen for connectivity changes
+  window.addEventListener('offline', handleOffline);
+  window.addEventListener('online', handleOnline);
 
   console.log(`[RealtimeSync] Escuchando ${entityTypes.length} colecciones`);
 
-  return () => unsubscribers.forEach((u) => u());
+  return () => {
+    unsubscribers.forEach((u) => u());
+    window.removeEventListener('offline', handleOffline);
+    window.removeEventListener('online', handleOnline);
+  };
 }
 
 /**
