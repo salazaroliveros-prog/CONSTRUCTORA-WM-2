@@ -7,10 +7,14 @@ import {
   getRedirectAuthResult,
   getIdToken,
   setSessionCookie,
-  User
+  User,
+  enableFirestoreNetwork,
+  disableFirestoreNetwork,
 } from '../lib/firebase';
 import { SyncEngine } from '../lib/sync/SyncEngine';
+import { startRealtimeSync } from '../lib/sync/RealtimeSync';
 import type { SyncState } from '../lib/sync/types';
+import { REQUIRED_COLLECTIONS } from '../services/firestoreService';
 
 // Usuario principal autorizado
 const AUTHORIZED_EMAIL = 'salazaroliveros@gmail.com';
@@ -35,6 +39,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncState, setSyncState] = useState<SyncState | null>(null);
+  const stopRealtimeRef = React.useRef<(() => void) | null>(null);
 
   const isAuthorizedUser = user?.email === AUTHORIZED_EMAIL;
 
@@ -65,13 +70,17 @@ useEffect(() => {
                if (token) await setSessionCookie(token);
              } catch { /* ok */ }
 
-             // Inicializar SyncEngine al autenticarse
-             try {
-               const engine = SyncEngine.getInstance();
-               await engine.init();
-             } catch (e) {
-               console.error('[AuthProvider] SyncEngine init failed:', e);
-             }
+// Inicializar SyncEngine al autenticarse
+              try {
+                const engine = SyncEngine.getInstance();
+                await engine.init();
+                // Start realtime sync for all required collections
+                stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
+                // Re-enable Firestore network if it was disabled
+                await enableFirestoreNetwork();
+              } catch (e) {
+                console.error('[AuthProvider] SyncEngine init failed:', e);
+              }
            }
 
            setLoading(false);
@@ -129,8 +138,16 @@ useEffect(() => {
       await fetch('/api/auth/session', { method: 'DELETE' });
     } catch { /* ignore */ }
 
+    // Stop realtime sync
+    if (stopRealtimeRef.current) {
+      stopRealtimeRef.current();
+      stopRealtimeRef.current = null;
+    }
+
     // Detener sync engine
     SyncEngine.resetInstance();
+    // Disable Firestore network to prevent offline retries
+    await disableFirestoreNetwork();
     await logout();
   }, []);
 

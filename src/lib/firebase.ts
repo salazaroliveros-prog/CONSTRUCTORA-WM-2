@@ -5,7 +5,7 @@ import {
   signOut, onAuthStateChanged, User, getIdToken,
   browserLocalPersistence, setPersistence
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, disableNetwork, enableNetwork } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from './firebaseConfig';
 
@@ -18,6 +18,35 @@ export const app = getApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const storage = getStorage(app);
+
+// ─── Network control for offline handling ─────────────────────────────────────
+let networkDisabled = false;
+
+export const disableFirestoreNetwork = async (): Promise<void> => {
+  if (!networkDisabled) {
+    try {
+      await disableNetwork(db);
+      networkDisabled = true;
+      console.log('[Firebase] Network disabled');
+    } catch (e) {
+      console.error('[Firebase] Failed to disable network:', e);
+    }
+  }
+};
+
+export const enableFirestoreNetwork = async (): Promise<void> => {
+  if (networkDisabled) {
+    try {
+      await enableNetwork(db);
+      networkDisabled = false;
+      console.log('[Firebase] Network enabled');
+    } catch (e) {
+      console.error('[Firebase] Failed to enable network:', e);
+    }
+  }
+};
+
+export const isFirestoreNetworkDisabled = (): boolean => networkDisabled;
 
 // ─── Persistencia de sesión: LOCAL (sobrevive recargas y cierre de tab) ────────
 // Por defecto Firebase usa SESSION (se pierde al cerrar tab).

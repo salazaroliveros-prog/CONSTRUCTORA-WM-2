@@ -4,8 +4,8 @@
  */
 
 import {
-  collection, query, orderBy, onSnapshot,
-  doc, setDoc, getDoc,
+  collection, query, orderBy, onSnapshot, where,
+  doc, getDoc,
 } from 'firebase/firestore';
 import { db as firestoreDb, auth } from '../../lib/firebase';
 import { getDb } from './store';
@@ -18,6 +18,13 @@ import { SyncEngine } from './SyncEngine';
 export function startRealtimeSync(entityTypes: string[]): () => void {
   const unsubscribers: (() => void)[] = [];
   let isOffline = false;
+  const uid = auth.currentUser?.uid;
+
+  // Guard: must have authenticated user
+  if (!uid) {
+    console.warn('[RealtimeSync] No authenticated user, skipping realtime sync');
+    return () => {};
+  }
 
   // Handle offline detection to prevent retry spam
   const handleOffline = () => {
@@ -41,6 +48,7 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
     for (const entityType of entityTypes) {
       const q = query(
         collection(firestoreDb, entityType),
+        where('ownerId', '==', uid),
         orderBy('_updatedAt', 'desc')
       );
 
