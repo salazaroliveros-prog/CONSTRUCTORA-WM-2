@@ -2,121 +2,61 @@
  * Vercel Edge Middleware
  * ──────────────────────────────────────────────────────────────────────────────
  * Se ejecuta en el Edge ANTES de servir la app SPA.
- * - Headers de seguridad
- * - Verificación de cookie __session (Firebase session)
- * - Redirección de login expirado
+ * - Agrega headers de seguridad a las respuestas
+ * - NO bloquea el acceso (el login se maneja client-side con Firebase Auth)
  */
-
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || '';
 
 function isStaticAsset(pathname: string): boolean {
   return (
     pathname.startsWith('/_next') ||
-    /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map)$/.test(pathname) ||
+    /\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|json|map|webp)$/.test(pathname) ||
     pathname === '/favicon.ico' ||
     pathname === '/manifest.json' ||
     pathname === '/sw.js'
   );
 }
 
-function decodeJwtExpiry(token: string): number | null {
-  try {
-    const parts = token.split('.');
-    if (parts.length !== 3) return null;
-    const payload = JSON.parse(
-      Buffer.from(parts[1], 'base64').toString()
-    );
-    return (payload as { exp?: number }).exp ?? null;
-  } catch {
-    return null;
-  }
-}
-
 export default async function middleware(request: Request): Promise<Response> {
   const url = new URL(request.url);
   const { pathname } = url;
 
-  // Assets estáticos pasan directo
+  // Procesar la respuesta real del servidor/hosting
+  let response: Response;
+
+  try {
+    response = await fetch(request);
+  } catch {
+    // Si falla, devolver un error simple
+    return new Response('Service Unavailable', { status: 503 });
+  }
+
+  // Solo agregar headers de seguridad, no reemplazar el contenido
+  const secureResponse = new Response(response.body, response);
+
+  // Headers de seguridad
+  secureResponse.headers.set('X-Frame-Options', 'DENY');
+  secureResponse.headers.set('X-Content-Type-Options', 'nosniff');
+  secureResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  secureResponse.headers.set(
+    'Permissions-Policy',
+    'camera=(), microphone=(), geolocation=()'
+  );
+  secureResponse.headers.set(
+    'Strict-Transport-Security',
+    'max-age=31536000; includeSubDomains'
+  );
+  secureResponse.headers.set('X-Robots-Tag', 'noindex, nofollow');
+
+  // Cache control para assets estáticos
   if (isStaticAsset(pathname)) {
-    return fetch(request);
+    secureResponse.headers.set('Cache-Control', 'public, max-age=31536000, immutable');
+  } else {
+    secureResponse.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate');
   }
 
-  // Crear respuesta base con headers de seguridad
-  const response = new Response('OK', {
-    status: 200,
-    headers: {
-      'X-Frame-Options': 'DENY',
-      'X-Content-Type-Options': 'nosniff',
-      'Referrer-Policy': 'strict-origin-when-cross-origin',
-      'Permissions-Policy': 'camera=(), microphone=(), geolocation=()',
-      'Strict-Transport-Security': 'max-age=31536000; includeSubDomains',
-      'X-Robots-Tag': 'noindex, nofollow',
-    },
-  });
-
-  // Verificar cookie de sesión Firebase
-  const cookieHeader = request.headers.get('cookie') || '';
-  const sessionMatch = cookieHeader.match(/__session=([^;]+)/);
-
-  if (sessionMatch && FIREBASE_API_KEY) {
-    const token = sessionMatch[1];
-
-    try {
-      // Verificar con Firebase Auth API si el token es válido
-      const verifyRes = await fetch(
-        `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ idToken: token }),
-        }
-      );
-
-      if (!verifyRes.ok) {
-        // Sesión inválida — redirigir a página principal para re-login
-        const loginUrl = url.origin;
-        const redirect = new Response('', {
-          status: 307,
-          headers: { Location: loginUrl },
-        });
-        redirect.headers.set('Set-Cookie', '__session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax');
-        return redirect;
-      }
-
-      // Token válido — verificar expiración
-      const decoded = decodeJwtExpiry(token);
-      if (decoded !== null && decoded * 1000 < Date.now() + 60000) {
-        // Token próximo a expirar — refrescar
-        try {
-          const refreshRes = await fetch(
-            `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                grant_type: 'refresh_token',
-                refresh_token: '',
-              }),
-            }
-          );
-
-          if (!refreshRes.ok) {
-            const loginUrl = url.origin;
-            const redirect = new Response('', {
-              status: 307,
-              headers: { Location: loginUrl },
-            });
-            redirect.headers.set('Set-Cookie', '__session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax');
-            return redirect;
-          }
-        } catch {
-          // Si el refresh falla, dejar que el cliente maneje el re-login
-        }
-      }
-    } catch {
-      // Error de red en verificación — permitir que el cliente maneje
-    }
-  }
-
-  return response;
+  return secureResponse;
 }
+
+export const config = {
+  matcher: ['/((?!api|_next/static|_next/image|favicon\\.ico).*)'],
+};
