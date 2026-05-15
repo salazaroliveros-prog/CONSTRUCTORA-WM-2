@@ -235,6 +235,12 @@ import { Project, Typology } from '../constants';
  - RealtimeSync now filters by `ownerId` for security
  - Cleanup properly stops listeners on logout and disables Firestore network
 
+### 9. Prevent Firestore connection spam when offline
+ - RealtimeSync checks `navigator.onLine` before starting listeners
+ - RealtimeSync checks `isFirestoreNetworkDisabled()` in `startListeners()`
+ - Added `setRealtimeSyncStopCallback` to properly stop listeners before network disable
+ - Suppressed `ERR_INTERNET_DISCONNECTED` errors in RealtimeSync error handler
+
 ---
 
 ## Recent Improvements (2026-05-14)

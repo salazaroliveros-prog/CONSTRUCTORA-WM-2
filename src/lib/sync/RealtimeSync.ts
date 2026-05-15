@@ -7,7 +7,7 @@ import {
   collection, query, orderBy, onSnapshot, where,
   doc, getDoc,
 } from 'firebase/firestore';
-import { db as firestoreDb, auth } from '../../lib/firebase';
+import { db as firestoreDb, auth, isFirestoreNetworkDisabled } from '../../lib/firebase';
 import { getDb } from './store';
 import { SyncEngine } from './SyncEngine';
 
@@ -24,6 +24,13 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
   if (!uid) {
     console.warn('[RealtimeSync] No authenticated user, skipping realtime sync');
     return () => {};
+  }
+
+  // Check if browser is online
+  const isBrowserOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  if (!isBrowserOnline) {
+    console.log('[RealtimeSync] Browser offline - skipping initial listener start');
+    isOffline = true;
   }
 
   // Handle offline detection to prevent retry spam
@@ -45,6 +52,10 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
   };
 
   const startListeners = () => {
+    // Don't start if offline or Firestore network disabled
+    if (isOffline || isFirestoreNetworkDisabled() || (typeof navigator !== 'undefined' && !navigator.onLine)) {
+      return;
+    }
     for (const entityType of entityTypes) {
       const q = query(
         collection(firestoreDb, entityType),
@@ -82,11 +93,11 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
           }
         },
         error: (error: any) => {
-          if (error.message?.includes('offline') || error.message?.includes('failed to connect')) {
-            handleOffline();
-          } else {
+          // Only log non-offline errors to avoid spam
+          if (!error.message?.includes('offline') && !error.message?.includes('failed to connect') && !error.message?.includes('ERR_INTERNET_DISCONNECTED')) {
             console.error(`[RealtimeSync] Error en ${entityType}:`, error.message);
           }
+          handleOffline();
         },
       });
 
@@ -94,7 +105,7 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
     }
   };
 
-  // Initial start
+  // Initial start only if online
   startListeners();
 
   // Listen for connectivity changes

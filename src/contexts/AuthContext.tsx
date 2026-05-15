@@ -10,6 +10,7 @@ import {
   User,
   enableFirestoreNetwork,
   disableFirestoreNetwork,
+  setRealtimeSyncStopCallback,
 } from '../lib/firebase';
 import { SyncEngine } from '../lib/sync/SyncEngine';
 import { startRealtimeSync } from '../lib/sync/RealtimeSync';
@@ -76,6 +77,13 @@ useEffect(() => {
                 await engine.init();
                 // Start realtime sync for all required collections
                 stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
+                // Register stop callback so disableFirestoreNetwork can call it
+                setRealtimeSyncStopCallback(() => {
+                  if (stopRealtimeRef.current) {
+                    stopRealtimeRef.current();
+                    stopRealtimeRef.current = null;
+                  }
+                });
                 // Re-enable Firestore network if it was disabled
                 await enableFirestoreNetwork();
               } catch (e) {
