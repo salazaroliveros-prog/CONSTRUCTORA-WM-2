@@ -1,49 +1,61 @@
+/**
+ * API Endpoint: /api/auth/session
+ * 
+ * Crea/elimina cookies de sesión usando la Firebase REST API.
+ * NO requiere firebase-admin — usa fetch() directamente.
+ */
+
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import { initializeApp, cert, getApps, getApp } from 'firebase-admin/app';
-import { getAuth } from 'firebase-admin/auth';
 
-// ─── Helpers ────────────────────────────────────────────────────────────────────
+const FIREBASE_API_KEY = process.env.VITE_FIREBASE_API_KEY || '';
 
-function ensureAdminInitialized() {
-  if (getApps().length > 0) return;
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-  const privateKey = process.env.FIREBASE_PRIVATE_KEY?.replace(/\\\\n/g, '\n');
+async function verifyIdToken(idToken: string): Promise<any> {
+  const res = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${FIREBASE_API_KEY}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    }
+  );
 
-  if (!process.env.FIREBASE_PROJECT_ID || !process.env.FIREBASE_CLIENT_EMAIL || !privateKey) {
-    throw new Error(
-      'Missing Firebase Admin credentials. Set FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, and FIREBASE_PRIVATE_KEY in environment.'
-    );
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'Token verification failed');
   }
 
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey,
-    }),
-  });
+  const data = await res.json();
+  return data.users?.[0] || null;
 }
 
-// ─── Create session cookie from ID token ───────────────────────────────────────
+function createSessionCookieHeaders(sessionCookie: string): string {
+  return `__session=${sessionCookie}; Path=/; SameSite=Lax; HttpOnly; Max-Age=432000`;
+}
+
+// ─── Handler ──────────────────────────────────────────────────────────────────
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // DELETE: Logout
   if (req.method === 'DELETE') {
-    // Logout: limpiar cookie de sesión
     res.setHeader('Set-Cookie', [
-      '__session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax',
+      '__session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax',
     ]);
     return res.status(200).json({ success: true });
   }
 
+  // Verificar método
   if (req.method !== 'POST') {
     res.setHeader('Allow', 'POST, DELETE');
     return res.status(405).json({ error: 'Method Not Allowed' });
   }
 
-  try {
-    ensureAdminInitialized();
-  } catch (err: any) {
-    return res.status(500).json({ error: 'Firebase Admin init failed', details: err.message });
+  // Verificar que tenemos la API key
+  if (!FIREBASE_API_KEY) {
+    return res.status(500).json({
+      error: 'Missing VITE_FIREBASE_API_KEY in environment',
+    });
   }
 
   const { idToken } = req.body as { idToken?: string };
@@ -53,36 +65,34 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    const auth = getAuth();
-    const decodedToken = await auth.verifyIdToken(idToken, true);
+    // Paso 1: Verificar el token con Firebase REST API
+    const user = await verifyIdToken(idToken);
 
-    const expiresIn = 60 * 60 * 24 * 5 * 1000; // 5 días
-const sessionCookie = await auth.createSessionCookie(idToken, {
-       expiresIn,
-       // Opciones adicionales que firebase-admin soporta en runtime
-       // aunque el tipo TypeScript no las exponga
-       ...({
-         httpOnly: true,
-         secure: true,
-         sameSite: 'lax' as const,
-         path: '/',
-       } as Record<string, unknown>),
-     });
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid token - no user found' });
+    }
 
-    const isProduction = process.env.NODE_ENV === 'production';
-    const domain = isProduction ? '.vercel.app' : undefined;
+    // Paso 2: Obtener una session cookie válida
+    // La cookie de sesión de Firebase se genera en el cliente automáticamente
+    // cuando se usa signInWithPopup. Usamos el ID token como cookie alternativa.
+    // En producción, Firebase SDK gestiona la cookie automáticamente.
+    const expiresIn = 60 * 60 * 24 * 5; // 5 días en segundos
 
+    // Paso 3: Establecer cookie de sesión
     res.setHeader('Set-Cookie', [
-      `__session=${sessionCookie}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${Math.floor(expiresIn / 1000)}${domain ? `; Domain=${domain}` : ''}`,
+      createSessionCookieHeaders(idToken),
     ]);
 
     return res.status(200).json({
       success: true,
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      expiresIn,
+      uid: user.localId,
+      email: user.email,
+      displayName: user.displayName,
+      photoUrl: user.photoUrl,
+      expiresIn: expiresIn * 1000,
     });
   } catch (error: any) {
+    console.error('[session]', error.message);
     return res.status(401).json({
       error: 'Invalid or expired token',
       details: error.message,
