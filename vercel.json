@@ -18,5 +18,12 @@
     }
   ],
   "cleanUrls": false,
-  "trailingSlash": false
+  "trailingSlash": false,
+  "redirects": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/logo.webp",
+      "permanent": true
+    }
+  ]
 }
