@@ -3,7 +3,7 @@
  * Estrategia: Network-first para navegación, Stale-While-Revalidate para assets.
  * IMPORTANTE: Cambiar CACHE_VERSION invalida TODO el caché anterior.
  */
-const CACHE_VERSION = 'v12';
+const CACHE_VERSION = 'v13';
 const CACHE_NAME = `wm-erp-${CACHE_VERSION}`;
 const STATIC_CACHE = `wm-static-${CACHE_VERSION}`;
 

@@ -1,4 +1,4 @@
-import { Typology } from '../constants';
+import { Typology } from '../models/engineering';
 
 export interface APUMaterial { name: string; unit: string; quantity: number; price: number; }
 export interface APULabor    { role: string; unit: string; quantity: number; price: number; }

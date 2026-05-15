@@ -12,7 +12,8 @@
  */
 
 import { useMemo, useCallback, useState } from 'react';
-import { Typology, WorkItem } from '../constants';
+import { WorkItem } from '../models/workItem';
+import { Typology } from '../models/engineering';
 import { BudgetItem, MaterialLine, LaborLine } from '../types/budget';
 import { BudgetLine } from '../lib/budgetData';
 import { MARKET_LEVELS, SLAB_TYPOLOGIES, MarketLevel, SlabTypology } from '../lib/marketParams';

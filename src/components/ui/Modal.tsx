@@ -77,16 +77,16 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
         aria-label={title || "Dialog"}
       >
         <div
-          className={cn(
-            "relative w-full rounded-2xl bg-[var(--color-surface-solid)] border border-[var(--color-border)] shadow-2xl transition-all duration-200",
-            sizeClasses[size],
-            isAnimating
-              ? "scale-100 translate-y-0 opacity-100"
-              : "scale-95 translate-y-4 opacity-0"
-          )}
-          onClick={(e) => e.stopPropagation()}
-          ref={ref}
-        >
+            className={cn(
+              "relative w-full rounded-2xl glass-card border border-[var(--color-neutral-100)] shadow-2xl transition-all duration-200",
+              sizeClasses[size],
+              isAnimating
+                ? "scale-100 translate-y-0 opacity-100"
+                : "scale-95 translate-y-4 opacity-0"
+            )}
+            onClick={(e) => e.stopPropagation()}
+            ref={ref}
+          >
           {(title || description || showCloseButton) && (
             <div className="flex items-center justify-between p-5 border-b border-[var(--color-neutral-100)]">
               <div>

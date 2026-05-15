@@ -68,15 +68,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               if (token) await setSessionCookie(token);
             } catch { /* ok */ }
 
-            // Inicializar SyncEngine al autenticarse
-            try {
-              const engine = SyncEngine.getInstance();
-              await engine.init();
+            // Inicializar SyncEngine solo si el usuario está autorizado
+            if (firebaseUser.email === AUTHORIZED_EMAIL) {
+              try {
+                const engine = SyncEngine.getInstance();
+                await engine.init();
 
-              // Iniciar realtime sync para todas las colecciones
-              stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
-            } catch (e) {
-              console.error('[AuthProvider] SyncEngine init failed:', e);
+                // Iniciar realtime sync para todas las colecciones
+                stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
+              } catch (e) {
+                console.error('[AuthProvider] SyncEngine init failed:', e);
+              }
             }
           }
 

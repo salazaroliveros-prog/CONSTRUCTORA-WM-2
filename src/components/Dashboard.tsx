@@ -205,8 +205,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
-                className="relative bg-[var(--color-surface-solid)] border border-[var(--color-neutral-100)] rounded-xl p-3 cursor-default will-change-transform overflow-hidden group
-                 hover:border-[var(--color-neutral-200)] hover:shadow-md shimmer-effect"
+      className="relative glass-card p-3 cursor-default will-change-transform overflow-hidden group shimmer-effect"
     >
       {/* Color accent bar top */}
       <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
@@ -730,30 +729,30 @@ const generateReport = async () => {
             </div>
             <div className="space-y-2">
               <label htmlFor="accounting-date" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Fecha</label>
-              <input 
-                id="accounting-date"
-                type="date"
-                value={accountingForm.date}
-                onChange={(e) => setAccountingForm({ ...accountingForm, date: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
-                title="Fecha del movimiento"
-              />
+               <input 
+                 id="accounting-date"
+                 type="date"
+                 value={accountingForm.date}
+                 onChange={(e) => setAccountingForm({ ...accountingForm, date: e.target.value })}
+                 className="w-full input-modern text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-secondary"
+                 title="Fecha del movimiento"
+               />
             </div>
           </div>
 
           <div>
               <label htmlFor="accounting-category" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Categoría</label>
-              <select 
-                id="accounting-category"
-                value={accountingForm.category}
-                onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
-                title="Seleccionar categoría"
-            >
-              {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+               <select 
+                 id="accounting-category"
+                 value={accountingForm.category}
+                 onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
+                 className={cn("w-full input-modern text-[9px] font-black uppercase py-1.5 px-3", accountingForm.type === 'Entrada' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]')}
+                 title="Seleccionar categoría"
+             >
+               {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
+                 <option key={cat} value={cat}>{cat}</option>
+               ))}
+             </select>
           </div>
           <div>
               <label htmlFor="accounting-project" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
@@ -772,42 +771,42 @@ const generateReport = async () => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="accounting-quantity" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Cantidad / Unidades</label>
-              <input 
-                id="accounting-quantity"
-                type="number"
-                step="0.01"
-                value={accountingForm.quantity || ''}
-                onChange={(e) => setAccountingForm({ ...accountingForm, quantity: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
-                placeholder="1"
-                title="Cantidad"
-              />
+               <input 
+                 id="accounting-quantity"
+                 type="number"
+                 step="0.01"
+                 value={accountingForm.quantity || ''}
+                 onChange={(e) => setAccountingForm({ ...accountingForm, quantity: parseFloat(e.target.value) || 0 })}
+                 className="w-full input-modern text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-secondary"
+                 placeholder="1"
+                 title="Cantidad"
+               />
             </div>
             <div className="space-y-2">
               <label htmlFor="accounting-cost" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
-              <input 
-                id="accounting-cost"
-                type="number"
-                step="0.01"
-                value={accountingForm.cost || ''}
-                onChange={(e) => setAccountingForm({ ...accountingForm, cost: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
-                placeholder="0.00"
-                title="Costo unitario"
-              />
+               <input 
+                 id="accounting-cost"
+                 type="number"
+                 step="0.01"
+                 value={accountingForm.cost || ''}
+                 onChange={(e) => setAccountingForm({ ...accountingForm, cost: parseFloat(e.target.value) || 0 })}
+                 className="w-full input-modern text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-secondary"
+                 placeholder="0.00"
+                 title="Costo unitario"
+               />
             </div>
           </div>
 
           <div>
               <label htmlFor="accounting-description" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
-              <textarea 
-                id="accounting-description"
-                value={accountingForm.description}
-                onChange={(e) => setAccountingForm({ ...accountingForm, description: e.target.value })}
-                placeholder="Ej: Pago sub-contrato Fase 1, Compra de cemento..."
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm min-h-[80px]"
-                title="Descripción del movimiento"
-            />
+               <textarea 
+                 id="accounting-description"
+                 value={accountingForm.description}
+                 onChange={(e) => setAccountingForm({ ...accountingForm, description: e.target.value })}
+                 placeholder="Ej: Pago sub-contrato Fase 1, Compra de cemento..."
+                 className="w-full input-modern text-[10px] font-black uppercase focus:outline-none focus:border-secondary min-h-[80px]"
+                 title="Descripción del movimiento"
+             />
           </div>
 
           <button 
@@ -881,22 +880,22 @@ const generateReport = async () => {
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)}
-            className="text-[9px] font-bold bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary max-w-[180px]"
-          >
-            <option value="ALL">Todos los proyectos</option>
-            {projects.filter(p => p.status === 'EJECUCION').map(p => (
-              <option key={p.id} value={p.id}>{p.name}</option>
-            ))}
-          </select>
+           <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)}
+             className={cn("input-modern text-[9px] font-bold max-w-[180px]")}
+           >
+             <option value="ALL">Todos los proyectos</option>
+             {projects.filter(p => p.status === 'EJECUCION').map(p => (
+               <option key={p.id} value={p.id}>{p.name}</option>
+             ))}
+           </select>
           <div className="flex items-center gap-1 text-[8px] text-slate-400">
             <Calendar size={12} />
             <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
-              className="bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
+              className={cn("input-modern text-[9px] font-bold w-[130px]")}
             />
             <span className="text-slate-300">—</span>
             <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
-              className="bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
+              className={cn("input-modern text-[9px] font-bold w-[130px]")}
             />
           </div>
         </div>
@@ -921,7 +920,13 @@ const generateReport = async () => {
       </div>
 
       {/* Main + Sidebar */}
-      <div className="flex gap-2 flex-1 min-h-0 overflow-y-auto">
+      <motion.div
+        key={selectedProjectId + selectedYear}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        className="flex gap-2 flex-1 min-h-0 overflow-y-auto"
+      >
       <section className="flex-1 min-w-0 flex flex-col gap-2">
         {/* Row 1: Cash Flow & Expenses */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">

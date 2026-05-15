@@ -3,46 +3,19 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 import { BudgetLine } from './lib/budgetData';
+import { Material, Labor, WorkItem } from './models/workItem';
+export type { Material, Labor, WorkItem } from './models/workItem';
+export { Typology } from './models/engineering';
+import { Typology } from './models/engineering';
 
-export enum Typology {
-  RESIDENCIAL = 'RESIDENCIAL',
-  COMERCIAL = 'COMERCIAL',
-  INDUSTRIAL = 'INDUSTRIAL',
-  CIVIL = 'CIVIL',
-  PUBLICA = 'PUBLICA',
-}
 
-export interface Material {
-  name: string;
-  unit: string;
-  quantity: number;
-  price: number;
-}
-
-export interface Labor {
-  role: string;
-  unit: string;
-  quantity: number;
-  price: number;
-}
-
-export interface WorkItem {
-  id: string;
-  code: string;
-  description: string;
-  unit: string;
-  materials: Material[];
-  labor: Labor[];
-  typology: Typology;
-  durationDays: number; // For 1 unit
-  category: string;
-}
-
+/** @deprecated Use models/project.ts instead */
 export interface ProjectItem extends WorkItem {
   projectQuantity: number;
   selected: boolean;
 }
 
+/** @deprecated Use models/project.ts instead */
 export interface Project {
   id: string;
   name: string;
