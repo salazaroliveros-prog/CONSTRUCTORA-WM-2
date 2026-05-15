@@ -7,7 +7,7 @@ import {
   collection, query, orderBy, onSnapshot, where,
   doc, getDoc,
 } from 'firebase/firestore';
-import { db as firestoreDb, auth, isFirestoreNetworkDisabled } from '../../lib/firebase';
+import { db as firestoreDb, auth, isFirestoreNetworkDisabled, disableFirestoreNetwork, enableFirestoreNetwork } from '../../lib/firebase';
 import { getDb } from './store';
 import { SyncEngine } from './SyncEngine';
 
@@ -28,25 +28,37 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
 
   // Check if browser is online
   const isBrowserOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-  if (!isBrowserOnline) {
-    console.log('[RealtimeSync] Browser offline - skipping initial listener start');
+  if (!isBrowserOnline || isFirestoreNetworkDisabled()) {
+    console.log('[RealtimeSync] Offline or network disabled - skipping initial listener start');
     isOffline = true;
   }
 
   // Handle offline detection to prevent retry spam
-  const handleOffline = () => {
+  const handleOffline = async () => {
     if (!isOffline) {
       isOffline = true;
-      console.log('[RealtimeSync] Offline detected - pausing listeners');
+      console.log('[RealtimeSync] Offline detected - disabling Firestore network');
+      // First mark as disabled to prevent new listeners
+      // Then disable network to stop existing connections
+      try {
+        await disableFirestoreNetwork();
+      } catch (e) {
+        console.error('[RealtimeSync] Failed to disable network:', e);
+      }
       unsubscribers.forEach(u => u());
       unsubscribers.length = 0;
     }
   };
 
-  const handleOnline = () => {
+  const handleOnline = async () => {
     if (isOffline) {
+      console.log('[RealtimeSync] Connection restored - re-enabling Firestore network and resyncing');
+      try {
+        await enableFirestoreNetwork();
+      } catch (e) {
+        console.error('[RealtimeSync] Failed to enable network:', e);
+      }
       isOffline = false;
-      console.log('[RealtimeSync] Connection restored - resyncing');
       startListeners();
     }
   };
@@ -109,8 +121,13 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
   startListeners();
 
   // Listen for connectivity changes
-  window.addEventListener('offline', handleOffline);
-  window.addEventListener('online', handleOnline);
+  // Note: navigator.onLine is not reliable, so we use both the event and Firestore network state
+  window.addEventListener('offline', () => {
+    handleOffline().catch(console.error);
+  });
+  window.addEventListener('online', () => {
+    handleOnline().catch(console.error);
+  });
 
   console.log(`[RealtimeSync] Escuchando ${entityTypes.length} colecciones`);
 

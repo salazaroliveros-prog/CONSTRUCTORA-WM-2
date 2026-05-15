@@ -236,10 +236,9 @@ import { Project, Typology } from '../constants';
  - Cleanup properly stops listeners on logout and disables Firestore network
 
 ### 9. Prevent Firestore connection spam when offline
- - RealtimeSync checks `navigator.onLine` before starting listeners
- - RealtimeSync checks `isFirestoreNetworkDisabled()` in `startListeners()`
- - Added `setRealtimeSyncStopCallback` to properly stop listeners before network disable
- - Suppressed `ERR_INTERNET_DISCONNECTED` errors in RealtimeSync error handler
+ - RealtimeSync now calls `disableFirestoreNetwork()` immediately on offline detection, which terminates underlying WebSocket/HTTP connections
+ - Added async `handleOffline`/`handleOnline` handlers with proper await for network state changes
+ - Check `isFirestoreNetworkDisabled()` at initialization to prevent starting listeners when already offline
 
 ---
 
