@@ -280,7 +280,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
         items={project.items}
         totals={{
           ...totals,
-          equipmentTotal: budgetTree.reduce((s, l) => s + (l.equipmentTotal ?? (l.equipmentCost || 0) * l.qty), 0),
+          equipmentTotal: budgetTree.reduce((s, l) => s + ((l as any).equipmentTotal || (l.equipmentCost || 0) * (l.qty || 1)), 0),
           taxTotal: totals.totalDirect * 0.12,
           profitTotal: totals.totalDirect * 0.15,
           contingencyTotal: totals.totalDirect * 0.05,

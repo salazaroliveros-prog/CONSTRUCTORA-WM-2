@@ -12,8 +12,8 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 // En Vercel, las variables se leen de process.env directamente.
-// No usar VITE_ prefix aquí — eso es solo para el cliente (import.meta.env).
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || process.env.VITE_FIREBASE_API_KEY || '';
+// Para serverless functions, usar VITE_ prefix no funciona - necesita VITE_FIREBASE_API_KEY
+const FIREBASE_API_KEY = process.env.VITE_FIREBASE_API_KEY || process.env.FIREBASE_API_KEY || '';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -68,7 +68,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method === 'DELETE') {
     const deleteOrigin = req.headers.origin || '';
     if (ALLOWED_ORIGINS.includes(deleteOrigin)) {
-      res.setHeader('Set-Cookie', '__session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax; Domain=.vercel.app');
+      res.setHeader('Set-Cookie', '__session=; Path=/; Max-Age=0; HttpOnly; SameSite=Lax');
     }
     return res.status(200).json({ success: true });
   }
@@ -79,14 +79,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // Validar API key
-  if (!FIREBASE_API_KEY || FIREBASE_API_KEY === 'AIzaSyC89fa8S8jbssBaPw5zHy5FlsJGEXlfftY') {
-    console.warn('[session] API key not configured or still using example key');
-    return res.status(200).json({
-      success: true,
-      simulated: true,
-      uid: 'simulated-uid',
-      email: 'simulated@example.com',
-    });
+  if (!FIREBASE_API_KEY) {
+    console.warn('[session] API key not configured');
+    return res.status(500).json({ error: 'Server configuration error' });
   }
 
   const { idToken } = req.body as { idToken?: string };

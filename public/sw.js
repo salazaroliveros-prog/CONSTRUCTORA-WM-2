@@ -12,8 +12,6 @@ const STATIC_ASSETS = [
   '/manifest.json',
   '/logo.webp',
   '/logo.png',
-  '/favicon.ico',
-  '/fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Space+Grotesk:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap',
 ];
 
 self.addEventListener('install', (event) => {

@@ -33,91 +33,7 @@ export interface CostRowEquipment {
 }
 
 // ========================================================================
-//  BUDGETLINE DOCUMENT (V4) — Con TODOS los campos incluyendo legacy
-// ========================================================================
-export interface BudgetLineDocument {
-  // Identity
-  id?: string;
-  parentId?: string;
-  children: BudgetLineDocument[];
-  code: string;
-  description: string;
-  unit: string;
-  category: string;
-  typology: EnumTypology;
-  order: number;
-
-  // Input
-  isActive: boolean;
-  projectQuantity: number;
-  computationType: EnumComputationType;
-  dimensions?: Dimensions;
-  materials: CostRowMaterial[];
-  labor: CostRowLabor[];
-  equipment: CostRowEquipment[];
-
-  // Legacy compat (used by BudgetTable, DimensionEditor, useBudget, etc.)
-  qty?: number;
-  materialCost?: number;
-  laborCost?: number;
-  equipmentCost?: number;
-  materialPerf?: number;
-  laborPerf?: number;
-  wasteFactor?: number;
-  materialTotal?: number;
-  laborTotal?: number;
-  equipmentTotal?: number;
-  subtotal?: number;
-  taxAmount?: number;
-  profitAmount?: number;
-  contingencyAmount?: number;
-  totalLine?: number;
-  unitCost?: number;
-  taxRate?: number;
-  profitMargin?: number;
-  contingency?: number;
-  actualCost?: number;
-  marketPriceIndex?: number;
-
-  // Engineering
-  costLibraryRef?: string;
-  concreteGrade?: string;
-  steelRatio?: number;
-  formworkRatio?: number;
-
-  // Schedule
-  dailyOutput: number;
-  crewSize: number;
-  durationDays: number;
-  estimatedDays?: number;
-
-  // Calculated
-  steelInfo?: {
-    ratio: number;
-    diameter: number;
-    barLength: number;
-    totalBars: number;
-    weight: number;
-    cost: number;
-  };
-}
-
-export interface CostRowLabor {
-  role: string;
-  quantity: number;
-  dailyWage: number;
-  totalCost: number;
-}
-
-export interface CostRowEquipment {
-  name: string;
-  quantity: number;
-  hourlyRate: number;
-  totalCost: number;
-}
-
-// ========================================================================
-//  BUDGETLINE DOCUMENT (V4) — Con campos legacy de compatibilidad
+//  BUDGETLINE DOCUMENT (V4) — Consolidated with ALL fields including legacy
 // ========================================================================
 export interface BudgetLineDocument {
   // Identity
@@ -142,12 +58,26 @@ export interface BudgetLineDocument {
 
   // Legacy compat fields (used by existing components)
   qty?: number;
-  wasteFactor?: number;
+  materialCost?: number;
+  laborCost?: number;
+  equipmentCost?: number;
+  equipmentTotal?: number;
   materialPerf?: number;
   laborPerf?: number;
-  equipmentCost?: number;
+  wasteFactor?: number;
   materialTotal?: number;
   laborTotal?: number;
+  subtotal?: number;
+  taxAmount?: number;
+  profitAmount?: number;
+  contingencyAmount?: number;
+  totalLine?: number;
+  unitCost?: number;
+  taxRate?: number;
+  profitMargin?: number;
+  contingency?: number;
+  actualCost?: number;
+  marketPriceIndex?: number;
 
   // Engineering params
   costLibraryRef?: string;
@@ -160,22 +90,7 @@ export interface BudgetLineDocument {
   crewSize: number;
   durationDays: number;
 
-  // Financial overrides (per-line)
-  taxRate?: number;
-  profitMargin?: number;
-  contingency?: number;
-
-  // Actual cost for deviation analysis
-  actualCost?: number;
-  marketPriceIndex?: number;
-
   // Calculated fields (populated by engine)
-  subtotal?: number;
-  taxAmount?: number;
-  profitAmount?: number;
-  contingencyAmount?: number;
-  totalLine?: number;
-  unitCost?: number;
   estimatedDays?: number;
   steelInfo?: {
     ratio: number;
