@@ -4,9 +4,7 @@
    ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
 
 /* ──────────────────────────────────────────────────────
@@ -162,6 +160,7 @@
     /* Smooth scroll */
     scroll-behavior: smooth;
     /* Prevent font size inflation on mobile */
+    text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
     /* Theme transition */
     transition: background-color var(--ease-normal), color var(--ease-normal);
@@ -212,13 +211,12 @@
 
   /* Smooth scroll container */
   .scroll-container {
-    scrollbar-width: thin;
-    scrollbar-color: var(--neutral-300) transparent;
     -webkit-overflow-scrolling: touch;
   }
 
   /* Prevent text size adjust on iOS */
   input, textarea, select, button {
+    text-size-adjust: 100%;
     -webkit-text-size-adjust: 100%;
   }
 
@@ -256,7 +254,7 @@
   }
 
   /* User select */
-  .select-none { user-select: none; }
+  .select-none { -webkit-user-select: none; user-select: none; }
 
   /* Contain layout */
   .contain-layout {
@@ -294,6 +292,7 @@
     position: relative;
     overflow: hidden;
     white-space: nowrap;
+    -webkit-user-select: none;
     user-select: none;
     -webkit-tap-highlight-color: transparent;
 
@@ -459,8 +458,8 @@
   /* ── Card ── */
   .card {
     background: var(--surface);
-    backdrop-filter: var(--glass-blur);
     -webkit-backdrop-filter: var(--glass-blur);
+    backdrop-filter: var(--glass-blur);
     border: 1px solid var(--border);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-card);
@@ -492,8 +491,8 @@
 .card-dark {
      background: var(--surface-dark);
      border-color: rgba(255,255,255,0.08);
-     backdrop-filter: var(--glass-blur);
      -webkit-backdrop-filter: var(--glass-blur);
+     backdrop-filter: var(--glass-blur);
      border: 1px solid rgba(255,255,255,0.08);
      border-radius: var(--radius-xl);
      box-shadow: var(--shadow-card);

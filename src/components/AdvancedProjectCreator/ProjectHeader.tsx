@@ -72,6 +72,7 @@ export function ProjectHeader({
             value={selectedTypology}
             onChange={(e) => onTypologyChange(e.target.value as Typology)}
             className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary/20"
+            title="Seleccionar tipología"
           >
             {typologies.map(t => (
               <option key={t} value={t}>
@@ -92,6 +93,7 @@ export function ProjectHeader({
               const found = MARKET_LEVELS.find(m => m.id === e.target.value);
               if (found) onMarketLevelChange(found);
             }}
+            title="Seleccionar nivel de mercado"
             className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary"
           >
             {MARKET_LEVELS.map(m => (
@@ -115,6 +117,7 @@ export function ProjectHeader({
               if (found) onSlabTypeChange(found);
             }}
             className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary"
+            title="Seleccionar sistema de losa"
           >
             {SLAB_TYPOLOGIES.map(s => (
               <option key={s.id} value={s.id}>
@@ -157,6 +160,7 @@ export function ProjectHeader({
                 value={wasteFactors.materials}
                 onChange={(e) => onWasteFactorsChange({ ...wasteFactors, materials: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary"
+                title="Porcentaje de desperdicio de materiales"
               />
             </div>
             <div>
@@ -171,6 +175,7 @@ export function ProjectHeader({
                 value={wasteFactors.labor}
                 onChange={(e) => onWasteFactorsChange({ ...wasteFactors, labor: parseFloat(e.target.value) || 0 })}
                 className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary"
+                title="Porcentaje de desperdicio de mano de obra"
               />
             </div>
           </div>

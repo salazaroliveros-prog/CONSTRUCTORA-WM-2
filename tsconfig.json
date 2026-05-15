@@ -20,6 +20,8 @@
       "@/*": ["./src/*"]
     },
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": true,
+    "ignoreDeprecations": "5.0",
+    "forceConsistentCasingInFileNames": true
   }
 }

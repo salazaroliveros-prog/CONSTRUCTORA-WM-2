@@ -95,7 +95,7 @@ export function ProjectItemsList({
           >
             <div className="flex items-start justify-between mb-2">
               <span className="text-[8px] font-black text-slate-500 uppercase">{item.code}</span>
-              <button className="opacity-0 group-hover:opacity-100 bg-secondary text-white rounded-full p-1 transition-all">
+              <button className="opacity-0 group-hover:opacity-100 bg-secondary text-white rounded-full p-1 transition-all" title="Agregar item">
                 <Plus size={10} />
               </button>
             </div>
