@@ -11,7 +11,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className, label, error, required, ...props }, ref) => (
     <div className="space-y-1">
       {label && (
-        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+        <label className="block text-[10px] font-bold text-[var(--color-neutral-500)] uppercase tracking-wider">
           {label}
           {required && <span className="text-error ml-0.5">*</span>}
         </label>
@@ -19,10 +19,10 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
       <textarea
         ref={ref}
         className={cn(
-          "w-full bg-white/80 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-800",
-          "placeholder:text-neutral-300 outline-none transition-all duration-200 resize-vertical min-h-[80px]",
-          "focus:border-secondary focus:ring-2 focus:ring-secondary/10",
-          error && "border-error focus:border-error focus:ring-error/10",
+          "w-full bg-[var(--color-surface-solid)] border border-[var(--color-border)] rounded-xl px-4 py-2.5 text-sm font-medium text-[var(--color-neutral-800)]",
+          "placeholder:text-[var(--color-neutral-400)] outline-none transition-all duration-200 resize-vertical min-h-[80px]",
+          "focus:border-[var(--color-secondary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)]",
+          error && "border-[var(--color-error)] focus:border-[var(--color-error)] focus:ring-[color-mix(in_srgb,var(--color-error)_10%,transparent)]",
           className
         )}
         {...props}

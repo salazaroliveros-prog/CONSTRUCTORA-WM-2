@@ -33,9 +33,9 @@ interface ChartTooltipProps {
 export function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-neutral-900/95 backdrop-blur-sm border border-white/10 rounded-xl px-3 py-2 shadow-2xl text-left min-w-[120px]">
+    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] rounded-xl px-3 py-2 shadow-2xl text-left min-w-[120px]">
       {label && (
-        <p className="text-[8px] font-black text-neutral-300 uppercase tracking-widest mb-1.5">
+        <p className="text-[8px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest mb-1.5">
           {label}
         </p>
       )}
@@ -45,10 +45,10 @@ export function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
             className="w-1.5 h-1.5 rounded-full shrink-0"
             style={{ backgroundColor: entry.color }}
           />
-          <span className="text-[8px] font-bold text-white uppercase">
+          <span className="text-[8px] font-bold text-[var(--color-neutral-50)] uppercase">
             {entry.name}:
           </span>
-          <span className="text-[9px] font-black text-white">
+          <span className="text-[9px] font-black text-[var(--color-neutral-50)]">
             Q{Number(entry.value).toLocaleString()}
           </span>
         </div>
@@ -89,7 +89,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: idx * 0.003, duration: 0.2 }}
-                className="w-3 h-3 rounded-[2px] cursor-pointer hover:ring-1 hover:ring-neutral-400 transition-all"
+                className="w-3 h-3 rounded-[2px] cursor-pointer hover:ring-1 hover:ring-[var(--color-neutral-400)] transition-all"
                 style={{ backgroundColor: getColor(value) }}
                 title={`${data[idx]?.date ?? ""}: ${value} actividades`}
               />
@@ -113,7 +113,7 @@ export function GaugeChart({
   value,
   max = 100,
   label,
-  color = "#f59e0b",
+  color = "var(--color-secondary)",
 }: GaugeChartProps) {
   const percentage = Math.min((value / max) * 100, 100);
   const r = 60;
@@ -125,9 +125,9 @@ export function GaugeChart({
       <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-[100px]">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="50%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#10b981" />
+            <stop offset="0%" stopColor="var(--color-error)" />
+            <stop offset="50%" stopColor="var(--color-secondary)" />
+            <stop offset="100%" stopColor="var(--color-success)" />
           </linearGradient>
         </defs>
         <path
@@ -178,7 +178,7 @@ export function AnimatedProgress({
   value,
   max = 100,
   className,
-  color = "#f59e0b",
+  color = "var(--color-secondary)",
   showLabel = false,
   size = "md",
 }: AnimatedProgressProps) {

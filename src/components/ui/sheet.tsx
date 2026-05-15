@@ -96,12 +96,12 @@ export function Sheet({
               <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
                 <div>
                   {title && (
-                    <h3 className="text-base font-black text-neutral-900 uppercase tracking-tight">
+                    <h3 className="text-base font-black text-[var(--color-neutral-900)] uppercase tracking-tight">
                       {title}
                     </h3>
                   )}
                   {description && (
-                    <p className="text-[10px] font-medium text-neutral-500 mt-0.5">
+                    <p className="text-[10px] font-medium text-[var(--color-neutral-500)] mt-0.5">
                       {description}
                     </p>
                   )}
@@ -109,7 +109,7 @@ export function Sheet({
                 {showCloseButton && (
                   <button
                     onClick={onClose}
-                    className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors"
+                    className="p-2 text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)] rounded-xl transition-colors"
                     aria-label="Cerrar"
                     type="button"
                   >

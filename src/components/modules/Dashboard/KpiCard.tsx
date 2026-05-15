@@ -40,7 +40,7 @@ function MiniRing({ value, color, label }: MiniRingProps) {
           </span>
         </div>
       </div>
-      <span className="text-[7px] font-black text-neutral-500 uppercase tracking-wider leading-none">
+      <span className="text-[7px] font-black text-[var(--color-neutral-500)] uppercase tracking-wider leading-none">
         {label}
       </span>
     </div>
@@ -122,8 +122,8 @@ function KpiCard({ kpi, index }: KpiCardProps) {
               className="flex gap-0.5 ml-1 cursor-pointer"
               title="Ver detalle en Seguimiento"
             >
-              <MiniRing value={kpi.rings.fisico} color="#f59e0b" label="Fís" />
-              <MiniRing value={kpi.rings.financiero} color="#06b6d4" label="Fin" />
+              <MiniRing value={kpi.rings.fisico} color="var(--color-secondary)" label="Fís" />
+              <MiniRing value={kpi.rings.financiero} color="var(--color-info)" label="Fin" />
             </motion.div>
           )}
         </div>
@@ -132,10 +132,10 @@ function KpiCard({ kpi, index }: KpiCardProps) {
             className={cn(
               "text-[7px] sm:text-[6px] font-bold uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
               trend > 0
-                ? "bg-emerald-50 text-emerald-600"
+                ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)]"
                 : trend < 0
                 ? "bg-error/10 text-error"
-                : "bg-neutral-50 text-neutral-400"
+                : "bg-[var(--color-neutral-50)] text-[var(--color-neutral-400)]"
             )}
           >
             {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}

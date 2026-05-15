@@ -10,23 +10,28 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = "default", hoverable = false, asChild, ...props }, ref) => {
     const variants = {
-      default: "bg-surface border-border shadow-card hover:shadow-cardHover",
-      glass: "bg-glass backdrop-blur-xl border-glass-border shadow-glass",
-      gradient: "bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-900 border-neutral-700/50",
-      dark: "bg-surface-dark border-border/50 backdrop-blur-sm",
+      default: "bg-[var(--color-surface)] border-[var(--color-border)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--color-border-hover)]",
+      glass: "bg-glass backdrop-blur-xl border-[var(--glass-border)] shadow-glass",
+      gradient: "bg-gradient-to-br from-[var(--color-neutral-900)] via-[var(--color-neutral-800)] to-[var(--color-neutral-900)] border-[rgba(255,255,255,0.1)] shadow-xl",
+      dark: "bg-surface-dark border-[rgba(255,255,255,0.05)] backdrop-blur-md shadow-2xl",
     };
 
     return (
       <div
         ref={ref}
         className={cn(
-          "relative overflow-hidden rounded-2xl transition-all duration-300",
+          "relative overflow-hidden rounded-3xl transition-all duration-500 ease-out",
           variants[variant],
-          hoverable && "hover:-translate-y-1 hover:shadow-xl cursor-pointer",
+          hoverable && "hover:-translate-y-1.5 cursor-pointer",
           className
         )}
         {...props}
-      />
+      >
+        {variant === "gradient" && (
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,color-mix(in_srgb,var(--color-secondary)_8%,transparent),transparent_70%)] pointer-events-none" />
+        )}
+        {props.children}
+      </div>
     );
   }
 );
@@ -49,7 +54,7 @@ CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-sm text-neutral-500", className)} {...props} />
+    <p ref={ref} className={cn("text-sm text-[var(--color-neutral-500)]", className)} {...props} />
   )
 );
 CardDescription.displayName = "CardDescription";

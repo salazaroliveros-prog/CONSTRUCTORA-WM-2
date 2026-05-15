@@ -17,14 +17,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={cn("space-y-1.5", wrapperClassName)}>
         {label && (
-          <label htmlFor={inputId} className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+          <label htmlFor={inputId} className="block text-[10px] font-bold text-[var(--color-neutral-500)] uppercase tracking-wider">
             {label}
             {required && <span className="text-error ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-neutral-400)] pointer-events-none">
               {icon}
             </div>
           )}
@@ -34,19 +34,20 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={error ? "true" : undefined}
             aria-describedby={hint || error ? `${inputId}-hint` : undefined}
             className={cn(
-              "w-full rounded-xl border bg-white/80 px-4 py-2.5 text-sm font-medium text-neutral-800",
-              "placeholder:text-neutral-300 outline-none transition-all duration-200",
-              "border-neutral-200 focus:border-secondary focus:ring-2 focus:ring-secondary/10",
+              "w-full rounded-2xl border bg-[var(--color-surface-solid)] px-4 py-3 text-sm font-medium text-[var(--color-neutral-800)]",
+              "placeholder:text-[var(--color-neutral-400)] outline-none transition-all duration-300",
+              "border-[var(--color-border)] focus:border-[var(--color-secondary)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--color-secondary)_8%,transparent)]",
+              "shadow-sm hover:shadow-md hover:border-[var(--color-border-hover)]",
               icon && "pl-10",
-              error && "border-error focus:border-error focus:ring-error/10",
-              props.disabled && "bg-neutral-50 text-neutral-400 cursor-not-allowed",
+              error && "border-[var(--color-error)] focus:border-[var(--color-error)] focus:ring-[color-mix(in_srgb,var(--color-error)_8%,transparent)]",
+              props.disabled && "bg-[var(--color-neutral-50)] text-[var(--color-neutral-400)] cursor-not-allowed opacity-60",
               className
             )}
             {...props}
           />
         </div>
         {(hint || error) && (
-          <p id={`${inputId}-hint`} className={cn("text-[9px] font-medium mt-0.5", error ? "text-error" : "text-neutral-400")}>
+          <p id={`${inputId}-hint`} className={cn("text-[9px] font-medium mt-0.5", error ? "text-error" : "text-[var(--color-neutral-400)]")}>
             {error || hint}
           </p>
         )}

@@ -11,7 +11,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ({ className, label, error, required, ...props }, ref) => (
     <div className="space-y-1">
       {label && (
-        <label className="block text-[10px] font-bold text-neutral-500 uppercase tracking-wider">
+        <label className="block text-[10px] font-bold text-[var(--color-neutral-500)] uppercase tracking-wider">
           {label}
           {required && <span className="text-error ml-0.5">*</span>}
         </label>
@@ -19,11 +19,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       <select
         ref={ref}
         className={cn(
-          "w-full bg-white/80 border border-neutral-200 rounded-xl px-4 py-2.5 text-sm font-medium text-neutral-800",
+          "w-full bg-[var(--color-surface-solid)] border border-[var(--color-border)] rounded-[var(--radius-lg)] px-4 py-2.5 text-sm font-medium text-[var(--color-neutral-800)]",
           "appearance-none bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\") right 0.75rem center/12px no-repeat",
-          "outline-none transition-all duration-200 focus:border-secondary focus:ring-2 focus:ring-secondary/10",
-          "hover:border-neutral-300 cursor-pointer",
-          error && "border-error focus:border-error",
+          "outline-none transition-all duration-200 focus:border-[var(--color-secondary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)]",
+          "hover:border-[var(--color-border-hover)] cursor-pointer",
+          error && "border-[var(--color-error)] focus:border-[var(--color-error)]",
           className
         )}
         {...props}

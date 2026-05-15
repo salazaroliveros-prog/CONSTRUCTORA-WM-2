@@ -14,12 +14,12 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variants = {
-    success: "bg-success/10 text-success border border-success/25",
-    warning: "bg-warning/10 text-warning border border-warning/25",
-    error: "bg-error/10 text-error border border-error/25",
-    info: "bg-info/10 text-info border border-info/25",
-    secondary: "bg-secondary/10 text-secondary border border-secondary/25",
-    neutral: "bg-neutral-100 text-neutral-600 border border-neutral-200",
+    success: "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)] border border-[color-mix(in_srgb,var(--color-success)_25%,transparent)]",
+    warning: "bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] text-[var(--color-warning)] border border-[color-mix(in_srgb,var(--color-warning)_25%,transparent)]",
+    error: "bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] text-[var(--color-error)] border border-[color-mix(in_srgb,var(--color-error)_25%,transparent)]",
+    info: "bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] text-[var(--color-info)] border border-[color-mix(in_srgb,var(--color-info)_25%,transparent)]",
+    secondary: "bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)] text-[var(--color-secondary)] border border-[color-mix(in_srgb,var(--color-secondary)_25%,transparent)]",
+    neutral: "bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border border-[var(--color-neutral-200)]",
   };
 
   const sizes = {

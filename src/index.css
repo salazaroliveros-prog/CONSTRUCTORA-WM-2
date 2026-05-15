@@ -125,11 +125,24 @@
     75% { background-position: 50% 0%; }
   }
 
-  --animate-gradient: gradient-shift 8s ease infinite;
-  --animate-shimmer: skeletonWave 2s linear infinite;
+  }
+
+/* Animations — must be outside @theme */
+@keyframes skeletonWave {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
 }
 
-/* Custom Utilities for background size needed by animated gradients */
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  25% { background-position: 50% 100%; }
+  50% { background-position: 100% 50%; }
+  75% { background-position: 50% 0%; }
+}
+
+@utility bg-length-200 {
+  background-size: 200% 200%;
+}
 @utility bg-length-200 {
   background-size: 200% 200%;
 }

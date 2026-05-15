@@ -28,7 +28,7 @@ export function Avatar({
   return (
     <div
       className={cn(
-        "relative shrink-0 overflow-hidden rounded-full bg-neutral-200 ring-2 ring-white",
+        "relative shrink-0 overflow-hidden rounded-full bg-[var(--color-neutral-200)] ring-2 ring-[var(--color-surface-solid)]",
         sizes[size],
         className
       )}
@@ -42,7 +42,7 @@ export function Avatar({
           onError={() => setImageError(true)}
         />
       ) : (
-        <div className="flex h-full w-full items-center justify-center bg-neutral-300 text-neutral-600 font-bold">
+        <div className="flex h-full w-full items-center justify-center bg-[var(--color-neutral-300)] text-[var(--color-neutral-600)] font-bold">
           {fallback || (alt?.charAt(0) || "?")}
         </div>
       )}

@@ -15,10 +15,10 @@ export function AppShell({
   mobileNav,
 }: AppShellProps) {
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950 dark:from-neutral-950 dark:via-neutral-900 dark:to-neutral-950">
+    <div className="flex flex-col h-screen overflow-hidden bg-[var(--app-bg)]">
       {/* Top Bar */}
       {topBar && (
-        <header className="h-14 sm:h-16 backdrop-blur-xl bg-surface/80 border-b border-border/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors">
+        <header className="h-14 sm:h-16 backdrop-blur-xl bg-[var(--color-surface)]/80 border-b border-[var(--color-border)]/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors">
           {topBar}
         </header>
       )}
@@ -27,7 +27,7 @@ export function AppShell({
       <div className="flex flex-1 overflow-hidden">
         {/* Sidebar */}
         {sidebar && (
-          <aside className="hidden lg:flex lg:w-64 lg:flex-shrink-0 border-r border-border/50 bg-surface/90 backdrop-blur-xl z-20">
+          <aside className="hidden lg:flex lg:w-64 lg:flex-shrink-0 border-r border-[var(--color-border)]/50 bg-[var(--color-surface)]/90 backdrop-blur-xl z-20">
             {sidebar}
           </aside>
         )}

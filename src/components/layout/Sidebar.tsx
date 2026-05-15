@@ -22,7 +22,7 @@ function NavItem({ icon, label, isActive, isCollapsed, badge, onClick }: NavItem
           "w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 text-left overflow-hidden",
           isActive
             ? "bg-primary/10 text-primary font-bold shadow-sm"
-            : "text-neutral-500 hover:bg-neutral-50 hover:text-neutral-700"
+            : "text-[var(--color-neutral-500)] hover:bg-[var(--color-neutral-50)] hover:text-[var(--color-neutral-700)]"
         )}
       >
         <span className={cn(
@@ -63,7 +63,7 @@ function NavGroup({ title, collapsed, children }: NavGroupProps) {
   }
   return (
     <div className="mb-1">
-      <p className="px-3 text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
+      <p className="px-3 text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mb-1">
         {title}
       </p>
       <div className="space-y-0.5">{children}</div>
@@ -113,12 +113,12 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
       animate={{ width: isCollapsed ? 64 : 240 }}
       transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
       className={cn(
-        "flex flex-col h-full border-r border-border/50 bg-white/90 backdrop-blur-xl z-20",
+        "flex flex-col h-full border-r border-[var(--color-border)]/50 bg-[var(--color-surface)]/90 backdrop-blur-xl z-20",
         "transition-colors duration-300"
       )}
     >
       {/* Logo */}
-      <div className="flex items-center justify-center h-14 border-b border-border/50 px-3 shrink-0">
+      <div className="flex items-center justify-center h-14 border-b border-[var(--color-border)]/50 px-3 shrink-0">
         <motion.div
           animate={{ width: isCollapsed ? 36 : 148 }}
           transition={{ duration: 0.3 }}
@@ -162,7 +162,7 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
       {/* Collapse Toggle */}
       <button
         onClick={onToggleCollapse}
-        className="flex items-center justify-center h-12 border-t border-border/50 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-50 transition-colors shrink-0"
+        className="flex items-center justify-center h-12 border-t border-[var(--color-border)]/50 text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-50)] transition-colors shrink-0"
         aria-label={isCollapsed ? "Expandir barra lateral" : "Colapsar barra lateral"}
       >
         <motion.span

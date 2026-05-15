@@ -30,13 +30,13 @@ function AnimatedNum({ v }: { v: number }) { const n = useCountUp(v, 800); retur
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-[140px]">
-      {label && <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">{label}</p>}
+    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] rounded-xl px-4 py-3 shadow-2xl text-left min-w-[140px]">
+      {label && <p className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-2">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
           <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-[9px] font-bold text-slate-300 uppercase">{entry.name}:</span>
-          <span className="text-[10px] font-black text-white">
+          <span className="text-[9px] font-bold text-[var(--color-neutral-300)] uppercase">{entry.name}:</span>
+          <span className="text-[10px] font-black text-[var(--color-neutral-50)]">
             {typeof entry.value === 'number' && entry.name !== 'Margen'
               ? `Q${Number(entry.value).toLocaleString('es-GT')}`
               : `${entry.value}${entry.name === 'Margen' ? '%' : ''}`}
@@ -110,9 +110,9 @@ const rentabilidadData = displayProjects
       }).slice(0, 8);
 
   const pieData = [
-    { name: 'Cotizado', value: stats.cotizados.length, color: '#94a3b8' },
-    { name: 'Ejecución', value: stats.ejecucion.length, color: '#F15A24' },
-    { name: 'Finalizado', value: stats.finalizados.length, color: '#1A1A1A' },
+    { name: 'Cotizado', value: stats.cotizados.length, color: 'var(--color-neutral-400)' },
+    { name: 'Ejecución', value: stats.ejecucion.length, color: 'var(--color-secondary)' },
+    { name: 'Finalizado', value: stats.finalizados.length, color: 'var(--color-neutral-900)' },
   ];
 
 // Per-project breakdown charts (only when a project is selected)
@@ -185,8 +185,8 @@ const rentabilidadData = displayProjects
        map[t].count++;
        map[t].budget = PMath.add(map[t].budget, p.budget || 0);
      });
-     const COLORS = ['#F15A24','#1A1A1A','#0071BC','#10b981','#a78bfa'];
-     return Object.entries(map).map(([name, v], i) => ({ name, ...v, color: COLORS[i % COLORS.length] }));
+      const COLORS = ['var(--color-secondary)','var(--color-neutral-900)','var(--color-info)','var(--color-success)','var(--color-secondary-dark)'];
+      return Object.entries(map).map(([name, v], i) => ({ name, ...v, color: COLORS[i % COLORS.length] }));
    }, [displayProjects]);
 
 // ── KPIs financieros y operativos mejorados ────────────────────────────────────────────────────────
@@ -243,23 +243,23 @@ const rentabilidadData = displayProjects
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
         <div className="text-left">
           <h2 className="text-2xl md:text-3xl font-black tracking-tight text-primary  uppercase">Analíticas</h2>
-          <p className="text-[10px] md:text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
+          <p className="text-[10px] md:text-xs font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Análisis de portafolio y rendimiento</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full md:w-auto items-end overflow-x-auto">
           {/* Tabs - Agregando nueva pestaña de conectividad */}
-          <div className="flex bg-slate-100 p-1 rounded-xl gap-1 overflow-x-auto">
-            {([['overview','Resumen'],['trends','Tendencias'],['ranking','Ranking'],['connectivity','Conectividad']] as const).map(([tab, label]) => (
-              <button key={tab} type="button" onClick={() => setActiveTab(tab)}
-                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+           <div className="flex bg-[var(--color-neutral-100)] p-1 rounded-xl gap-1 overflow-x-auto">
+             {([['overview','Resumen'],['trends','Tendencias'],['ranking','Ranking'],['connectivity','Conectividad']] as const).map(([tab, label]) => (
+               <button key={tab} type="button" onClick={() => setActiveTab(tab)}
+                 className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-[var(--color-surface-solid)] text-[var(--color-neutral-900)] shadow-sm' : 'text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)]'}`}>
                 {label}
               </button>
             ))}
           </div>
           {/* Project filter */}
           <div className="flex flex-col gap-1">
-            <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1"><Filter size={8} /> Proyecto</span>
+             <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest flex items-center gap-1"><Filter size={8} /> Proyecto</span>
             <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} title="Filtrar por proyecto"
-              className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[160px]">
+              className="h-10 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-secondary)] shadow-sm cursor-pointer min-w-[160px]">
               <option value="ALL">TODOS LOS PROYECTOS</option>
               {projects.map(p => <option key={p.id} value={p.id}>{(p.name || '').substring(0, 30).toUpperCase()}</option>)}
             </select>
@@ -267,25 +267,25 @@ const rentabilidadData = displayProjects
           {selectedProject && (
             <>
               <div className="flex flex-col gap-1">
-                <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla PDF</span>
+                <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Plantilla PDF</span>
                 <select value={exportTemplate} onChange={e => setExportTemplate(e.target.value)} title="Plantilla PDF"
-                  className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[140px]">
-                  {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                </select>
-              </div>
-              <button type="button" onClick={handleExportPDF}
-                className="h-10 bg-secondary text-primary px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-secondary/90 transition-all shadow-sm">
-                <Download size={14} /> PDF
-              </button>
-              <div className="flex flex-col gap-1">
-                <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Plantilla CSV</span>
-                <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} title="Plantilla CSV"
-                  className="h-10 bg-white border border-slate-200 rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer min-w-[140px]">
+                 className="h-10 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-secondary)] shadow-sm cursor-pointer min-w-[140px]">
+                   {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                 </select>
+               </div>
+               <button type="button" onClick={handleExportPDF}
+                 className="h-10 bg-[var(--color-secondary)] text-[var(--color-primary)] px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[var(--color-secondary)]/90 transition-all shadow-sm">
+                 <Download size={14} /> PDF
+               </button>
+               <div className="flex flex-col gap-1">
+                 <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Plantilla CSV</span>
+                 <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} title="Plantilla CSV"
+                   className="h-10 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-secondary)] shadow-sm cursor-pointer min-w-[140px]">
                   {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                 </select>
               </div>
               <button type="button" onClick={handleExportCSV}
-                className="h-10 bg-slate-900 text-white px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-slate-700 transition-all shadow-sm">
+                 className="h-10 bg-[var(--color-neutral-900)] text-[var(--color-neutral-50)] px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[var(--color-neutral-700)] transition-all shadow-sm">
                 <Download size={14} /> CSV
               </button>
             </>
@@ -296,24 +296,24 @@ const rentabilidadData = displayProjects
       {/* Financial KPI Strip - Mejorado con métricas cruzadas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         {[
-          { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-purple-600', bg: 'bg-purple-50', trend: null },
-          { label: 'Personal Activo', value: `${activeStaff.length}`, icon: <Users size={14}/>, color: 'text-blue-600', bg: 'bg-blue-50', trend: null, sub: `Q ${Math.round(totalSalaries/1000)}k salarios` },
-          { label: 'Stock Crítico', value: `${criticalInventory.length}`, icon: <Package size={14}/>, color: criticalInventory.length > 0 ? 'text-red-600' : 'text-green-600', bg: criticalInventory.length > 0 ? 'bg-red-50' : 'bg-green-50', trend: criticalInventory.length > 0 ? 'down' : 'up', sub: `de ${validInventoryItems.length} items` },
-          { label: 'OC Pendientes', value: `${pendingOrders.length}`, icon: <ShoppingCart size={14}/>, color: pendingOrders.length > 0 ? 'text-amber-600' : 'text-green-600', bg: pendingOrders.length > 0 ? 'bg-amber-50' : 'bg-green-50', trend: null, sub: `Q ${Math.round(totalPendingValue/1000)}k` },
-          { label: 'Ingresos Reales', value: `Q ${Math.round(totalIngresos/1000)}k`, icon: <ArrowUpRight size={14}/>, color: 'text-emerald-600', bg: 'bg-emerald-50', trend: 'up' },
-          { label: 'Neto en Caja', value: `Q ${Math.round(netoCaja/1000)}k`, icon: <DollarSign size={14}/>, color: netoCaja >= 0 ? 'text-emerald-600' : 'text-red-600', bg: netoCaja >= 0 ? 'bg-emerald-50' : 'bg-red-50', trend: netoCaja >= 0 ? 'up' : 'down' },
+           { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-[var(--color-secondary-dark)]', bg: 'bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)]', trend: null },
+           { label: 'Personal Activo', value: `${activeStaff.length}`, icon: <Users size={14}/>, color: 'text-[var(--color-info)]', bg: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)]', trend: null, sub: `Q ${Math.round(totalSalaries/1000)}k salarios` },
+           { label: 'Stock Crítico', value: `${criticalInventory.length}`, icon: <Package size={14}/>, color: criticalInventory.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]', bg: criticalInventory.length > 0 ? 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]', trend: criticalInventory.length > 0 ? 'down' : 'up', sub: `de ${validInventoryItems.length} items` },
+           { label: 'OC Pendientes', value: `${pendingOrders.length}`, icon: <ShoppingCart size={14}/>, color: pendingOrders.length > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]', bg: pendingOrders.length > 0 ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]', trend: null, sub: `Q ${Math.round(totalPendingValue/1000)}k` },
+           { label: 'Ingresos Reales', value: `Q ${Math.round(totalIngresos/1000)}k`, icon: <ArrowUpRight size={14}/>, color: 'text-[var(--color-success)]', bg: 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]', trend: 'up' },
+           { label: 'Neto en Caja', value: `Q ${Math.round(netoCaja/1000)}k`, icon: <DollarSign size={14}/>, color: netoCaja >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]', bg: netoCaja >= 0 ? 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]', trend: netoCaja >= 0 ? 'up' : 'down' },
         ].map((kpi, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-            className="bg-white rounded-xl border border-slate-100 p-3 flex flex-col gap-2 shadow-sm">
+            className="bg-[var(--color-surface-solid)] rounded-xl border border-[var(--color-neutral-100)] p-3 flex flex-col gap-2 shadow-sm">
             <div className="flex items-center gap-2">
               <div className={`p-1.5 rounded-lg shrink-0 ${kpi.bg} ${kpi.color}`}>{kpi.icon}</div>
               <div className="min-w-0 flex-1">
-                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest truncate">{kpi.label}</p>
+                 <p className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest truncate">{kpi.label}</p>
                 <p className="text-sm font-black text-primary truncate">{kpi.value}</p>
               </div>
             </div>
             {kpi.sub && (
-              <p className="text-[7px] sm:text-[6px] font-bold text-slate-400 uppercase tracking-widest truncate">{kpi.sub}</p>
+               <p className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest truncate">{kpi.sub}</p>
             )}
           </motion.div>
         ))}
@@ -325,35 +325,35 @@ const rentabilidadData = displayProjects
         {[
           { label: 'Proyectos', value: displayProjects.length, label2: 'Total Registrados', icon: <BarChart3 className="text-primary w-5 h-5" /> },
           { label: 'Cotizado', value: stats.cotizados.length, label2: 'En espera', icon: <Zap className="text-secondary w-5 h-5" /> },
-          { label: 'Ejecución', value: stats.ejecucion.length, label2: 'Activos', icon: <TrendingUp className="text-blue-500 w-5 h-5" /> },
-          { label: 'Finalizado', value: stats.finalizados.length, label2: 'Completados', icon: <Target className="text-green-500 w-5 h-5" /> },
+          { label: 'Ejecución', value: stats.ejecucion.length, label2: 'Activos', icon: <TrendingUp className="text-[var(--color-info)] w-5 h-5" /> },
+          { label: 'Finalizado', value: stats.finalizados.length, label2: 'Completados', icon: <Target className="text-[var(--color-success)] w-5 h-5" /> },
         ].map((stat, i) => (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.1 }}
             key={i}
-            className="bg-white p-3 rounded-2xl border border-slate-200 shadow-sm relative overflow-hidden"
+             className="bg-[var(--color-surface-solid)] p-3 rounded-2xl border border-[var(--color-neutral-200)] shadow-sm relative overflow-hidden"
           >
             <div className="flex justify-between items-start">
-              <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">{stat.label}</span>
+               <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-neutral-400)]">{stat.label}</span>
               {stat.icon}
             </div>
             <div className="mt-4">
               <h3 className="text-2xl font-black text-primary"><AnimatedNum v={stat.value} /></h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{stat.label2}</p>
+               <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">{stat.label2}</p>
             </div>
           </motion.div>
         ))}
       </div>
 
 {/* Budget total */}
-       <div className="bg-slate-900 rounded-2xl p-3 text-white text-left flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
+       <div className="bg-[var(--color-neutral-900)] rounded-2xl p-3 text-[var(--color-neutral-50)] text-left flex flex-col md:flex-row justify-between items-start md:items-center gap-2">
          <div>
-           <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+            <p className="text-[10px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1">
              {selectedProject ? `Presupuesto: ${selectedProject.name}` : 'Presupuesto Total Portafolio'}
            </p>
-           <span className="text-2xl md:text-3xl font-black text-white">
+            <span className="text-2xl md:text-3xl font-black text-[var(--color-neutral-50)]">
              Q. {fmtQ(PMath.sum(displayProjects.map(p => p.budget || 0)))}
            </span>
          </div>
@@ -365,9 +365,9 @@ const rentabilidadData = displayProjects
                { label: `Admin ${selectedProject.administrativeCosts || 0}%`, val: PMath.div(PMath.mul(selectedProject.directCosts || 0, selectedProject.administrativeCosts || 0), 100) },
                { label: `Personal ${selectedProject.personalCosts || 0}%`, val: PMath.div(PMath.mul(selectedProject.directCosts || 0, selectedProject.personalCosts || 0), 100) },
              ].map((c, i) => (
-               <div key={i} className="bg-slate-800/60 rounded-xl p-3">
-                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{c.label}</p>
-                 <p className="text-[11px] font-black text-white mt-1">Q {fmtQ(c.val)}</p>
+                <div key={i} className="bg-[var(--color-neutral-800)]/60 rounded-xl p-3">
+                  <p className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">{c.label}</p>
+                  <p className="text-[11px] font-black text-[var(--color-neutral-50)] mt-1">Q {fmtQ(c.val)}</p>
                </div>
              ))}
            </div>
@@ -377,7 +377,7 @@ const rentabilidadData = displayProjects
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
         {/* Pie chart */}
-        <div className="bg-white p-3 rounded-3xl border border-slate-200 shadow-sm text-left">
+        <div className="bg-[var(--color-surface-solid)] p-3 rounded-3xl border border-[var(--color-neutral-200)] shadow-sm text-left">
           <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-2">
             {selectedProject ? 'Estado del Proyecto' : 'Composición de Portafolio'}
           </h4>
@@ -403,16 +403,16 @@ const rentabilidadData = displayProjects
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none pb-8 text-center">
               <span className="text-3xl font-black text-primary  leading-none">{displayProjects.length}</span>
-              <span className="text-[8px] font-black text-slate-400  uppercase tracking-widest mt-1">Proyectos</span>
+              <span className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Proyectos</span>
             </div>
           </div>
         </div>
 
         {/* Radial / System health */}
-        <div className="bg-slate-900 rounded-3xl p-3 text-white text-left">
+        <div className="bg-[var(--color-neutral-900)] rounded-3xl p-3 text-[var(--color-neutral-50)] text-left">
           <div className="flex justify-between items-start mb-2">
             <div>
-              <h4 className="text-[11px] font-black text-slate-400  uppercase tracking-[0.2em] mb-1">Estado del Sistema</h4>
+              <h4 className="text-[11px] font-black text-[var(--color-neutral-400)] uppercase tracking-[0.2em] mb-1">Estado del Sistema</h4>
               <p className="text-xl font-black uppercase tracking-tight text-secondary">Salud Operativa</p>
             </div>
             <BarChart3 size={24} className="text-secondary" />
@@ -423,9 +423,9 @@ const rentabilidadData = displayProjects
                 cx="50%" cy="50%"
                 innerRadius="30%" outerRadius="90%"
 data={[
-                    { name: 'Carga', value: precise(PMath.div(PMath.mul(displayProjects.length, 100), 20), 0), fill: '#60a5fa' },
-                    { name: 'Cierre', value: precise(PMath.div(PMath.mul(stats.finalizados.length, 100), displayProjects.length || 1), 0), fill: '#34d399' },
-                    { name: 'Activos', value: precise(PMath.div(PMath.mul(stats.ejecucion.length, 100), displayProjects.length || 1), 0), fill: '#f59e0b' },
+                    { name: 'Carga', value: precise(PMath.div(PMath.mul(displayProjects.length, 100), 20), 0), fill: 'var(--color-info)' },
+                    { name: 'Cierre', value: precise(PMath.div(PMath.mul(stats.finalizados.length, 100), displayProjects.length || 1), 0), fill: 'var(--color-success)' },
+                    { name: 'Activos', value: precise(PMath.div(PMath.mul(stats.ejecucion.length, 100), displayProjects.length || 1), 0), fill: 'var(--color-secondary)' },
                   ]}
                 startAngle={180} endAngle={0}
               >
@@ -442,8 +442,8 @@ data={[
             ].map((item, i) => (
               <div key={i} className="text-center">
                 <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${item.color}`} />
-                <p className="text-[8px] font-black text-slate-400 uppercase">{item.label}</p>
-                <p className="text-[10px] font-black text-white">{item.val}/{item.max}</p>
+                <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase">{item.label}</p>
+                <p className="text-[10px] font-black text-[var(--color-neutral-50)]">{item.val}/{item.max}</p>
               </div>
             ))}
           </div>
@@ -451,25 +451,25 @@ data={[
       </div>
 
       {/* Rentabilidad chart */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+      <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
         <div className="mb-2">
           <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Rentabilidad por Proyecto</h3>
-          <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Presupuesto vs Costo Real vs Utilidad (Q)</p>
+          <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Presupuesto vs Costo Real vs Utilidad (Q)</p>
         </div>
         {rentabilidadData.length === 0 ? (
-          <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
+              <div className="h-36 flex items-center justify-center text-[9px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest">Sin proyectos con presupuesto</div>
         ) : (
           <div className="chart-h-md">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={rentabilidadData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                 <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                 <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
-                <Bar dataKey="Presupuesto" fill="#a78bfa" radius={[4, 4, 0, 0]} barSize={16} />
-                <Bar dataKey="Costo" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={16} />
-                <Bar dataKey="Utilidad" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
+                 <Bar dataKey="Presupuesto" fill="var(--color-secondary-dark)" radius={[4, 4, 0, 0]} barSize={16} />
+                 <Bar dataKey="Costo" fill="var(--color-warning)" radius={[4, 4, 0, 0]} barSize={16} />
+                 <Bar dataKey="Utilidad" fill="var(--color-success)" radius={[4, 4, 0, 0]} barSize={16} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -477,10 +477,10 @@ data={[
         {rentabilidadData.length > 0 && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mt-2">
             {rentabilidadData.map((p, i) => (
-              <div key={i} className="bg-slate-50 rounded-xl p-3">
-                <p className="text-[8px] font-black text-slate-400 uppercase truncate">{p.name}</p>
-                <p className={`text-sm font-black ${p.Margen >= 0 ? "text-emerald-600" : "text-red-500"}`}>{p.Margen}%</p>
-                <p className="text-[8px] text-slate-400">Margen</p>
+               <div key={i} className="bg-[var(--color-neutral-50)] rounded-xl p-3">
+                 <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase truncate">{p.name}</p>
+                 <p className={`text-sm font-black ${p.Margen >= 0 ? "text-[var(--color-success)]" : "text-[var(--color-error)]"}`}>{p.Margen}%</p>
+                 <p className="text-[8px] text-[var(--color-neutral-400)]">Margen</p>
               </div>
             ))}
           </div>
@@ -489,21 +489,21 @@ data={[
 
       {/* Per-project items breakdown (only when a project is selected) */}
       {selectedProject && itemsBreakdown.length > 0 && (
-        <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+        <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
           <div className="mb-2">
             <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Desglose por Renglón</h3>
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Materiales vs Mano de Obra por renglón (Q)</p>
+            <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Materiales vs Mano de Obra por renglón (Q)</p>
           </div>
           <div className="chart-h-md">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={itemsBreakdown} margin={{ top: 5, right: 10, left: 10, bottom: 30 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                 <XAxis dataKey="name" fontSize={8} axisLine={false} tickLine={false} angle={-25} textAnchor="end" />
                 <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
-                <Bar dataKey="Materiales" fill="#F15A24" radius={[4, 4, 0, 0]} barSize={14} />
-                <Bar dataKey="ManoObra" fill="#1A1A1A" radius={[4, 4, 0, 0]} barSize={14} />
+                 <Bar dataKey="Materiales" fill="var(--color-secondary)" radius={[4, 4, 0, 0]} barSize={14} />
+                 <Bar dataKey="ManoObra" fill="var(--color-neutral-900)" radius={[4, 4, 0, 0]} barSize={14} />
               </BarChart>
             </ResponsiveContainer>
           </div>
@@ -511,28 +511,28 @@ data={[
           <div className="mt-4 overflow-x-auto">
             <table className="w-full text-left text-[9px]">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Renglón</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Materiales</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Mano Obra</th>
-                  <th className="py-2 font-black text-slate-400 uppercase tracking-widest text-right">Total</th>
+                 <tr className="border-b border-[var(--color-neutral-100)]">
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Renglón</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Materiales</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Mano Obra</th>
+                   <th className="py-2 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Total</th>
                 </tr>
               </thead>
               <tbody>
                 {itemsBreakdown.map((row, i) => (
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                  <tr key={i} className="border-b border-slate-50 hover:bg-[var(--color-neutral-50)]">
                     <td className="py-2 pr-4 font-bold text-primary uppercase">{row.name}</td>
-                    <td className="py-2 pr-4 font-black text-slate-600 text-right">Q {row.Materiales.toLocaleString('es-GT')}</td>
-                    <td className="py-2 pr-4 font-black text-slate-600 text-right">Q {row.ManoObra.toLocaleString('es-GT')}</td>
+                     <td className="py-2 pr-4 font-bold text-[var(--color-neutral-600)] text-right">Q {row.Materiales.toLocaleString('es-GT')}</td>
+                     <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">Q {row.ManoObra.toLocaleString('es-GT')}</td>
                     <td className="py-2 font-black text-secondary text-right">Q {row.Total.toLocaleString('es-GT')}</td>
                   </tr>
                 ))}
-<tr className="bg-slate-50 font-black">
-                   <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
-                   <td className="py-2 pr-4 text-right text-primary">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.Materiales)))}</td>
-                   <td className="py-2 pr-4 text-right text-primary">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.ManoObra)))}</td>
-                   <td className="py-2 text-right text-secondary">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.Total)))}</td>
-                 </tr>
+ <tr className="bg-[var(--color-neutral-50)] font-black">
+                    <td className="py-2 pr-4 text-[var(--color-primary)] uppercase">TOTAL</td>
+                    <td className="py-2 pr-4 text-right text-[var(--color-primary)]">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.Materiales)))}</td>
+                    <td className="py-2 pr-4 text-right text-[var(--color-primary)]">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.ManoObra)))}</td>
+                    <td className="py-2 text-right text-[var(--color-secondary)]">Q {fmtQ(PMath.sum(itemsBreakdown.map(r => r.Total)))}</td>
+                  </tr>
               </tbody>
             </table>
           </div>
@@ -544,37 +544,37 @@ data={[
       {activeTab === 'trends' && (
         <div className="flex flex-col gap-3">
           {/* Área de ingresos vs gastos por mes */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
             <div className="mb-2 flex items-center justify-between">
               <div>
                 <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Flujo de Caja Mensual</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Ingresos vs Gastos — últimos 6 meses</p>
+                <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Ingresos vs Gastos — últimos 6 meses</p>
               </div>
-              <Calendar size={18} className="text-slate-300" />
+              <Calendar size={18} className="text-[var(--color-neutral-300)]" />
             </div>
             {monthlyTrends.every(m => m.Ingresos === 0 && m.Gastos === 0) ? (
-              <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin transacciones registradas</div>
+              <div className="h-36 flex items-center justify-center text-[9px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest">Sin transacciones registradas</div>
             ) : (
               <div className="chart-h-md">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                     <defs>
                       <linearGradient id="gradIngresos" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="var(--color-success)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--color-success)" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="gradGastos" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#F15A24" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#F15A24" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="var(--color-secondary)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="var(--color-secondary)" stopOpacity={0}/>
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                     <XAxis dataKey="mes" fontSize={9} axisLine={false} tickLine={false} />
                     <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase' }} />
-                    <Area type="monotone" dataKey="Ingresos" stroke="#10b981" strokeWidth={2} fill="url(#gradIngresos)" dot={{ r: 4, fill: '#10b981' }} />
-                    <Area type="monotone" dataKey="Gastos" stroke="#F15A24" strokeWidth={2} fill="url(#gradGastos)" dot={{ r: 4, fill: '#F15A24' }} />
+                     <Area type="monotone" dataKey="Ingresos" stroke="var(--color-success)" strokeWidth={2} fill="url(#gradIngresos)" dot={{ r: 4, fill: 'var(--color-success)' }} />
+                     <Area type="monotone" dataKey="Gastos" stroke="var(--color-secondary)" strokeWidth={2} fill="url(#gradGastos)" dot={{ r: 4, fill: 'var(--color-secondary)' }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
@@ -582,24 +582,24 @@ data={[
           </div>
 
           {/* Neto mensual en barras */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
               <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Neto Mensual</h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Resultado neto por mes (Ingresos − Gastos)</p>
+              <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Resultado neto por mes (Ingresos − Gastos)</p>
             </div>
             <div className="chart-h-sm">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                   <XAxis dataKey="mes" fontSize={9} axisLine={false} tickLine={false} />
                   <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
                   <Tooltip content={<CustomTooltip />} />
-                  <Bar dataKey="Neto" radius={[4, 4, 0, 0]} barSize={28}
-                    fill="#10b981"
-                    label={false}>
-                    {monthlyTrends.map((entry, index) => (
-                      <Cell key={index} fill={entry.Neto > 0 ? '#10b981' : entry.Neto < 0 ? '#ef4444' : '#94a3b8'} />
-                    ))}
+                   <Bar dataKey="Neto" radius={[4, 4, 0, 0]} barSize={28}
+                     fill="var(--color-success)"
+                     label={false}>
+                     {monthlyTrends.map((entry, index) => (
+                       <Cell key={index} fill={entry.Neto > 0 ? 'var(--color-success)' : entry.Neto < 0 ? 'var(--color-error)' : 'var(--color-neutral-400)'} />
+                     ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
@@ -609,7 +609,7 @@ data={[
           {/* Distribución por tipología */}
           {typologyData.length > 0 && (
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+              <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
                 <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Proyectos por Tipología</h3>
           <div className="chart-h-md">
             <ResponsiveContainer width="100%" height="100%">
@@ -623,16 +623,16 @@ data={[
                   </ResponsiveContainer>
                 </div>
               </div>
-              <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+              <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
                 <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Presupuesto por Tipología</h3>
                 <div className="space-y-2">
                   {typologyData.map((t, i) => (
                     <div key={i}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[9px] font-black text-primary uppercase">{t.name}</span>
-                        <span className="text-[9px] font-black text-slate-500">Q {t.budget.toLocaleString('es-GT')}</span>
+                         <span className="text-[9px] font-black text-[var(--color-neutral-500)]">Q {t.budget.toLocaleString('es-GT')}</span>
                       </div>
-                      <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div className="h-2 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: `${totalPresupuesto > 0 ? (t.budget / totalPresupuesto) * 100 : 0}%` }}
@@ -641,7 +641,7 @@ data={[
                           style={{ backgroundColor: t.color }}
                         />
                       </div>
-                      <p className="text-[7px] font-bold text-slate-400 mt-0.5">{t.count} proyecto{t.count !== 1 ? 's' : ''} · {totalPresupuesto > 0 ? ((t.budget / totalPresupuesto) * 100).toFixed(1) : 0}%</p>
+                      <p className="text-[7px] font-bold text-[var(--color-neutral-400)] mt-0.5">{t.count} proyecto{t.count !== 1 ? 's' : ''} · {totalPresupuesto > 0 ? ((t.budget / totalPresupuesto) * 100).toFixed(1) : 0}%</p>
                     </div>
                   ))}
                 </div>
@@ -650,32 +650,32 @@ data={[
           )}
 
           {/* Tabla resumen mensual */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm overflow-x-auto">
             <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Resumen Mensual</h3>
             <table className="w-full text-left text-[9px]">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Mes</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Ingresos</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Gastos</th>
-                  <th className="py-2 font-black text-slate-400 uppercase tracking-widest text-right">Neto</th>
+                 <tr className="border-b border-[var(--color-neutral-100)]">
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Mes</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Ingresos</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Gastos</th>
+                   <th className="py-2 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Neto</th>
                 </tr>
               </thead>
               <tbody>
                 {monthlyTrends.map((m, i) => (
-                  <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
-                    <td className="py-2 pr-4 font-black text-primary uppercase">{m.mes}</td>
-                    <td className="py-2 pr-4 font-black text-emerald-600 text-right">Q {m.Ingresos.toLocaleString('es-GT')}</td>
-                    <td className="py-2 pr-4 font-black text-red-500 text-right">Q {m.Gastos.toLocaleString('es-GT')}</td>
-                    <td className={`py-2 font-black text-right ${m.Neto >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>Q {m.Neto.toLocaleString('es-GT')}</td>
+                     <tr key={i} className="border-b border-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-50)]">
+                       <td className="py-2 pr-4 font-black text-[var(--color-primary)] uppercase">{m.mes}</td>
+                       <td className="py-2 pr-4 font-black text-[var(--color-success)] text-right">Q {m.Ingresos.toLocaleString('es-GT')}</td>
+                       <td className="py-2 pr-4 font-black text-[var(--color-error)] text-right">Q {m.Gastos.toLocaleString('es-GT')}</td>
+                       <td className={`py-2 font-black text-right ${m.Neto >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>Q {m.Neto.toLocaleString('es-GT')}</td>
                   </tr>
                 ))}
-<tr className="bg-slate-50 font-black border-t border-slate-200">
-                   <td className="py-2 pr-4 text-primary uppercase">TOTAL</td>
-                   <td className="py-2 pr-4 text-right text-emerald-600">Q {fmtQ(PMath.sum(monthlyTrends.map(m => m.Ingresos)))}</td>
-                   <td className="py-2 pr-4 text-right text-red-500">Q {fmtQ(PMath.sum(monthlyTrends.map(m => m.Gastos)))}</td>
-                   <td className={`py-2 text-right ${netoCaja >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>Q {fmtQ(netoCaja)}</td>
-                 </tr>
+ <tr className="bg-[var(--color-neutral-50)] font-black border-t border-[var(--color-neutral-200)]">
+                    <td className="py-2 pr-4 text-[var(--color-primary)] uppercase">TOTAL</td>
+                    <td className="py-2 pr-4 text-right text-[var(--color-success)]">Q {fmtQ(PMath.sum(monthlyTrends.map(m => m.Ingresos)))}</td>
+                    <td className="py-2 pr-4 text-right text-[var(--color-error)]">Q {fmtQ(PMath.sum(monthlyTrends.map(m => m.Gastos)))}</td>
+                    <td className={`py-2 text-right ${netoCaja >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>Q {fmtQ(netoCaja)}</td>
+                  </tr>
               </tbody>
             </table>
           </div>
@@ -686,26 +686,26 @@ data={[
       {activeTab === 'ranking' && (
         <div className="flex flex-col gap-3">
           {/* Gráfico de barras ranking */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
               <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Ranking de Rentabilidad</h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Proyectos ordenados por margen de utilidad</p>
+              <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Proyectos ordenados por margen de utilidad</p>
             </div>
             {projectRanking.length === 0 ? (
-              <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos con presupuesto</div>
+              <div className="h-36 flex items-center justify-center text-[9px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest">Sin proyectos con presupuesto</div>
             ) : (
               <div className="chart-h-md">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={projectRanking.slice(0,8).map(p=>({ name:(p.name||'').substring(0,12), Margen: Math.round(p.margen) }))}
                     layout="vertical" margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#E2E8F0" />
+                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--color-neutral-200)" />
                     <XAxis type="number" fontSize={9} axisLine={false} tickLine={false} tickFormatter={v=>`${v}%`} />
                     <YAxis type="category" dataKey="name" fontSize={8} axisLine={false} tickLine={false} width={90} />
                     <Tooltip content={<CustomTooltip />} />
-                    <Bar dataKey="Margen" radius={[0, 4, 4, 0]} barSize={18}>
-                      {projectRanking.slice(0,8).map((p, i) => (
-                        <Cell key={i} fill={p.margen >= 20 ? '#10b981' : p.margen >= 0 ? '#f59e0b' : '#ef4444'} />
-                      ))}
+                     <Bar dataKey="Margen" radius={[0, 4, 4, 0]} barSize={18}>
+                       {projectRanking.slice(0,8).map((p, i) => (
+                         <Cell key={i} fill={p.margen >= 20 ? 'var(--color-success)' : p.margen >= 0 ? 'var(--color-warning)' : 'var(--color-error)'} />
+                       ))}
                     </Bar>
                   </BarChart>
                 </ResponsiveContainer>
@@ -714,21 +714,21 @@ data={[
           </div>
 
           {/* Tabla ranking completa */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm overflow-x-auto">
             <h3 className="text-sm font-black text-primary  uppercase tracking-tight mb-2">Tabla de Rentabilidad Completa</h3>
             {projectRanking.length === 0 ? (
-              <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest text-center py-8">Sin datos</p>
+               <p className="text-[9px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest text-center py-8">Sin datos</p>
             ) : (
               <table className="w-full text-left text-[9px]">
                 <thead>
-                  <tr className="border-b border-slate-100">
-                    <th className="py-2 pr-2 font-black text-slate-400 uppercase tracking-widest">#</th>
-                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Proyecto</th>
-                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest hidden sm:table-cell">Estado</th>
-                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Presupuesto</th>
-                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right hidden md:table-cell">Costo Real</th>
-                    <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Utilidad</th>
-                    <th className="py-2 font-black text-slate-400 uppercase tracking-widest text-right">Margen</th>
+                 <tr className="border-b border-[var(--color-neutral-100)]">
+                   <th className="py-2 pr-2 font-black text-[var(--color-neutral-400)] uppercase tracking-widest">#</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Proyecto</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest hidden sm:table-cell">Estado</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Presupuesto</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right hidden md:table-cell">Costo Real</th>
+                   <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Utilidad</th>
+                   <th className="py-2 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Margen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -736,47 +736,47 @@ data={[
                     <motion.tr key={p.id}
                       initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: i * 0.04 }}
-                      className="border-b border-slate-50 hover:bg-slate-50">
+                       className="border-b border-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-50)]">
                       <td className="py-2 pr-2">
-                        {i === 0 && <span className="text-amber-500 font-black">🥇</span>}
-                        {i === 1 && <span className="text-slate-400 font-black">🥈</span>}
-                        {i === 2 && <span className="text-amber-700 font-black">🥉</span>}
-                        {i > 2 && <span className="font-black text-slate-400">{i+1}</span>}
+                         {i === 0 && <span className="text-[var(--color-warning)] font-black">🥇</span>}
+                         {i === 1 && <span className="text-[var(--color-neutral-400)] font-black">🥈</span>}
+                         {i === 2 && <span className="text-[var(--color-warning)] font-black">🥉</span>}
+                         {i > 2 && <span className="font-black text-[var(--color-neutral-400)]">{i+1}</span>}
                       </td>
-                      <td className="py-2 pr-4 font-black text-primary uppercase max-w-[140px] truncate">{p.name}</td>
-                      <td className="py-2 pr-4 hidden sm:table-cell">
-                        <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full ${
-                          p.status==='EJECUCION'?'bg-orange-100 text-orange-700':
-                          p.status==='FINALIZADO'?'bg-emerald-100 text-emerald-700':
-                          'bg-slate-100 text-slate-600'}`}>
+                       <td className="py-2 pr-4 font-black text-[var(--color-primary)] uppercase max-w-[140px] truncate">{p.name}</td>
+                       <td className="py-2 pr-4 hidden sm:table-cell">
+                         <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full ${
+                           p.status==='EJECUCION'?'bg-[color-mix(in_srgb,var(--color-warning)_15%,transparent)] text-[var(--color-warning)]':
+                           p.status==='FINALIZADO'?'bg-[color-mix(in_srgb,var(--color-success)_15%,transparent)] text-[var(--color-success)]':
+                           'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)]'}`}>
                           {p.status}
                         </span>
                       </td>
-                      <td className="py-2 pr-4 font-black text-slate-600 text-right">Q {(p.budget||0).toLocaleString('es-GT')}</td>
-                      <td className="py-2 pr-4 font-black text-slate-600 text-right hidden md:table-cell">Q {Math.round(p.costoReal).toLocaleString('es-GT')}</td>
-                      <td className={`py-2 pr-4 font-black text-right ${p.utilidad>=0?'text-emerald-600':'text-red-500'}`}>
+                       <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">Q {(p.budget||0).toLocaleString('es-GT')}</td>
+                       <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right hidden md:table-cell">Q {Math.round(p.costoReal).toLocaleString('es-GT')}</td>
+                       <td className={`py-2 pr-4 font-black text-right ${p.utilidad>=0?'text-[var(--color-success)]':'text-[var(--color-error)]'}`}>
                         Q {Math.round(p.utilidad).toLocaleString('es-GT')}
                       </td>
                       <td className="py-2 text-right">
-                        <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
-                          p.margen>=20?'bg-emerald-100 text-emerald-700':
-                          p.margen>=0?'bg-amber-100 text-amber-700':
-                          'bg-red-100 text-red-600'}`}>
+                         <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
+                           p.margen>=20?'bg-[color-mix(in_srgb,var(--color-success)_15%,transparent)] text-[var(--color-success)]':
+                           p.margen>=0?'bg-[color-mix(in_srgb,var(--color-warning)_15%,transparent)] text-[var(--color-warning)]':
+                           'bg-[color-mix(in_srgb,var(--color-error)_15%,transparent)] text-[var(--color-error)]'}`}>
                           {Math.round(p.margen)}%
                         </span>
                       </td>
                     </motion.tr>
                   ))}
                 </tbody>
-<tfoot className="bg-slate-50 border-t border-slate-200">
-                    <tr>
-                      <td colSpan={3} className="py-2 pr-4 font-black text-slate-400 uppercase text-[8px] tracking-widest">TOTALES ({projectRanking.length} proyectos)</td>
-                      <td className="py-2 pr-4 font-black text-primary text-right">Q {fmtQ(PMath.sum(projectRanking.map(p => p.budget || 0)))}</td>
-                      <td className="py-2 pr-4 font-black text-primary text-right hidden md:table-cell">Q {fmtQ(PMath.sum(projectRanking.map(p => p.costoReal)))}</td>
-                      <td className={`py-2 pr-4 font-black text-right ${PMath.sum(projectRanking.map(p => p.utilidad)) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                        Q {fmtQ(PMath.sum(projectRanking.map(p => p.utilidad)))}
-                      </td>
-                      <td className="py-2 font-black text-right text-secondary">
+ <tfoot className="bg-[var(--color-neutral-50)] border-t border-[var(--color-neutral-200)]">
+                     <tr>
+                       <td colSpan={3} className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase text-[8px] tracking-widest">TOTALES ({projectRanking.length} proyectos)</td>
+                       <td className="py-2 pr-4 font-black text-[var(--color-primary)] text-right">Q {fmtQ(PMath.sum(projectRanking.map(p => p.budget || 0)))}</td>
+                       <td className="py-2 pr-4 font-black text-[var(--color-primary)] text-right hidden md:table-cell">Q {fmtQ(PMath.sum(projectRanking.map(p => p.costoReal)))}</td>
+                       <td className={`py-2 pr-4 font-black text-right ${PMath.sum(projectRanking.map(p => p.utilidad)) >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>
+                         Q {fmtQ(PMath.sum(projectRanking.map(p => p.utilidad)))}
+                       </td>
+                       <td className="py-2 font-black text-right text-[var(--color-secondary)]">
                         {projectRanking.length > 0 ? `${precise(PMath.div(PMath.sum(projectRanking.map(p => p.margen)), projectRanking.length))}%` : 0}%
                       </td>
                     </tr>
@@ -787,16 +787,16 @@ data={[
 
           {/* Alertas de proyectos en riesgo */}
           {projectRanking.filter(p => p.margen < 0).length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle size={16} className="text-red-500" />
-                <h3 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Proyectos en Riesgo Financiero</h3>
-              </div>
-              <div className="space-y-2">
-                {projectRanking.filter(p => p.margen < 0).map(p => (
-                  <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-red-100">
-                    <span className="text-[9px] font-black text-primary uppercase">{p.name}</span>
-                    <span className="text-[9px] font-black text-red-600">Margen: {Math.round(p.margen)}%</span>
+             <div className="bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] rounded-2xl p-3">
+               <div className="flex items-center gap-2 mb-2">
+                 <AlertTriangle size={16} className="text-[var(--color-error)]" />
+                 <h3 className="text-[10px] font-black text-[var(--color-error)] uppercase tracking-widest">Proyectos en Riesgo Financiero</h3>
+               </div>
+               <div className="space-y-2">
+                 {projectRanking.filter(p => p.margen < 0).map(p => (
+                   <div key={p.id} className="flex items-center justify-between bg-[var(--color-surface-solid)] rounded-lg p-2.5 border border-[color-mix(in_srgb,var(--color-error)_15%,transparent)]">
+                     <span className="text-[9px] font-black text-[var(--color-primary)] uppercase">{p.name}</span>
+                     <span className="text-[9px] font-black text-[var(--color-error)]">Margen: {Math.round(p.margen)}%</span>
                   </div>
                 ))}
               </div>
@@ -805,16 +805,16 @@ data={[
 
           {/* Top performers */}
           {projectRanking.filter(p => p.margen >= 20).length > 0 && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <Award size={16} className="text-emerald-600" />
-                <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Proyectos de Alto Rendimiento (≥20% margen)</h3>
-              </div>
-              <div className="space-y-2">
-                {projectRanking.filter(p => p.margen >= 20).map(p => (
-                  <div key={p.id} className="flex items-center justify-between bg-white rounded-lg p-2.5 border border-emerald-100">
-                    <span className="text-[9px] font-black text-primary uppercase">{p.name}</span>
-                    <span className="text-[9px] font-black text-emerald-600">Margen: {Math.round(p.margen)}% · Q {Math.round(p.utilidad).toLocaleString('es-GT')}</span>
+             <div className="bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-success)_20%,transparent)] rounded-2xl p-3">
+               <div className="flex items-center gap-2 mb-2">
+                 <Award size={16} className="text-[var(--color-success)]" />
+                 <h3 className="text-[10px] font-black text-[var(--color-success)] uppercase tracking-widest">Proyectos de Alto Rendimiento (≥20% margen)</h3>
+               </div>
+               <div className="space-y-2">
+                 {projectRanking.filter(p => p.margen >= 20).map(p => (
+                   <div key={p.id} className="flex items-center justify-between bg-[var(--color-surface-solid)] rounded-lg p-2.5 border border-[color-mix(in_srgb,var(--color-success)_15%,transparent)]">
+                     <span className="text-[9px] font-black text-[var(--color-primary)] uppercase">{p.name}</span>
+                     <span className="text-[9px] font-black text-[var(--color-success)]">Margen: {Math.round(p.margen)}% · Q {Math.round(p.utilidad).toLocaleString('es-GT')}</span>
                   </div>
                 ))}
               </div>
@@ -829,84 +829,84 @@ data={[
           {/* Alertas inteligentes del sistema */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             {/* Alertas críticas */}
-            <div className="bg-red-50 border border-red-200 rounded-2xl p-3">
+            <div className="bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] rounded-2xl p-3">
               <div className="flex items-center gap-2 mb-2">
-                <AlertTriangle size={16} className="text-red-500" />
-                <h3 className="text-[10px] font-black text-red-700 uppercase tracking-widest">Alertas Críticas</h3>
+                <AlertTriangle size={16} className="text-[var(--color-error)]" />
+                <h3 className="text-[10px] font-black text-[var(--color-error)] uppercase tracking-widest">Alertas Críticas</h3>
               </div>
               <div className="space-y-2">
                 {criticalInventory.length > 0 && (
-                  <div className="bg-white rounded-lg p-2 border border-red-100">
-                    <p className="text-[8px] font-black text-red-600 uppercase">{criticalInventory.length} Materiales Críticos</p>
-                    <p className="text-[7px] text-red-500">Stock bajo mínimo requerido</p>
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-red-100">
+                    <p className="text-[8px] font-black text-[var(--color-error)] uppercase">{criticalInventory.length} Materiales Críticos</p>
+                    <p className="text-[7px] text-[var(--color-error)]">Stock bajo mínimo requerido</p>
                   </div>
                 )}
                 {pendingOrders.length > 5 && (
-                  <div className="bg-white rounded-lg p-2 border border-red-100">
-                    <p className="text-[8px] font-black text-red-600 uppercase">{pendingOrders.length} OC Pendientes</p>
-                    <p className="text-[7px] text-red-500">Órdenes sin recibir</p>
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-red-100">
+                    <p className="text-[8px] font-black text-[var(--color-error)] uppercase">{pendingOrders.length} OC Pendientes</p>
+                    <p className="text-[7px] text-[var(--color-error)]">Órdenes sin recibir</p>
                   </div>
                 )}
                 {staffEfficiency.filter(s => s.efficiency < 1).length > 0 && (
-                  <div className="bg-white rounded-lg p-2 border border-red-100">
-                    <p className="text-[8px] font-black text-red-600 uppercase">Baja Eficiencia Personal</p>
-                    <p className="text-[7px] text-red-500">{staffEfficiency.filter(s => s.efficiency < 1).length} proyectos afectados</p>
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-red-100">
+                    <p className="text-[8px] font-black text-[var(--color-error)] uppercase">Baja Eficiencia Personal</p>
+                    <p className="text-[7px] text-[var(--color-error)]">{staffEfficiency.filter(s => s.efficiency < 1).length} proyectos afectados</p>
                   </div>
                 )}
                 {(criticalInventory.length === 0 && pendingOrders.length <= 5 && staffEfficiency.filter(s => s.efficiency < 1).length === 0) && (
-                  <div className="bg-white rounded-lg p-2 border border-green-100">
-                    <p className="text-[8px] font-black text-green-600 uppercase">✓ Sistema Saludable</p>
-                    <p className="text-[7px] text-green-500">Sin alertas críticas</p>
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-green-100">
+                    <p className="text-[8px] font-black text-[var(--color-success)] uppercase">✓ Sistema Saludable</p>
+                    <p className="text-[7px] text-[var(--color-success)]">Sin alertas críticas</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Recomendaciones */}
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-3">
+            <div className="bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-2xl p-3">
               <div className="flex items-center gap-2 mb-2">
-                <CheckCircle2 size={16} className="text-blue-500" />
-                <h3 className="text-[10px] font-black text-blue-700 uppercase tracking-widest">Recomendaciones</h3>
+                <CheckCircle2 size={16} className="text-[var(--color-info)]" />
+                <h3 className="text-[10px] font-black text-[var(--color-info)] uppercase tracking-widest">Recomendaciones</h3>
               </div>
               <div className="space-y-2">
                 {supplierAnalysis.slice(0, 1).map(s => s.pendingCount > 0 && (
-                  <div key={s.id} className="bg-white rounded-lg p-2 border border-blue-100">
-                    <p className="text-[8px] font-black text-blue-600 uppercase">Seguimiento a {s.name}</p>
-                    <p className="text-[7px] text-blue-500">{s.pendingCount} órdenes pendientes</p>
+                  <div key={s.id} className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-blue-100">
+                    <p className="text-[8px] font-black text-[var(--color-info)] uppercase">Seguimiento a {s.name}</p>
+                    <p className="text-[7px] text-[var(--color-info)]">{s.pendingCount} órdenes pendientes</p>
                   </div>
                 ))}
                 {inventoryByProject.filter(p => p.completeness < 50).length > 0 && (
-                  <div className="bg-white rounded-lg p-2 border border-blue-100">
-                    <p className="text-[8px] font-black text-blue-600 uppercase">Generar Stock Faltante</p>
-                    <p className="text-[7px] text-blue-500">{inventoryByProject.filter(p => p.completeness < 50).length} proyectos incompletos</p>
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-blue-100">
+                    <p className="text-[8px] font-black text-[var(--color-info)] uppercase">Generar Stock Faltante</p>
+                    <p className="text-[7px] text-[var(--color-info)]">{inventoryByProject.filter(p => p.completeness < 50).length} proyectos incompletos</p>
                   </div>
                 )}
                 {staffEfficiency.filter(s => s.efficiency > 3).length > 0 && (
-                  <div className="bg-white rounded-lg p-2 border border-blue-100">
-                    <p className="text-[8px] font-black text-blue-600 uppercase">Reconocer Alto Rendimiento</p>
-                    <p className="text-[7px] text-blue-500">{staffEfficiency.filter(s => s.efficiency > 3).length} equipos destacados</p>
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-blue-100">
+                    <p className="text-[8px] font-black text-[var(--color-info)] uppercase">Reconocer Alto Rendimiento</p>
+                    <p className="text-[7px] text-[var(--color-info)]">{staffEfficiency.filter(s => s.efficiency > 3).length} equipos destacados</p>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Métricas de conectividad */}
-            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-3">
+            <div className="bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-success)_20%,transparent)] rounded-2xl p-3">
               <div className="flex items-center gap-2 mb-2">
                 <Building2 size={16} className="text-emerald-500" />
-                <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">Estado General</h3>
+                <h3 className="text-[10px] font-black text-[var(--color-success)] uppercase tracking-widest">Estado General</h3>
               </div>
               <div className="space-y-2">
-                <div className="bg-white rounded-lg p-2 border border-emerald-100">
-                  <p className="text-[8px] font-black text-emerald-600 uppercase">Proyectos Activos</p>
+                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-emerald-100">
+                  <p className="text-[8px] font-black text-[var(--color-success)] uppercase">Proyectos Activos</p>
                   <p className="text-[7px] text-emerald-500">{stats.ejecucion.length} en ejecución</p>
                 </div>
-                <div className="bg-white rounded-lg p-2 border border-emerald-100">
-                  <p className="text-[8px] font-black text-emerald-600 uppercase">Personal Asignado</p>
+                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-emerald-100">
+                  <p className="text-[8px] font-black text-[var(--color-success)] uppercase">Personal Asignado</p>
                   <p className="text-[7px] text-emerald-500">{activeStaff.filter(s => s.projectIds?.length > 0).length} de {activeStaff.length} activos</p>
                 </div>
-                <div className="bg-white rounded-lg p-2 border border-emerald-100">
-                  <p className="text-[8px] font-black text-emerald-600 uppercase">Proveedores Activos</p>
+                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-emerald-100">
+                  <p className="text-[8px] font-black text-[var(--color-success)] uppercase">Proveedores Activos</p>
                   <p className="text-[7px] text-emerald-500">{supplierAnalysis.filter(s => s.orderCount > 0).length} con órdenes</p>
                 </div>
               </div>
@@ -914,10 +914,10 @@ data={[
           </div>
 
           {/* Análisis de eficiencia de personal por proyecto */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
               <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Eficiencia Personal por Proyecto</h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Progreso vs Costo de Personal (Progreso% / Costo Salarial en miles)</p>
+              <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Progreso vs Costo de Personal (Progreso% / Costo Salarial en miles)</p>
             </div>
             {staffEfficiency.length === 0 ? (
               <div className="h-36 flex items-center justify-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin personal asignado a proyectos</div>
@@ -931,14 +931,14 @@ data={[
                     Eficiencia: Math.round(p.efficiency * 10) / 10,
                     CostoSalarial: Math.round(p.staffCost / 1000)
                   }))} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                     <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                     <YAxis fontSize={9} axisLine={false} tickLine={false} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
-                    <Bar dataKey="Personal" fill="#3b82f6" radius={[4, 4, 0, 0]} barSize={16} />
-                    <Bar dataKey="Progreso" fill="#10b981" radius={[4, 4, 0, 0]} barSize={16} />
-                    <Bar dataKey="Eficiencia" fill="#f59e0b" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="Personal" fill="var(--color-info)" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="Progreso" fill="var(--color-success)" radius={[4, 4, 0, 0]} barSize={16} />
+                    <Bar dataKey="Eficiencia" fill="var(--color-secondary)" radius={[4, 4, 0, 0]} barSize={16} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -947,27 +947,27 @@ data={[
 
           {/* Análisis de proveedores y órdenes de compra */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+            <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
               <div className="mb-2">
                 <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Top Proveedores</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Por volumen de compras</p>
+                <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Por volumen de compras</p>
               </div>
               <div className="space-y-2">
                 {supplierAnalysis.slice(0, 5).map((supplier, i) => (
-                  <div key={supplier.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-2">
+                  <div key={supplier.id} className="flex items-center justify-between bg-[var(--color-neutral-50)] rounded-xl p-2">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-900 text-secondary flex items-center justify-center font-black text-[10px]">
+                      <div className="w-8 h-8 rounded-lg bg-[var(--color-neutral-900)] text-secondary flex items-center justify-center font-black text-[10px]">
                         {i + 1}
                       </div>
                       <div className="min-w-0">
                         <p className="text-[10px] font-black text-primary uppercase truncate">{supplier.name}</p>
-                        <p className="text-[7px] font-bold text-slate-400 uppercase">{supplier.orderCount} órdenes</p>
+                        <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{supplier.orderCount} órdenes</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="text-[9px] font-black text-slate-600">Q {Math.round(supplier.totalSpent/1000)}k</p>
+                      <p className="text-[9px] font-black text-[var(--color-neutral-600)]">Q {Math.round(supplier.totalSpent/1000)}k</p>
                       {supplier.pendingCount > 0 && (
-                        <p className="text-[7px] font-bold text-amber-600 uppercase">{supplier.pendingCount} pendientes</p>
+                        <p className="text-[7px] font-bold text-[var(--color-warning)] uppercase">{supplier.pendingCount} pendientes</p>
                       )}
                     </div>
                   </div>
@@ -975,10 +975,10 @@ data={[
               </div>
             </div>
 
-            <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+            <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-6 shadow-sm">
               <div className="mb-2">
                 <h3 className="text-sm font-black text-primary  uppercase tracking-tight">Completitud de Inventario</h3>
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Stock actual vs presupuestado por proyecto</p>
+                <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Stock actual vs presupuestado por proyecto</p>
               </div>
               <div className="space-y-2">
                 {inventoryByProject.slice(0, 5).map((project, i) => (
@@ -986,25 +986,25 @@ data={[
                     <div className="flex items-center justify-between">
                       <span className="text-[9px] font-black text-primary uppercase truncate max-w-[60%]">{project.name}</span>
                       <span className={`text-[9px] font-black ${
-                        project.completeness >= 80 ? 'text-green-600' :
-                        project.completeness >= 50 ? 'text-amber-600' : 'text-red-500'
+                        project.completeness >= 80 ? 'text-[var(--color-success)]' :
+                        project.completeness >= 50 ? 'text-[var(--color-warning)]' : 'text-[var(--color-error)]'
                       }`}>{Math.round(project.completeness)}%</span>
                     </div>
-                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
                       <motion.div
                         initial={{ width: 0 }}
                         animate={{ width: `${project.completeness}%` }}
                         transition={{ duration: 0.8, delay: i * 0.1 }}
                         className={`h-full rounded-full ${
-                          project.completeness >= 80 ? 'bg-green-500' :
-                          project.completeness >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                          project.completeness >= 80 ? 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]0' :
+                          project.completeness >= 50 ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)]0' : 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]0'
                         }`}
                       />
                     </div>
-                    <div className="flex justify-between text-[7px] font-bold text-slate-400">
+                    <div className="flex justify-between text-[7px] font-bold text-[var(--color-neutral-400)]">
                       <span>{project.inventoryItems} items</span>
                       {project.criticalItems > 0 && (
-                        <span className="text-red-500">{project.criticalItems} críticos</span>
+                        <span className="text-[var(--color-error)]">{project.criticalItems} críticos</span>
                       )}
                     </div>
                   </div>
@@ -1014,10 +1014,10 @@ data={[
           </div>
 
           {/* Matriz de conectividad entre módulos */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm">
             <div className="mb-2">
               <h3 className="text-sm font-black text-primary uppercase tracking-tight">Matriz de Conectividad</h3>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Relaciones entre módulos del sistema</p>
+              <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-1">Relaciones entre módulos del sistema</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
@@ -1025,21 +1025,21 @@ data={[
                   title: 'Staff ↔ Projects',
                   value: `${activeStaff.filter(s => s.projectIds?.length > 0).length}/${activeStaff.length}`,
                   desc: 'Personal asignado',
-                  color: 'bg-blue-50 border-blue-200 text-blue-600',
+                  color: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] text-[var(--color-info)]',
                   icon: <Users size={14} />
                 },
                 {
                   title: 'Suppliers ↔ Inventory',
                   value: `${supplierAnalysis.filter(s => s.orderCount > 0).length}/${suppliers.length}`,
                   desc: 'Proveedores activos',
-                  color: 'bg-purple-50 border-purple-200 text-purple-600',
+                  color: 'bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)] border-[color-mix(in_srgb,var(--color-secondary)_20%,transparent)] text-[var(--color-secondary-dark)]',
                   icon: <Truck size={14} />
                 },
                 {
                   title: 'Inventory ↔ Projects',
                   value: `${inventoryByProject.length}/${displayProjects.length}`,
                   desc: 'Proyectos con inventario',
-                  color: 'bg-emerald-50 border-emerald-200 text-emerald-600',
+                  color: 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] border-[color-mix(in_srgb,var(--color-success)_20%,transparent)] text-[var(--color-success)]',
                   icon: <Package size={14} />
                 },
                 {
@@ -1078,16 +1078,16 @@ data={[
           </div>
 
           {/* Tabla resumen de conectividad */}
-          <div className="bg-white border border-slate-200 rounded-2xl p-3 shadow-sm overflow-x-auto">
+          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-3 shadow-sm overflow-x-auto">
             <h3 className="text-sm font-black text-primary uppercase tracking-tight mb-2">Resumen de Conectividad del Sistema</h3>
             <table className="w-full text-left text-[9px]">
               <thead>
-                <tr className="border-b border-slate-100">
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest">Módulo</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Total Items</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">Conectados</th>
-                  <th className="py-2 pr-4 font-black text-slate-400 uppercase tracking-widest text-right">% Conectividad</th>
-                  <th className="py-2 font-black text-slate-400 uppercase tracking-widest">Estado</th>
+                <tr className="border-b border-[var(--color-neutral-100)]">
+                  <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Módulo</th>
+                  <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Total Items</th>
+                  <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">Conectados</th>
+                  <th className="py-2 pr-4 font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right">% Conectividad</th>
+                  <th className="py-2 font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Estado</th>
                 </tr>
               </thead>
               <tbody>
@@ -1096,7 +1096,7 @@ data={[
                     module: 'Personal',
                     total: activeStaff.length,
                     connected: activeStaff.filter(s => s.projectIds?.length > 0).length,
-                    icon: <Users size={12} className="text-blue-500" />
+                    icon: <Users size={12} className="text-[var(--color-info)]" />
                   },
                   {
                     module: 'Proyectos',
@@ -1108,7 +1108,7 @@ data={[
                     module: 'Proveedores',
                     total: suppliers.length,
                     connected: supplierAnalysis.filter(s => s.orderCount > 0).length,
-                    icon: <Truck size={12} className="text-purple-500" />
+                    icon: <Truck size={12} className="text-[var(--color-secondary-dark)]" />
                   },
                   {
                     module: 'Inventario',
@@ -1119,27 +1119,27 @@ data={[
                 ].map((row, i) => {
                   const percentage = row.total > 0 ? precise((row.connected / row.total) * 100, 0) : 0;
                   return (
-                    <tr key={i} className="border-b border-slate-50 hover:bg-slate-50">
+                    <tr key={i} className="border-b border-slate-50 hover:bg-[var(--color-neutral-50)]">
                       <td className="py-2 pr-4">
                         <div className="flex items-center gap-2">
                           {row.icon}
                           <span className="font-black text-primary uppercase">{row.module}</span>
                         </div>
                       </td>
-                      <td className="py-2 pr-4 font-black text-slate-600 text-right">{row.total}</td>
-                      <td className="py-2 pr-4 font-black text-slate-600 text-right">{row.connected}</td>
+                      <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">{row.total}</td>
+                      <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">{row.connected}</td>
                       <td className="py-2 pr-4 font-black text-right">
                         <span className={`px-2 py-0.5 rounded-full text-[8px] font-black ${
-                          percentage >= 80 ? 'bg-emerald-100 text-emerald-700' :
-                          percentage >= 50 ? 'bg-amber-100 text-amber-700' :
-                          'bg-red-100 text-red-600'
+                          percentage >= 80 ? 'bg-[color-mix(in_srgb,var(--color-success)_15%,transparent)] text-[var(--color-success)]' :
+                          percentage >= 50 ? 'bg-[color-mix(in_srgb,var(--color-warning)_15%,transparent)] text-[var(--color-warning)]' :
+                          'bg-[color-mix(in_srgb,var(--color-error)_15%,transparent)] text-[var(--color-error)]'
                         }`}>{percentage}%</span>
                       </td>
                       <td className="py-2">
                         <span className={`text-[8px] font-black uppercase ${
-                          percentage >= 80 ? 'text-emerald-600' :
-                          percentage >= 50 ? 'text-amber-600' :
-                          'text-red-500'
+                          percentage >= 80 ? 'text-[var(--color-success)]' :
+                          percentage >= 50 ? 'text-[var(--color-warning)]' :
+                          'text-[var(--color-error)]'
                         }`}>
                           {percentage >= 80 ? '✓ Óptimo' : percentage >= 50 ? '⚠ Mejorable' : '✗ Crítico'}
                         </span>

@@ -37,7 +37,7 @@ export function MobileNav({ menuItems, isOpen, onClose }: MobileNavProps) {
           />
 
           <div className="relative flex items-center justify-center pb-2 pt-1">
-            <div className="flex items-stretch overflow-x-auto overflow-y-hidden no-scrollbar gap-0.5 px-1.5 py-1 rounded-t-2xl bg-surface border border-border shadow-[0_-4px_24px_rgba(0,0,0,0.1)] max-w-lg mx-auto w-[calc(100%-1rem)]">
+            <div className="flex items-stretch overflow-x-auto overflow-y-hidden no-scrollbar gap-0.5 px-1.5 py-1 rounded-t-2xl bg-[var(--color-surface)] border border-[var(--color-border)] shadow-[0_-4px_24px_rgba(0,0,0,0.1)] max-w-lg mx-auto w-[calc(100%-1rem)]">
               {menuItems.map((item) => (
                 <button
                   key={item.id}
@@ -47,10 +47,10 @@ export function MobileNav({ menuItems, isOpen, onClose }: MobileNavProps) {
                   }}
                   className={cn(
                     "relative flex flex-col items-center justify-center gap-0.5 min-w-[3rem] flex-shrink-0 py-1.5 px-2 rounded-xl transition-all duration-200",
-                    "hover:bg-neutral-50 hover:scale-[1.1] active:scale-95",
+                    "hover:bg-[var(--color-neutral-50)] hover:scale-[1.1] active:scale-95",
                     item.active
                       ? "text-primary font-bold"
-                      : "text-neutral-400 hover:text-neutral-700"
+                      : "text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-700)]"
                   )}
                   aria-label={item.label}
                   type="button"
@@ -79,7 +79,7 @@ export function MobileNav({ menuItems, isOpen, onClose }: MobileNavProps) {
               {/* Close button */}
               <button
                 onClick={onClose}
-                className="flex items-center justify-center w-8 h-8 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition-all shrink-0 ml-1"
+                className="flex items-center justify-center w-8 h-8 rounded-lg text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)] transition-all shrink-0 ml-1"
                 aria-label="Cerrar menú"
                 type="button"
               >
@@ -95,11 +95,11 @@ export function MobileNav({ menuItems, isOpen, onClose }: MobileNavProps) {
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.7 }}
           onClick={onClose} // Reuse to toggle open
-          className="fixed bottom-4 left-1/2 z-49 -translate-x-1/2 w-12 h-12 rounded-full bg-surface border border-border/50 backdrop-blur-md shadow-lg flex items-center justify-center hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-200"
+          className="fixed bottom-4 left-1/2 z-49 -translate-x-1/2 w-12 h-12 rounded-full bg-[var(--color-surface)] border border-[var(--color-border)]/50 backdrop-blur-md shadow-lg flex items-center justify-center hover:scale-110 hover:shadow-xl active:scale-95 transition-all duration-200"
           aria-label="Abrir navegación"
           type="button"
         >
-          <ChevronUp size={20} className="text-neutral-500" />
+          <ChevronUp size={20} className="text-[var(--color-neutral-500)]" />
         </motion.button>
       )}
     </AnimatePresence>

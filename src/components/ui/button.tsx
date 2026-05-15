@@ -11,10 +11,10 @@ const buttonVariants = cva(
       variant: {
         default: "bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5",
         secondary: "bg-secondary text-primary shadow-md hover:bg-secondary-light hover:shadow-lg hover:-translate-y-0.5",
-        ghost: "bg-transparent text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900",
-        outline: "border border-neutral-200 bg-transparent hover:bg-neutral-50 hover:border-neutral-300",
-        danger: "bg-error text-white shadow-md hover:bg-red-600 hover:shadow-lg",
-        premium: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5",
+        ghost: "bg-transparent text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-900)]",
+        outline: "border border-[var(--color-neutral-200)] bg-transparent hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-300)]",
+        danger: "bg-error text-white shadow-md hover:bg-[var(--color-error-dark,#dc2626)] hover:shadow-lg",
+        premium: "bg-gradient-to-r from-[var(--color-secondary-dark)] to-[var(--color-secondary)] text-white shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5",
       },
       size: {
         sm: "h-8 px-3 text-xs gap-1.5",

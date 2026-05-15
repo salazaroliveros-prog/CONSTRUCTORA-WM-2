@@ -67,7 +67,7 @@ import {
 function MiniRing({ value, color, label }: { value: number; color: string; label: string }) {
   const r = 16; const circ = 2 * Math.PI * r;
   const dash = Math.min(value / 100, 1) * circ;
-  const trackColor = '#e2e8f0';
+  const trackColor = 'var(--color-neutral-200)';
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div className="relative" style={{ width: 40, height: 40 }}>
@@ -84,13 +84,13 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
           <span className="text-[8px] font-black" style={{ color }}>{value}%</span>
         </div>
       </div>
-       <span className="text-[7px] sm:text-[6px] font-black text-slate-600 uppercase tracking-wide leading-none">{label}</span>
+        <span className="text-[7px] sm:text-[6px] font-black text-[var(--color-neutral-600)] uppercase tracking-wide leading-none">{label}</span>
     </div>
   );
 }
 
 // Gauge Chart Component para indicadores de rendimiento
-function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: number; max?: number; label: string; color?: string }) {
+function GaugeChart({ value, max = 100, label, color = 'var(--color-secondary)' }: { value: number; max?: number; label: string; color?: string }) {
   const percentage = Math.min((value / max) * 100, 100);
   const angle = (percentage / 100) * 180;
   const r = 60;
@@ -102,16 +102,16 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
       <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-[100px]">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#ef4444" />
-            <stop offset="50%" stopColor="#f59e0b" />
-            <stop offset="100%" stopColor="#10b981" />
+             <stop offset="0%" stopColor="var(--color-error)" />
+             <stop offset="50%" stopColor="var(--color-secondary)" />
+             <stop offset="100%" stopColor="var(--color-success)" />
           </linearGradient>
         </defs>
         {/* Background arc */}
         <path
           d="M 10 70 A 60 60 0 0 1 130 70"
           fill="none"
-          stroke="#e2e8f0"
+           stroke="var(--color-neutral-200)"
           strokeWidth={12}
           strokeLinecap="round"
         />
@@ -131,7 +131,7 @@ function GaugeChart({ value, max = 100, label, color = '#f59e0b' }: { value: num
           {Math.round(value)}%
         </text>
       </svg>
-       <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest -mt-1">{label}</span>
+        <span className="text-[7px] font-black text-[var(--color-neutral-700)] uppercase tracking-widest -mt-1">{label}</span>
     </div>
   );
 }
@@ -205,8 +205,8 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
       style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
-      className="relative bg-white border border-slate-100 rounded-xl p-3 cursor-default will-change-transform overflow-hidden group
-                 hover:border-slate-200 hover:shadow-md shimmer-effect"
+                className="relative bg-[var(--color-surface-solid)] border border-[var(--color-neutral-100)] rounded-xl p-3 cursor-default will-change-transform overflow-hidden group
+                 hover:border-[var(--color-neutral-200)] hover:shadow-md shimmer-effect"
     >
       {/* Color accent bar top */}
       <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
@@ -237,8 +237,8 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
               whileTap={{ scale: 0.95 }}
               className="flex gap-0.5 cursor-pointer"
             >
-              <MiniRing value={kpi.rings.fisico} color="#f59e0b" label="Fís" />
-              <MiniRing value={kpi.rings.financiero} color="#06b6d4" label="Fin" />
+               <MiniRing value={kpi.rings.fisico} color="var(--color-secondary)" label="Fís" />
+              <MiniRing value={kpi.rings.financiero} color="var(--color-info)" label="Fin" />
             </motion.div>
           )}
         </div>
@@ -246,14 +246,14 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
         {trend !== null && (
           <span className={cn(
             "text-[7px] sm:text-[6px] font-black uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
-            trend > 0 ? "bg-emerald-50 text-emerald-600" : trend < 0 ? "bg-red-50 text-red-500" : "bg-slate-50 text-slate-400"
+            trend > 0 ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)]" : trend < 0 ? "bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] text-[var(--color-error)]" : "bg-[var(--color-neutral-50)] text-[var(--color-neutral-400)]"
           )}>
             {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}
           </span>
         )}
       </div>
 
-      <p className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">{kpi.label}</p>
+      <p className="text-[7px] font-black text-[var(--color-neutral-600)] uppercase tracking-widest mb-0.5">{kpi.label}</p>
       <p className="text-base font-black text-primary leading-none">
         <AnimatedKpi value={kpi.value} currency={kpi.currency} />
       </p>
@@ -288,13 +288,13 @@ function AnimatedKpi({ value, currency }: { value: string | number; currency?: b
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-slate-900/95 backdrop-blur-sm border border-white/10 rounded-lg px-3 py-2 shadow-2xl text-left min-w-[120px]">
-      {label && <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1.5">{label}</p>}
+    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] rounded-lg px-3 py-2 shadow-2xl text-left min-w-[120px]">
+      {label && <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1.5">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
           <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-[8px] font-bold text-slate-300 uppercase">{entry.name}:</span>
-          <span className="text-[9px] font-black text-white">Q{Number(entry.value).toLocaleString()}</span>
+          <span className="text-[8px] font-bold text-[var(--color-neutral-300)] uppercase">{entry.name}:</span>
+          <span className="text-[9px] font-black text-[var(--color-neutral-50)]">Q{Number(entry.value).toLocaleString()}</span>
         </div>
       ))}
     </div>
@@ -656,11 +656,11 @@ const generateReport = async () => {
 
   const getCardStyle = () => {
     switch (settings.cardStyle) {
-      case 'flat': return 'bg-slate-50 border border-slate-100 shadow-none';
-      case 'glass': return 'bg-white/40 backdrop-blur-md border border-white/50 shadow-xl';
-      case 'bordered': return 'bg-white border-2 border-slate-900 shadow-none';
+      case 'flat': return 'bg-[var(--color-neutral-50)] border border-[var(--color-neutral-100)] shadow-none';
+      case 'glass': return 'bg-[var(--color-surface-solid)]/40 backdrop-blur-md border border-[rgba(255,255,255,0.5)] shadow-xl';
+      case 'bordered': return 'bg-[var(--color-surface-solid)] border-2 border-[var(--color-neutral-900)] shadow-none';
       case 'elevated':
-      default: return 'bg-white border border-slate-200 shadow-sm hover:shadow-md transition-shadow';
+      default: return 'bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] shadow-sm hover:shadow-md transition-shadow';
     }
   };
 
@@ -708,12 +708,12 @@ const generateReport = async () => {
         <div className="space-y-4 text-left">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Tipo Registro</label>
-              <div className="flex bg-slate-100 p-1 rounded-xl gap-1">
+              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Tipo Registro</label>
+              <div className="flex bg-[var(--color-neutral-100)] p-1 rounded-xl gap-1">
                 <button 
                   type="button"
                   onClick={() => setAccountingForm({ ...accountingForm, type: 'Entrada', category: entryCategories[0] })}
-                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Entrada' ? "bg-white text-green-600 shadow-sm" : "text-slate-400")}
+                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Entrada' ? "bg-[var(--color-surface-solid)] text-[var(--color-success)] shadow-sm" : "text-[var(--color-neutral-400)]")}
                 >
                   <ArrowDownLeft size={10} className="inline mr-1" />
                   Ingreso (+)
@@ -721,7 +721,7 @@ const generateReport = async () => {
                 <button 
                   type="button"
                   onClick={() => setAccountingForm({ ...accountingForm, type: 'Salida', category: exitCategories[0] })}
-                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Salida' ? "bg-white text-red-600 shadow-sm" : "text-slate-400")}
+                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Salida' ? "bg-[var(--color-surface-solid)] text-[var(--color-error)] shadow-sm" : "text-[var(--color-neutral-400)]")}
                 >
                   <ArrowUpRight size={10} className="inline mr-1" />
                   Gasto (-)
@@ -729,26 +729,26 @@ const generateReport = async () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label htmlFor="accounting-date" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Fecha</label>
+              <label htmlFor="accounting-date" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Fecha</label>
               <input 
                 id="accounting-date"
                 type="date"
                 value={accountingForm.date}
                 onChange={(e) => setAccountingForm({ ...accountingForm, date: e.target.value })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
                 title="Fecha del movimiento"
               />
             </div>
           </div>
 
           <div>
-            <label htmlFor="accounting-category" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Categoría</label>
-            <select 
-              id="accounting-category"
-              value={accountingForm.category}
-              onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
-              title="Seleccionar categoría"
+              <label htmlFor="accounting-category" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Categoría</label>
+              <select 
+                id="accounting-category"
+                value={accountingForm.category}
+                onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+                title="Seleccionar categoría"
             >
               {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
                 <option key={cat} value={cat}>{cat}</option>
@@ -756,13 +756,13 @@ const generateReport = async () => {
             </select>
           </div>
           <div>
-            <label htmlFor="accounting-project" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
-            <select
-              id="accounting-project"
-              value={accountingForm.projectId}
-              onChange={(e) => setAccountingForm({ ...accountingForm, projectId: e.target.value })}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
-              title="Asignar a proyecto"
+              <label htmlFor="accounting-project" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
+              <select
+                id="accounting-project"
+                value={accountingForm.projectId}
+                onChange={(e) => setAccountingForm({ ...accountingForm, projectId: e.target.value })}
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+                title="Asignar a proyecto"
             >
               <option value="">Sin proyecto especifico</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -771,27 +771,27 @@ const generateReport = async () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="accounting-quantity" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Cantidad / Unidades</label>
+              <label htmlFor="accounting-quantity" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Cantidad / Unidades</label>
               <input 
                 id="accounting-quantity"
                 type="number"
                 step="0.01"
                 value={accountingForm.quantity || ''}
                 onChange={(e) => setAccountingForm({ ...accountingForm, quantity: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
                 placeholder="1"
                 title="Cantidad"
               />
             </div>
             <div className="space-y-2">
-              <label htmlFor="accounting-cost" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
+              <label htmlFor="accounting-cost" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
               <input 
                 id="accounting-cost"
                 type="number"
                 step="0.01"
                 value={accountingForm.cost || ''}
                 onChange={(e) => setAccountingForm({ ...accountingForm, cost: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
                 placeholder="0.00"
                 title="Costo unitario"
               />
@@ -799,14 +799,14 @@ const generateReport = async () => {
           </div>
 
           <div>
-            <label htmlFor="accounting-description" className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
-            <textarea 
-              id="accounting-description"
-              value={accountingForm.description}
-              onChange={(e) => setAccountingForm({ ...accountingForm, description: e.target.value })}
-              placeholder="Ej: Pago sub-contrato Fase 1, Compra de cemento..."
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm min-h-[80px]"
-              title="Descripción del movimiento"
+              <label htmlFor="accounting-description" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
+              <textarea 
+                id="accounting-description"
+                value={accountingForm.description}
+                onChange={(e) => setAccountingForm({ ...accountingForm, description: e.target.value })}
+                placeholder="Ej: Pago sub-contrato Fase 1, Compra de cemento..."
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm min-h-[80px]"
+                title="Descripción del movimiento"
             />
           </div>
 
@@ -814,7 +814,7 @@ const generateReport = async () => {
             type="button"
             onClick={handleAccountingSubmit}
             disabled={accountingForm.cost <= 0 || accountingForm.quantity <= 0}
-            className="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2 shadow-xl shadow-primary/10"
+            className="w-full bg-primary text-[var(--color-neutral-50)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-neutral-800)] disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2 shadow-xl shadow-primary/10"
           >
             Registrar en Contabilidad
           </button>
@@ -825,34 +825,34 @@ const generateReport = async () => {
       {isResetModalOpen && (
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-slate-100">
+            className="bg-[var(--color-surface-solid)] rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-[var(--color-neutral-100)]">
               <div>
-                <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Limpiar Datos del Sistema</h3>
-                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
+                <h3 className="text-sm font-black text-[var(--color-neutral-900)] uppercase tracking-tight">Limpiar Datos del Sistema</h3>
+                <p className="text-[9px] text-[var(--color-neutral-400)] font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
               </div>
-              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-xl transition-all"><X size={16} /></button>
+              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-[var(--color-neutral-100)] rounded-xl transition-all"><X size={16} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {Object.entries(resetData).map(([col, { items, selected }]) => {
                 const labels: Record<string, string> = { projects: 'Proyectos', inventory: 'Inventario', transactions: 'Transacciones', staff: 'Personal', suppliers: 'Proveedores', clients: 'Clientes' };
                 const allChecked = selected.length === items.length;
                 return (
-                  <div key={col} className="border border-slate-100 rounded-xl overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-100">
+                  <div key={col} className="border border-[var(--color-neutral-100)] rounded-xl overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-neutral-50)] border-b border-[var(--color-neutral-100)]">
                       <input title="Seleccionar todos" type="checkbox" checked={allChecked} onChange={() => setResetData(prev => ({ ...prev, [col]: { ...prev[col], selected: allChecked ? [] : items.map((d: any) => d.id) } }))} className="w-4 h-4 accent-red-500 cursor-pointer" />
-                      <span className="text-[10px] font-black text-slate-700 uppercase tracking-widest flex-1">{labels[col] || col}</span>
+                      <span className="text-[10px] font-black text-[var(--color-neutral-700)] uppercase tracking-widest flex-1">{labels[col] || col}</span>
                       <span className="text-[8px] font-bold text-slate-400">{selected.length}/{items.length} seleccionados</span>
                     </div>
-                    <div className="divide-y divide-slate-50 max-h-40 overflow-y-auto">
+                    <div className="divide-y divide-[var(--color-neutral-50)] max-h-40 overflow-y-auto">
                       {items.map((item: any) => (
-                        <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-slate-50 cursor-pointer transition-colors">
+                        <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-[var(--color-neutral-50)] cursor-pointer transition-colors">
                           <input title={`Seleccionar ${item.name || item.description}`} type="checkbox" checked={selected.includes(item.id)}
                             onChange={() => setResetData(prev => {
                               const sel = prev[col].selected;
                               return { ...prev, [col]: { ...prev[col], selected: sel.includes(item.id) ? sel.filter(s => s !== item.id) : [...sel, item.id] } };
                             })} className="w-3.5 h-3.5 accent-red-500 cursor-pointer shrink-0" />
-                          <span className="text-[9px] font-bold text-slate-600 truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
+                          <span className="text-[9px] font-bold text-[var(--color-neutral-600)] truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
                           <span className="text-[7px] text-slate-300 font-mono ml-auto shrink-0">{item.id.slice(0, 8)}</span>
                         </label>
                       ))}
@@ -861,11 +861,11 @@ const generateReport = async () => {
                 );
               })}
               {Object.keys(resetData).length === 0 && (
-                <p className="text-center text-[10px] text-slate-400 uppercase tracking-widest py-8">No hay datos para eliminar</p>
+                <p className="text-center text-[10px] text-[var(--color-neutral-400)] uppercase tracking-widest py-8">No hay datos para eliminar</p>
               )}
             </div>
-            <div className="p-5 border-t border-slate-100 flex gap-3">
-              <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 rounded-xl border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-slate-50 transition-all">Cancelar</button>
+            <div className="p-5 border-t border-[var(--color-neutral-100)] flex gap-3">
+              <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 rounded-xl border border-[var(--color-neutral-200)] text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-[var(--color-neutral-50)] transition-all">Cancelar</button>
               <button onClick={handleConfirmReset} disabled={resetting || Object.values(resetData).every(v => v.selected.length === 0)}
                 className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
                 {resetting ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Eliminando...</> : <><AlertTriangle size={12} /> Eliminar Seleccionados</>}
@@ -882,7 +882,7 @@ const generateReport = async () => {
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
           <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)}
-            className="text-[9px] font-bold bg-slate-100 border border-slate-200 rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary max-w-[180px]"
+            className="text-[9px] font-bold bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2.5 py-1.5 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary max-w-[180px]"
           >
             <option value="ALL">Todos los proyectos</option>
             {projects.filter(p => p.status === 'EJECUCION').map(p => (
@@ -892,16 +892,16 @@ const generateReport = async () => {
           <div className="flex items-center gap-1 text-[8px] text-slate-400">
             <Calendar size={12} />
             <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
-              className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
+              className="bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
             />
             <span className="text-slate-300">—</span>
             <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
-              className="bg-slate-100 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
+              className="bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1.5 text-[9px] font-bold text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary w-[130px]"
             />
           </div>
         </div>
         <button onClick={generateReport} disabled={generating}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-white text-[8px] font-black uppercase tracking-widest hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-[var(--color-neutral-50)] text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-neutral-800)] disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
         >
           {generating ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</> : <><Printer size={12} /> Reporte</>}
         </button>
@@ -929,7 +929,7 @@ const generateReport = async () => {
               <div className="flex justify-between items-center mb-1">
                 <div>
                   <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja' : 'Flujo del Proyecto'}</h2>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Ingresos vs Gastos</p>
+                  <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest">Ingresos vs Gastos</p>
                 </div>
               </div>
               <div className="h-[160px] w-full">
@@ -992,7 +992,7 @@ const generateReport = async () => {
               <div className="flex justify-between items-center mb-1">
                 <div>
                   <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Gastos</h2>
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Por Categoría</p>
+                  <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest">Por Categoría</p>
                 </div>
               </div>
               <div className="h-[160px] w-full flex flex-col items-center justify-center">
@@ -1061,11 +1061,11 @@ const generateReport = async () => {
               <div className="flex items-center gap-3 mt-2">
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 rounded-sm bg-slate-200" />
-                  <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 uppercase">Baja</span>
+                  <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Baja</span>
                 </div>
                 <div className="flex items-center gap-1">
                   <div className="w-1.5 h-1.5 rounded-sm bg-emerald-500" />
-                  <span className="text-[7px] sm:text-[6px] font-bold text-slate-400 uppercase">Alta</span>
+                  <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Alta</span>
                 </div>
               </div>
             </div>
@@ -1080,7 +1080,7 @@ const generateReport = async () => {
               <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Estado de Cuentas por Proyecto</h2>
               {availableYears.length > 2 && (
                 <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
-                  className="text-[8px] font-bold uppercase tracking-wider bg-slate-100 border border-slate-200 rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary">
+                  className="text-[8px] font-bold uppercase tracking-wider bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary">
                   {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'Todos' : y}</option>)}
                 </select>
               )}
@@ -1088,16 +1088,16 @@ const generateReport = async () => {
             <div className="overflow-x-auto overflow-y-auto">
               <table className="w-full text-[9px]">
                 <thead className="sticky top-0 bg-inherit">
-                  <tr className="border-b border-slate-200">
-                    <th className="text-left font-black text-slate-500 uppercase tracking-wider pb-1.5 pr-2">Proyecto</th>
-                    <th className="text-right font-black text-slate-500 uppercase tracking-wider pb-1.5 px-1">Costo Total</th>
-                    <th className="text-right font-black text-slate-500 uppercase tracking-wider pb-1.5 px-1">Aportes</th>
-                    <th className="text-right font-black text-slate-500 uppercase tracking-wider pb-1.5 pl-1">Pendiente</th>
+                  <tr className="border-b border-[var(--color-neutral-200)]">
+                    <th className="text-left font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 pr-2">Proyecto</th>
+                    <th className="text-right font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 px-1">Costo Total</th>
+                    <th className="text-right font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 px-1">Aportes</th>
+                    <th className="text-right font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 pl-1">Pendiente</th>
                   </tr>
                 </thead>
                 <tbody>
                   {tableData.map(row => (
-                    <tr key={row.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
+                    <tr key={row.id} className="border-b border-[var(--color-neutral-100)] last:border-0 hover:bg-[var(--color-neutral-50)]/50 transition-colors">
                       <td className="py-1 pr-2 font-bold text-primary truncate max-w-[130px] sm:max-w-[180px]">{row.name}</td>
                       <td className="py-1 text-right font-mono font-bold px-1">Q. {fmtQ(row.costoTotal)}</td>
                       <td className="py-1 text-right font-mono font-bold text-emerald-600 px-1">Q. {fmtQ(row.aportes)}</td>
@@ -1107,7 +1107,7 @@ const generateReport = async () => {
                 </tbody>
                 {tableData.length > 0 && (
                   <tfoot>
-                    <tr className="border-t-2 border-slate-300">
+                    <tr className="border-t-2 border-[var(--color-neutral-300)]">
                       <td className="py-1.5 pr-2 font-black text-primary text-[10px]">TOTAL</td>
 <td className="py-1.5 text-right font-mono font-black text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.costoTotal)))}</td>
                        <td className="py-1.5 text-right font-mono font-black text-emerald-600 text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.aportes)))}</td>
@@ -1116,7 +1116,7 @@ const generateReport = async () => {
                   </tfoot>
                 )}
               </table>
-              {tableData.length === 0 && <p className="text-[9px] text-slate-400 text-center py-4">Sin proyectos</p>}
+              {tableData.length === 0 && <p className="text-[9px] text-[var(--color-neutral-400)] text-center py-4">Sin proyectos</p>}
             </div>
           </div>
 
@@ -1125,12 +1125,12 @@ const generateReport = async () => {
             <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Cronograma</h2>
             <div className="space-y-1.5 overflow-y-auto max-h-[130px] pr-1">
               {filteredProjects.length > 0 ? filteredProjects.slice(0, 6).map((p) => (
-                <div key={p.id} className="p-2 bg-slate-50 rounded-lg border border-slate-100">
+                <div key={p.id} className="p-2 bg-[var(--color-neutral-50)] rounded-lg border border-[var(--color-neutral-100)]">
                   <div className="flex justify-between text-[8px] font-black uppercase mb-1">
                     <span className="truncate">{p.name}</span>
                     <span className="text-secondary">{p.progress || 0}%</span>
                   </div>
-                  <div className="h-1.5 bg-white rounded-full overflow-hidden border border-slate-200">
+                  <div className="h-1.5 bg-white rounded-full overflow-hidden border border-[var(--color-neutral-200)]">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${p.progress || 0}%` }}
@@ -1151,23 +1151,23 @@ const generateReport = async () => {
         {/* Row 4: Transactions Table */}
         <div className={cn(cardClass, 'rounded-xl p-3 text-left')}>
           <div className='flex items-center justify-between mb-1'>
-            <h4 className='text-[9px] font-black text-slate-400 uppercase tracking-widest'>Movimientos Recientes</h4>
+            <h4 className='text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Movimientos Recientes</h4>
             <span className='text-[7px] font-bold text-slate-400'>{filteredTransactions.length} registros</span>
           </div>
           <div className='overflow-auto max-h-36'>
             <table className='w-full text-left table-fixed'>
               <thead className='sticky top-0 bg-slate-50 z-10'>
-                <tr className='border-b border-slate-100'>
-                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Fecha</th>
-                  <th className='px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest'>Descripcion</th>
-                  <th className='w-20 px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Monto (Q)</th>
-                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-slate-400 uppercase tracking-widest text-right'>Accion</th>
+                <tr className='border-b border-[var(--color-neutral-100)]'>
+                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Fecha</th>
+                  <th className='px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Descripcion</th>
+                  <th className='w-20 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right'>Monto (Q)</th>
+                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right'>Accion</th>
                 </tr>
               </thead>
-              <tbody className='divide-y divide-slate-50'>
+              <tbody className='divide-y divide-[var(--color-neutral-50)]'>
                 {filteredTransactions.slice(0, 20).map((t, i) => (
-                  <tr key={t.id || i} className='hover:bg-slate-50/50 transition-colors group'>
-                    <td className='px-2 py-1.5 text-[7px] font-bold text-slate-500 whitespace-nowrap'>{t.date?.slice(5) || '--'}</td>
+                  <tr key={t.id || i} className='hover:bg-[var(--color-neutral-50)]/50 transition-colors group'>
+                    <td className='px-2 py-1.5 text-[7px] font-bold text-[var(--color-neutral-500)] whitespace-nowrap'>{t.date?.slice(5) || '--'}</td>
                     <td className='px-2 py-1.5 text-[8px] font-black text-primary uppercase truncate'>{t.description || '--'}</td>
                     <td className={cn('px-2 py-1.5 text-[8px] font-black text-right', t.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-500')}>
                       Q{(t.amount || 0).toLocaleString()}
@@ -1189,7 +1189,7 @@ const generateReport = async () => {
       {/* Side Actions / Live Feed */}
       <aside className="hidden lg:flex flex-col gap-2 w-64 shrink-0">
           <div className={cn(cardClass, "rounded-2xl p-3 text-left relative overflow-hidden")}>
-             <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Accesos Rápidos</h4>
+             <h4 className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-3">Accesos Rápidos</h4>
              <div className="space-y-2">
                 {/* Cotización */}
                 <button
@@ -1211,12 +1211,12 @@ const generateReport = async () => {
 
                 {/* Otras acciones */}
                 {[
-                  { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-slate-100 text-primary hover:bg-slate-200', tab: 'inventory' },
-                  { label: 'Reporte de Obra', icon: <TrendingUp size={14} />, color: 'bg-slate-100 text-primary hover:bg-slate-200', tab: 'seguimiento' },
-                  { label: 'Administrar Personal', icon: <HardHat size={14} />, color: 'bg-slate-100 text-primary hover:bg-slate-200', tab: 'staff' },
+                  { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-[var(--color-neutral-100)] text-primary hover:bg-[var(--color-neutral-200)]', tab: 'inventory' },
+                  { label: 'Reporte de Obra', icon: <TrendingUp size={14} />, color: 'bg-[var(--color-neutral-100)] text-primary hover:bg-[var(--color-neutral-200)]', tab: 'seguimiento' },
+                  { label: 'Administrar Personal', icon: <HardHat size={14} />, color: 'bg-[var(--color-neutral-100)] text-primary hover:bg-[var(--color-neutral-200)]', tab: 'staff' },
                 ].map((action, i) => (
                   <button key={i} onClick={() => setActiveTab?.(action.tab as string)} className={cn(
-                    "interactive-card w-full flex items-center gap-3 p-2.5 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all border border-transparent hover:border-slate-300",
+                    "interactive-card w-full flex items-center gap-3 p-2.5 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all border border-transparent hover:border-[var(--color-neutral-300)]",
                     action.color
                   )}>
                     {action.icon}
@@ -1224,7 +1224,7 @@ const generateReport = async () => {
                   </button>
                 ))}
 
-                <div className="pt-2 border-t border-slate-200">
+                <div className="pt-2 border-t border-[var(--color-neutral-200)]">
                   <button
                     onClick={handleSystemReset}
                     className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-red-50 text-red-500 border border-dashed border-red-200"
@@ -1236,16 +1236,16 @@ const generateReport = async () => {
              </div>
           </div>
 
-         <div className="bg-slate-900 rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
+         <div className="bg-[var(--color-neutral-900)] rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
-            <h4 className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-3">Estatus Financiero</h4>
+            <h4 className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-3">Estatus Financiero</h4>
 <div className="space-y-4">
                 <div>
-                   <div className="flex justify-between text-[9px] font-black uppercase text-white mb-1">
+                   <div className="flex justify-between text-[9px] font-black uppercase text-[var(--color-neutral-50)] mb-1">
                       <span>Liquidez</span>
                       <span className="text-secondary">{liquidityPct >= 50 ? 'ALTA' : liquidityPct > 0 ? 'MEDIA' : 'CRÍTICA'}</span>
                    </div>
-                   <div className="h-1.5 bg-white/10 rounded-full overflow-hidden">
+                   <div className="h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
                       <div className="progress-neon-fill h-full rounded-full transition-all duration-700" style={{ width: `${liquidityPct}%` }} />
                    </div>
                 </div>
@@ -1288,8 +1288,8 @@ const generateReport = async () => {
                     .map(([type, count]) => (
                       <div key={type} className="flex items-center gap-2">
                         <div className={`w-2 h-2 rounded-full ${COLORS[type as keyof typeof COLORS] || 'bg-slate-400'}`} />
-                        <span className="text-[8px] font-bold text-white uppercase">{type}</span>
-                        <span className="text-[8px] font-black text-white/80 ml-auto">{count} ({Math.round(count/total*100)}%)</span>
+                        <span className="text-[8px] font-bold text-[var(--color-neutral-50)] uppercase">{type}</span>
+                        <span className="text-[8px] font-black text-[rgba(255,255,255,0.8)] ml-auto">{count} ({Math.round(count/total*100)}%)</span>
                       </div>
                     ));
                 })()}
@@ -1302,22 +1302,22 @@ const generateReport = async () => {
       {/* Edit Transaction Modal */}
       {editTx && (
         <div className='fixed inset-0 z-[200] flex items-center justify-center p-4'>
-          <div className='absolute inset-0 bg-slate-900/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
-          <div className='relative w-full max-w-md bg-white rounded-2xl shadow-2xl p-6 border border-slate-200'>
+          <div className='absolute inset-0 bg-[var(--color-neutral-900)]/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
+          <div className='relative w-full max-w-md bg-[var(--color-surface-solid)] rounded-2xl shadow-2xl p-6 border border-[var(--color-neutral-200)]'>
             <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
             <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
               <div className='grid grid-cols-2 gap-3'>
-                <div><label htmlFor="edit-tx-type" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Tipo</label><select id="edit-tx-type" title="Tipo de movimiento" value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
-                <div><label htmlFor="edit-tx-date" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Fecha</label><input id="edit-tx-date" title="Fecha" type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-type" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Tipo</label><select id="edit-tx-type" title="Tipo de movimiento" value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
+                <div><label htmlFor="edit-tx-date" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Fecha</label><input id="edit-tx-date" title="Fecha" type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
               </div>
-              <div><label htmlFor="edit-tx-desc" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Descripcion</label><input id="edit-tx-desc" title="Descripción" type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+              <div><label htmlFor="edit-tx-desc" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Descripcion</label><input id="edit-tx-desc" title="Descripción" type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
               <div className='grid grid-cols-2 gap-3'>
-                <div><label htmlFor="edit-tx-cat" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Categoria</label><input id="edit-tx-cat" title="Categoría" type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
-                <div><label htmlFor="edit-tx-amount" className='text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1'>Monto (Q)</label><input id="edit-tx-amount" title="Monto" type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-cat" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Categoria</label><input id="edit-tx-cat" title="Categoría" type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-amount" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Monto (Q)</label><input id="edit-tx-amount" title="Monto" type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
               </div>
               <div className='flex gap-2 pt-2'>
-                <button type='button' onClick={() => setEditTx(null)} className='flex-1 py-2.5 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase'>Cancelar</button>
-                <button type='submit' className='flex-1 py-2.5 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase hover:bg-secondary hover:text-primary transition-all'>Guardar</button>
+                <button type='button' onClick={() => setEditTx(null)} className='flex-1 py-2.5 bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] rounded-xl text-[9px] font-black uppercase'>Cancelar</button>
+                <button type='submit' className='flex-1 py-2.5 bg-[var(--color-neutral-900)] text-[var(--color-neutral-50)] rounded-xl text-[9px] font-black uppercase hover:bg-secondary hover:text-primary transition-all'>Guardar</button>
               </div>
             </form>
           </div>

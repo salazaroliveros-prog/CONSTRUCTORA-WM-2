@@ -58,7 +58,7 @@ export function Tooltip({
         <div
           ref={tooltipRef}
           className={cn(
-            "absolute z-50 px-2.5 py-1.5 text-[10px] font-bold text-white uppercase tracking-wider bg-neutral-900 rounded-lg whitespace-nowrap",
+            "absolute z-50 px-2.5 py-1.5 text-[10px] font-bold text-[var(--color-neutral-50)] uppercase tracking-wider bg-[var(--color-neutral-900)] rounded-lg whitespace-nowrap",
             "transition-opacity duration-150 animate-fade-in-up",
             sideStyles[side]
           )}
@@ -67,7 +67,7 @@ export function Tooltip({
           {content}
           <div
             className={cn(
-              "absolute w-2 h-2 bg-neutral-900 rotate-45",
+              "absolute w-2 h-2 bg-[var(--color-neutral-900)] rotate-45",
               arrowStyles[side]
             )}
           />

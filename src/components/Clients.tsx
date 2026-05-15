@@ -163,10 +163,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
         {[
-          { icon: <Users size={14} className="text-blue-500" />,      label: 'Clientes Activos',  value: kpis.active,                color: 'text-blue-700' },
-          { icon: <Building2 size={14} className="text-amber-500" />, label: 'Con Proyectos',     value: kpis.withProj,              color: 'text-amber-700' },
-          { icon: <TrendingUp size={14} className="text-green-500" />,label: 'En Ejecución',      value: `${kpis.inExec} proy.`,     color: 'text-green-700' },
-          { icon: <DollarSign size={14} className="text-purple-500" />,label: 'Presupuesto Total', value: fmtQ(kpis.totalBudget),    color: 'text-purple-700' },
+          { icon: <Users size={14} className="text-[var(--color-info)]" />,      label: 'Clientes Activos',  value: kpis.active,                color: 'text-[var(--color-info)]' },
+          { icon: <Building2 size={14} className="text-[var(--color-warning)]" />, label: 'Con Proyectos',     value: kpis.withProj,              color: 'text-[var(--color-warning)]' },
+          { icon: <TrendingUp size={14} className="text-[var(--color-success)]" />,label: 'En Ejecución',      value: `${kpis.inExec} proy.`,     color: 'text-[var(--color-success)]' },
+          { icon: <DollarSign size={14} className="text-[var(--color-secondary-dark)]" />,label: 'Presupuesto Total', value: fmtQ(kpis.totalBudget),    color: 'text-[var(--color-secondary-dark)]' },
         ].map(k => (
           <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-3">
             <div className="flex items-center gap-1.5 mb-1">{k.icon}<span className="text-[7px] font-black text-slate-400 uppercase">{k.label}</span></div>

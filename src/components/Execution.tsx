@@ -19,17 +19,17 @@ import { useStore } from '../store/DataStore';
 import { PMath } from '../engine/precision';
 
 const LOG_TYPES = [
-  { id: 'AVANCE',    label: 'Avance Físico',   color: 'bg-blue-100 text-blue-700 border-blue-200' },
-  { id: 'PROBLEMA',  label: 'Problema',         color: 'bg-red-100 text-red-700 border-red-200' },
-  { id: 'MATERIAL',  label: 'Material',         color: 'bg-amber-100 text-amber-700 border-amber-200' },
-  { id: 'CLIMA',     label: 'Clima',            color: 'bg-sky-100 text-sky-700 border-sky-200' },
-  { id: 'SEGURIDAD', label: 'Seguridad',        color: 'bg-orange-100 text-orange-700 border-orange-200' },
-  { id: 'VISITA',    label: 'Visita/Inspección',color: 'bg-purple-100 text-purple-700 border-purple-200' },
-  { id: 'CUSTOM',    label: 'General',          color: 'bg-slate-100 text-slate-600 border-slate-200' },
+  { id: 'AVANCE',    label: 'Avance Físico',   color: 'bg-[color-mix(in_srgb,var(--color-info)_15%,transparent)] text-[var(--color-info)] border-[color-mix(in_srgb,var(--color-info)_20%,transparent)]' },
+  { id: 'PROBLEMA',  label: 'Problema',         color: 'bg-[color-mix(in_srgb,var(--color-error)_15%,transparent)] text-[var(--color-error)] border-[color-mix(in_srgb,var(--color-error)_20%,transparent)]' },
+  { id: 'MATERIAL',  label: 'Material',         color: 'bg-[color-mix(in_srgb,var(--color-warning)_15%,transparent)] text-[var(--color-warning)] border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)]' },
+  { id: 'CLIMA',     label: 'Clima',            color: 'bg-[color-mix(in_srgb,var(--color-info)_15%,transparent)] text-[var(--color-info)] border-[color-mix(in_srgb,var(--color-info)_20%,transparent)]' },
+  { id: 'SEGURIDAD', label: 'Seguridad',        color: 'bg-[color-mix(in_srgb,var(--color-warning)_15%,transparent)] text-[var(--color-warning)] border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)]' },
+  { id: 'VISITA',    label: 'Visita/Inspección',color: 'bg-[color-mix(in_srgb,var(--color-secondary)_15%,transparent)] text-[var(--color-secondary-dark)] border-[color-mix(in_srgb,var(--color-secondary)_20%,transparent)]' },
+  { id: 'CUSTOM',    label: 'General',          color: 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border-[var(--color-neutral-200)]' },
 ];
 
 function logTypeStyle(type: string) {
-  return LOG_TYPES.find(t => t.id === type)?.color ?? 'bg-slate-100 text-slate-600 border-slate-200';
+  return LOG_TYPES.find(t => t.id === type)?.color ?? 'bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] border-[var(--color-neutral-200)]';
 }
 function logTypeLabel(type: string) {
   return LOG_TYPES.find(t => t.id === type)?.label ?? type;
@@ -218,10 +218,10 @@ const handleAddLog = async (e: React.FormEvent) => {
           { label: 'Con Retraso',       value: stats.delayed,            icon: <AlertTriangle size={16} />,color: stats.delayed > 0 ? 'bg-red-500' : 'bg-green-500', pulse: stats.delayed > 0 },
         ].map((kpi, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-            className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+            className="bg-[var(--color-surface-solid)] p-4 rounded-2xl border border-[var(--color-neutral-100)] shadow-sm">
             <div className="flex items-center gap-2 mb-2">
-              <div className={`p-2 rounded-xl text-white ${kpi.color}`}>{kpi.icon}</div>
-              <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{kpi.label}</span>
+               <div className={`p-2 rounded-xl text-[var(--color-neutral-50)] ${kpi.color}`}>{kpi.icon}</div>
+               <span className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">{kpi.label}</span>
             </div>
             <p className="text-xl font-black text-primary">{kpi.value}</p>
           </motion.div>
@@ -232,21 +232,21 @@ const handleAddLog = async (e: React.FormEvent) => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
 
         {/* Tabla portafolio con indicador de desviación */}
-        <div className="lg:col-span-7 bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden flex flex-col">
-          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-black text-sm uppercase tracking-tight">Estado del Portafolio</h3>
-            <span className="text-[8px] font-bold text-slate-400 uppercase">{projects.length} proyectos</span>
+         <div className="lg:col-span-7 bg-[var(--color-surface-solid)] rounded-2xl border border-[var(--color-neutral-100)] shadow-sm overflow-hidden flex flex-col">
+           <div className="px-5 py-4 border-b border-[var(--color-neutral-100)] flex items-center justify-between">
+             <h3 className="font-black text-sm uppercase tracking-tight">Estado del Portafolio</h3>
+             <span className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase">{projects.length} proyectos</span>
           </div>
           <div className="overflow-auto flex-1">
             <table className="w-full text-left">
               <thead>
-                <tr className="text-[8px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
+                <tr className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest border-b border-[var(--color-neutral-100)]">
                   <th className="px-4 py-3">Proyecto</th>
                   <th className="px-4 py-3">Estado</th>
                   <th className="px-4 py-3 text-right">Avance / Desviación</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y divide-[var(--color-neutral-50)]">
                 {paginatedProjects.map(p => {
                   // Calcular desviación: tiempo transcurrido vs avance físico
                   let deviation = 0;
@@ -257,28 +257,28 @@ const handleAddLog = async (e: React.FormEvent) => {
                     deviation = (p.progress || 0) - expected;
                   }
                   return (
-                    <tr key={p.id} className="hover:bg-slate-50/50 transition-colors">
+                    <tr key={p.id} className="hover:bg-[var(--color-neutral-50)]/50 transition-colors">
                       <td className="px-4 py-3">
                              <p className="text-[10px] font-black text-primary uppercase truncate max-w-[120px] sm:max-w-[140px]">{p.name}</p>
-                        <p className="text-[7px] font-bold text-slate-400 uppercase">{p.clientName}</p>
+                         <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{p.clientName}</p>
                       </td>
                       <td className="px-4 py-3">
                         <span className={cn('px-2 py-0.5 rounded text-[7px] font-black uppercase border',
-                          p.status === 'EJECUCION' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                          p.status === 'FINALIZADO' ? 'bg-green-50 text-green-700 border-green-200' :
-                          'bg-blue-50 text-blue-700 border-blue-200'
+                          p.status === 'EJECUCION' ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] text-[var(--color-warning)] border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)]' :
+                          p.status === 'FINALIZADO' ? 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)] border-[color-mix(in_srgb,var(--color-success)_20%,transparent)]' :
+                          'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] text-[var(--color-info)] border-[color-mix(in_srgb,var(--color-info)_20%,transparent)]'
                         )}>{p.status}</span>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
-                          <div className="w-20 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full bg-slate-900 rounded-full" style={{ width: `${p.progress || 0}%` }} />
-                          </div>
-                          <span className="text-[9px] font-black text-slate-700 w-8">{p.progress || 0}%</span>
+                          <div className="w-20 h-1.5 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
+                             <div className="h-full bg-[var(--color-neutral-900)] rounded-full" style={{ width: `${p.progress || 0}%` }} />
+                           </div>
+                           <span className="text-[9px] font-black text-[var(--color-neutral-700)] w-8">{p.progress || 0}%</span>
                           {p.status === 'EJECUCION' && (
-                            <span className={cn('text-[7px] font-black px-1.5 py-0.5 rounded',
-                              deviation >= 0 ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                            )}>
+                             <span className={cn('text-[7px] font-black px-1.5 py-0.5 rounded',
+                               deviation >= 0 ? 'bg-[color-mix(in_srgb,var(--color-success)_15%,transparent)] text-[var(--color-success)]' : 'bg-[color-mix(in_srgb,var(--color-error)_15%,transparent)] text-[var(--color-error)]'
+                             )}>
                               {deviation >= 0 ? '+' : ''}{Math.round(deviation)}%
                             </span>
                           )}
@@ -290,45 +290,45 @@ const handleAddLog = async (e: React.FormEvent) => {
               </tbody>
             </table>
           </div>
-          <div className="px-4 py-3 border-t border-slate-100">
+          <div className="px-4 py-3 border-t border-[var(--color-neutral-100)]">
             <Pagination currentPage={currentPage} totalPages={totalPages} onNext={nextPage} onPrev={prevPage}
               onPage={goToPage} totalItems={totalItems} startIndex={startIndex} itemsPerPage={8} compact />
           </div>
         </div>
 
         {/* Bitácora */}
-        <div className="lg:col-span-5 bg-slate-900 rounded-2xl text-white flex flex-col overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-secondary">Bitácora de Obra</h3>
-            <div className="flex items-center gap-2">
-              <span className="text-[7px] text-slate-500 font-bold">{filteredLogs.length} entradas</span>
+        <div className="lg:col-span-5 bg-[var(--color-neutral-900)] rounded-2xl text-[var(--color-neutral-50)] flex flex-col overflow-hidden">
+           <div className="px-5 py-4 border-b border-[var(--color-neutral-800)] flex items-center justify-between">
+             <h3 className="text-[10px] font-black uppercase tracking-widest text-[var(--color-secondary)]">Bitácora de Obra</h3>
+             <div className="flex items-center gap-2">
+               <span className="text-[7px] text-[var(--color-neutral-500)] font-bold">{filteredLogs.length} entradas</span>
               <button type="button" onClick={() => {
                  exportLogsCSV(filteredLogs, filterProject !== 'ALL' ? (projects.find(p => p.id === filterProject)?.name ?? 'General') : 'General');
                  trackExport('csv', 'bitacora');
                }}
-                className="p-1.5 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-secondary transition-colors" title="Exportar CSV">
+                 className="p-1.5 hover:bg-[var(--color-neutral-800)] rounded-lg text-[var(--color-neutral-400)] hover:text-[var(--color-secondary)] transition-colors" title="Exportar CSV">
                 <FileDown size={13} />
               </button>
             </div>
           </div>
 
           {/* Formulario nueva entrada */}
-          <form onSubmit={handleAddLog} className="p-4 border-b border-slate-800 space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <select value={logType} onChange={e => setLogType(e.target.value)}
-                className="bg-slate-800 border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-slate-300 focus:outline-none focus:ring-1 focus:ring-secondary">
+          <form onSubmit={handleAddLog} className="p-4 border-b border-[var(--color-neutral-800)] space-y-2">
+             <div className="grid grid-cols-2 gap-2">
+               <select value={logType} onChange={e => setLogType(e.target.value)}
+                 className="bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
                 {LOG_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
               </select>
               <select value={logProjectId} onChange={e => { setLogProjectId(e.target.value); setLogItemId(''); }}
-                className="bg-slate-800 border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-slate-300 focus:outline-none focus:ring-1 focus:ring-secondary">
-                <option value="">— Proyecto —</option>
+                 className="bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
+                 <option value="">— Proyecto —</option>
                 {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             {logProjectId && (
               <select value={logItemId} onChange={e => setLogItemId(e.target.value)}
-                className="w-full bg-slate-800 border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-slate-300 focus:outline-none focus:ring-1 focus:ring-secondary">
-                <option value="">— Renglón (opcional) —</option>
+                 className="w-full bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
+                 <option value="">— Renglón (opcional) —</option>
                 {(projects.find(p => p.id === logProjectId)?.items ?? []).filter((i: any) => i.selected).map((i: any) => (
                   <option key={i.id} value={i.id}>{i.description}</option>
                 ))}
@@ -336,31 +336,31 @@ const handleAddLog = async (e: React.FormEvent) => {
             )}
             <div className="flex gap-2">
               <input value={logMsg} onChange={e => setLogMsg(e.target.value)} placeholder="Descripción del evento..."
-                className="flex-1 bg-slate-800 border-none rounded-lg px-3 py-2 text-[9px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary" />
+                 className="flex-1 bg-[var(--color-neutral-800)] border-none rounded-lg px-3 py-2 text-[9px] font-bold text-[var(--color-neutral-50)] placeholder:text-[var(--color-neutral-600)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]" />
               <button type="submit" disabled={savingLog || !logMsg.trim()}
-                className="p-2 bg-secondary text-primary rounded-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30">
+                 className="p-2 bg-[var(--color-secondary)] text-[var(--color-primary)] rounded-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30">
                 <Plus size={14} />
               </button>
             </div>
           </form>
 
           {/* Filtros + búsqueda */}
-          <div className="px-4 py-2 border-b border-slate-800 space-y-2">
-            <div className="flex gap-2">
-              <select value={filterProject} onChange={e => setFilterProject(e.target.value)} title="Filtrar por proyecto"
-                className="flex-1 bg-slate-800 border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-slate-400 focus:outline-none">
+          <div className="px-4 py-2 border-b border-[var(--color-neutral-800)] space-y-2">
+             <div className="flex gap-2">
+               <select value={filterProject} onChange={e => setFilterProject(e.target.value)} title="Filtrar por proyecto"
+                 className="flex-1 bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-[var(--color-neutral-400)] focus:outline-none">
                 <option value="ALL">Todos los proyectos</option>
                 {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
               <select value={filterType} onChange={e => setFilterType(e.target.value)} title="Filtrar por tipo"
-                className="flex-1 bg-slate-800 border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-slate-400 focus:outline-none">
+                 className="flex-1 bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1 text-[7px] font-black uppercase text-[var(--color-neutral-400)] focus:outline-none">
                 <option value="ALL">Todos los tipos</option>
                 {LOG_TYPES.map(t => <option key={t.id} value={t.id}>{t.label} {logStats[t.id] ? `(${logStats[t.id]})` : ''}</option>)}
               </select>
             </div>
             <input value={searchLog} onChange={e => setSearchLog(e.target.value)}
               placeholder="Buscar en bitácora..." title="Buscar en bitácora"
-              className="w-full bg-slate-800 border-none rounded-lg px-3 py-1.5 text-[8px] font-bold text-white placeholder:text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary" />
+               className="w-full bg-[var(--color-neutral-800)] border-none rounded-lg px-3 py-1.5 text-[8px] font-bold text-[var(--color-neutral-50)] placeholder:text-[var(--color-neutral-600)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]" />
           </div>
 
           {/* Lista de entradas */}
@@ -372,7 +372,7 @@ const handleAddLog = async (e: React.FormEvent) => {
             )}
             {filteredLogs.slice(0, 30).map(log => (
               <motion.div key={log.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
-                className="bg-slate-800/60 rounded-xl p-3 group hover:bg-slate-800 transition-colors">
+                className="bg-[var(--color-neutral-800)]/60 rounded-xl p-3 group hover:bg-[var(--color-neutral-800)] transition-colors">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -380,26 +380,26 @@ const handleAddLog = async (e: React.FormEvent) => {
                         {logTypeLabel(log.type)}
                       </span>
                       {log.projectName && (
-                        <span className="text-[6px] font-bold text-slate-500 uppercase truncate max-w-[80px]">{log.projectName}</span>
+                         <span className="text-[6px] font-bold text-[var(--color-neutral-500)] uppercase truncate max-w-[80px]">{log.projectName}</span>
                       )}
                       {log.itemName && (
-                        <span className="text-[6px] font-bold text-slate-600 uppercase truncate max-w-[80px]">· {log.itemName}</span>
+                         <span className="text-[6px] font-bold text-[var(--color-neutral-600)] uppercase truncate max-w-[80px]">· {log.itemName}</span>
                       )}
                     </div>
-                    <p className="text-[9px] font-bold text-slate-200 leading-snug">{log.msg}</p>
+                     <p className="text-[9px] font-bold text-[var(--color-neutral-200)] leading-snug">{log.msg}</p>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-[7px] text-slate-500 flex items-center gap-1">
-                        <Clock size={8} />{new Date(log.createdAt).toLocaleString('es-GT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                      </span>
+                      <span className="text-[7px] text-[var(--color-neutral-500)] flex items-center gap-1">
+                         <Clock size={8} />{new Date(log.createdAt).toLocaleString('es-GT', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                       </span>
                       {log.author && (
-                        <span className="text-[7px] text-slate-500 flex items-center gap-1">
+                        <span className="text-[7px] text-[var(--color-neutral-500)] flex items-center gap-1">
                           <User size={8} />{log.author}
                         </span>
                       )}
                     </div>
                   </div>
                   <button type="button" onClick={() => handleDeleteLog(log.id)}
-                    className="p-1 opacity-0 group-hover:opacity-100 hover:bg-red-900/50 rounded text-slate-500 hover:text-red-400 transition-all shrink-0">
+                     className="p-1 opacity-0 group-hover:opacity-100 hover:bg-[var(--color-error)]/20 rounded text-[var(--color-neutral-500)] hover:text-[var(--color-error)] transition-all shrink-0">
                     <Trash2 size={11} />
                   </button>
                 </div>
@@ -411,18 +411,18 @@ const handleAddLog = async (e: React.FormEvent) => {
 
       {/* ── Inventario crítico ── */}
       {inventory.filter(i => (i.stock || 0) <= (i.minStock || 0)).length > 0 && (
-        <div className="bg-white rounded-2xl border border-red-200 shadow-sm overflow-hidden">
-          <div className="px-5 py-3 bg-red-50 border-b border-red-100 flex items-center gap-2">
-            <AlertTriangle size={14} className="text-red-500" />
-            <h3 className="text-[9px] font-black text-red-700 uppercase tracking-widest">
+         <div className="bg-[var(--color-surface-solid)] rounded-2xl border border-[color-mix(in_srgb,var(--color-error)_20%,transparent)] shadow-sm overflow-hidden">
+           <div className="px-5 py-3 bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] border-b border-[color-mix(in_srgb,var(--color-error)_15%,transparent)] flex items-center gap-2">
+             <AlertTriangle size={14} className="text-[var(--color-error)]" />
+             <h3 className="text-[9px] font-black text-[var(--color-error)] uppercase tracking-widest">
               Inventario Crítico — {inventory.filter(i => (i.stock || 0) <= (i.minStock || 0)).length} alertas
             </h3>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
             {inventory.filter(i => (i.stock || 0) <= (i.minStock || 0)).slice(0, 8).map(item => (
-              <div key={item.id} className="bg-red-50 border border-red-100 rounded-xl p-3">
-                <p className="text-[9px] font-black text-red-800 uppercase truncate">{item.name}</p>
-                <p className="text-[8px] font-bold text-red-500 mt-0.5">Stock: {item.stock} {item.unit} / Mín: {item.minStock}</p>
+               <div key={item.id} className="bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-error)_15%,transparent)] rounded-xl p-3">
+                 <p className="text-[9px] font-black text-[var(--color-error)] uppercase truncate">{item.name}</p>
+                 <p className="text-[8px] font-bold text-[var(--color-error)] mt-0.5">Stock: {item.stock} {item.unit} / Mín: {item.minStock}</p>
               </div>
             ))}
           </div>
@@ -430,24 +430,24 @@ const handleAddLog = async (e: React.FormEvent) => {
       )}
 
       {/* ── Avance por Renglón ── */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+      <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-2xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
           <div>
             <h3 className="text-sm font-black text-primary uppercase tracking-tight">Avance Físico por Renglón</h3>
-            <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ingresa el % completado por actividad · se guarda en Gantt automáticamente</p>
+             <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-0.5">Ingresa el % completado por actividad · se guarda en Gantt automáticamente</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <select value={activeProject?.id ?? ''} onChange={e => setSelectedProjectId(e.target.value)}
-              className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-blue-500">
+               className="px-3 py-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]">
               {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <button onClick={handleSaveProgress} disabled={savingProgress || !activeProject}
-              className="flex items-center gap-1.5 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-40">
+               className="flex items-center gap-1.5 px-4 py-2 bg-[var(--color-neutral-900)] text-[var(--color-neutral-50)] rounded-xl text-xs font-black uppercase hover:bg-[var(--color-neutral-700)] active:scale-95 transition-all disabled:opacity-40">
               <Save size={13} />{savingProgress ? 'Guardando…' : 'Guardar'}
             </button>
             {setActiveTab && (
               <button onClick={() => setActiveTab('gantt')}
-                className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 text-white rounded-xl text-xs font-black uppercase hover:bg-blue-700 active:scale-95 transition-all">
+                 className="flex items-center gap-1.5 px-4 py-2 bg-[var(--color-info)] text-[var(--color-neutral-50)] rounded-xl text-xs font-black uppercase hover:bg-[var(--color-info)]/90 active:scale-95 transition-all">
                 <BarChart2 size={13} />Ver Gantt
               </button>
             )}
@@ -455,9 +455,9 @@ const handleAddLog = async (e: React.FormEvent) => {
         </div>
 
         {!activeProject ? (
-          <div className="py-10 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin proyectos en ejecución</div>
+           <div className="py-10 text-center text-[9px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest">Sin proyectos en ejecución</div>
         ) : itemsByCategory.size === 0 ? (
-          <div className="py-10 text-center text-[9px] font-black text-slate-300 uppercase tracking-widest">Sin renglones asignados</div>
+           <div className="py-10 text-center text-[9px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest">Sin renglones asignados</div>
         ) : (
           <div className="space-y-2">
             {Array.from(itemsByCategory.entries()).map(([cat, items]) => {
@@ -466,15 +466,15 @@ const handleAddLog = async (e: React.FormEvent) => {
               return (
                 <div key={cat}>
                   <button onClick={() => toggleCat(cat)}
-                    className="w-full flex items-center gap-2 px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-left hover:bg-slate-100 transition-colors">
-                    {collapsed ? <ChevronRight size={13} className="text-slate-400" /> : <ChevronDown size={13} className="text-slate-400" />}
-                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 flex-1">{cat}</span>
-                    <span className="text-[7px] font-bold text-slate-400">{items.length} renglones</span>
-                    <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden mx-2">
-                      <div className={cn('h-full rounded-full', catAvg >= 100 ? 'bg-green-500' : catAvg > 0 ? 'bg-blue-500' : 'bg-slate-300')}
+                     className="w-full flex items-center gap-2 px-3 py-2 bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl text-left hover:bg-[var(--color-neutral-100)] transition-colors">
+                     {collapsed ? <ChevronRight size={13} className="text-[var(--color-neutral-400)]" /> : <ChevronDown size={13} className="text-[var(--color-neutral-400)]" />}
+                     <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-neutral-600)] flex-1">{cat}</span>
+                     <span className="text-[7px] font-bold text-[var(--color-neutral-400)]">{items.length} renglones</span>
+                     <div className="w-16 h-1.5 bg-[var(--color-neutral-200)] rounded-full overflow-hidden mx-2">
+                       <div className={cn('h-full rounded-full', catAvg >= 100 ? 'bg-[var(--color-success)]' : catAvg > 0 ? 'bg-[var(--color-info)]' : 'bg-[var(--color-neutral-300)]')}
                         style={{ width: `${catAvg}%` }} />
                     </div>
-                    <span className={cn('text-[9px] font-black w-8 text-right', catAvg >= 100 ? 'text-green-600' : catAvg > 0 ? 'text-blue-600' : 'text-slate-400')}>
+                     <span className={cn('text-[9px] font-black w-8 text-right', catAvg >= 100 ? 'text-[var(--color-success)]' : catAvg > 0 ? 'text-[var(--color-info)]' : 'text-[var(--color-neutral-400)]')}>
                       {catAvg}%
                     </span>
                   </button>
@@ -483,21 +483,21 @@ const handleAddLog = async (e: React.FormEvent) => {
                       {items.map((item: any) => {
                         const val = itemProgress[item.id] ?? 0;
                         return (
-                          <div key={item.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 group">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-[9px] font-bold text-slate-700 uppercase truncate">{item.description}</p>
-                              <p className="text-[7px] font-bold text-slate-400 uppercase">{item.projectQuantity} {item.unit}</p>
+                           <div key={item.id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-[var(--color-neutral-50)] group">
+                             <div className="flex-1 min-w-0">
+                               <p className="text-[9px] font-bold text-[var(--color-neutral-700)] uppercase truncate">{item.description}</p>
+                               <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{item.projectQuantity} {item.unit}</p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 w-48">
                               <input type="range" min={0} max={100} value={val}
                                 onChange={e => setItemProgress(prev => ({ ...prev, [item.id]: parseInt(e.target.value) }))}
-                                className="flex-1 h-1.5 accent-blue-500 cursor-pointer" />
-                              <span className={cn('text-[9px] font-black w-8 text-right',
-                                val >= 100 ? 'text-green-600' : val > 0 ? 'text-blue-600' : 'text-slate-400')}>
+                                 className="flex-1 h-1.5 accent-[var(--color-info)] cursor-pointer" />
+                               <span className={cn('text-[9px] font-black w-8 text-right',
+                                 val >= 100 ? 'text-[var(--color-success)]' : val > 0 ? 'text-[var(--color-info)]' : 'text-[var(--color-neutral-400)]')}>
                                 {val}%
                               </span>
                             </div>
-                            {val >= 100 && <CheckCircle2 size={13} className="text-green-500 shrink-0" />}
+                            {val >= 100 && <CheckCircle2 size={13} className="text-[var(--color-success)] shrink-0" />}
                           </div>
                         );
                       })}
