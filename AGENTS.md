@@ -23,7 +23,7 @@ npm run preview      # Preview production build locally on :4173
 - **Context hierarchy:** `AuthProvider` → `SettingsProvider` → `ThemeProvider` → `ProjectFilterProvider` → `Toaster`.
 - **Auth:** Firebase Google OAuth (redirect-based, `browserLocalPersistence`). Only `salazaroliveros@gmail.com` is authorized. See `src/contexts/AuthContext.tsx`. `signInWithPopup` is used (not redirect) to avoid Chrome third-party cookie blocks.
 - **Data layer:** Firestore with `where('ownerId', '==', auth.currentUser.uid)` on every query. Generic CRUD lives in `src/services/firestoreService.ts`.
-- **PWA:** Service worker at `/public/sw.js`, registered in `src/main.tsx`. Offline-first via Dexie.js + IndexedDB (see Sync section below).
+- **PWA:** Service worker at `/public/sw.js`, registered in `src/main.tsx`. Cache de assets estáticos (sin offline-first).
 - **Deploy:** Vercel (`vercel.json`). SPA fallback rewrite, security headers, no-cache on HTML.
 
 ---
@@ -45,21 +45,16 @@ npm run preview      # Preview production build locally on :4173
 | `src/components/BudgetTable/DimensionEditor.tsx` | Dimension sub-editor inside budget table |
 | `src/contexts/` | Four React contexts: `AuthContext`, `SettingsContext`, `ThemeContext`, `ProjectFilterContext` |
 | `src/settings/` | Settings module at `src/components/Settings.tsx` (lazy-loaded, theme + persistence) |
-| `src/lib/sync/` | Offline-first sync: `SyncEngine.ts`, `RealtimeSync.ts`, `store.ts` (Dexie), `types.ts` |
+| *(eliminado)* | Offline sync removido — la app es 100% online con Firestore en tiempo real |
 | `src/store/DataStore.ts` | Centralized DataStore with real-time subscriptions |
 | `src/utils/budgetConverter.ts` | Bidirectional converters: `BudgetItem` ↔ `BudgetLine` |
 | `middleware.ts` | Vercel Edge middleware — security headers only, never blocks `/api/*` |
 
 ---
 
-## Sync / Offline-First (`src/lib/sync/`)
+## Sync / Offline-First (eliminado)
 
-- **Dexie.js** over IndexedDB — queries, indexes, ACID transactions.
-- **SyncEngine** (`SyncEngine.ts`): PUSH/PULL with vector clocks, field-level conflict resolution (numerics: max, strings: LWW, arrays: merge by ID), retry queue with exponential backoff.
-- **RealtimeSync** (`RealtimeSync.ts`): Firestore snapshot listeners → Dexie local cache → instant UI. Integrated in AuthContext after successful login.
-- **Conflict resolution** is automatic; unresolved conflicts are stored in `conflicts` table and surfaced via `SyncStatus.tsx` UI indicator.
-- **Persistence mode:** `browserLocalPersistence` — same device auto-logs in, new device requires login.
-- **Network control:** Use `enableFirestoreNetwork()` / `disableFirestoreNetwork()` to manage Firestore connection state for offline handling.
+El sistema offline-first (Dexie.js, SyncEngine, RealtimeSync) fue eliminado. La app funciona 100% online con Firestore en tiempo real. El login persiste vía `browserLocalPersistence` (localStorage).
 
 ---
 
@@ -180,8 +175,6 @@ import { fmtQ } from '../utils/format';
 // Firebase
 import { db, auth } from '../lib/firebase';
 
-// Sync
-import { useSync } from '../contexts/AuthContext';
 
 // Types from old constants
 import { Project, Typology } from '../constants';
@@ -204,8 +197,6 @@ import { Project, Typology } from '../constants';
 - Firebase Admin **not** in client bundle — `/api/auth/session` is a serverless REST endpoint.
 - `signInWithPopup` over `signInWithRedirect` — avoids Chrome third-party cookie issues.
 - `browserLocalPersistence` — same device auto-logs in; new device requires login.
-- Dexie.js for offline storage — full query/transaction support over raw IndexedDB.
-- Vector clocks for automatic conflict detection and field-level merge.
 
 ---
 
@@ -216,29 +207,24 @@ import { Project, Typology } from '../constants';
 - **middleware.ts**: Agregados headers COOP, COEP, y CORS con origin dinámico para rutas API
 - **api/auth/session.ts**: CORS dinámico con `ALLOWED_ORIGINS` array (vercel.app + localhost:5173/3000), `Access-Control-Allow-Credentials: true`, y cookie con Domain para cross-subdomain
 
-### 6. Service Worker v12 — mejoras offline
-- Cache version bump `v11` → `v12` para invalidar caché anterior
-- `networkFirstWithFallback()` para API requests: graceful fallback a caché sin spam de console
-- `networkFirstOrFallback()` mejorado: retorna cached index.html siempre que sea posible
-- Pre-cacheo de Google Fonts CDN para evitar FOUT
-- Respuestas offline con JSON estructurado para errores de API
-- Exclusión explícita de requests cross-origin (Firebase APIs) — no interceptados
+### 6. Service Worker v12 → v14 — simplificado a cache-only
+- Eliminadas las estrategias offline-first (networkFirstWithFallback, networkFirstOrFallback)
+- El SW ahora solo cachea assets estáticos con stale-while-revalidate
+- La app es 100% online; sin lógica offline en el SW
 
 ### 7. CSS cleanup — eliminado duplicado `.skeleton`
  - Eliminada definición duplicada de `.skeleton` (existía dos veces con diferentes estilos)
  - Consolidado en una sola definición con `@keyframes skeletonWave`
  - Mantenido estilo light/dark via herencia de variables CSS
 
-### 8. RealtimeSync integration with AuthContext
- - Integrated `startRealtimeSync([...REQUIRED_COLLECTIONS])` in AuthProvider after login
- - Added `enableFirestoreNetwork()` / `disableFirestoreNetwork()` helpers in firebase.ts for offline handling
- - RealtimeSync now filters by `ownerId` for security
- - Cleanup properly stops listeners on logout and disables Firestore network
-
-### 9. Prevent Firestore connection spam when offline
- - RealtimeSync now calls `disableFirestoreNetwork()` immediately on offline detection, which terminates underlying WebSocket/HTTP connections
- - Added async `handleOffline`/`handleOnline` handlers with proper await for network state changes
- - Check `isFirestoreNetworkDisabled()` at initialization to prevent starting listeners when already offline
+### 8. Offline sync system removed
+ - Eliminado `src/lib/sync/` completo (RealtimeSync.ts, SyncEngine.ts, store.ts, types.ts)
+ - Eliminada dependencia Dexie.js (IndexedDB offline storage)
+ - AuthContext simplificado: ya no inicia SyncEngine ni RealtimeSync
+ - Firebase network control helpers (disableFirestoreNetwork/enableFirestoreNetwork) removidos
+ - firestoreService.ts: writeWithOfflineQueue simplificado a escritura directa, isRetryableError eliminado
+ - SyncStatus.tsx simplificado a indicador "En línea" estático
+ - firestoreValidation.test.ts: tests offline/Dexie/SyncEngine eliminados
 
 ---
 
@@ -254,11 +240,9 @@ import { Project, Typology } from '../constants';
 - Llama automáticamente a `generateProjectStock()` para crear los items de inventario desde el presupuesto.
 - Solo se ejecuta si el estado **realmente** cambió (verifica `currentData.status !== 'EJECUCION'`).
 
-### 3. `writeWithOfflineQueue()` — escritura offline-first
-- Nueva función en `firestoreService.ts` que envuelve escrituras con soporte offline.
-- Intenta escritura directa en Firestore; si falla (offline), encola en `SyncEngine`.
-- Siempre encola en `SyncEngine` para garantizar consistencia offline.
-- Se puede usar desde cualquier componente: `writeWithOfflineQueue('projects', id, data, 'update')`.
+### 3. writeWithOfflineQueue removida (ya no hay offline)
+
+La función `writeWithOfflineQueue` ahora escribe directamente en Firestore sin encolar. Las referencias a SyncEngine/Dexie fueron eliminadas.
 
 ### 4. Funciones dedicadas para `userSettings`
 - `loadUserSettings(uid)` — carga configuración sin importar `firebase/firestore` en el componente.

@@ -1,8 +1,6 @@
 /**
- * Test de validación CRUD contra Firestore (offline-first).
- * Ejecutar desde la consola del navegador o como script de prueba.
- *
- * Usa:
+ * Test de validación CRUD contra Firestore (100% online).
+ * Ejecutar desde la consola del navegador:
  *   import { runValidationTest } from '../tests/firestoreValidation.test';
  *   runValidationTest();
  */
@@ -12,9 +10,6 @@ import {
   setDoc, updateDoc, deleteDoc, getDoc, writeBatch
 } from 'firebase/firestore';
 import { db as firestoreDb, auth } from '../lib/firebase';
-import { getDb } from '../lib/sync/store';
-import { writeWithOfflineQueue } from '../services/firestoreService';
-import { SyncEngine } from '../lib/sync/SyncEngine';
 
 let passed = 0;
 let failed = 0;
@@ -57,21 +52,8 @@ async function cleanupTest(userId: string) {
     batch.delete(doc(firestoreDb, 'tests', id));
   }
   try { await batch.commit(); } catch (e) { /* ignore */ }
-
-  // Also clean local cache
-  const localDb = getDb();
-  try {
-    const keys = await localDb.localCache
-      .where(['entity', 'id'])
-      .equals(['tests', 'test_doc_read_write'])
-      .primaryKeys();
-    for (const k of keys) await localDb.localCache.delete(k);
-  } catch { /* ignore */ }
 }
 
-/**
- * Test 1: Escritura y lectura inmediata en Firestore
- */
 async function testWriteAndRead(userId: string) {
   console.log('\n--- Test 1: Write & Read ---');
 
@@ -84,7 +66,6 @@ async function testWriteAndRead(userId: string) {
     createdAt: new Date().toISOString(),
   };
 
-  // Escritura directa
   await setDoc(doc(firestoreDb, 'tests', 'test_doc_read_write'), testData);
 
   const snap = await getDoc(doc(firestoreDb, 'tests', 'test_doc_read_write'));
@@ -95,7 +76,6 @@ async function testWriteAndRead(userId: string) {
   assertEqual(data.value, 42, 'value field should match');
   assertEqual(data.tags, ['a', 'b', 'c'], 'tags array should match');
 
-  // Verificar que aparece en la consulta
   const q = query(
     collection(firestoreDb, 'tests'),
     where('_testUserId', '==', userId),
@@ -107,9 +87,6 @@ async function testWriteAndRead(userId: string) {
   console.log('--- Test 1 completado ---\n');
 }
 
-/**
- * Test 2: Modificación (update) de un documento
- */
 async function testUpdate(userId: string) {
   console.log('\n--- Test 2: Update ---');
 
@@ -131,9 +108,6 @@ async function testUpdate(userId: string) {
   console.log('--- Test 2 completado ---\n');
 }
 
-/**
- * Test 3: Escritura por lotes (batch write)
- */
 async function testBatchWrite(userId: string) {
   console.log('\n--- Test 3: Batch Write ---');
 
@@ -151,7 +125,6 @@ async function testBatchWrite(userId: string) {
 
   await batch.commit();
 
-  // Verificar que todos existen
   const q = query(
     collection(firestoreDb, 'tests'),
     where('_testUserId', '==', userId)
@@ -162,41 +135,9 @@ async function testBatchWrite(userId: string) {
   console.log('--- Test 3 completado ---\n');
 }
 
-/**
- * Test 4: Escritura offline con writeWithOfflineQueue
- */
-async function testOfflineWrite(userId: string) {
-  console.log('\n--- Test 4: Offline Write Queue ---');
-
-  const testData = {
-    _test: true,
-    _testUserId: userId,
-    name: 'Offline Test Document',
-    value: 999,
-    offlineTest: true,
-  };
-
-  await writeWithOfflineQueue('tests', 'test_doc_offline', testData, 'create');
-
-  // Verificar en caché local (Dexie)
-  const localDb = getDb();
-  const cached = await localDb.localCache
-    .where(['entity', 'id'])
-    .equals(['tests', 'test_doc_offline'])
-    .first();
-
-  assertDefined(cached, 'Document should be in local cache after offline write');
-
-  console.log('--- Test 4 completado ---\n');
-}
-
-/**
- * Test 5: Eliminación de documento
- */
 async function testDelete(userId: string) {
-  console.log('\n--- Test 5: Delete ---');
+  console.log('\n--- Test 4: Delete ---');
 
-  // Crear uno para eliminar
   await setDoc(doc(firestoreDb, 'tests', 'test_doc_delete'), {
     _test: true,
     _testUserId: userId,
@@ -211,67 +152,9 @@ async function testDelete(userId: string) {
   snap = await getDoc(doc(firestoreDb, 'tests', 'test_doc_delete'));
   assert(!snap.exists(), 'Document should not exist after delete');
 
-  console.log('--- Test 5 completado ---\n');
+  console.log('--- Test 4 completado ---\n');
 }
 
-/**
- * Test 6: Resolver conflictos (optimistic write + sync engine)
- */
-async function testSyncEngineEnqueue(userId: string) {
-  console.log('\n--- Test 6: SyncEngine Enqueue ---');
-
-  const engine = SyncEngine.getInstance();
-  await engine.enqueue('tests', 'create', 'test_doc_sync_enqueue', {
-    _test: true,
-    _testUserId: userId,
-    name: 'Sync Engine Test',
-    value: 777,
-  });
-
-  // Verificar en cache local
-  const localDb = getDb();
-  const cached = await localDb.localCache
-    .where(['entity', 'id'])
-    .equals(['tests', 'test_doc_sync_enqueue'])
-    .first();
-
-  assertDefined(cached, 'Document should be in local cache after enqueue');
-  assertEqual(cached.name, 'Sync Engine Test', 'name should match');
-
-  console.log('--- Test 6 completado ---\n');
-}
-
-/**
- * Test 7: Verificar que no arroja errores de conexión cuando está offline
- */
-async function testOfflineStability() {
-  console.log('\n--- Test 7: Offline Stability ---');
-
-  // Simular que está offline (navigator.onLine)
-  // Si estamos realmente offline, verificar que no explota
-  const isOnline = typeof navigator !== 'undefined' && navigator.onLine;
-
-  if (!isOnline) {
-    console.log('Sistema offline detectado - verificando estabilidad...');
-    // Intentar leer sin error crítico
-    try {
-      const localDb = getDb();
-      await localDb.localCache.toArray();
-      console.log('✅ PASS: Dexie local cache funciona offline');
-    } catch (e) {
-      console.error('❌ FAIL: Error leyendo cache local:', e);
-      failed++;
-    }
-  } else {
-    console.log('⚠️  Sistema online - test de estabilidad offline omitido');
-  }
-
-  console.log('--- Test 7 completado ---\n');
-}
-
-/**
- * Ejecutar todos los tests de validación
- */
 export async function runValidationTest(): Promise<{ passed: number; failed: number }> {
   console.log('========================================');
   console.log('  FIRESTORE VALIDATION TEST');
@@ -289,17 +172,13 @@ export async function runValidationTest(): Promise<{ passed: number; failed: num
     await testWriteAndRead(user.uid);
     await testUpdate(user.uid);
     await testBatchWrite(user.uid);
-    await testWriteAndRead(user.uid); // Releer después de batch
-    await testOfflineWrite(user.uid);
+    await testWriteAndRead(user.uid);
     await testDelete(user.uid);
-    await testSyncEngineEnqueue(user.uid);
-    await testOfflineStability();
   } catch (e: any) {
     console.error('Test crashed:', e);
     failed++;
   }
 
-  // Resumen
   console.log('\n========================================');
   console.log(`  RESULTADOS: ${passed} passed, ${failed} failed`);
   console.log('========================================');
@@ -310,7 +189,6 @@ export async function runValidationTest(): Promise<{ passed: number; failed: num
     console.log('🎉 Todos los tests pasaron correctamente.');
   }
 
-  // Cleanup
   await cleanupTest(user.uid);
 
   return { passed, failed };

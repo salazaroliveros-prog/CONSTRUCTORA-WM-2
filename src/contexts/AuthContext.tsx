@@ -9,12 +9,7 @@ import {
   setSessionCookie,
   User
 } from '../lib/firebase';
-import { SyncEngine } from '../lib/sync/SyncEngine';
-import { startRealtimeSync } from '../lib/sync/RealtimeSync';
-import type { SyncState } from '../lib/sync/types';
-import { REQUIRED_COLLECTIONS } from '../services/firestoreService';
 
-// Usuario principal autorizado
 const AUTHORIZED_EMAIL = 'salazaroliveros@gmail.com';
 
 interface AuthContextType {
@@ -26,19 +21,11 @@ interface AuthContextType {
   getIdTokenResult: () => Promise<string | null>;
 }
 
-interface SyncContextType {
-  syncState: SyncState | null;
-}
-
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const SyncContext = createContext<SyncContextType>({ syncState: null });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [syncState, setSyncState] = useState<SyncState | null>(null);
-  const stopRealtimeRef = React.useRef<(() => void) | null>(null);
-
   const isAuthorizedUser = user?.email === AUTHORIZED_EMAIL;
 
   useEffect(() => {
@@ -67,26 +54,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               const token = await getIdToken(firebaseUser);
               if (token) await setSessionCookie(token);
             } catch { /* ok */ }
-
-            // Inicializar SyncEngine solo si el usuario está autorizado
-            if (firebaseUser.email === AUTHORIZED_EMAIL) {
-              try {
-                const engine = SyncEngine.getInstance();
-                await engine.init();
-
-                // Iniciar realtime sync para todas las colecciones
-                stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
-              } catch (e) {
-                console.error('[AuthProvider] SyncEngine init failed:', e);
-              }
-            }
           }
 
           setLoading(false);
         }
       });
 
-      // Safety net: si onAuthStateChanged no dispara en 8s, dejar de cargar
       const safetyTimeout = setTimeout(() => {
         if (!cancelled) {
           console.warn('[AuthProvider] Safety timeout: auth state not received');
@@ -107,18 +80,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Suscribirse a cambios de estado del SyncEngine
-  useEffect(() => {
-    if (!user) return;
-
-    const engine = SyncEngine.getInstance();
-    const stopSync = engine.onStateChange((state) => {
-      setSyncState(state);
-    });
-
-    return stopSync;
-  }, [user]);
-
   const login = async () => {
     try {
       setLoading(true);
@@ -136,15 +97,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       await fetch('/api/auth/session', { method: 'DELETE' });
     } catch { /* ignore */ }
-
-    // Stop realtime sync
-    if (stopRealtimeRef.current) {
-      stopRealtimeRef.current();
-      stopRealtimeRef.current = null;
-    }
-
-    // Detener sync engine
-    SyncEngine.resetInstance();
     await logout();
   }, []);
 
@@ -159,9 +111,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider value={{ user, loading, isAuthorizedUser, login, signOut: signOutUser, getIdTokenResult }}>
-      <SyncContext.Provider value={{ syncState }}>
-        {!loading && children}
-      </SyncContext.Provider>
+      {!loading && children}
     </AuthContext.Provider>
   );
 }
@@ -170,14 +120,6 @@ export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
-
-export function useSync() {
-  const context = useContext(SyncContext);
-  if (context === undefined) {
-    throw new Error('useSync must be used within a SyncProvider');
   }
   return context;
 }

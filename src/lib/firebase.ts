@@ -7,14 +7,11 @@ import {
 } from 'firebase/auth'
 import {
   getFirestore,
-  connectFirestoreEmulator,
-  enableNetwork,
-  disableNetwork
+  connectFirestoreEmulator
 } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import firebaseConfig from './firebaseConfig'
 
-// Inicializacion singleton
 if (!getApps().length) {
   initializeApp(firebaseConfig)
 }
@@ -24,10 +21,8 @@ export const auth = getAuth(app)
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId)
 export const storage = getStorage(app)
 
-// Persistencia de sesion LOCAL
 setPersistence(auth, browserLocalPersistence).catch(console.error)
 
-// Google Auth Provider
 const googleProvider = new GoogleAuthProvider()
 googleProvider.setCustomParameters({ prompt: 'select_account' })
 
@@ -82,34 +77,5 @@ export async function setSessionCookie(idToken: string): Promise<boolean> {
   }
 }
 
-export { onAuthStateChanged, getIdToken, enableNetwork, disableNetwork }
+export { onAuthStateChanged, getIdToken }
 export type { User }
-
-// Network control functions for offline handling
-let isNetworkDisabled = false
-
-export async function disableFirestoreNetwork(): Promise<void> {
-  if (isNetworkDisabled) return
-  try {
-    await disableNetwork(db)
-    isNetworkDisabled = true
-    console.log('[Firebase] Firestore network disabled for offline mode')
-  } catch (error) {
-    console.warn('[Firebase] Failed to disable network:', error)
-  }
-}
-
-export async function enableFirestoreNetwork(): Promise<void> {
-  if (!isNetworkDisabled) return
-  try {
-    await enableNetwork(db)
-    isNetworkDisabled = false
-    console.log('[Firebase] Firestore network enabled for online mode')
-  } catch (error) {
-    console.warn('[Firebase] Failed to enable network:', error)
-  }
-}
-
-export function isFirestoreNetworkDisabled(): boolean {
-  return isNetworkDisabled
-}

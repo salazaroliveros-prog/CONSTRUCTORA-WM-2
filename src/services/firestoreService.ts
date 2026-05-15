@@ -15,7 +15,6 @@ import {
   getDocs
 } from 'firebase/firestore'
 import { db, auth } from '../lib/firebase'
-import { SyncEngine } from '../lib/sync/SyncEngine'
 
 export const parseError = (error: unknown): string => {
   if (error instanceof Error) {
@@ -74,19 +73,6 @@ function handleFirestoreError(
   return msg
 }
 
-/** Verifica si un error es de red/offline para decidir si se debe reintentar. */
-function isRetryableError(error: any): boolean {
-  if (!error) return false
-  const code = error?.code || ''
-  const msg = (error?.message || '').toLowerCase()
-  return (
-    code === 'unavailable' ||
-    code === 'failed-precondition' ||
-    msg.includes('offline') ||
-    msg.includes('err_internet_disconnected') ||
-    msg.includes('network')
-  )
-}
 
 export const getDocumentsForCollection = async (
   collectionName: string
@@ -126,15 +112,9 @@ export const subscribeToCollection = (
       callback(data)
     },
     (error: FirestoreError) => {
-      if (isRetryableError(error)) {
-        console.log(
-          '[firestoreService] Offline/network error for subscription:',
-          collectionName
-        )
-        return
-      }
       console.error(
-        '[firestoreService] Non-retryable subscription error:',
+        '[firestoreService] Subscription error:',
+        collectionName,
         error?.message || error
       )
     }
@@ -257,8 +237,7 @@ export const checkUniqueField = async (
 }
 
 /**
- * Escritura con soporte offline-first.
- * Escribe en Firestore si está online, y encola en SyncEngine para sincronización offline.
+ * Escritura directa en Firestore (100% online).
  */
 export const writeWithOfflineQueue = async (
   collectionName: string,
@@ -270,47 +249,30 @@ export const writeWithOfflineQueue = async (
 
   const sanitized = sanitize(data)
 
-  if (!isRetryableError({ code: 'offline_check' })) {
-    try {
-      const docRef = doc(db, collectionName, docId)
-
-      if (operation === 'delete') {
-        await deleteDoc(docRef)
-      } else if (operation === 'create') {
-        await addDoc(collection(db, collectionName), {
-          ...sanitized,
-          ownerId: auth.currentUser.uid,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp()
-        })
-      } else {
-        await updateDoc(docRef, {
-          ...sanitized,
-          updatedAt: serverTimestamp()
-        })
-      }
-    } catch (error: any) {
-      if (isRetryableError(error)) {
-        console.warn(
-          `[firestoreService] Escritura offline detectada, encolando: ${collectionName}/${docId}`
-        )
-      } else {
-        console.error(
-          `[firestoreService] Escritura fallida (${collectionName}/${docId}):`,
-          error?.message || error
-        )
-      }
-    }
-  }
-
   try {
-    const engine = SyncEngine.getInstance()
-    await engine.enqueue(collectionName, operation, docId, sanitized)
+    const docRef = doc(db, collectionName, docId)
+
+    if (operation === 'delete') {
+      await deleteDoc(docRef)
+    } else if (operation === 'create') {
+      await addDoc(collection(db, collectionName), {
+        ...sanitized,
+        ownerId: auth.currentUser.uid,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp()
+      })
+    } else {
+      await updateDoc(docRef, {
+        ...sanitized,
+        updatedAt: serverTimestamp()
+      })
+    }
   } catch (error: any) {
     console.error(
-      '[firestoreService] Error enqueuing sync operation:',
+      `[firestoreService] Escritura fallida (${collectionName}/${docId}):`,
       error?.message || error
     )
+    throw error
   }
 }
 
