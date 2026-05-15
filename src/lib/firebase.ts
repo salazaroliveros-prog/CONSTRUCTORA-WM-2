@@ -5,7 +5,12 @@ import {
   signOut, onAuthStateChanged, User, getIdToken,
   browserLocalPersistence, setPersistence
 } from 'firebase/auth';
-import { getFirestore, disableNetwork, enableNetwork } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  disableNetwork, 
+  enableNetwork,
+  terminate as terminateFirestore 
+} from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import firebaseConfig from './firebaseConfig';
 

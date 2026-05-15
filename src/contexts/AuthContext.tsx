@@ -75,6 +75,16 @@ useEffect(() => {
               try {
                 const engine = SyncEngine.getInstance();
                 await engine.init();
+
+                // Check connectivity BEFORE doing anything else
+                const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+                if (!isOnline) {
+                  console.log('[AuthProvider] Browser offline - disabling Firestore network before sync');
+                  await disableFirestoreNetwork();
+                } else {
+                  await enableFirestoreNetwork();
+                }
+
                 // Start realtime sync for all required collections
                 stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
                 // Register stop callback so disableFirestoreNetwork can call it
@@ -84,8 +94,6 @@ useEffect(() => {
                     stopRealtimeRef.current = null;
                   }
                 });
-                // Re-enable Firestore network if it was disabled
-                await enableFirestoreNetwork();
               } catch (e) {
                 console.error('[AuthProvider] SyncEngine init failed:', e);
               }
