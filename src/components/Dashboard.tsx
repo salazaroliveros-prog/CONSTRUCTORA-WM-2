@@ -35,7 +35,7 @@ import { useSettings } from '../contexts/SettingsContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { Transaction } from '../constants';
 import { useCountUp } from '../hooks/useCountUp';
-import Modal from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
 import { trackCRUD, trackEvent } from '../utils/logger';
 import { PMath } from '../engine/precision';

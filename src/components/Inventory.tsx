@@ -35,7 +35,7 @@ import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
 import { toast } from 'sonner';
-import Modal from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { sanitizeString, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
 import { trackCRUD, trackEvent } from '../utils/logger';
 

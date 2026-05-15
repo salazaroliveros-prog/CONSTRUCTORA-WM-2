@@ -40,7 +40,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Typology, Project, StaffMember, Client, Transaction } from '../constants';
 import { calcRealDuration } from '../lib/ganttCPM';
 import AdvancedProjectCreator from './AdvancedProjectCreator';
-import Modal from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { cn } from '../utils/cn';
 import { subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
 import { uploadFile } from '../services/storageService';

@@ -1,27 +1,21 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
+import Link from "next/link";
 
-import React from 'react';
-
-interface LogoProps {
-  className?: string;
-  avatarUrl?: string | null; // kept for API compatibility, ignored
-}
-
-export default function Logo({ className = "h-8 w-auto" }: LogoProps) {
+export default function Logo() {
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      <div className="relative w-10 h-10 shrink-0">
-        <img src="/logo.webp" alt="Logo" className="w-full h-full object-contain rounded-xl" />
+    <div className="flex items-center gap-2.5 select-none">
+      <div className="relative w-9 h-9 md:w-10 md:h-10">
+        <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-primary via-primary-light to-secondary/20 shadow-lg shadow-primary/20" />
+        <div className="relative h-full w-full rounded-xl flex items-center justify-center">
+          <span className="text-white font-black text-sm md:text-base leading-none">
+            WM
+          </span>
+        </div>
+        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
       </div>
       <div className="flex flex-col leading-none">
-        <span className="text-sm font-black tracking-tighter text-primary">CONSTRUCTORA</span>
-        <div className="flex items-center gap-1">
-          <span className="text-[10px] font-black text-secondary tracking-[0.2em]">WM/M&S</span>
-          <div className="h-0.5 flex-1 bg-slate-200" />
-        </div>
+        <span className="text-sm md:text-base font-black text-primary uppercase tracking-tight">
+          WM Constructora
+        </span>
       </div>
     </div>
   );

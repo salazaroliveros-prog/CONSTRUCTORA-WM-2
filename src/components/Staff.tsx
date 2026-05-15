@@ -16,7 +16,7 @@ import { subscribeToCollection, addDocument, updateDocument, deleteDocument, che
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
-import Modal from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { toast } from 'sonner';
 import { Payroll, PayrollEmployee, Transaction } from '../constants';
 import { sanitizeString } from '../utils/sanitize';

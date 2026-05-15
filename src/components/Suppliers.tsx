@@ -15,7 +15,7 @@ import { subscribeToCollection, addDocument, updateDocument, deleteDocument, par
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
-import Modal from './ui/Modal';
+import { Modal } from './ui/Modal';
 import { toast } from 'sonner';
 import { sanitizeString, sanitizeEmail, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
 import { trackCRUD, trackEvent } from '../utils/logger';

@@ -1,146 +1,135 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- *
- * Enhanced Modal with Glassmorphism effects - v0.dev inspired
- */
+import React, { forwardRef } from "react";
+import { cn } from "../../utils/cn";
 
-import React from 'react';
-import { X } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-
-interface ModalProps {
+export interface ModalProps {
   isOpen: boolean;
   onClose: () => void;
-  title: string;
-  children: React.ReactNode;
-  size?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  glassEffect?: boolean;
+  title?: string;
+  description?: string;
+  children?: React.ReactNode;
+  size?: "sm" | "md" | "lg" | "xl" | "full";
+  showCloseButton?: boolean;
+  closeOnOverlayClick?: boolean;
 }
 
-const sizeClasses = {
-  sm: 'max-w-sm',
-  md: 'max-w-xl',
-  lg: 'max-w-2xl',
-  xl: 'max-w-4xl',
-  full: 'max-w-[95vw]',
-};
+const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
+  {
+    isOpen,
+    onClose,
+    title,
+    description,
+    children,
+    size = "md",
+    showCloseButton = true,
+    closeOnOverlayClick = true,
+  }: ModalProps,
+  ref
+) {
+  const [isAnimating, setIsAnimating] = React.useState(false);
 
-export default function Modal({
-  isOpen,
-  onClose,
-  title,
-  children,
-  size = 'md',
-  glassEffect = true,
-}: ModalProps) {
-  // Handle escape key
   React.useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
-    };
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      document.body.style.overflow = 'hidden';
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() => setIsAnimating(true));
+    } else {
+      setIsAnimating(false);
+      setTimeout(() => {
+        document.body.style.overflow = "";
+      }, 200);
     }
-    return () => {
-      document.removeEventListener('keydown', handleEscape);
-      document.body.style.overflow = '';
-    };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const sizeClasses: Record<string, string> = {
+    sm: "max-w-md",
+    md: "max-w-lg",
+    lg: "max-w-2xl",
+    xl: "max-w-4xl",
+    full: "max-w-full max-h-full",
+  };
+
+  const handleOverlayClick = (
+    e: React.MouseEvent<HTMLDivElement, MouseEvent>
+  ) => {
+    if (closeOnOverlayClick && e.target === e.currentTarget) {
+      onClose();
+    }
+  };
 
   return (
-    <AnimatePresence>
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-{/* Backdrop with glassmorphism */}
-<motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              onClick={onClose}
-              className="absolute inset-0"
-              style={{
-                background: 'rgba(15, 23, 42, 0.6)',
-                backdropFilter: 'blur(8px) saturate(180%)',
-                WebkitBackdropFilter: 'blur(8px) saturate(180%)',
-              }}
-              aria-hidden="true"
-            />
-
-           {/* Modal Content */}
-           <motion.div
-             initial={{ opacity: 0, scale: 0.92, y: 24, filter: 'blur(10px)' }}
-             animate={{
-               opacity: 1,
-               scale: 1,
-               y: 0,
-               filter: 'blur(0px)',
-             }}
-             exit={{
-               opacity: 0,
-               scale: 0.92,
-               y: 24,
-               filter: 'blur(10px)',
-             }}
-             transition={{
-               type: 'spring',
-               stiffness: 320,
-               damping: 28,
-               mass: 0.9,
-             }}
-             className={`relative w-full ${sizeClasses[size]} ${
-glassEffect
-                  ? 'bg-white/70 backdrop-blur-2xl border border-white/40 shadow-2xl'
-                  : 'bg-white rounded-3xl shadow-2xl border border-slate-100  '
-             }`}
-             style={{
-               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255,255,255,0.1) inset',
-             }}
-           >
-            {/* Decorative gradient orb */}
-            <div
-              className="absolute -top-20 -right-20 w-40 h-40 rounded-full opacity-30 pointer-events-none"
-              style={{
-                background: 'radial-gradient(circle, rgba(245,158,11,0.4) 0%, transparent 70%)',
-                filter: 'blur(20px)',
-              }}
-            />
-            
-{/* Header */}
-             <div
-className={`px-6 py-5 flex items-center justify-between ${
-                  glassEffect
-                    ? 'bg-gradient-to-r from-white/60 to-white/30 border-b border-white/20'
-                    : 'border-b border-slate-50 '
-                }`}
-             >
-              <div className="flex items-center gap-3">
-                {/* Accent bar */}
-                <div className="w-1 h-5 bg-secondary rounded-full" />
-                <h3 id="modal-title" className="text-sm font-black text-primary uppercase tracking-widest">
-                  {title}
-                </h3>
+    <>
+      <div
+        className={cn(
+          "fixed inset-0 z-[200] transition-opacity duration-200",
+          isAnimating ? "bg-black/60 backdrop-blur-sm" : "bg-black/0"
+        )}
+        onClick={handleOverlayClick}
+        aria-hidden="true"
+      />
+      <div
+        className={cn(
+          "fixed inset-0 z-[201] flex items-center justify-center p-4",
+          "overflow-y-auto"
+        )}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title || "Dialog"}
+      >
+        <div
+          className={cn(
+            "relative w-full rounded-2xl bg-white border border-neutral-200 shadow-2xl transition-all duration-200",
+            sizeClasses[size],
+            isAnimating
+              ? "scale-100 translate-y-0 opacity-100"
+              : "scale-95 translate-y-4 opacity-0"
+          )}
+          onClick={(e) => e.stopPropagation()}
+          ref={ref}
+        >
+          {(title || description || showCloseButton) && (
+            <div className="flex items-center justify-between p-5 border-b border-neutral-100">
+              <div>
+                {title && (
+                  <h3 className="text-base font-black text-neutral-900 uppercase tracking-tight">
+                    {title}
+                  </h3>
+                )}
+                {description && (
+                  <p className="text-xs font-medium text-neutral-500 mt-0.5">
+                    {description}
+                  </p>
+                )}
               </div>
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={onClose}
-                className="p-2 text-slate-400 hover:text-primary hover:bg-white/60 rounded-xl transition-all shadow-sm hover:shadow-md"
-                aria-label="Cerrar modal"
-              >
-                <X size={20} />
-              </motion.button>
+              {showCloseButton && (
+                <button
+                  onClick={onClose}
+                  className="p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors"
+                  aria-label="Cerrar"
+                  type="button"
+                >
+                  <svg
+                    className="h-5 w-5"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M18 6 6 18" />
+                    <path d="m6 6 12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
-            
-            {/* Content */}
-            <div className="p-8 max-h-[80vh] overflow-y-auto no-scrollbar">
-              {children}
-            </div>
-          </motion.div>
+          )}
+          <div className="p-6">{children}</div>
         </div>
-      )}
-    </AnimatePresence>
+      </div>
+    </>
   );
-}
+});
+
+Modal.displayName = "Modal";
+export { Modal };
