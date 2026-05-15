@@ -106,25 +106,9 @@
   --ease-normal: 250ms cubic-bezier(0.4, 0, 0.2, 1);
   --ease-slow: 350ms cubic-bezier(0.4, 0, 0.2, 1);
 
-  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-cardHover: 0 10px 30px rgba(0, 0, 0, 0.15);
-  --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+}
 
-  @keyframes skeletonWave {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-
-  @keyframes gradient-shift {
-    0%, 100% { background-position: 0% 50%; }
-    25% { background-position: 50% 100%; }
-    50% { background-position: 100% 50%; }
-    75% { background-position: 50% 0%; }
-  }
-
-  }
-
-/* Animations — must be outside @theme */
+/* Animations */
 @keyframes skeletonWave {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
@@ -137,9 +121,6 @@
   75% { background-position: 50% 0%; }
 }
 
-@utility bg-length-200 {
-  background-size: 200% 200%;
-}
 @utility bg-length-200 {
   background-size: 200% 200%;
 }
@@ -174,7 +155,7 @@
 
   /* Default font for all text */
   body, button, input, textarea, select {
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
   }
 
   /* Monospace for numbers and codes */
@@ -184,7 +165,7 @@
 
   /* Focus styles — accessible, visible */
   *:focus-visible {
-    outline: 2px solid var(--secondary);
+    outline: 2px solid var(--color-secondary);
     outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
@@ -204,10 +185,10 @@
   ::-webkit-scrollbar { width: 5px; height: 5px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: var(--neutral-300);
+    background: var(--color-neutral-300);
     border-radius: 10px;
   }
-  ::-webkit-scrollbar-thumb:hover { background: var(--neutral-400); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-neutral-400); }
 
   /* Smooth scroll container */
   .scroll-container {
@@ -324,16 +305,16 @@
      position: relative;
      overflow: hidden;
      white-space: nowrap;
-     user-select: none;
-     background: var(--primary);
-     color: white;
-     box-shadow: var(--shadow-md);
+      user-select: none;
+      background: var(--color-primary);
+      color: white;
+      box-shadow: var(--shadow-md);
 
-     &:hover:not(:disabled) {
-       background: var(--primary-light);
-       box-shadow: var(--shadow-lg);
-       transform: translateY(-1px);
-     }
+      &:hover:not(:disabled) {
+        background: var(--color-primary-light);
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-1px);
+      }
 
      &:active:not(:disabled) {
        transform: scale(0.97);
@@ -364,11 +345,11 @@
      overflow: hidden;
      white-space: nowrap;
      user-select: none;
-     background: var(--secondary);
-     color: var(--primary);
+      background: var(--color-secondary);
+      color: var(--color-primary);
 
      &:hover:not(:disabled) {
-       background: var(--secondary-light);
+       background: var(--color-secondary-light);
        transform: translateY(-1px);
      }
 
@@ -402,11 +383,11 @@
      white-space: nowrap;
      user-select: none;
      background: transparent;
-     color: var(--neutral-600);
+     color: var(--color-neutral-600);
 
      &:hover:not(:disabled) {
-       background: var(--neutral-100);
-       color: var(--neutral-900);
+       background: var(--color-neutral-100);
+       color: var(--color-neutral-900);
      }
 
      &:active:not(:disabled) {
@@ -438,7 +419,7 @@
      overflow: hidden;
      white-space: nowrap;
      user-select: none;
-     background: var(--error);
+      background: var(--color-error);
      color: white;
 
      &:hover:not(:disabled) {
@@ -457,10 +438,10 @@
 
   /* ── Card ── */
   .card {
-    background: var(--surface);
+    background: var(--color-surface);
     -webkit-backdrop-filter: var(--glass-blur);
     backdrop-filter: var(--glass-blur);
-    border: 1px solid var(--border);
+    border: 1px solid var(--color-border);
     border-radius: var(--radius-xl);
     box-shadow: var(--shadow-card);
     transition: all var(--ease-normal);
@@ -527,27 +508,27 @@
     padding: 0.625rem 0.875rem;
     font-size: 0.875rem;
     font-weight: 500;
-    color: var(--neutral-800);
+    color: var(--color-neutral-800);
     background: var(--surface-solid);
-    border: 1.5px solid var(--border);
+    border: 1.5px solid var(--color-border);
     border-radius: var(--radius-lg);
     outline: none;
     transition: all var(--ease-fast);
     min-width: 0;
 
     &::placeholder {
-      color: var(--neutral-400);
+      color: var(--color-neutral-400);
       font-weight: 400;
     }
 
     &:focus {
-      border-color: var(--secondary);
+      border-color: var(--color-secondary);
       box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
     }
 
     &:disabled {
-      background: var(--neutral-50);
-      color: var(--neutral-400);
+      background: var(--color-neutral-50);
+      color: var(--color-neutral-400);
       cursor: not-allowed;
     }
   }
@@ -558,9 +539,9 @@
      padding: 0.625rem 0.875rem;
      font-size: 0.875rem;
      font-weight: 500;
-     color: var(--neutral-800);
+     color: var(--color-neutral-800);
      background: var(--surface-solid);
-     border: 1.5px solid var(--border);
+     border: 1.5px solid var(--color-border);
      border-radius: var(--radius-lg);
      outline: none;
      transition: all var(--ease-fast);
@@ -579,9 +560,9 @@
      padding: 0.625rem 0.875rem;
      font-size: 0.875rem;
      font-weight: 500;
-     color: var(--neutral-800);
+     color: var(--color-neutral-800);
      background: var(--surface-solid);
-     border: 1.5px solid var(--border);
+     border: 1.5px solid var(--color-border);
      border-radius: var(--radius-lg);
      outline: none;
      transition: all var(--ease-fast);
@@ -597,7 +578,7 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    color: var(--neutral-500);
+    color: var(--color-neutral-500);
     margin-bottom: 0.25rem;
     white-space: nowrap;
   }
@@ -615,44 +596,44 @@
     white-space: nowrap;
 
     &-success {
-      background: var(--success-bg);
+      background: var(--color-success-bg);
       color: #059669;
       border: 1px solid rgba(16, 185, 129, 0.25);
     }
 
     &-warning {
-      background: var(--warning-bg);
+      background: var(--color-warning-bg);
       color: #d97706;
       border: 1px solid rgba(245, 158, 11, 0.25);
     }
 
     &-danger {
-      background: var(--error-bg);
+      background: var(--color-error-bg);
       color: #dc2626;
       border: 1px solid rgba(239, 68, 68, 0.25);
     }
 
     &-info {
-      background: var(--info-bg);
+      background: var(--color-info-bg);
       color: #2563eb;
       border: 1px solid rgba(59, 130, 246, 0.25);
     }
 
     &-neutral {
-      background: var(--neutral-100);
-      color: var(--neutral-600);
-      border: 1px solid var(--neutral-200);
+      background: var(--color-neutral-100);
+      color: var(--color-neutral-600);
+      border: 1px solid var(--color-neutral-200);
     }
   }
 
   /* ── Separator ── */
   .separator {
     height: 1px;
-    background: var(--border);
+    background: var(--color-border);
     margin: var(--space-4) 0;
 
     &-gradient {
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      background: linear-gradient(90deg, transparent, var(--color-border), transparent);
     }
   }
 }
@@ -661,11 +642,11 @@
 .skeleton {
   background: linear-gradient(
     90deg,
-    var(--neutral-100) 0%,
-    var(--neutral-50) 20%,
-    var(--neutral-100) 40%,
-    var(--neutral-50) 60%,
-    var(--neutral-100) 80%
+    var(--color-neutral-100) 0%,
+    var(--color-neutral-50) 20%,
+    var(--color-neutral-100) 40%,
+    var(--color-neutral-50) 60%,
+    var(--color-neutral-100) 80%
   );
   background-size: 1600px 100%;
   animation: skeletonWave 1.8s ease-in-out infinite;
@@ -674,11 +655,11 @@
   &-dark {
     background: linear-gradient(
       90deg,
-      var(--neutral-800) 0%,
-      var(--neutral-700) 20%,
-      var(--neutral-800) 40%,
-      var(--neutral-700) 60%,
-      var(--neutral-800) 80%
+      var(--color-neutral-800) 0%,
+      var(--color-neutral-700) 20%,
+      var(--color-neutral-800) 40%,
+      var(--color-neutral-700) 60%,
+      var(--color-neutral-800) 80%
     );
     background-size: 1600px 100%;
     animation: skeletonWave 1.8s ease-in-out infinite;
@@ -796,7 +777,7 @@
   right: 12px;
   font-size: 10px;
   opacity: 0;
-  color: var(--secondary);
+  color: var(--color-secondary);
   animation: float-particles 4s ease-in-out infinite;
   pointer-events: none;
 }
@@ -812,10 +793,10 @@
   animation: status-pulse 2.5s ease-in-out infinite;
 }
 
-.status-dot-green  { background: var(--success); box-shadow: 0 0 6px rgba(16,185,129,0.6); }
-.status-dot-amber  { background: var(--warning); box-shadow: 0 0 6px rgba(245,158,11,0.6); }
-.status-dot-red    { background: var(--error); box-shadow: 0 0 6px rgba(239,68,68,0.6); }
-.status-dot-blue   { background: var(--info); box-shadow: 0 0 6px rgba(59,130,246,0.6); }
+.status-dot-green  { background: var(--color-success); box-shadow: 0 0 6px rgba(16,185,129,0.6); }
+.status-dot-amber  { background: var(--color-warning); box-shadow: 0 0 6px rgba(245,158,11,0.6); }
+.status-dot-red    { background: var(--color-error); box-shadow: 0 0 6px rgba(239,68,68,0.6); }
+.status-dot-blue   { background: var(--color-info); box-shadow: 0 0 6px rgba(59,130,246,0.6); }
 
 @keyframes status-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }

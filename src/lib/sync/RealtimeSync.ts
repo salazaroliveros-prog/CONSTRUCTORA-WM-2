@@ -2,10 +2,10 @@
  * Sincronizacion en tiempo real via Firestore Snapshot Listeners.
  * src/lib/sync/RealtimeSync.ts
  *
- * ESTRATEGIA ANTISPAM DEFINITIVA:
- * - NUNCA usar disableNetwork() ni terminate() — activan timers internos de retry
- * - Control total: unsubscribe listeners + flag global para bloquear nuevas llamadas
- * - Reconnect manual con delay + verificacion duplicada
+ * ESTRATEGIA ANTISPAM:
+ * - unsubscribe listeners + disableNetwork() en offline para detener reconexiones del SDK
+ * - enableNetwork() + reconnect manual al volver online
+ * - Flag global para bloquear nuevas llamadas durante la transicion
  */
 
 import {
@@ -18,7 +18,7 @@ import {
   getDoc,
   getDocs
 } from 'firebase/firestore'
-import { db as firestoreDb, auth } from '../../lib/firebase'
+import { db as firestoreDb, auth, disableFirestoreNetwork, enableFirestoreNetwork } from '../../lib/firebase'
 import { getDb } from './store'
 import { SyncEngine } from './SyncEngine'
 
@@ -84,13 +84,8 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
       pollingTimer = null
     }
 
-    // Notificar SyncEngine
-    try {
-      const engine = SyncEngine.getInstance()
-      if (engine) {
-        // No llamar destroy, solo marcar offline
-      }
-    } catch { /* ignore */ }
+    // Detener la red de Firestore para evitar reconexiones del SDK
+    await disableFirestoreNetwork()
 
     globalShuttingDown = false
     localShuttingDown = false
@@ -111,6 +106,9 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
       console.log('[RealtimeSync] Still offline after delay, waiting...')
       return
     }
+
+    // Reactivar la red de Firestore
+    await enableFirestoreNetwork()
 
     globalIsOffline = false
     console.log('[RealtimeSync] Confirmed online, syncing...')
