@@ -264,3 +264,28 @@ import { Project, Typology } from '../constants';
 - `loadUserSettings(uid)` — carga configuración sin importar `firebase/firestore` en el componente.
 - `saveUserSettings(uid, data)` — guarda configuración con `sanitize()` y `merge: true`.
 - Siguen el mismo patrón que `addDocument`/`updateDocument` para el resto de colecciones.
+
+---
+
+## Recent Improvements (2026-05-16)
+
+### 1. Budget Engine — Cálculos corregidos de tax/waste/conttingency
+- **Tax/Profit/Contingency bug:** `ENGINEERING.taxRate = 0.12` (decimal = 12%). Antes `calcLine` dividía por 100 → `0.12/100 = 0.0012` (0.12%). Corregido: eliminar `/100`.
+- **Waste duplicado:** Se aplicaba en `calcDynamicQty` Y en `calcLine` → 6.09% efectivo. Corregido: waste solo en calcLine, por material.
+- **Waste aplicado a labor/equipment:** Antes waste aplicaba a todo (material+labor+equipment). Corregido: solo a materiales.
+- **Fallback legacy:** Si `materials[]` vacío, usa `materialCost`/`laborCost`/`equipmentCost` directos.
+- **calculateSchedule:** Ahora usa `calcDynamicQty` en vez de `projectQuantity` para cantidad correcta.
+
+### 2. Budget Table & Dimension Editor — UI fixes
+- **WasteFactor display:** `wasteFactor = 1.03` mostraba "103%" → ahora muestra "3%" (correcto).
+- **DimensionEditor preview:** Actualizado para ser consistente con `calcLine` (per-material waste).
+
+### 3. Build Errors Corregidos
+- **Dashboard.tsx:** `<motion.div>` cerrado con `</div>` → corregido a `</motion.div>`.
+- **index.css:** `@layer components` sin `}` de cierre → agregado cierre.
+- **ProjectBuilder.tsx:** Import de `reports.ts` (eliminado) → `reportEngine.ts`. Parámetros actualizados a nueva firma `(project, budgetTree, override)`.
+
+### 4. Config Updates
+- **.gitignore:** Agregado `*.bak` para archivos de backup.
+- **sw.js:** Actualizado a v13 para cache invalidación.
+- **services/**: Agregados a `.gitignore` los symlinks de skills (artefactos de agente).
