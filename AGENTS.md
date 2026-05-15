@@ -56,9 +56,10 @@ npm run preview      # Preview production build locally on :4173
 
 - **Dexie.js** over IndexedDB — queries, indexes, ACID transactions.
 - **SyncEngine** (`SyncEngine.ts`): PUSH/PULL with vector clocks, field-level conflict resolution (numerics: max, strings: LWW, arrays: merge by ID), retry queue with exponential backoff.
-- **RealtimeSync** (`RealtimeSync.ts`): Firestore snapshot listeners → Dexie local cache → instant UI.
+- **RealtimeSync** (`RealtimeSync.ts`): Firestore snapshot listeners → Dexie local cache → instant UI. Integrated in AuthContext after successful login.
 - **Conflict resolution** is automatic; unresolved conflicts are stored in `conflicts` table and surfaced via `SyncStatus.tsx` UI indicator.
 - **Persistence mode:** `browserLocalPersistence` — same device auto-logs in, new device requires login.
+- **Network control:** Use `enableFirestoreNetwork()` / `disableFirestoreNetwork()` to manage Firestore connection state for offline handling.
 
 ---
 
@@ -224,9 +225,15 @@ import { Project, Typology } from '../constants';
 - Exclusión explícita de requests cross-origin (Firebase APIs) — no interceptados
 
 ### 7. CSS cleanup — eliminado duplicado `.skeleton`
-- Eliminada definición duplicada de `.skeleton` (existía dos veces con diferentes estilos)
-- Consolidado en una sola definición con `@keyframes skeletonWave`
-- Mantenido estilo light/dark via herencia de variables CSS
+ - Eliminada definición duplicada de `.skeleton` (existía dos veces con diferentes estilos)
+ - Consolidado en una sola definición con `@keyframes skeletonWave`
+ - Mantenido estilo light/dark via herencia de variables CSS
+
+### 8. RealtimeSync integration with AuthContext
+ - Integrated `startRealtimeSync([...REQUIRED_COLLECTIONS])` in AuthProvider after login
+ - Added `enableFirestoreNetwork()` / `disableFirestoreNetwork()` helpers in firebase.ts for offline handling
+ - RealtimeSync now filters by `ownerId` for security
+ - Cleanup properly stops listeners on logout and disables Firestore network
 
 ---
 
