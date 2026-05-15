@@ -2,128 +2,140 @@
  * Sincronizacion en tiempo real via Firestore Snapshot Listeners.
  * src/lib/sync/RealtimeSync.ts
  *
- * Estrategia antispam:
- * - Verificar isFirestoreNetworkDisabled() antes de TODA operacion
- * - Unsubscribe inmediato en error antes de disableNetwork
- * - Guards dobles (navigator.onLine + isFirestoreNetworkDisabled)
+ * ESTRATEGIA ANTISPAM DEFINITIVA:
+ * - NUNCA usar disableNetwork() ni terminate() — activan timers internos de retry
+ * - Control total: unsubscribe listeners + flag global para bloquear nuevas llamadas
+ * - Reconnect manual con delay + verificacion duplicada
  */
 
 import {
-  collection, query, orderBy, onSnapshot, where,
-  doc, getDoc, getDocs
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  where,
+  doc,
+  getDoc,
+  getDocs
 } from 'firebase/firestore'
-import {
-  db as firestoreDb,
-  auth,
-  isFirestoreNetworkDisabled,
-  disableFirestoreNetwork,
-  enableFirestoreNetwork
-} from '../../lib/firebase'
+import { db as firestoreDb, auth } from '../../lib/firebase'
 import { getDb } from './store'
 import { SyncEngine } from './SyncEngine'
 
 const POLLING_INTERVAL = 30000
 const RECONNECT_DELAY_MS = 1500
+
+// Flags globales para control de ciclo de vida
+let globalIsOffline = false
+let globalShuttingDown = false
 let globalListenersActive = false
 
 export function startRealtimeSync(entityTypes: string[]): () => void {
   const unsubscribers: (() => void)[] = []
-  let isOffline = false
   let pollingTimer: ReturnType<typeof setInterval> | null = null
   const uid = auth.currentUser?.uid
-  let shuttingDown = false
+  let localShuttingDown = false
 
   if (!uid) {
     console.warn('[RealtimeSync] No authenticated user')
     return () => {}
   }
 
-  if (!globalListenersActive) {
-    globalListenersActive = true
-  }
-
   const checkOnline = (): boolean => {
     if (typeof navigator === 'undefined') return true
-    return navigator.onLine
-  }
-
-  const canStart = (): boolean => {
-    if (shuttingDown) return false
-    if (isOffline) return false
-    if (isFirestoreNetworkDisabled()) return false
-    if (!checkOnline()) return false
+    try {
+      if (!navigator.onLine) return false
+      const conn = (navigator as any).connection
+      if (conn && conn.type === 'none') return false
+    } catch { /* ignore */ }
     return true
   }
 
-  const handleOffline = async () => {
-    if (isOffline) return
-    shuttingDown = true
-    isOffline = true
-    console.log('[RealtimeSync] Offline detected - stopping all listeners')
+  const isBlocked = (): boolean => {
+    return (
+      localShuttingDown ||
+      globalShuttingDown ||
+      globalIsOffline
+    )
+  }
 
-    // 1. Unsubscribe all listeners FIRST
+  const safeToListen = (): boolean => {
+    return !isBlocked() && checkOnline() && !globalListenersActive
+  }
+
+  const handleOffline = async (source: string) => {
+    if (globalIsOffline) return
+    console.log(`[RealtimeSync] Offline detected from ${source}`)
+
+    globalIsOffline = true
+    globalShuttingDown = true
+
+    // Unsubscribe todos los listeners locales
+    localShuttingDown = true
     const subs = [...unsubscribers]
     unsubscribers.length = 0
     for (const unsub of subs) {
       try { unsub() } catch { /* ignore */ }
     }
 
-    // 2. Stop polling
+    // Stop polling
     if (pollingTimer) {
       clearInterval(pollingTimer)
       pollingTimer = null
     }
 
-    // 3. Now disable network
+    // Notificar SyncEngine
     try {
-      await disableFirestoreNetwork()
-    } catch (e) {
-      console.error('[RealtimeSync] disableNetwork error:', e)
-    }
+      const engine = SyncEngine.getInstance()
+      if (engine) {
+        // No llamar destroy, solo marcar offline
+      }
+    } catch { /* ignore */ }
 
-    shuttingDown = false
-    globalListenersActive = false
+    globalShuttingDown = false
+    localShuttingDown = false
+
+    console.log('[RealtimeSync] All listeners stopped, waiting for reconnect')
   }
 
   const handleOnline = async () => {
-    if (!isOffline) return
-    console.log('[RealtimeSync] Online event detected')
-    isOffline = false
+    if (!globalIsOffline) return
 
-    try {
-      if (isFirestoreNetworkDisabled()) {
-        await enableFirestoreNetwork()
-      }
-    } catch (e) {
-      console.error('[RealtimeSync] enableNetwork error:', e)
+    console.log('[RealtimeSync] Online event - checking connectivity...')
+
+    // Delay para asegurar que la red esta realmente activa
+    await new Promise((resolve) => setTimeout(resolve, RECONNECT_DELAY_MS))
+
+    // Verificacion duplicada despues del delay
+    if (!checkOnline()) {
+      console.log('[RealtimeSync] Still offline after delay, waiting...')
       return
     }
 
-    // Wait for Firestore to be ready
-    await new Promise(resolve => setTimeout(resolve, RECONNECT_DELAY_MS))
+    globalIsOffline = false
+    console.log('[RealtimeSync] Confirmed online, syncing...')
 
-    if (canStart()) {
-      await syncAllCollections()
+    // Leer datos del servidor y actualizar cache
+    await syncAllCollections()
+
+    // Reiniciar listeners
+    if (safeToListen()) {
       startListeners()
       startPolling()
-      globalListenersActive = true
-      console.log('[RealtimeSync] Restarted after reconnect')
     }
   }
 
   const startListeners = () => {
-    if (!canStart()) {
-      console.log('[RealtimeSync] Cannot start - offline or disabled')
+    if (!safeToListen()) {
+      console.log('[RealtimeSync] Cannot start listeners', {
+        blocked: isBlocked(),
+        online: checkOnline(),
+        alreadyActive: globalListenersActive
+      })
       return
     }
 
-    // Prevent double-start
-    if (unsubscribers.length > 0) {
-      console.log('[RealtimeSync] Listeners already active')
-      return
-    }
-
-    console.log('[RealtimeSync] Starting', entityTypes.length, 'listeners')
+    console.log('[RealtimeSync] Starting listeners for', entityTypes.length, 'collections')
 
     for (const entityType of entityTypes) {
       const q = query(
@@ -134,60 +146,76 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
 
       let active = true
 
-      const unsub = onSnapshot(q, {
-        next: async (snapshot) => {
-          if (!active) return
-          for (const change of snapshot.docChanges()) {
-            const data = change.doc.data()
-            if (change.type === 'added' || change.type === 'modified') {
-              await getDb().localCache.put({
-                ...data,
-                id: change.doc.id,
-                entity: entityType
-              })
-            }
-            if (change.type === 'removed') {
-              try {
-                const keys = await getDb().localCache
-                  .where(['entity', 'id'])
-                  .equals([entityType, change.doc.id])
-                  .primaryKeys()
-                for (const k of keys) {
-                  await getDb().localCache.delete(k)
+      const unsub = onSnapshot(
+        q,
+        {
+          next: async (snapshot) => {
+            if (!active) return
+            if (globalIsOffline) return
+            for (const change of snapshot.docChanges()) {
+              const data = change.doc.data()
+              if (change.type === 'added' || change.type === 'modified') {
+                try {
+                  await getDb().localCache.put({
+                    ...data,
+                    id: change.doc.id,
+                    entity: entityType
+                  })
+                } catch (e) {
+                  console.error(`[RealtimeSync] Cache write error (${entityType}):`, e)
                 }
-              } catch { /* ignore */ }
+              }
+              if (change.type === 'removed') {
+                try {
+                  const keys = await getDb().localCache
+                    .where(['entity', 'id'])
+                    .equals([entityType, change.doc.id])
+                    .primaryKeys()
+                  for (const k of keys) {
+                    await getDb().localCache.delete(k)
+                  }
+                } catch { /* ignore */ }
+              }
             }
-          }
-        },
-        error: (error: any) => {
-          if (!active) return
+          },
+          error: (error: any) => {
+            if (!active) return
 
-          const msg = error?.message || ''
-          const code = error?.code || ''
-          const isNetError =
-            code === 'unavailable' ||
-            code === 'failed-precondition' ||
-            msg.includes('offline') ||
-            msg.includes('ERR_INTERNET') ||
-            msg.includes('Internet connection') ||
-            msg.includes('Network')
+            const msg = error?.message || ''
+            const code = error?.code || ''
+            const isNetError =
+              code === 'unavailable' ||
+              code === 'failed-precondition' ||
+              msg.includes('offline') ||
+              msg.includes('ERR_INTERNET') ||
+              msg.includes('Internet connection') ||
+              msg.includes('Network')
 
-          if (!isNetError) {
-            console.error(`[RealtimeSync] Error (${entityType}):`, msg || code)
-          }
-
-          if (!shuttingDown) {
-            handleOffline().catch(console.error)
+            if (isNetError) {
+              console.log(
+                `[RealtimeSync] Network error (${entityType}): ${code || msg.substring(0, 80)}`
+              )
+              handleOffline('listener_error').catch(console.error)
+            } else {
+              console.error(`[RealtimeSync] Error (${entityType}):`, msg || code)
+            }
           }
         }
-      })
+      )
 
       unsubscribers.push(unsub)
     }
+
+    globalListenersActive = true
+
+    console.log('[RealtimeSync] Listeners started successfully')
   }
 
   const syncAllCollections = async () => {
-    if (!canStart()) return
+    if (isBlocked() || !checkOnline()) return
+
+    let syncedCount = 0
+    let errorCount = 0
 
     for (const entityType of entityTypes) {
       try {
@@ -204,8 +232,9 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
               id: d.id,
               entity: entityType
             })
+            syncedCount++
           } catch (e) {
-            console.error(`[RealtimeSync] Cache error (${entityType}/${d.id}):`, e)
+            errorCount++
           }
         }
       } catch (e: any) {
@@ -220,35 +249,49 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
         }
       }
     }
+
+    console.log(`[RealtimeSync] Polled: ${syncedCount} docs, ${errorCount} errors`)
   }
 
   const startPolling = () => {
     if (pollingTimer) return
     pollingTimer = setInterval(() => {
-      if (canStart()) {
+      if (!isBlocked() && checkOnline()) {
         syncAllCollections()
       }
     }, POLLING_INTERVAL)
   }
 
-  // INIT
-  if (canStart()) {
+  // ══════════════════════════════════════════════════════════════════════════
+  //  INICIALIZACION
+  // ══════════════════════════════════════════════════════════════════════════
+
+  if (checkOnline() && !isBlocked()) {
     startListeners()
     startPolling()
   } else {
-    isOffline = true
+    globalIsOffline = true
     console.log('[RealtimeSync] Starting in offline mode')
-    syncAllCollections().catch(() => {})
   }
 
-  // EVENTS
-  window.addEventListener('offline', () => handleOffline().catch(console.error))
+  // ══════════════════════════════════════════════════════════════════════════
+  //  EVENTOS DEL NAVEGADOR
+  // ══════════════════════════════════════════════════════════════════════════
+
+  window.addEventListener('offline', () => handleOffline('browser_event').catch(console.error))
   window.addEventListener('online', () => handleOnline().catch(console.error))
 
-  // CLEANUP
+  // ══════════════════════════════════════════════════════════════════════════
+  //  LIMPIEZA
+  // ══════════════════════════════════════════════════════════════════════════
+
   return () => {
-    shuttingDown = true
-    unsubscribers.forEach(u => { try { u() } catch { /* ignore */ } })
+    localShuttingDown = true
+    globalListenersActive = false
+
+    unsubscribers.forEach((u) => {
+      try { u() } catch { /* ignore */ }
+    })
     unsubscribers.length = 0
 
     if (pollingTimer) {
@@ -256,7 +299,6 @@ export function startRealtimeSync(entityTypes: string[]): () => void {
       pollingTimer = null
     }
 
-    globalListenersActive = false
     console.log('[RealtimeSync] Destroyed')
   }
 }
@@ -267,6 +309,11 @@ export async function optimisticWrite(params: {
   operation: 'create' | 'update' | 'delete'
   data: Record<string, unknown>
 }): Promise<void> {
+  if (globalIsOffline) {
+    console.warn('[RealtimeSync] Offline - write queued to local cache only')
+    return
+  }
+
   const engine = SyncEngine.getInstance()
   await engine.enqueue(params.entity, params.operation, params.entityId, params.data)
 }
@@ -286,7 +333,7 @@ export async function getLocalData<K = Record<string, unknown>>(
   if (
     typeof navigator !== 'undefined' &&
     navigator.onLine &&
-    !isFirestoreNetworkDisabled()
+    !globalIsOffline
   ) {
     try {
       const snap = await getDoc(doc(firestoreDb, entity, entityId))

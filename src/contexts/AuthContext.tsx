@@ -7,11 +7,7 @@ import {
   getRedirectAuthResult,
   getIdToken,
   setSessionCookie,
-  User,
-  enableFirestoreNetwork,
-  disableFirestoreNetwork,
-  isFirestoreNetworkDisabled,
-  setRealtimeSyncStopCallback,
+  User
 } from '../lib/firebase';
 import { SyncEngine } from '../lib/sync/SyncEngine';
 import { startRealtimeSync } from '../lib/sync/RealtimeSync';
@@ -45,85 +41,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const isAuthorizedUser = user?.email === AUTHORIZED_EMAIL;
 
-useEffect(() => {
-     let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-     const init = async () => {
-       try {
-         const redirectUser = await getRedirectAuthResult();
-         if (redirectUser && !cancelled) {
-           setUser(redirectUser);
-           const token = await getIdToken(redirectUser);
-           if (token && !cancelled) {
-             await setSessionCookie(token);
-           }
-         }
-       } catch (err) {
-         console.error('Redirect auth error:', err);
-       }
+    const init = async () => {
+      try {
+        const redirectUser = await getRedirectAuthResult();
+        if (redirectUser && !cancelled) {
+          setUser(redirectUser);
+          const token = await getIdToken(redirectUser);
+          if (token && !cancelled) {
+            await setSessionCookie(token);
+          }
+        }
+      } catch (err) {
+        console.error('Redirect auth error:', err);
+      }
 
-       const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-         if (!cancelled) {
-           setUser(firebaseUser);
+      const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+        if (!cancelled) {
+          setUser(firebaseUser);
 
-           if (firebaseUser && !cancelled) {
-             try {
-               const token = await getIdToken(firebaseUser);
-               if (token) await setSessionCookie(token);
-             } catch { /* ok */ }
+          if (firebaseUser && !cancelled) {
+            try {
+              const token = await getIdToken(firebaseUser);
+              if (token) await setSessionCookie(token);
+            } catch { /* ok */ }
 
-// Inicializar SyncEngine al autenticarse
-              try {
-                const engine = SyncEngine.getInstance();
-                await engine.init();
+            // Inicializar SyncEngine al autenticarse
+            try {
+              const engine = SyncEngine.getInstance();
+              await engine.init();
 
-// Check connectivity BEFORE doing anything else
-                 const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
-                 if (!isOnline) {
-                   console.log('[AuthProvider] Browser offline - disabling Firestore network');
-                   await disableFirestoreNetwork();
-                 } else if (isFirestoreNetworkDisabled()) {
-                   await enableFirestoreNetwork();
-                 }
+              // Iniciar realtime sync para todas las colecciones
+              stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
+            } catch (e) {
+              console.error('[AuthProvider] SyncEngine init failed:', e);
+            }
+          }
 
-                // Start realtime sync for all required collections
-                stopRealtimeRef.current = startRealtimeSync([...REQUIRED_COLLECTIONS]);
-                // Register stop callback so disableFirestoreNetwork can call it
-                setRealtimeSyncStopCallback(() => {
-                  if (stopRealtimeRef.current) {
-                    stopRealtimeRef.current();
-                    stopRealtimeRef.current = null;
-                  }
-                });
-              } catch (e) {
-                console.error('[AuthProvider] SyncEngine init failed:', e);
-              }
-           }
+          setLoading(false);
+        }
+      });
 
-           setLoading(false);
-         }
-       });
+      // Safety net: si onAuthStateChanged no dispara en 8s, dejar de cargar
+      const safetyTimeout = setTimeout(() => {
+        if (!cancelled) {
+          console.warn('[AuthProvider] Safety timeout: auth state not received');
+          setLoading(false);
+        }
+      }, 8000);
 
-       // Safety net: si onAuthStateChanged no dispara en 8s, dejar de cargar
-       const safetyTimeout = setTimeout(() => {
-         if (!cancelled) {
-           console.warn('[AuthProvider] Safety timeout: auth state not received');
-           setLoading(false);
-         }
-       }, 8000);
+      return () => {
+        clearTimeout(safetyTimeout);
+        unsubscribe();
+      };
+    };
 
-       return () => {
-         clearTimeout(safetyTimeout);
-         unsubscribe();
-       };
-     };
-
-     const unsubPromise = init();
-     return () => {
-       cancelled = true;
-       unsubPromise.then(unsub => typeof unsub === 'function' && unsub()).catch(() => {});
-     };
-   }, []);
+    const unsubPromise = init();
+    return () => {
+      cancelled = true;
+      unsubPromise.then(unsub => typeof unsub === 'function' && unsub()).catch(() => {});
+    };
+  }, []);
 
   // Suscribirse a cambios de estado del SyncEngine
   useEffect(() => {
@@ -150,7 +130,7 @@ useEffect(() => {
     }
   };
 
-  const signOut = useCallback(async () => {
+  const signOutUser = useCallback(async () => {
     try {
       await fetch('/api/auth/session', { method: 'DELETE' });
     } catch { /* ignore */ }
@@ -163,8 +143,6 @@ useEffect(() => {
 
     // Detener sync engine
     SyncEngine.resetInstance();
-    // Disable Firestore network to prevent offline retries
-    await disableFirestoreNetwork();
     await logout();
   }, []);
 
@@ -178,7 +156,7 @@ useEffect(() => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, isAuthorizedUser, login, signOut, getIdTokenResult }}>
+    <AuthContext.Provider value={{ user, loading, isAuthorizedUser, login, signOut: signOutUser, getIdTokenResult }}>
       <SyncContext.Provider value={{ syncState }}>
         {!loading && children}
       </SyncContext.Provider>

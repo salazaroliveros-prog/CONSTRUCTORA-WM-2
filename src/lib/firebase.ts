@@ -5,9 +5,7 @@ import {
   signOut, onAuthStateChanged, User, getIdToken,
   browserLocalPersistence, setPersistence
 } from 'firebase/auth'
-import {
-  getFirestore, disableNetwork, enableNetwork
-} from 'firebase/firestore'
+import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import firebaseConfig from './firebaseConfig'
 
@@ -20,63 +18,6 @@ export const app = getApp()
 export const auth = getAuth(app)
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId)
 export const storage = getStorage(app)
-
-// Estado de control de red
-let networkDisabled = false
-let stopRealtimeSyncCallback: (() => void) | null = null
-
-/** Registra el callback para detener RealtimeSync antes de disableNetwork */
-export const setRealtimeSyncStopCallback = (cb: (() => void) | null) => {
-  stopRealtimeSyncCallback = cb
-}
-
-export const isFirestoreNetworkDisabled = (): boolean => networkDisabled
-
-/**
- * Deshabilita TODA conectividad Firestore:
- * 1. Unsubscribes todos los listeners de RealtimeSync
- * 2. Llama disableNetwork() del SDK
- *
- * CRITICO: El unsubscribe DEBE ir antes de disableNetwork()
- * porque los listeners internos de Firebase intentan reconectar
- * incluso despues de disableNetwork().
- */
-export const disableFirestoreNetwork = async (): Promise<void> => {
-  if (networkDisabled) return
-
-  // Paso 1: Unsubscribe de todos los listeners
-  if (stopRealtimeSyncCallback) {
-    try {
-      stopRealtimeSyncCallback()
-    } catch { /* ignore */ }
-    stopRealtimeSyncCallback = null
-  }
-
-  // Pequeño delay para propagar los unsubscribe
-  await new Promise(resolve => setTimeout(resolve, 150))
-
-  // Paso 2: Deshabilitar red
-  try {
-    await disableNetwork(db)
-    networkDisabled = true
-    console.log('[Firebase] Network disabled')
-  } catch (e) {
-    console.error('[Firebase] disableNetwork error:', e)
-    networkDisabled = true
-  }
-}
-
-export const enableFirestoreNetwork = async (): Promise<void> => {
-  if (!networkDisabled) return
-
-  try {
-    await enableNetwork(db)
-    networkDisabled = false
-    console.log('[Firebase] Network enabled')
-  } catch (e) {
-    console.error('[Firebase] enableNetwork error:', e)
-  }
-}
 
 // Persistencia de sesion LOCAL
 setPersistence(auth, browserLocalPersistence).catch(console.error)

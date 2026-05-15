@@ -3,17 +3,27 @@
  * src/lib/sync/SyncEngine.ts
  *
  * Sincroniza operaciones pendientes con Firestore cuando hay conectividad.
- * Usa el guard isFirestoreNetworkDisabled() para evitar llamadas cuando esta offline.
+ * El control de red se delega a RealtimeSync que maneja listeners y polling.
  */
 
 import {
-  writeBatch, doc, getDoc, collection, query, orderBy,
-  Timestamp, deleteDoc, setDoc
+  writeBatch,
+  doc,
+  getDoc,
+  collection,
+  query,
+  orderBy,
+  Timestamp,
+  deleteDoc,
+  setDoc
 } from 'firebase/firestore'
-import { db as firestoreDb, auth, isFirestoreNetworkDisabled } from '../../lib/firebase'
+import { db as firestoreDb, auth } from '../../lib/firebase'
 import { getDb } from './store'
 import {
-  SyncOperation, SyncStatus, VectorClockEntry, SyncState
+  SyncOperation,
+  SyncStatus,
+  VectorClockEntry,
+  SyncState
 } from './types'
 
 // Configuracion
@@ -44,7 +54,10 @@ function tickClock(clock: VectorClockEntry): VectorClockEntry {
  * Retorna: 'after' si a es posterior, 'before' si b es posterior,
  *          'concurrent' si son concurrentes (conflicto).
  */
-function compareClocks(a: VectorClockEntry, b: VectorClockEntry): 'before' | 'after' | 'concurrent' {
+function compareClocks(
+  a: VectorClockEntry,
+  b: VectorClockEntry
+): 'before' | 'after' | 'concurrent' {
   const keys = new Set([...Object.keys(a), ...Object.keys(b)])
   let aGreater = false
   let bGreater = false
@@ -67,7 +80,9 @@ function checkOnline(): boolean {
   try {
     const conn = (navigator as any).connection
     if (conn && conn.type === 'none') return false
-  } catch { /* ignorar */ }
+  } catch {
+    /* ignorar */
+  }
   return true
 }
 
@@ -93,17 +108,7 @@ export class SyncEngine {
   }
 
   async init(): Promise<void> {
-    try {
-      // Desactivado para estabilidad: await enableIndexedDbPersistence(firestoreDb)
-    } catch (e: any) {
-      if (e.code === 'failed-precondition') {
-        console.warn('[SyncEngine] Persistencia offline ya activa en otra pestaña')
-      } else {
-        console.warn('[SyncEngine] No se pudo habilitar persistencia offline:', e.message)
-      }
-    }
-
-    this.online = checkOnline() && !isFirestoreNetworkDisabled()
+    this.online = checkOnline()
 
     window.addEventListener('online', this._onConnect)
     window.addEventListener('offline', this._onDisconnect)
@@ -114,14 +119,13 @@ export class SyncEngine {
       setTimeout(() => this.sync().catch(console.error), 1000)
     }
 
-    console.log('[SyncEngine] Inicializado', { online: this.online, clientId: getClientId() })
+    console.log('[SyncEngine] Inicializado', {
+      online: this.online,
+      clientId: getClientId()
+    })
   }
 
   private _onConnect = (): void => {
-    if (isFirestoreNetworkDisabled()) {
-      console.log('[SyncEngine] Network disabled, skipping connect')
-      return
-    }
     this.online = true
     console.log('[SyncEngine] Reconectado')
     this.sync().catch((e) => console.error('[SyncEngine] Sync error:', e))
@@ -138,7 +142,7 @@ export class SyncEngine {
     this.heartbeatTimer = setInterval(async () => {
       if (this._destroyed) return
       const wasOnline = this.online
-      const nowOnline = checkOnline() && !isFirestoreNetworkDisabled()
+      const nowOnline = checkOnline()
       this.online = nowOnline
 
       if (nowOnline && !wasOnline) {
@@ -155,7 +159,7 @@ export class SyncEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   async sync(): Promise<void> {
-    if (this.syncing || !this.online || isFirestoreNetworkDisabled()) return
+    if (this.syncing || !this.online) return
 
     this.syncing = true
     this._notify()
@@ -177,7 +181,10 @@ export class SyncEngine {
 
       await this._pull(localDb)
     } catch (error: any) {
-      console.error('[SyncEngine] Error de sincronizacion:', error.message || error)
+      console.error(
+        '[SyncEngine] Error de sincronizacion:',
+        error.message || error
+      )
     } finally {
       this.syncing = false
       this._notify()
@@ -195,9 +202,8 @@ export class SyncEngine {
     const uid = auth.currentUser?.uid
     if (!uid) throw new Error('[SyncEngine] No autenticado')
 
-    // Guard: no intentar si red esta deshabilitada
-    if (isFirestoreNetworkDisabled()) {
-      console.warn('[SyncEngine] Network disabled, skipping batch push')
+    if (!checkOnline()) {
+      console.warn('[SyncEngine] Offline, skipping batch push')
       return
     }
 
@@ -242,12 +248,16 @@ export class SyncEngine {
           if (op.operation === 'delete') {
             await deleteDoc(ref)
           } else {
-            await setDoc(ref, {
-              ...op.payload,
-              _vectorClock: newClock,
-              _updatedAt: Timestamp.fromMillis(op.clientTimestamp),
-              _updatedBy: uid
-            }, { merge: true })
+            await setDoc(
+              ref,
+              {
+                ...op.payload,
+                _vectorClock: newClock,
+                _updatedAt: Timestamp.fromMillis(op.clientTimestamp),
+                _updatedBy: uid
+              },
+              { merge: true }
+            )
           }
 
           await localDb.syncQueue.update(op.id, {
@@ -255,10 +265,15 @@ export class SyncEngine {
             serverTimestamp: Timestamp.now().toMillis()
           })
         } catch (error: any) {
-          console.error(`[SyncEngine] Error push ${op.id}:`, error.message || error)
+          console.error(
+            `[SyncEngine] Error push ${op.id}:`,
+            error.message || error
+          )
           op.retryCount++
           if (op.retryCount >= op.maxRetries) {
-            await localDb.syncQueue.update(op.id, { status: SyncStatus.FAILED })
+            await localDb.syncQueue.update(op.id, {
+              status: SyncStatus.FAILED
+            })
           } else {
             const delay = BACKOFF_BASE_MS * Math.pow(2, op.retryCount)
             setTimeout(() => this.retry(op.id), delay)
@@ -272,10 +287,16 @@ export class SyncEngine {
   }
 
   async retry(opId: string): Promise<void> {
-    if (!this.online || isFirestoreNetworkDisabled()) return
+    if (!this.online) return
+    if (!checkOnline()) return
     const localDb = getDb()
     const op = await localDb.syncQueue.get(opId)
-    if (!op || op.status === SyncStatus.CONFIRMED || op.status === SyncStatus.STALE) return
+    if (
+      !op ||
+      op.status === SyncStatus.CONFIRMED ||
+      op.status === SyncStatus.STALE
+    )
+      return
     await localDb.syncQueue.update(opId, { status: SyncStatus.PENDING })
     setTimeout(() => this.sync().catch(console.error), 300)
   }
@@ -292,7 +313,12 @@ export class SyncEngine {
     const serverData = serverSnap.data()
     const localData = op.payload
 
-    const META = new Set(['_vectorClock', '_updatedAt', '_updatedBy', 'id'])
+    const META = new Set([
+      '_vectorClock',
+      '_updatedAt',
+      '_updatedBy',
+      'id'
+    ])
     const merged: Record<string, unknown> = {}
     const unresolved: string[] = []
 
@@ -321,8 +347,10 @@ export class SyncEngine {
         } else if (Array.isArray(lv) && Array.isArray(sv)) {
           merged[key] = this._mergeArrays(lv, sv)
         } else if (
-          typeof lv === 'object' && typeof sv === 'object' &&
-          lv !== null && sv !== null
+          typeof lv === 'object' &&
+          typeof sv === 'object' &&
+          lv !== null &&
+          sv !== null
         ) {
           merged[key] = { ...sv, ...lv }
         } else {
@@ -365,11 +393,15 @@ export class SyncEngine {
 
   private _mergeArrays(localArr: any[], remoteArr: any[]): any[] {
     const key = 'id'
-    const remoteMap = new Map(remoteArr.map((item: any) => [item[key], item]))
+    const remoteMap = new Map(
+      remoteArr.map((item: any) => [item[key], item])
+    )
     const result = remoteArr.map((item: any) => ({ ...item }))
 
     for (const item of localArr) {
-      const existingIdx = result.findIndex((r: any) => r[key] === item[key])
+      const existingIdx = result.findIndex(
+        (r: any) => r[key] === item[key]
+      )
       if (existingIdx >= 0) {
         result[existingIdx] = { ...result[existingIdx], ...item }
       } else {
@@ -385,7 +417,7 @@ export class SyncEngine {
   // ═══════════════════════════════════════════════════════════════════════════
 
   private async _pull(localDb: ReturnType<typeof getDb>): Promise<void> {
-    if (isFirestoreNetworkDisabled()) return
+    if (!checkOnline()) return
 
     const localDocs = await localDb.localCache.toArray()
 
@@ -424,7 +456,10 @@ export class SyncEngine {
       try {
         const ref = doc(firestoreDb, c.entity, c.entityId)
         const snap = await getDoc(ref)
-        if (snap.exists() && !(snap.data()._conflictFields && snap.data()._conflictFields.length > 0)) {
+        if (
+          snap.exists() &&
+          !(snap.data()._conflictFields && snap.data()._conflictFields.length > 0)
+        ) {
           await localDb.conflicts.delete(c.id)
         }
       } catch {
@@ -443,11 +478,8 @@ export class SyncEngine {
     entityId: string,
     payload: Record<string, unknown>
   ): Promise<void> {
-    if (isFirestoreNetworkDisabled()) {
-      console.warn('[SyncEngine] Network disabled, only saving to local cache')
-    }
-
     const localDb = getDb()
+
     const op: SyncOperation = {
       id: crypto.randomUUID?.() || Math.random().toString(36).slice(2),
       entity,
@@ -486,7 +518,7 @@ export class SyncEngine {
     }
 
     // Trigger sync si estamos online
-    if (this.online && !this.syncing && !isFirestoreNetworkDisabled()) {
+    if (this.online && !this.syncing && checkOnline()) {
       setTimeout(() => this.sync().catch(console.error), 500)
     }
   }
@@ -504,7 +536,10 @@ export class SyncEngine {
     const confirmedOps = await d.syncQueue
       .where('status')
       .equals(SyncStatus.CONFIRMED)
-      .filter((op: SyncOperation) => op.completedAt != null && op.completedAt < cutoff)
+      .filter(
+        (op: SyncOperation) =>
+          op.completedAt != null && op.completedAt < cutoff
+      )
       .toArray()
     for (const op of confirmedOps) {
       await d.syncQueue.delete(op.id)
@@ -518,7 +553,10 @@ export class SyncEngine {
       await d.syncQueue.delete(op.id)
     }
 
-    const staleOps = await d.syncQueue.where('status').equals(SyncStatus.STALE).toArray()
+    const staleOps = await d.syncQueue
+      .where('status')
+      .equals(SyncStatus.STALE)
+      .toArray()
     for (const op of staleOps) {
       await d.syncQueue.delete(op.id)
     }
@@ -526,7 +564,11 @@ export class SyncEngine {
     console.log(
       `[SyncEngine] Cleanup: ${confirmedOps.length} confirmed, ${failedOps.length} failed, ${staleOps.length} stale`
     )
-    return { confirmed: confirmedOps.length, failed: failedOps.length, stale: staleOps.length }
+    return {
+      confirmed: confirmedOps.length,
+      failed: failedOps.length,
+      stale: staleOps.length
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
