@@ -34,13 +34,10 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
             aria-invalid={error ? "true" : undefined}
             aria-describedby={hint || error ? `${inputId}-hint` : undefined}
             className={cn(
-              "w-full rounded-2xl border bg-[var(--color-surface-solid)] px-4 py-3 text-sm font-medium text-[var(--color-neutral-800)]",
-              "placeholder:text-[var(--color-neutral-400)] outline-none transition-all duration-300",
-              "border-[var(--color-border)] focus:border-[var(--color-secondary)] focus:ring-4 focus:ring-[color-mix(in_srgb,var(--color-secondary)_8%,transparent)]",
-              "shadow-sm hover:shadow-md hover:border-[var(--color-border-hover)]",
+              "w-full glass-input placeholder:text-white/40",
               icon && "pl-10",
-              error && "border-[var(--color-error)] focus:border-[var(--color-error)] focus:ring-[color-mix(in_srgb,var(--color-error)_8%,transparent)]",
-              props.disabled && "bg-[var(--color-neutral-50)] text-[var(--color-neutral-400)] cursor-not-allowed opacity-60",
+              error && "border-red-500/50 focus:border-red-500 focus:bg-red-500/10",
+              props.disabled && "opacity-50 cursor-not-allowed",
               className
             )}
             {...props}

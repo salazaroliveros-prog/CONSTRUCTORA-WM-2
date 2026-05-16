@@ -14,8 +14,12 @@ import { BudgetItem, SensitivityScenario } from '../../types/budget';
 import { BudgetLine } from '../../lib/budgetData';
 import { calculateSensitivity, checkDeviations, Deviation, precise, fmtQ } from '../../engine/budgetEngine';
 
+// ... (eliminar la función formatQ redundante si existe)
+// Nota: ya tienes fmtQ importado ahora. Cambia las llamadas formatQ(x) por fmtQ(x)
+const formatQ = fmtQ;
+
 // ─── Tipos ──────────────────────────────────────────────────────────────────
-interface ProfessionalTotals {
+export interface ProfessionalTotals {
   totalDirect: number;
   materialsTotal: number;
   laborTotal: number;

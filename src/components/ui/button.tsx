@@ -9,12 +9,12 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-white shadow-md hover:bg-primary/90 hover:shadow-lg hover:-translate-y-0.5",
-        secondary: "bg-secondary text-primary shadow-md hover:bg-secondary-light hover:shadow-lg hover:-translate-y-0.5",
-        ghost: "bg-transparent text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)] hover:text-[var(--color-neutral-900)]",
-        outline: "border border-[var(--color-neutral-200)] bg-transparent hover:bg-[var(--color-neutral-50)] hover:border-[var(--color-neutral-300)]",
-        danger: "bg-error text-white shadow-md hover:bg-[var(--color-error-dark,#dc2626)] hover:shadow-lg",
-        premium: "bg-gradient-to-r from-[var(--color-secondary-dark)] to-[var(--color-secondary)] text-white shadow-lg hover:shadow-violet-500/25 hover:-translate-y-0.5",
+        default: "bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 hover:scale-[1.02] shadow-lg",
+        secondary: "bg-gradient-to-r from-indigo-600 to-cyan-500 text-white shadow-[0_4px_15px_rgba(99,102,241,0.4)] hover:shadow-[0_8px_25px_rgba(99,102,241,0.6)] hover:-translate-y-0.5",
+        ghost: "bg-transparent text-white/60 hover:bg-white/10 hover:text-white",
+        outline: "border border-white/20 bg-transparent text-white hover:bg-white/10",
+        danger: "bg-red-500/20 border border-red-500/30 text-red-200 hover:bg-red-500/40",
+        premium: "bg-gradient-to-r from-amber-500 to-orange-500 text-black shadow-lg hover:scale-[1.02]",
       },
       size: {
         sm: "h-8 px-3 text-xs gap-1.5",

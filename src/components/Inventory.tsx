@@ -30,6 +30,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { WarehouseItem, PurchaseOrder, PurchaseOrderItem } from '../constants';
 import { cn } from '../utils/cn';
+import { fmtQ } from '../engine/precision';
 import { addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
 import { useStore } from '../store/DataStore';
 import { uploadFile } from '../services/storageService';

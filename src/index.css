@@ -106,17 +106,43 @@
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-  /* ─── BACKWARD COMPAT ALIASES ─── */
-  --color-n-50:  var(--color-p-50);
-  --color-n-100: var(--color-p-100);
-  --color-n-200: var(--color-p-200);
-  --color-n-300: var(--color-p-300);
-  --color-n-400: var(--color-p-400);
-  --color-n-500: var(--color-p-500);
-  --color-n-600: var(--color-p-600);
-  --color-n-700: var(--color-p-700);
-  --color-n-800: var(--color-p-800);
-  --color-n-900: var(--color-p-900);
+  /* ─── Global Design System: WM Constructora Core ─── */
+@layer components {
+  /* Glassmorphism Card (Login + Dashboard Cards) */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Standardized Form Inputs */
+  .glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--color-p-900);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  .glass-input:focus {
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  }
+
+  /* Global Page Container */
+  .page-layout {
+    min-height: 100vh;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
 
   --color-success: var(--color-green);
   --color-success-light: #10b981;
