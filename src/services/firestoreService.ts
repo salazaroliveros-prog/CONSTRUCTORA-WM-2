@@ -80,11 +80,43 @@ function isOffline(): boolean {
   return !navigator.onLine;
 }
 
+async function validateForeignKeys(collectionName: string, data: any): Promise<void> {
+  const fkRules: Record<string, { field: string; target: string }[]> = {
+    transactions: [{ field: 'projectId', target: 'projects' }],
+    purchaseOrders: [
+      { field: 'projectId', target: 'projects' },
+      { field: 'supplierId', target: 'suppliers' },
+    ],
+    inventory: [{ field: 'projectId', target: 'projects' }],
+    payrolls: [{ field: 'projectId', target: 'projects' }],
+    logs: [{ field: 'projectId', target: 'projects' }],
+  };
+
+  const rules = fkRules[collectionName];
+  if (!rules) return;
+
+  for (const rule of rules) {
+    const fkValue = data[rule.field];
+    if (!fkValue) continue;
+    try {
+      const ref = await getDocument(rule.target, fkValue);
+      if (!ref) {
+        console.warn(`[FK] ${collectionName} references ${rule.target}/${fkValue} which does not exist`);
+      }
+    } catch {
+      console.warn(`[FK] Could not verify ${rule.target}/${fkValue} for ${collectionName}`);
+    }
+  }
+}
+
 export const addDocument = async (
   collectionName: string,
-  data: any
+  data: any,
+  _skipAudit?: boolean
 ): Promise<string | null> => {
   if (!auth.currentUser) throw new Error('Not authenticated');
+
+  await validateForeignKeys(collectionName, data);
 
   if (isOffline()) {
     const docId = crypto.randomUUID();
@@ -118,6 +150,7 @@ export const addDocument = async (
     });
 
     const id = (result.name as string).split('/').pop() || '';
+    if (!_skipAudit) addAuditLog('create', collectionName, id, JSON.stringify(Object.keys(clean)));
     const cached = getCachedCollection(collectionName) || [];
     cached.push({ id, ...clean, ownerId: auth.currentUser.uid, createdAt: nowISO(), updatedAt: nowISO() });
     cacheCollection(collectionName, cached);
@@ -178,6 +211,7 @@ export const updateDocument = async (
           body: JSON.stringify({ fields }),
         });
         await generateProjectStock({ id, ...current, ...data });
+        addAuditLog('update:ejecucion', collectionName, id);
         const cached = getCachedCollection(collectionName) || [];
         const idx = cached.findIndex((d: any) => d.id === id);
         if (idx >= 0) cached[idx] = { ...cached[idx], ...data };
@@ -186,10 +220,55 @@ export const updateDocument = async (
       }
     }
 
+    if (collectionName === 'projects' && data.teamIds !== undefined) {
+      const current = await getDocument(collectionName, id).catch(() => null);
+      if (current) {
+        const oldTeamIds: string[] = current.teamIds || [];
+        const newTeamIds: string[] = data.teamIds || [];
+        const added = newTeamIds.filter(tid => !oldTeamIds.includes(tid));
+        const removed = oldTeamIds.filter(tid => !newTeamIds.includes(tid));
+        if (added.length > 0 || removed.length > 0) {
+          try {
+            const staffDocs = await collectionQuery('staff', [
+              { field: 'ownerId', op: 'EQUAL', val: auth.currentUser.uid },
+            ]);
+            const uid = auth.currentUser.uid;
+            const batchUpdate = async () => {
+              for (const r of staffDocs) {
+                const d = r.document || r;
+                const staffId = d.name?.split('/').pop() || d.id;
+                const staffObj = docToObject(d);
+                const currentProjects: string[] = staffObj.projectIds || [];
+                let changed = false;
+                if (removed.includes(staffId) && currentProjects.includes(id)) {
+                  staffObj.projectIds = currentProjects.filter((pid: string) => pid !== id);
+                  changed = true;
+                }
+                if (added.includes(staffId) && !currentProjects.includes(id)) {
+                  staffObj.projectIds = [...currentProjects, id];
+                  changed = true;
+                }
+                if (changed && staffId) {
+                  await apiFetch(`/documents/staff/${staffId}?updateMask.fieldPaths=projectIds`, {
+                    method: 'PATCH',
+                    body: JSON.stringify({ fields: objToFirestore({ projectIds: staffObj.projectIds }) }),
+                  }).catch((e: any) => console.warn(`[sync] Failed to update staff/${staffId}:`, e));
+                }
+              }
+            };
+            batchUpdate();
+          } catch (e) {
+            console.warn(`[sync] Error syncing staff projects for ${id}:`, e);
+          }
+        }
+      }
+    }
+
     await apiFetch(`/documents/${collectionName}/${id}?${params.toString()}`, {
       method: 'PATCH',
       body: JSON.stringify({ fields }),
     });
+    addAuditLog('update', collectionName, id, JSON.stringify(Object.keys(data)));
     const cached = getCachedCollection(collectionName) || [];
     const idx = cached.findIndex((d: any) => d.id === id);
     if (idx >= 0) cached[idx] = { ...cached[idx], ...data };
@@ -207,6 +286,60 @@ export const updateDocument = async (
     throw error;
   }
 };
+
+async function cascadeDeleteProject(projectId: string): Promise<void> {
+  const uid = auth.currentUser?.uid;
+  if (!uid) return;
+
+  const linkedCollections = [
+    { name: 'transactions', field: 'projectId' },
+    { name: 'purchaseOrders', field: 'projectId' },
+    { name: 'inventory', field: 'projectId' },
+    { name: 'logs', field: 'projectId' },
+  ];
+
+  for (const { name, field } of linkedCollections) {
+    try {
+      const docs = await collectionQuery(name, [
+        { field, op: 'EQUAL', val: projectId },
+        { field: 'ownerId', op: 'EQUAL', val: uid },
+      ]);
+      for (const r of docs) {
+        const d = r.document || r;
+        const docId = d.name?.split('/').pop() || d.id;
+        if (docId) {
+          await apiFetch(`/documents/${name}/${docId}`, { method: 'DELETE' }).catch(() => {});
+        }
+      }
+    } catch (e) {
+      console.warn(`[cascade] Error cleaning ${name} for project ${projectId}:`, e);
+    }
+  }
+
+  try {
+    const clients = await collectionQuery('clients', [
+      { field: 'ownerId', op: 'EQUAL', val: uid },
+    ]);
+    for (const r of clients) {
+      const d = docToObject(r.document || r);
+      if (d.proyectosIds?.includes(projectId)) {
+        const docId = (r.document?.name?.split('/').pop()) || d.id;
+        const updated = {
+          proyectosIds: d.proyectosIds.filter((pid: string) => pid !== projectId),
+          totalProyectos: Math.max(0, (d.totalProyectos || 1) - 1),
+        };
+        if (docId) {
+          await apiFetch(`/documents/clients/${docId}?updateMask.fieldPaths=proyectosIds&updateMask.fieldPaths=totalProyectos`, {
+            method: 'PATCH',
+            body: JSON.stringify({ fields: objToFirestore(updated) }),
+          }).catch(() => {});
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(`[cascade] Error updating client project list for ${projectId}:`, e);
+  }
+}
 
 export const deleteDocument = async (
   collectionName: string,
@@ -227,7 +360,11 @@ export const deleteDocument = async (
   }
 
   try {
+    if (collectionName === 'projects') {
+      await cascadeDeleteProject(id);
+    }
     await apiFetch(`/documents/${collectionName}/${id}`, { method: 'DELETE' });
+    addAuditLog('delete', collectionName, id);
     const cached = getCachedCollection(collectionName) || [];
     cacheCollection(collectionName, cached.filter((d: any) => d.id !== id));
     return true;
@@ -302,6 +439,7 @@ export const REQUIRED_COLLECTIONS = [
   'transactions',
   'purchaseOrders',
   'logs',
+  'payrolls',
 ] as const;
 
 export type CollectionStatus = {
@@ -404,20 +542,66 @@ export const processPendingQueue = async (): Promise<{ processed: number; failed
   return { processed, failed };
 };
 
+const AUDIT_COLLECTIONS = ['projects', 'transactions', 'clients', 'inventory', 'staff', 'suppliers', 'purchaseOrders', 'payrolls'];
+
+async function addAuditLog(action: string, collectionName: string, docId: string, details?: string): Promise<void> {
+  if (!AUDIT_COLLECTIONS.includes(collectionName) || !auth.currentUser) return;
+  try {
+    await apiFetch('/documents/logs', {
+      method: 'POST',
+      body: JSON.stringify({
+        fields: objToFirestore({
+          action: `${action}:${collectionName}`,
+          collection: collectionName,
+          docId,
+          userId: auth.currentUser.uid,
+          details: details || '',
+          timestamp: nowISO(),
+          ownerId: auth.currentUser.uid,
+          projectId: '_system',
+        }),
+      }),
+    });
+  } catch {
+    // Audit is non-critical; silently ignore
+  }
+}
+
 export const generateProjectStock = async (project: any): Promise<number> => {
   if (!auth.currentUser || !project.id) return 0;
 
   const materialsMap = new Map<string, { unit: string; qty: number; cost: number }>();
-  for (const item of project.items || []) {
-    for (const m of item.materials || []) {
-      const key = `${m.name}__${m.unit || 'U'}`;
-      const qty = (m.quantity || 0) * (item.projectQuantity || 1);
-      if (materialsMap.has(key)) {
-        materialsMap.get(key)!.qty += qty;
-      } else {
-        materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.price || 0 });
+  const items = project.items || [];
+  const budgetLines = project.budgetTree || [];
+
+  if (items.length > 0) {
+    for (const item of items) {
+      for (const m of item.materials || []) {
+        const key = `${m.name}__${m.unit || 'U'}`;
+        const qty = (m.quantity || 0) * (item.projectQuantity || 1);
+        if (materialsMap.has(key)) {
+          materialsMap.get(key)!.qty += qty;
+        } else {
+          materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.price || 0 });
+        }
       }
     }
+  } else if (budgetLines.length > 0) {
+    const extractBudgetMaterials = (lines: any[]) => {
+      for (const line of lines) {
+        for (const m of line.materials || []) {
+          const key = `${m.name}__${m.unit || 'U'}`;
+          const qty = (m.quantity || 0) * (line.projectQuantity || 1);
+          if (materialsMap.has(key)) {
+            materialsMap.get(key)!.qty += qty;
+          } else {
+            materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.unitPrice || 0 });
+          }
+        }
+        if (line.children) extractBudgetMaterials(line.children);
+      }
+    };
+    extractBudgetMaterials(budgetLines);
   }
   if (materialsMap.size === 0) return 0;
 
@@ -451,7 +635,7 @@ export const generateProjectStock = async (project: any): Promise<number> => {
       budgetedQty: Math.round(mat.qty * 100) / 100,
       budgetedCost: mat.cost,
       usedQty: 0,
-    });
+    }, true);
     created++;
   }
   return created;

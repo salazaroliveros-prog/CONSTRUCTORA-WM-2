@@ -12,11 +12,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils/cn';
-import { subscribeToCollection, addDocument, updateDocument, deleteDocument, checkUniqueField, parseError } from '../services/firestoreService';
+import { addDocument, updateDocument, deleteDocument, checkUniqueField, parseError } from '../services/firestoreService';
+import { useStore } from '../store/DataStore';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
 import { Modal } from './ui/Modal';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { Payroll, PayrollEmployee, Transaction } from '../constants';
 import { sanitizeString } from '../utils/sanitize';
@@ -78,9 +81,11 @@ function exportStaffCSV(staff: StaffMember[]) {
 
 export default function StaffModule() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [staff, setStaff] = useState<StaffMember[]>([]);
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const store = useStore();
+  const staff = store.staff.items as StaffMember[];
+  const projects = store.projects.items as Project[];
+  const payrolls = store.payrolls.items as Payroll[];
+  const loading = store.staff.isLoading;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [member, setMember] = useState({ name: '', role: '', salary: '', documentId: '', email: '', phone: '', hireDate: '' });
   const [saving, setSaving] = useState(false);
@@ -99,7 +104,7 @@ export default function StaffModule() {
 
   // Payroll state
   const [activeStaffTab, setActiveStaffTab] = useState<'personal' | 'planillas'>('personal');
-  const [payrolls, setPayrolls] = useState<Payroll[]>([]);
+
   const [isPayrollModalOpen, setIsPayrollModalOpen] = useState(false);
   const [payrollForm, setPayrollForm] = useState<{ projectId: string; period: string; type: 'CAMPO' | 'ADMINISTRATIVO'; employees: PayrollEmployee[]; notes: string }>({
     projectId: '', period: new Date().toISOString().slice(0, 7), type: 'CAMPO', employees: [], notes: ''
@@ -131,12 +136,7 @@ export default function StaffModule() {
   const tablePageSize = useAutoPageSize(36, 180, 6);
   const pageSize = viewMode === 'table' ? tablePageSize : cardPageSize;
 
-  useEffect(() => {
-    const unsub1 = subscribeToCollection('staff', (data) => { setStaff(data); setLoading(false); });
-    const unsub2 = subscribeToCollection('projects', (data) => setProjects(data));
-    const unsub3 = subscribeToCollection('payrolls', (data) => setPayrolls(data));
-    return () => { unsub1(); unsub2(); unsub3(); };
-  }, []);
+
 
   const handleDelete = (id: string) => {
     const m = staff.find(s => s.id === id);
@@ -513,18 +513,18 @@ export default function StaffModule() {
           {activeStaffTab === 'personal' ? (
             <>
 <select value={filterRole} onChange={e => setFilterRole(e.target.value)} title="Filtrar por cargo"
-                 className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+                  className="select">
                 <option value="">TODOS LOS CARGOS</option>
                 {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
 <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} title="Filtrar por estado"
-                 className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+                  className="select">
                 <option value="Todos">TODOS</option>
                 <option value="Activo">ACTIVOS</option>
                 <option value="Inactivo">INACTIVOS</option>
               </select>
 <select value={filterProject} onChange={e => setFilterProject(e.target.value)} title="Filtrar por proyecto"
-                 className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+                  className="select">
                 <option value="">TODOS LOS PROYECTOS</option>
                 {projects.filter(p => p.status === 'EJECUCION').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
@@ -546,7 +546,7 @@ export default function StaffModule() {
                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={12} />
                  <input type="text" placeholder="BUSCAR PERSONAL..." value={searchTerm}
                    onChange={e => setSearchTerm(e.target.value)} title="Buscar personal"
-                   className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
+                   className="input" />
                </div>
                <button type="button" onClick={() => exportStaffCSV(staff)} title="Exportar CSV"
                  className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-all">
@@ -811,7 +811,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                    </div>
                  </div>
                 <div>
-                  <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Información</p>
+                  <p className="label">Información</p>
                   <div className="space-y-1.5">
 {[
                        { icon: <CreditCard size={8}/>, label: 'DPI', value: selectedMember.documentId },
@@ -959,7 +959,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                   <div className="flex items-center gap-2 px-1 py-1">
                      <input type="checkbox" checked={selectedPayrollIds.size === payrolls.length && payrolls.length > 0}
                        onChange={toggleSelectAllPayroll} title="Seleccionar todas las planillas" className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                    <span className="label">
                       {selectedPayrollIds.size > 0 ? `${selectedPayrollIds.size} seleccionado(s)` : 'Seleccionar todo'}
                     </span>
                   </div>
@@ -1048,125 +1048,66 @@ animate={{ opacity: 1, x: 0, width: 280 }}
 {/* Modal Crear */}
        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Registrar Nuevo Colaborador">
          <form onSubmit={handleCreate} className="space-y-3 text-left">
-           <div className="space-y-1">
-             <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo *</label>
-             <input type="text" required placeholder="NOMBRE DEL TRABAJADOR" value={member.name}
-               onChange={e => setMember({ ...member, name: e.target.value })} title="Nombre completo"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Cargo / Puesto</label>
-               <select value={member.role} onChange={e => setMember({ ...member, role: e.target.value })} title="Cargo o puesto"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option value="">SELECCIONAR...</option>
-                 {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-               </select>
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">DPI / Cédula</label>
-               <input type="text" placeholder="DOCUMENTO ID" value={member.documentId}
-                 onChange={e => setMember({ ...member, documentId: e.target.value })} title="Número de DPI"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Salario Base (Q)</label>
-               <input type="number" placeholder="0.00" value={member.salary}
-                 onChange={e => setMember({ ...member, salary: e.target.value })} title="Salario mensual"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Ingreso</label>
-               <input type="date" value={member.hireDate}
-                 onChange={e => setMember({ ...member, hireDate: e.target.value })} title="Fecha de ingreso"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-               <input type="tel" placeholder="+502 0000-0000" value={member.phone}
-                 onChange={e => setMember({ ...member, phone: e.target.value })} title="Teléfono"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
-               <input type="email" placeholder="correo@ejemplo.com" value={member.email}
-                 onChange={e => setMember({ ...member, email: e.target.value })} title="Correo electrónico"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-          <button type="submit" disabled={saving}
-            className="w-full bg-slate-900 text-white py-3.5 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all disabled:opacity-50">
-            {saving ? 'PROCESANDO...' : 'GUARDAR COLABORADOR'}
-          </button>
+            <Input label="Nombre Completo" required value={member.name} onChange={e => setMember({ ...member, name: e.target.value })} placeholder="NOMBRE DEL TRABAJADOR" wrapperClassName="col-span-2" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Cargo / Puesto</label>
+                <select value={member.role} onChange={e => setMember({ ...member, role: e.target.value })} title="Cargo o puesto"
+                  className="select">
+                  <option value="">SELECCIONAR...</option>
+                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <Input label="DPI / Cédula" value={member.documentId} onChange={e => setMember({ ...member, documentId: e.target.value })} placeholder="DOCUMENTO ID" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Salario Base (Q)" type="number" value={member.salary} onChange={e => setMember({ ...member, salary: e.target.value })} placeholder="0.00" />
+              <Input label="Fecha Ingreso" type="date" value={member.hireDate} onChange={e => setMember({ ...member, hireDate: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Teléfono" type="tel" value={member.phone} onChange={e => setMember({ ...member, phone: e.target.value })} placeholder="+502 0000-0000" />
+              <Input label="Email" type="email" value={member.email} onChange={e => setMember({ ...member, email: e.target.value })} placeholder="correo@ejemplo.com" />
+            </div>
+           <Button type="submit" isLoading={saving} className="w-full">
+             GUARDAR COLABORADOR
+           </Button>
         </form>
       </Modal>
 
 {/* Modal Editar */}
        <Modal isOpen={!!editMember} onClose={() => setEditMember(null)} title="Editar Colaborador">
          <form onSubmit={handleEditStaff} className="space-y-3 text-left">
-           <div className="space-y-1">
-             <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
-             <input type="text" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} title="Nombre completo"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Cargo</label>
-               <select value={editForm.role} onChange={e => setEditForm({ ...editForm, role: e.target.value })} title="Cargo"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option value="">SELECCIONAR...</option>
-                 {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
-               </select>
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">DPI</label>
-               <input type="text" value={editForm.documentId} onChange={e => setEditForm({ ...editForm, documentId: e.target.value })} title="DPI"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Salario (Q)</label>
-               <input type="number" value={editForm.salary} onChange={e => setEditForm({ ...editForm, salary: e.target.value })} title="Salario"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label>
-               <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} title="Estado"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option>Activo</option><option>Inactivo</option>
-               </select>
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-               <input type="tel" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} title="Teléfono"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Email</label>
-               <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} title="Email"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha Ingreso</label>
-               <input type="date" value={editForm.hireDate} onChange={e => setEditForm({ ...editForm, hireDate: e.target.value })} title="Fecha de ingreso"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Notas</label>
-               <input type="text" value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} title="Notas"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <button type="submit" className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
+            <Input label="Nombre" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} placeholder="NOMBRE DEL TRABAJADOR" wrapperClassName="col-span-2" />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Cargo</label>
+                <select value={editForm.role} onChange={e => setEditForm({ ...editForm, role: e.target.value })} title="Cargo"
+                  className="select">
+                  <option value="">SELECCIONAR...</option>
+                  {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+              </div>
+              <Input label="DPI" value={editForm.documentId} onChange={e => setEditForm({ ...editForm, documentId: e.target.value })} placeholder="DOCUMENTO ID" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Salario (Q)" type="number" value={editForm.salary} onChange={e => setEditForm({ ...editForm, salary: e.target.value })} placeholder="0.00" />
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Estado</label>
+                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} title="Estado"
+                  className="select">
+                  <option>Activo</option><option>Inactivo</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Teléfono" type="tel" value={editForm.phone} onChange={e => setEditForm({ ...editForm, phone: e.target.value })} placeholder="+502 0000-0000" />
+              <Input label="Email" type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} placeholder="correo@ejemplo.com" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Fecha Ingreso" type="date" value={editForm.hireDate} onChange={e => setEditForm({ ...editForm, hireDate: e.target.value })} />
+              <Input label="Notas" value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} placeholder="Notas opcionales" />
+            </div>
+            <Button type="submit" className="w-full">GUARDAR CAMBIOS</Button>
          </form>
        </Modal>
 
@@ -1176,16 +1117,16 @@ animate={{ opacity: 1, x: 0, width: 280 }}
            <div className="grid grid-cols-2 gap-2">
              <div>
                <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
-                <select value={payrollForm.projectId} onChange={e => setPayrollForm(f => ({ ...f, projectId: e.target.value, employees: [] }))} title="Proyecto"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[9px] font-black focus:outline-none focus:border-secondary">
+<select value={payrollForm.projectId} onChange={e => setPayrollForm(f => ({ ...f, projectId: e.target.value, employees: [] }))} title="Proyecto"
+                   className="select">
                  <option value="">Seleccionar...</option>
                  {projects.filter(p => p.status === 'EJECUCION').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                </select>
              </div>
              <div>
                <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Período</label>
-                <input type="month" value={payrollForm.period} onChange={e => setPayrollForm(f => ({ ...f, period: e.target.value }))} title="Mes"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[9px] font-black focus:outline-none focus:border-secondary" />
+<input type="month" value={payrollForm.period} onChange={e => setPayrollForm(f => ({ ...f, period: e.target.value }))} title="Mes"
+                   className="input" />
              </div>
            </div>
            <div>
@@ -1264,8 +1205,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
            )}
            <div>
              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
-              <textarea value={payrollForm.notes} onChange={e => setPayrollForm(f => ({ ...f, notes: e.target.value }))} title="Notas"
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[8px] font-black focus:outline-none resize-none" rows={2} />
+<textarea value={payrollForm.notes} onChange={e => setPayrollForm(f => ({ ...f, notes: e.target.value }))} title="Notas"
+                 className="textarea" rows={2} />
            </div>
            <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-[9px]">
              <span className="font-black text-slate-500">
@@ -1330,8 +1271,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
            </div>
            <div>
              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
-              <textarea value={editingPayrollForm.notes} onChange={e => setEditingPayrollForm(f => ({ ...f, notes: e.target.value }))} title="Notas"
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[8px] font-black focus:outline-none resize-none" rows={2} />
+<textarea value={editingPayrollForm.notes} onChange={e => setEditingPayrollForm(f => ({ ...f, notes: e.target.value }))} title="Notas"
+                 className="textarea" rows={2} />
            </div>
            <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-[9px]">
              <span className="font-black text-slate-500">

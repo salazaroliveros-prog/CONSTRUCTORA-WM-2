@@ -22,7 +22,7 @@
 
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { subscribeToCollection, addDocument as _addDoc, updateDocument as _updateDoc, deleteDocument as _deleteDoc } from '../services/firestoreService';
-import { Project, Transaction, WarehouseItem, StaffMember, Supplier, PurchaseOrder, Client, LogEntry } from '../constants';
+import type { Project, Transaction, WarehouseItem, StaffMember, Supplier, PurchaseOrder, Client, LogEntry, Payroll } from '../models';
 import { getCachedCollection } from '../services/cacheService';
 
 // ─── Tipos de colección ────────────────────────────────────────────────────────
@@ -34,7 +34,7 @@ type CollectionName =
   | 'suppliers' 
   | 'purchaseOrders' 
   | 'clients' 
-  | 'logs';
+  | 'logs' | 'payrolls';
 
 interface CollectionStore<T> {
   items: T[];
@@ -65,7 +65,7 @@ function createCollectionStore<T>(name: string): CollectionStore<T> {
 }
 
 // ─── Estado global del DataStore ──────────────────────────────────────────────
-interface DataStoreState {
+export interface DataStoreState {
   projects: CollectionStore<Project>;
   transactions: CollectionStore<Transaction>;
   inventory: CollectionStore<WarehouseItem>;
@@ -74,6 +74,7 @@ interface DataStoreState {
   purchaseOrders: CollectionStore<PurchaseOrder>;
   clients: CollectionStore<Client>;
   logs: CollectionStore<LogEntry>;
+  payrolls: CollectionStore<Payroll>;
 }
 
 const stores = {
@@ -85,6 +86,7 @@ const stores = {
   purchaseOrders: createCollectionStore<PurchaseOrder>('purchaseOrders'),
   clients: createCollectionStore<Client>('clients'),
   logs: createCollectionStore<LogEntry>('logs'),
+  payrolls: createCollectionStore<Payroll>('payrolls'),
 };
 
 // ─── Hook principal ───────────────────────────────────────────────────────────

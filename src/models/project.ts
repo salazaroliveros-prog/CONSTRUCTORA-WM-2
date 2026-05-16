@@ -1,5 +1,47 @@
 import { Typology, ProjectStatus, FinancialConfig, DEFAULT_FINANCIAL_CONFIG, TopographyParams } from './engineering';
 import { BudgetLineDocument, BudgetTotals } from './budget';
+import { WorkItem } from './workItem';
+
+/** @deprecated Use the ProjectDocument budgetTree instead — kept for legacy BudgetTable/ReportEngine */
+export interface ProjectItem extends WorkItem {
+  projectQuantity: number;
+  selected: boolean;
+}
+
+/** @deprecated Use ProjectDocument instead — kept for legacy UI compatibility */
+export interface Project {
+  id: string;
+  name: string;
+  clientName: string;
+  typology: Typology;
+  status: ProjectStatus;
+  startDate: string;
+  endDate?: string;
+  location?: string;
+  teamIds?: string[];
+  items: ProjectItem[];
+  budgetTree?: BudgetLineDocument[];
+  directCosts: number;
+  indirectCosts: number;
+  administrativeCosts: number;
+  personalCosts: number;
+  progress: number;
+  budget: number;
+  attachments?: string[];
+  ganttConfig?: { overrides?: Record<string, any>; progress?: Record<string, number> };
+  marketLevel?: {
+    id: string;
+    name: string;
+    costPerSqm: { min: number; max: number; recommended: number };
+  };
+  slabType?: {
+    id: string;
+    name: string;
+    description: string;
+  };
+  area?: number;
+  costPerSqm?: number;
+}
 
 export interface ProjectDocument {
   id?: string;

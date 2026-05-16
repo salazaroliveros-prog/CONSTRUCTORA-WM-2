@@ -10,7 +10,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LineChart, Line, AreaChart, Area } from 'recharts';
 import { toast } from 'sonner';
-import { subscribeToCollection, updateDocument } from '../services/firestoreService';
+import { useStore, updateDocument } from '../store/DataStore';
 import {
   GanttTask, GanttConfig, buildTasksFromItems, daysSinceStart, fmtDate, addDays
 } from '../lib/ganttCPM';
@@ -221,7 +221,6 @@ const STATUS_CFG: Record<TaskStatus, { dot: string; label: string; badge: string
 
 // ── Componente principal ──────────────────────────────────────────────────────
 export default function GanttChart() {
-  const [projects, setProjects]               = useState<any[]>([]);
   const [selectedId, setSelectedId]           = useState('');
   const [config, setConfig]                   = useState<GanttConfig>(EMPTY_CONFIG);
   const [editingId, setEditingId]             = useState<string | null>(null);
@@ -241,21 +240,24 @@ export default function GanttChart() {
   const chartRef                                  = useRef<HTMLDivElement>(null);
   const saveTimer                                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const store = useStore();
+  const projects = store.projects.items.filter((p: any) => p.status === 'EJECUCION');
+
+  // Mantener selección actual si sigue válida; si no, seleccionar el primero
   useEffect(() => {
-    return subscribeToCollection('projects', (data: any[]) => {
-      const exec = data.filter(p => p.status === 'EJECUCION');
-      setProjects(exec);
-      // Mantener selección actual si sigue válida; si no, seleccionar el primero
-      setSelectedId(prev => exec.find(p => p.id === prev) ? prev : (exec[0]?.id || ''));
-    });
-  }, []);
+    if (projects.length > 0 && !projects.some(p => p.id === selectedId)) {
+      setSelectedId(projects[0].id as string);
+    } else if (projects.length === 0 && selectedId !== '') {
+      setSelectedId('');
+    }
+  });
 
   const project = projects.find(p => p.id === selectedId);
 
   // Cargar ganttConfig del proyecto seleccionado
   useEffect(() => {
     if (!project) return;
-    setConfig(project.ganttConfig ?? EMPTY_CONFIG);
+    setConfig({ overrides: {}, progress: {}, ...(project.ganttConfig ?? {}) });
   }, [project?.id]);
 
   // Aplicar vista compacta por defecto al cargar proyecto

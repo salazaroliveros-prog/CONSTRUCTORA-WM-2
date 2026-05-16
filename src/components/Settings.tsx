@@ -17,6 +17,8 @@ import { motion } from 'motion/react';
 import { cn } from '../utils/cn';
 import { useSettings, ThemeMode, GraphType, CardStyle, TransitionSpeed, TypographyStyle, Currency, ALL_MODULES } from '../contexts/SettingsContext';
 import FirestoreTest from './FirestoreTest';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 
 export default function Settings() {
   const { settings, updateSettings, resetSettings } = useSettings();
@@ -95,7 +97,7 @@ export default function Settings() {
 
           <div className="bg-[var(--color-surface-solid)] p-6 rounded-3xl border border-[var(--color-neutral-200)] space-y-4">
             <div className="flex justify-between items-center">
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Color Primario</label>
+              <label className="label">Color Primario</label>
               <input 
                 type="color" 
                 value={settings.primaryColor}
@@ -105,7 +107,7 @@ export default function Settings() {
               />
             </div>
             <div className="flex justify-between items-center">
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Color de Acento (Secundario)</label>
+              <label className="label">Color de Acento (Secundario)</label>
               <input 
                 type="color" 
                 value={settings.secondaryColor}
@@ -159,7 +161,7 @@ export default function Settings() {
 
           <div className="bg-[var(--color-surface-solid)] p-6 rounded-3xl border border-[var(--color-neutral-200)] space-y-6">
              <div>
-               <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-4">Estilo de Contenedores (Cards)</label>
+               <label className="label">Estilo de Contenedores (Cards)</label>
                <div className="grid grid-cols-2 gap-2">
                  {cardStyles.map(style => (
                     <button
@@ -179,7 +181,7 @@ export default function Settings() {
              </div>
 
              <div>
-               <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-4">Velocidad de Animación</label>
+               <label className="label">Velocidad de Animación</label>
                <div className="flex bg-[var(--color-neutral-100)] p-1 rounded-2xl gap-1">
                  {(['none', 'fast', 'normal', 'slow'] as const).map((speed) => {
                    const labels: Record<string, string> = { none: 'Sin', fast: 'Rápida', normal: 'Normal', slow: 'Lenta' };
@@ -210,7 +212,7 @@ export default function Settings() {
 
           <div className="bg-[var(--color-surface-solid)] p-6 rounded-3xl border border-[var(--color-neutral-200)] space-y-6">
              <div>
-               <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-4">Tipo de Gráficas por Defecto</label>
+               <label className="label">Tipo de Gráficas por Defecto</label>
                <div className="flex gap-3">
                  {graphTypes.map(type => (
                    <button
@@ -258,57 +260,57 @@ export default function Settings() {
           </div>
           <div className="bg-[var(--color-surface-solid)] p-6 rounded-3xl border border-[var(--color-neutral-200)] space-y-4">
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Nombre de la Empresa</label>
+              <label className="label">Nombre de la Empresa</label>
               <input
                 value={settings.companyName}
                 onChange={e => updateSettings({ companyName: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                className="input"
                 placeholder="Mi Constructora S.A."
               />
             </div>
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">URL del Logo</label>
+              <label className="label">URL del Logo</label>
               <input
                 value={settings.companyLogo}
                 onChange={e => updateSettings({ companyLogo: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                className="input"
                 placeholder="/logo.png"
               />
               {settings.companyLogo && <img src={settings.companyLogo} alt="logo" className="mt-2 h-10 object-contain" />}
             </div>
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">NIT</label>
+              <label className="label">NIT</label>
               <input
                 value={settings.companyNIT}
                 onChange={e => updateSettings({ companyNIT: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                className="input"
                 placeholder="NIT"
               />
             </div>
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Correo Electrónico</label>
+              <label className="label">Correo Electrónico</label>
               <input
                 value={settings.companyEmail}
                 onChange={e => updateSettings({ companyEmail: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                className="input"
                 placeholder="correo@ejemplo.com"
               />
             </div>
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Teléfono</label>
+              <label className="label">Teléfono</label>
               <input
                 value={settings.companyPhone}
                 onChange={e => updateSettings({ companyPhone: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                className="input"
                 placeholder="+502 1234-5678"
               />
             </div>
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Dirección</label>
+              <label className="label">Dirección</label>
               <input
                 value={settings.companyAddress}
                 onChange={e => updateSettings({ companyAddress: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                className="input"
                 placeholder="Dirección de la empresa"
               />
             </div>
@@ -348,12 +350,12 @@ export default function Settings() {
           </div>
           <div className="bg-[var(--color-surface-solid)] p-6 rounded-3xl border border-[var(--color-neutral-200)] space-y-5">
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-3">Modelo Gemini</label>
+              <label className="label">Modelo Gemini</label>
               <select
                 value={settings.aiModel}
                 onChange={e => updateSettings({ aiModel: e.target.value })}
                 title="Seleccionar modelo de IA"
-                className="w-full px-4 py-3 rounded-xl text-[12px] font-bold text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-mod-dashboard)]/30 focus:border-[var(--color-mod-dashboard)]"
+                className="select"
               >
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash — rápido y eficiente (actual)</option>
                 <option value="gemini-2.5-pro">Gemini 2.5 Pro — máxima calidad, análisis profundos</option>
@@ -364,7 +366,7 @@ export default function Settings() {
               </select>
             </div>
             <div>
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-3">
+              <label className="label">
                 <div className="flex items-center gap-2">
                   <Key size={12} />
                   API Key de Gemini
@@ -375,7 +377,7 @@ export default function Settings() {
                 value={settings.aiApiKey}
                 onChange={e => updateSettings({ aiApiKey: e.target.value })}
                 placeholder="AIzaSy..."
-                className="w-full px-4 py-3 rounded-xl text-[12px] text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-mod-dashboard)]/30 focus:border-[var(--color-mod-dashboard)] placeholder:text-slate-300 font-mono"
+                className="input"
               />
               <p className="text-[8px] text-[var(--color-neutral-400)] mt-2 leading-relaxed">
                 Déjalo vacío para usar la variable de entorno <strong className="text-[var(--color-secondary-dark)]">GEMINI_API_KEY</strong> del servidor.
@@ -424,12 +426,13 @@ export default function Settings() {
       </div>
 
       <div className="flex justify-between items-center pt-10 border-t border-[var(--color-neutral-100)]">
-        <button 
+        <Button 
           onClick={resetSettings}
-          className="flex items-center gap-2 text-[10px] font-black text-[var(--color-error)] uppercase tracking-widest hover:bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] px-6 py-3 rounded-2xl transition-all"
+          variant="ghost"
+          className="flex items-center gap-2 text-[10px] font-black text-[var(--color-error)] uppercase tracking-widest hover:bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] px-6 py-3 rounded-2xl"
         >
           <RotateCcw size={14} /> Reiniciar Valores
-        </button>
+        </Button>
         <div className="flex items-center gap-4 text-[var(--color-neutral-400)]">
           <Monitor size={16} />
           <Smartphone size={16} />

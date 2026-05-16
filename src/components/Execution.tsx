@@ -437,10 +437,10 @@ const handleAddLog = async (e: React.FormEvent) => {
              <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-0.5">Ingresa el % completado por actividad · se guarda en Gantt automáticamente</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-             <select title="Seleccionar proyecto" value={activeProject?.id ?? ''} onChange={e => setSelectedProjectId(e.target.value)}
-                className="px-3 py-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]">
-              {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
+              <select title="Seleccionar proyecto" value={activeProject?.id ?? ''} onChange={e => setSelectedProjectId(e.target.value)}
+                 className="select">
+               {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+             </select>
             <button onClick={handleSaveProgress} disabled={savingProgress || !activeProject}
                className="flex items-center gap-1.5 px-4 py-2 bg-[var(--color-neutral-900)] text-[var(--color-neutral-50)] rounded-xl text-xs font-black uppercase hover:bg-[var(--color-neutral-700)] active:scale-95 transition-all disabled:opacity-40">
               <Save size={13} />{savingProgress ? 'Guardando…' : 'Guardar'}

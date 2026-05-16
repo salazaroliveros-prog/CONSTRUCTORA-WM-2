@@ -11,11 +11,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../utils/cn';
-import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { useStore } from '../store/DataStore';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
 import Pagination from './ui/Pagination';
 import { Modal } from './ui/Modal';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { sanitizeString, sanitizeEmail, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
 import { trackCRUD, trackEvent } from '../utils/logger';
@@ -90,11 +93,12 @@ const EMPTY_FORM = { name: '', category: '', contact: '', email: '', rating: '5'
 
 export default function SuppliersModule() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const store = useStore();
+  const suppliers = store.suppliers.items as any as Supplier[];
+  const purchaseOrders = store.purchaseOrders.items;
+  const inventory = store.inventory.items;
+  const projects = store.projects.items;
+  const loading = store.suppliers.isLoading;
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [form, setForm] = useState({ ...EMPTY_FORM });
   const [saving, setSaving] = useState(false);
@@ -144,14 +148,6 @@ export default function SuppliersModule() {
   const cardPageSize = GRID_PAGE_SIZE;
   const tablePageSize = useAutoPageSize(36, 175, 6);
   const pageSize = viewMode === 'table' ? tablePageSize : cardPageSize;
-
-  useEffect(() => {
-    const u1 = subscribeToCollection('suppliers', (data) => { setSuppliers(data); setLoading(false); });
-    const u2 = subscribeToCollection('purchaseOrders', (data) => setPurchaseOrders(data));
-    const u3 = subscribeToCollection('inventory', (data) => setInventory(data));
-    const u4 = subscribeToCollection('projects', (data) => setProjects(data));
-    return () => { u1(); u2(); u3(); u4(); };
-  }, []);
 
   const handleDelete = (id: string) => {
     const ocs = purchaseOrders.filter(o => o.supplierId === id);
@@ -285,18 +281,18 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
          </div>
           <div className="flex flex-wrap gap-1.5 w-full md:w-auto items-center overflow-x-auto">
            <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)} title="Filtrar por categoría"
-             className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+             className="select">
              <option value="">TODAS LAS CATEGORÍAS</option>
              {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
            </select>
            <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} title="Filtrar por estado"
-             className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+             className="select">
              <option value="Todos">TODOS</option>
              <option value="Activo">ACTIVOS</option>
              <option value="Inactivo">INACTIVOS</option>
            </select>
            <select value={filterRating} onChange={e => setFilterRating(Number(e.target.value))} title="Filtrar por rating mínimo"
-             className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
+             className="select">
              <option value={0}>CUALQUIER RATING</option>
              <option value={3}>3+ ESTRELLAS</option>
              <option value={4}>4+ ESTRELLAS</option>
@@ -320,7 +316,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
              <input type="text" placeholder="BUSCAR PROVEEDOR..." value={searchTerm}
                onChange={e => setSearchTerm(e.target.value)} title="Buscar proveedor"
-               className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
+               className="input" />
            </div>
            <button type="button" onClick={() => exportSuppliersCSV(suppliers)} title="Exportar CSV"
              className="p-1.5 bg-slate-100 text-slate-600 rounded-lg hover:bg-slate-200 transition-all">
@@ -701,154 +697,99 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
 {/* Modal Crear */}
        <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Registrar Nuevo Proveedor">
          <form onSubmit={handleCreate} className="space-y-3 text-left">
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre de la Empresa *</label>
-             <input type="text" required placeholder="NOMBRE COMERCIAL" value={form.name}
-               onChange={e => setForm({ ...form, name: e.target.value })} title="Nombre de la empresa"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
+            <Input label="Nombre de la Empresa" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} placeholder="NOMBRE COMERCIAL" />
+           <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Categoría</label>
+                <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} title="Categoría"
+                  className="select">
+                  <option value="">SELECCIONAR...</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <Input label="Teléfono" type="tel" placeholder="+502 0000-0000" value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} />
            </div>
            <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
-               <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} title="Categoría del proveedor"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option value="">SELECCIONAR...</option>
-                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-               </select>
-             </div>
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-               <input type="tel" placeholder="+502 0000-0000" value={form.contact}
-                 onChange={e => setForm({ ...form, contact: e.target.value })} title="Teléfono de contacto"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
+              <Input label="Correo Electrónico" type="email" placeholder="prov@empresa.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+              <Input label="NIT" placeholder="0000000-0" value={form.nit} onChange={e => setForm({ ...form, nit: e.target.value })} />
            </div>
            <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
-               <input type="email" placeholder="prov@empresa.com" value={form.email}
-                 onChange={e => setForm({ ...form, email: e.target.value })} title="Correo electrónico"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">NIT</label>
-               <input type="text" placeholder="0000000-0" value={form.nit}
-                 onChange={e => setForm({ ...form, nit: e.target.value })} title="Número de NIT"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Términos de Pago</label>
+                <select value={form.paymentTerms} onChange={e => setForm({ ...form, paymentTerms: e.target.value })} title="Términos de pago"
+                  className="select">
+                  <option value="">SELECCIONAR...</option>
+                  <option value="Contado">CONTADO</option>
+                  <option value="15 días">15 DÍAS</option>
+                  <option value="30 días">30 DÍAS</option>
+                  <option value="60 días">60 DÍAS</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Rating Inicial</label>
+                <div className="flex items-center gap-2 border border-p-300 rounded-lg px-3 py-2.5">
+                  <StarRating value={Number(form.rating || 5)} onChange={v => setForm({ ...form, rating: String(v) })} />
+                  <span className="text-[9px] font-black text-slate-500">{form.rating} ★</span>
+                </div>
+              </div>
            </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Términos de Pago</label>
-               <select value={form.paymentTerms} onChange={e => setForm({ ...form, paymentTerms: e.target.value })} title="Términos de pago"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option value="">SELECCIONAR...</option>
-                 <option value="Contado">CONTADO</option>
-                 <option value="15 días">15 DÍAS</option>
-                 <option value="30 días">30 DÍAS</option>
-                 <option value="60 días">60 DÍAS</option>
-               </select>
-             </div>
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Rating Inicial</label>
-               <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
-                 <StarRating value={Number(form.rating || 5)} onChange={v => setForm({ ...form, rating: String(v) })} />
-                 <span className="text-[9px] font-black text-slate-500">{form.rating} ★</span>
-               </div>
-             </div>
-           </div>
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Dirección</label>
-             <input type="text" placeholder="DIRECCIÓN COMPLETA" value={form.address}
-               onChange={e => setForm({ ...form, address: e.target.value })} title="Dirección del proveedor"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Notas</label>
-             <input type="text" placeholder="Notas opcionales..." value={form.notes}
-               onChange={e => setForm({ ...form, notes: e.target.value })} title="Notas"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <button type="submit" disabled={saving}
-             className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all disabled:opacity-50">
-             {saving ? 'PROCESANDO...' : 'REGISTRAR PROVEEDOR'}
-           </button>
+            <Input label="Dirección" placeholder="DIRECCIÓN COMPLETA" value={form.address} onChange={e => setForm({ ...form, address: e.target.value })} />
+            <Input label="Notas" placeholder="Notas opcionales..." value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} />
+            <Button type="submit" isLoading={saving} className="w-full">
+              REGISTRAR PROVEEDOR
+            </Button>
          </form>
        </Modal>
 
        {/* Modal Editar */}
        <Modal isOpen={!!editSupplier} onClose={() => setEditSupplier(null)} title="Editar Proveedor">
          <form onSubmit={handleEditSupplier} className="space-y-3 text-left">
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre</label>
-             <input type="text" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} title="Nombre"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
-               <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })} title="Categoría"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option value="">SELECCIONAR...</option>
-                 {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-               </select>
-             </div>
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Teléfono</label>
-               <input type="tel" value={editForm.contact} onChange={e => setEditForm({ ...editForm, contact: e.target.value })} title="Teléfono"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Correo</label>
-               <input type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} title="Correo"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">NIT</label>
-               <input type="text" value={editForm.nit} onChange={e => setEditForm({ ...editForm, nit: e.target.value })} title="NIT"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-             </div>
-           </div>
-           <div className="grid grid-cols-2 gap-2">
-             <div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Estado</label>
-               <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} title="Estado"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option>Activo</option><option>Inactivo</option>
-               </select>
-             </div>
-<div className="space-y-1">
-               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Términos de Pago</label>
-               <select value={editForm.paymentTerms} onChange={e => setEditForm({ ...editForm, paymentTerms: e.target.value })} title="Términos de pago"
-                 className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none">
-                 <option value="">SELECCIONAR...</option>
-                 <option value="Contado">CONTADO</option>
-                 <option value="15 días">15 DÍAS</option>
-                 <option value="30 días">30 DÍAS</option>
-                 <option value="60 días">60 DÍAS</option>
-               </select>
-             </div>
-           </div>
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Dirección</label>
-             <input type="text" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} title="Dirección"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Notas</label>
-             <input type="text" value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} title="Notas"
-               className="w-full bg-slate-50 border border-slate-100 rounded-lg px-3 py-2 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary" />
-           </div>
-           <div className="space-y-1">
-             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Rating</label>
-             <div className="flex items-center gap-2 bg-slate-50 border border-slate-100 rounded-lg px-3 py-2">
-               <StarRating value={Number(editForm.rating || 5)} onChange={v => setEditForm({ ...editForm, rating: String(v) })} />
-               <span className="text-[9px] font-black text-slate-500">{editForm.rating} ★</span>
-             </div>
-           </div>
-           <button type="submit" className="w-full bg-slate-900 text-white py-2.5 rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-secondary hover:text-primary transition-all">GUARDAR CAMBIOS</button>
+            <Input label="Nombre" required value={editForm.name} onChange={e => setEditForm({ ...editForm, name: e.target.value })} />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Categoría</label>
+                <select value={editForm.category} onChange={e => setEditForm({ ...editForm, category: e.target.value })} title="Categoría"
+                  className="select">
+                  <option value="">SELECCIONAR...</option>
+                  {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <Input label="Teléfono" type="tel" value={editForm.contact} onChange={e => setEditForm({ ...editForm, contact: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Correo" type="email" value={editForm.email} onChange={e => setEditForm({ ...editForm, email: e.target.value })} />
+              <Input label="NIT" value={editForm.nit} onChange={e => setEditForm({ ...editForm, nit: e.target.value })} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Estado</label>
+                <select value={editForm.status} onChange={e => setEditForm({ ...editForm, status: e.target.value })} title="Estado"
+                  className="select">
+                  <option>Activo</option><option>Inactivo</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Términos de Pago</label>
+                <select value={editForm.paymentTerms} onChange={e => setEditForm({ ...editForm, paymentTerms: e.target.value })} title="Términos de pago"
+                  className="select">
+                  <option value="">SELECCIONAR...</option>
+                  <option value="Contado">CONTADO</option>
+                  <option value="15 días">15 DÍAS</option>
+                  <option value="30 días">30 DÍAS</option>
+                  <option value="60 días">60 DÍAS</option>
+                </select>
+              </div>
+            </div>
+            <Input label="Dirección" value={editForm.address} onChange={e => setEditForm({ ...editForm, address: e.target.value })} />
+            <Input label="Notas" value={editForm.notes} onChange={e => setEditForm({ ...editForm, notes: e.target.value })} />
+            <div className="space-y-1">
+              <label className="text-[10px] font-bold text-p-500 uppercase tracking-wider">Rating</label>
+              <div className="flex items-center gap-2 border border-p-300 rounded-lg px-3 py-2.5">
+                <StarRating value={Number(editForm.rating || 5)} onChange={v => setEditForm({ ...editForm, rating: String(v) })} />
+                <span className="text-[9px] font-black text-slate-500">{editForm.rating} ★</span>
+              </div>
+            </div>
+            <Button type="submit" className="w-full">GUARDAR CAMBIOS</Button>
         </form>
        </Modal>
 

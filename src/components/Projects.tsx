@@ -41,8 +41,11 @@ import { Typology, Project, StaffMember, Client, Transaction } from '../constant
 import { calcRealDuration } from '../lib/ganttCPM';
 import AdvancedProjectCreator from './AdvancedProjectCreator';
 import { Modal } from './ui/Modal';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { cn } from '../utils/cn';
-import { subscribeToCollection, deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
+import { deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
+import { useStore } from '../store/DataStore';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import { useAutoPageSize } from '../hooks/useAutoPageSize';
@@ -100,16 +103,16 @@ function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
         <div className="grid grid-cols-2 gap-1.5">
           {fields.map(f => (
 <div key={f.key} className={f.small ? '' : 'col-span-2'}>
-               <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5" htmlFor={`field-${f.key}`}>{f.label}</label>
+               <label className="label" htmlFor={`field-${f.key}`}>{f.label}</label>
                <input id={`field-${f.key}`} name={f.key} type={f.type} value={form[f.key]} step={f.type === 'number' ? '0.01' : undefined} inputMode={f.type === 'number' ? 'decimal' : undefined} autoComplete="off"
                  onChange={e => setForm({ ...form, [f.key]: f.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value })}
-                 className="w-full bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)] rounded-lg px-2 py-1 text-[9px] font-black uppercase focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500" />
+                 className="input" />
              </div>
           ))}
         </div>
         <div className="flex gap-1.5">
-<button aria-label="Cancelar edición" onClick={() => setEditing(false)} className="flex-1 py-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg text-[7px] font-black uppercase text-[var(--color-neutral-500)]">Cancelar</button>
-           <button aria-label="Guardar cambios" onClick={handleSave} className="flex-1 py-1 bg-[var(--color-accent)] text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase">Guardar</button>
+<Button variant="outline" size="sm" onClick={() => setEditing(false)} className="flex-1">Cancelar</Button>
+            <Button variant="default" size="sm" onClick={handleSave} className="flex-1">Guardar</Button>
         </div>
       </div>
     );
@@ -134,15 +137,16 @@ export default function ProjectsModule() {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'kanban'>('grid');
   const [searchTerm, setSearchTerm] = useState('');
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(true);
+  const store = useStore();
+  const projects = store.projects.items as Project[];
+  const loading = store.projects.isLoading;
+  const allStaff = store.staff.items as StaffMember[];
+  const allClients = store.clients.items as Client[];
+  const transactions = store.transactions.items as Transaction[];
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [typologyFilter, setTypologyFilter] = useState('ALL');
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [updatingProgress, setUpdatingProgress] = useState(false);
-  const [allStaff, setAllStaff] = useState<StaffMember[]>([]);
-  const [allClients, setAllClients] = useState<Client[]>([]);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   const [editingItem, setEditingItem] = useState<string | null>(null); // item.id being edited
   const [itemEditForm, setItemEditForm] = useState<any>({});
@@ -195,13 +199,6 @@ export default function ProjectsModule() {
     materials: { name: string; unit: string; quantity: number; price: number }[];
     labor: { role: string; unit: string; quantity: number; price: number }[];
   }>({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
-
-  useEffect(() => {
-    const unsub = subscribeToCollection('staff', (data) => { setAllStaff(data as StaffMember[]); });
-    const u2 = subscribeToCollection('clients', (data) => setAllClients(data as Client[]));
-    const u3 = subscribeToCollection('transactions', (data) => setTransactions(data));
-    return () => { unsub(); u2(); u3(); };
-  }, []);
 
   // Inicializar árbol de presupuesto desde el proyecto seleccionado
   useEffect(() => {
@@ -440,14 +437,6 @@ const addItem = async () => {
      }
    };
 
-  useEffect(() => {
-    const unsub = subscribeToCollection('projects', (data) => {
-      setProjects(data);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
-
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     toast("¿Confirmar eliminación?", {
@@ -683,7 +672,7 @@ return (
                 placeholder="BUSCAR PROYECTO..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-[var(--color-neutral-50)]  border border-[var(--color-neutral-200)]  rounded-lg pl-10 pr-3 py-2 text-[9px] font-black uppercase focus:outline-none focus:border-secondary :border-secondary transition-all placeholder:text-[var(--color-neutral-400)]  text-[var(--color-neutral-900)] "
+                className="input pl-10"
                />
              </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
@@ -730,12 +719,12 @@ return (
                    title="Filtrar por estado"
                    value={statusFilter}
                    onChange={(e) => setStatusFilter(e.target.value)}
-                   className="h-8 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-30"
-                >
-                  <option value="ALL">TODOS</option>
-                  <option value="COTIZACION">COTIZACIÓN</option>
-                  <option value="EJECUCION">EJECUCIÓN</option>
-                  <option value="FINALIZADO">FINALIZADO</option>
+                className="select"
+                 >
+                   <option value="ALL">TODOS</option>
+                   <option value="COTIZACION">COTIZACIÓN</option>
+                   <option value="EJECUCION">EJECUCIÓN</option>
+                   <option value="FINALIZADO">FINALIZADO</option>
                 </select>
               </div>
 
@@ -747,10 +736,10 @@ return (
                    title="Filtrar por tipología"
                    value={typologyFilter}
                    onChange={(e) => setTypologyFilter(e.target.value)}
-                   className="h-8 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-30"
-                >
-                 <option value="ALL">TODAS</option>
-                 {Object.values(Typology).map(t => (
+                 className="select"
+                 >
+                  <option value="ALL">TODAS</option>
+                  {Object.values(Typology).map(t => (
                    <option key={t} value={t}>{t}</option>
                  ))}
                </select>
@@ -947,8 +936,8 @@ return (
                 </div>
                 {isEditing ? (
                   <div className="flex gap-2 shrink-0">
-                    <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-[var(--color-neutral-100)]  text-[var(--color-neutral-600)]  rounded-lg text-xs font-bold uppercase">Cancelar</button>
-                    <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-[var(--color-success)] text-[var(--color-neutral-50)] rounded-lg text-xs font-bold uppercase">Guardar</button>
+                    <Button variant="outline" size="sm" onClick={() => { setIsEditing(false); setEditForm({}); }}>Cancelar</Button>
+                    <Button variant="default" size="sm" onClick={handleSaveEdit}>Guardar</Button>
                   </div>
                 ) : (
                   <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[var(--color-neutral-900)]  text-[var(--color-neutral-50)] rounded-lg text-xs font-bold uppercase">
@@ -960,7 +949,7 @@ return (
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                   <span className="text-[7px] font-black text-[var(--color-neutral-400)]  uppercase tracking-widest">Plantilla PDF</span>
-                   <select title="Plantilla PDF" value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="h-8 bg-[var(--color-surface-solid)]  border border-[var(--color-neutral-200)]  rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer text-[var(--color-neutral-900)] ">
+                    <select title="Plantilla PDF" value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="select">
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
@@ -978,18 +967,18 @@ return (
                 <div className="col-span-2 md:col-span-4 bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)] rounded-2xl p-5 space-y-4">
                   <p className="text-[9px] font-black text-[var(--color-warning)] uppercase tracking-widest">Modo Edicion</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Nombre del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Cliente</label>
-                      <select title="Seleccionar cliente" value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]">
+                    <div><label className="label">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Nombre del proyecto" className="input" /></div>
+                    <div><label className="label">Cliente</label>
+                      <select title="Seleccionar cliente" value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="select">
                         <option value="">— Seleccionar —</option>
                         {allClients.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         {editForm.clientName && !allClients.find(c => c.name === editForm.clientName) && <option value={editForm.clientName}>{editForm.clientName}</option>}
                       </select>
                     </div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Estado</label><select title="Seleccionar estado" value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} placeholder="Ubicación del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" title="Fecha de inicio" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Fin</label><input type="date" title="Fecha de fin" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
+                    <div><label className="label">Estado</label><select title="Seleccionar estado" value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="select"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
+                    <div><label className="label">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} placeholder="Ubicación del proyecto" className="input" /></div>
+                    <div><label className="label">Fecha Inicio</label><input type="date" title="Fecha de inicio" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="input" /></div>
+                    <div><label className="label">Fecha Fin</label><input type="date" title="Fecha de fin" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="input" /></div>
                   </div>
                 </div>
               )}
@@ -1004,7 +993,7 @@ return (
                   onBlur={(e) => handleUpdateProject({ location: e.target.value })}
                   onChange={(e) => setSelectedProject({ ...selectedProject, location: e.target.value })}
                   placeholder="Ubicación"
-                  className="w-full text-xs font-black text-[var(--color-primary)] uppercase border border-[var(--color-neutral-200)] rounded-lg p-1"
+                  className="input"
                 />
               </div>
               <div className="p-4 bg-[var(--color-neutral-50)] rounded-2xl">
@@ -1301,21 +1290,21 @@ return (
                         <p className="text-[9px] font-black text-[var(--color-success)] uppercase tracking-widest">Nuevo Renglon</p>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
-                            <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Código</label>
-                            <input value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-success)]" />
+                            <label className="label">Código</label>
+                            <input value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" className="input" />
                           </div>
                           <div>
-                            <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Unidad</label>
-                            <input value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-success)]" />
+                            <label className="label">Unidad</label>
+                            <input value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." className="input" />
                           </div>
                         </div>
                         <div>
-                          <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Descripción</label>
-                          <input value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripcion del renglon..." className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-success)]" />
+                          <label className="label">Descripción</label>
+                          <input value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripcion del renglon..." className="input" />
                         </div>
                         <div>
-                          <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Cantidad en Proyecto</label>
-                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-[var(--color-success)]" />
+                          <label className="label">Cantidad en Proyecto</label>
+                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" className="input" />
                         </div>
 
                         {/* Materials sub-section */}
@@ -1326,11 +1315,11 @@ return (
                           </div>
                           {newItemForm.materials.map((m, idx) => (
                             <div key={idx} className="grid grid-cols-5 gap-1 items-center">
-                              <input value={m.name} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],name:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Material" className="col-span-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
-                              <input value={m.unit} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],unit:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Und" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
-                              <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
+                              <input value={m.name} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],name:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Material" className="input col-span-2" />
+                              <input value={m.unit} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],unit:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Und" className="input" />
+                              <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="input" />
                               <div className="flex gap-0.5">
-                                <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
+                                <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="input flex-1" />
                                 <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} aria-label="Eliminar material" className="text-[var(--color-error)] hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
                               </div>
                             </div>
@@ -1345,11 +1334,11 @@ return (
                           </div>
                           {newItemForm.labor.map((l, idx) => (
                             <div key={idx} className="grid grid-cols-5 gap-1 items-center">
-                              <input value={l.role} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],role:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Rol" className="col-span-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
-                              <input value={l.unit} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],unit:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Und" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
-                              <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
+                              <input value={l.role} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],role:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Rol" className="input col-span-2" />
+                              <input value={l.unit} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],unit:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Und" className="input" />
+                              <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="input" />
                               <div className="flex gap-0.5">
-                                <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
+                                <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="input flex-1" />
                                 <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} aria-label="Eliminar mano de obra" className="text-[var(--color-error)] hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
                               </div>
                             </div>
@@ -1372,14 +1361,14 @@ Q {PMath.fmtQ(
                         )}
 
                         <div className="flex gap-2 pt-1">
-                          <button onClick={() => { setAddingItem(false); setNewItemForm({code:'',description:'',unit:'M2',projectQuantity:1,materials:[],labor:[]}); }} className="flex-1 py-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl text-[8px] font-black uppercase text-[var(--color-neutral-500)]">Cancelar</button>
-                          <button onClick={addItem} className="flex-1 py-2 bg-[var(--color-success)] text-[var(--color-neutral-50)] rounded-xl text-[8px] font-black uppercase">Guardar Renglon</button>
+                          <Button variant="outline" onClick={() => { setAddingItem(false); setNewItemForm({code:'',description:'',unit:'M2',projectQuantity:1,materials:[],labor:[]}); }} className="flex-1">Cancelar</Button>
+                          <Button variant="default" onClick={addItem} className="flex-1">Guardar Renglon</Button>
                         </div>
                       </div>
                     ) : (
-                      <button onClick={() => setAddingItem(true)} className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-[var(--color-green-border)] rounded-2xl text-[9px] font-black text-[var(--color-success)] uppercase hover:bg-[var(--color-success-bg)] transition-all">
+                      <Button onClick={() => setAddingItem(true)} className="w-full" variant="outline">
                         <PlusCircle size={14} /> Agregar Renglon
-                      </button>
+                      </Button>
                     )}
                     {selectedProject.items && selectedProject.items.length > 0 ? (
                       selectedProject.items.map((item) => (
@@ -1405,13 +1394,13 @@ Q {PMath.fmtQ(
                             <div className="px-4 pb-3 bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] border-t border-[var(--color-blue-border)] space-y-2">
                               <p className="text-[8px] font-black text-[var(--color-info)] uppercase tracking-widest pt-2">Editar Renglon</p>
                               <div className="grid grid-cols-2 gap-2">
-                                <input value={itemEditForm.code || ''} onChange={e => setItemEditForm({...itemEditForm, code: e.target.value})} placeholder="Codigo" className="bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-blue-border)]" />
-                                <input type="number" value={itemEditForm.projectQuantity || 0} onChange={e => setItemEditForm({...itemEditForm, projectQuantity: parseFloat(e.target.value)||0})} placeholder="Cantidad" className="bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-[var(--color-blue-border)]" />
+                                <input value={itemEditForm.code || ''} onChange={e => setItemEditForm({...itemEditForm, code: e.target.value})} placeholder="Codigo" className="input" />
+                                <input type="number" value={itemEditForm.projectQuantity || 0} onChange={e => setItemEditForm({...itemEditForm, projectQuantity: parseFloat(e.target.value)||0})} placeholder="Cantidad" className="input" />
                               </div>
-                              <input value={itemEditForm.description || ''} onChange={e => setItemEditForm({...itemEditForm, description: e.target.value})} placeholder="Descripcion" className="w-full bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-blue-border)]" />
+                              <input value={itemEditForm.description || ''} onChange={e => setItemEditForm({...itemEditForm, description: e.target.value})} placeholder="Descripcion" className="input" />
                               <div className="flex gap-2">
-                                <button onClick={() => setEditingItem(null)} className="flex-1 py-1.5 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg text-[8px] font-black uppercase text-[var(--color-neutral-500)]">Cancelar</button>
-                                <button onClick={saveItemEdit} className="flex-1 py-1.5 bg-[var(--color-info)] text-[var(--color-neutral-50)] rounded-lg text-[8px] font-black uppercase">Guardar</button>
+                                <Button variant="outline" onClick={() => setEditingItem(null)} className="flex-1">Cancelar</Button>
+                                <Button variant="default" onClick={saveItemEdit} className="flex-1">Guardar</Button>
                               </div>
                             </div>
                           )}
@@ -1558,12 +1547,13 @@ Q {PMath.fmtQ(
               </div>
             </div>
 
-            <button 
+            <Button
+              variant="ghost"
               onClick={() => setSelectedProject(null)}
-              className="w-full bg-[var(--color-neutral-100)] text-[var(--color-primary)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[var(--color-neutral-200)] transition-all"
+              className="w-full py-4 text-[10px]"
             >
               Cerrar Vista Detallada
-            </button>
+            </Button>
           </motion.div>
         )}
       </Modal>

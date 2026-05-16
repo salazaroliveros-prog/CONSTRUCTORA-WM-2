@@ -62,6 +62,20 @@ export interface ClientSummary {
   totalFacturado: number;
 }
 
+/** @deprecated Use ClientDocument instead — kept for legacy UI compatibility */
+export interface Client {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  nit?: string;
+  type?: 'PERSONA' | 'EMPRESA';
+  notes?: string;
+  status?: 'ACTIVO' | 'INACTIVO';
+  projects?: string[];
+}
+
 export const EMPTY_CLIENT_FORM: Omit<ClientDocument, 'id' | 'ownerId' | 'createdAt' | 'updatedAt'> = {
   name: '',
   email: '',

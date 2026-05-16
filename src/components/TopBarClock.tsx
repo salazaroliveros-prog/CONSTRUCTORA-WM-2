@@ -95,7 +95,7 @@ export default function TopBarClock() {
                     value={selectedDate.toISOString().split('T')[0]}
                     onChange={(e) => setSelectedDate(new Date(e.target.value))}
                     title="Seleccionar fecha"
-                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-xs font-bold uppercase focus:outline-none focus:border-secondary transition-all"
+                    className="input"
                   />
                 </div>
               </div>

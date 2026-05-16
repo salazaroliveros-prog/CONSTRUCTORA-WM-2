@@ -270,9 +270,9 @@ const rentabilidadData = displayProjects
           {/* Project filter */}
           <div className="flex flex-col gap-1">
              <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest flex items-center gap-1"><Filter size={8} /> Proyecto</span>
-            <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} title="Filtrar por proyecto"
-              className="h-10 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-secondary)] shadow-sm cursor-pointer min-w-[160px]">
-              <option value="ALL">TODOS LOS PROYECTOS</option>
+             <select value={selectedProjectId} onChange={e => setSelectedProjectId(e.target.value)} title="Filtrar por proyecto"
+               className="select">
+               <option value="ALL">TODOS LOS PROYECTOS</option>
               {projects.map(p => <option key={p.id} value={p.id}>{(p.name || '').substring(0, 30).toUpperCase()}</option>)}
             </select>
           </div>
@@ -280,10 +280,10 @@ const rentabilidadData = displayProjects
             <>
               <div className="flex flex-col gap-1">
                 <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Plantilla PDF</span>
-                <select value={exportTemplate} onChange={e => setExportTemplate(e.target.value)} title="Plantilla PDF"
-                 className="h-10 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-secondary)] shadow-sm cursor-pointer min-w-[140px]">
-                   {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                 </select>
+                 <select value={exportTemplate} onChange={e => setExportTemplate(e.target.value)} title="Plantilla PDF"
+                  className="select">
+                    {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                  </select>
                </div>
                <button type="button" onClick={handleExportPDF}
                  className="h-10 bg-[var(--color-secondary)] text-[var(--color-primary)] px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[var(--color-secondary)]/90 transition-all shadow-sm">
@@ -291,10 +291,10 @@ const rentabilidadData = displayProjects
                </button>
                <div className="flex flex-col gap-1">
                  <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Plantilla CSV</span>
-                 <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} title="Plantilla CSV"
-                   className="h-10 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 text-[9px] font-black uppercase tracking-widest focus:outline-none focus:border-[var(--color-secondary)] shadow-sm cursor-pointer min-w-[140px]">
-                  {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
-                </select>
+                  <select value={exportCsvTemplate} onChange={e => setExportCsvTemplate(e.target.value)} title="Plantilla CSV"
+                    className="select">
+                   {CSV_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+                 </select>
               </div>
               <button type="button" onClick={handleExportCSV}
                  className="h-10 bg-[var(--color-neutral-900)] text-[var(--color-neutral-50)] px-4 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-[var(--color-neutral-700)] transition-all shadow-sm">

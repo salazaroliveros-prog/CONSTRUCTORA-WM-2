@@ -1,229 +1,57 @@
 /**
  * @license
  * SPDX-License-Identifier: Apache-2.0
+ * 
+ * constants.ts — Hub de re-exportación de tipos canónicos + datos de obra.
+ * 
+ * TODOS los tipos de datos se definen en src/models/ (fuente única de verdad).
+ * Este archivo re-exporta los tipos para mantener compatibilidad con imports
+ * legacy de '../constants', y contiene los datos estáticos de obra
+ * (renglones por tipología, materiales por categoría, colores, etc.).
  */
-import { BudgetLine } from './lib/budgetData';
-import { Material, Labor, WorkItem } from './models/workItem';
-export type { Material, Labor, WorkItem } from './models/workItem';
-export { Typology } from './models/engineering';
-import { Typology } from './models/engineering';
+export type {
+  Material, Labor, WorkItem,
+  ProjectStatus,
+  StaffMember,
+  Transaction,
+  WarehouseItem, WarehouseMovement,
+  Payroll, PayrollEmployee,
+  PurchaseOrder, PurchaseOrderItem,
+  Supplier,
+  LogEntry,
+  Client,
+  Project, ProjectItem,
+  ProjectDocument, ProjectSummary, CreateProjectInput,
+  BudgetLineDocument, LineCalcResult, BudgetTotals,
+  ScheduleEstimate, Deviation, SensitivityScenario,
+  CostRowMaterial, CostRowLabor, CostRowEquipment,
+  MaterialSummary, CalcInput, CalcOutput, CostLibraryItem,
+  FinancialConfig, Dimensions, ComputationType,
+  EngineeringConstants, SteelRatios, WasteFactors, DensityConstants,
+  TopographyParams, LegalRestrictions, ServiceAvailability, LogisticsInfo,
+  ClientDocument, TerrainData, ClientSummary,
+  EmergencyContact,
+} from './models';
 
+export { Typology, DEFAULT_ENGINEERING, DEFAULT_FINANCIAL_CONFIG } from './models';
+export { EMPTY_CLIENT_FORM } from './models';
+export { createEmptyLine, defaultProjectInput, emptyProjectDoc } from './models';
 
-/** @deprecated Use models/project.ts instead */
-export interface ProjectItem extends WorkItem {
-  projectQuantity: number;
-  selected: boolean;
-}
+/** @deprecated Use BudgetLineDocument */
+export type BudgetLine = import('./models/budget').BudgetLineDocument;
 
-/** @deprecated Use models/project.ts instead */
-export interface Project {
-  id: string;
-  name: string;
-  clientName: string;
-  typology: Typology;
-  status: 'COTIZACION' | 'EJECUCION' | 'FINALIZADO' | 'PAUSADO';
-  startDate: string;
-  endDate?: string;
-  location?: string;
-  teamIds?: string[];
-  items: ProjectItem[];
-  budgetTree?: BudgetLine[];
-  directCosts: number;
-  indirectCosts: number;
-  administrativeCosts: number;
-  personalCosts: number;
-  progress: number;
-  budget: number;
-  attachments?: string[];
-  ganttConfig?: { overrides?: Record<string, any>; progress?: Record<string, number> };
-  // New: Market and engineering parameters
-  marketLevel?: {
-    id: string;
-    name: string;
-    costPerSqm: { min: number; max: number; recommended: number };
-  };
-  slabType?: {
-    id: string;
-    name: string;
-    description: string;
-  };
-  area?: number;
-  costPerSqm?: number;
-}
+// ─── DATA ──────────────────────────────────────────────────────────────────────
 
-export interface StaffMember {
-  id: string;
-  name: string;
-  role: string;
-  salary: number;
-  documentId: string;
-  email?: string;
-  phone?: string;
-  status: 'Activo' | 'Inactivo';
-  address?: string;
-  hireDate?: string;
-  projectIds?: string[];
-  notes?: string;
-  bankName?: string;
-  accountNumber?: string;
-  documents?: { name: string; url: string; type: string }[];
-}
+export const WAREHOUSE_DATA: import('./models/warehouse').WarehouseItem[] = [];
 
-export interface Client {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  address: string;
-  nit?: string;
-  type?: 'PERSONA' | 'EMPRESA';
-  notes?: string;
-  status?: 'ACTIVO' | 'INACTIVO';
-  projects?: string[];
-}
+const IVA = 1.12;
 
-export interface Transaction {
-  id: string;
-  date: string;
-  amount: number;
-  description: string;
-  type: 'INGRESO' | 'GASTO';
-  category: string;
-  projectId?: string;
-  staffId?: string;
-  qty?: number;
-  unitCost?: number;
-  createdAt?: string;
-}
-
-export interface PayrollEmployee {
-  staffId: string;
-  name: string;
-  role: string;
-  baseSalary: number;
-  daysWorked: number;
-  dailySalary: number;
-  grossPay: number;
-  igss: number;
-  irtra: number;
-  intecap: number;
-  bonuses: number;
-  deductions: number;
-  netPay: number;
-}
-
-export interface Payroll {
-  id: string;
-  projectId: string;
-  projectName: string;
-  period: string;
-  type: 'CAMPO' | 'ADMINISTRATIVO';
-  employees: PayrollEmployee[];
-  totalGross: number;
-  totalDeductions: number;
-  totalBonuses: number;
-  totalNet: number;
-  status: 'BORRADOR' | 'PAGADA' | 'CANCELADA';
-  createdAt: string;
-  paidAt?: string;
-  notes?: string;
-}
-
-export interface WarehouseMovement {
-  date: string;
-  type: 'Entrada' | 'Salida';
-  qty: number;
-  user: string;
-}
-
-export interface WarehouseItem {
-  id: string;
-  name: string;
-  cat: 'Materiales' | 'Herramientas' | 'EPP';
-  stock: number;
-  unit: string;
-  location: string;
-  minStock: number;
-  lastEntry: string;
-  expiryDate?: string; // Fecha de vencimiento (YYYY-MM-DD)
-  history: WarehouseMovement[];
-  coordinates?: { x: number; y: number };
-  iconUrl?: string;
-  // Project-linked fields
-  projectId?: string;
-  projectName?: string;
-  itemId?: string;
-  itemName?: string;
-  budgetedQty?: number;
-  budgetedCost?: number;
-  usedQty?: number;
-}
-
-export interface PurchaseOrderItem {
-  itemId?: string;
-  itemName?: string;
-  materialName: string;
-  unit: string;
-  qty: number;
-  unitPrice: number;
-  total: number;
-}
-
-export interface PurchaseOrder {
-  id: string;
-  projectId: string;
-  projectName: string;
-  supplierId: string;
-  supplierName: string;
-  status: 'PENDIENTE' | 'APROBADA' | 'RECIBIDA' | 'CANCELADA';
-  items: PurchaseOrderItem[];
-  total: number;
-  createdAt: string;
-  notes?: string;
-}
-
-export interface Supplier {
-  id: string;
-  name: string;
-  contact: string;
-  email: string;
-  phone: string;
-  address: string;
-  nit?: string;
-  status: 'ACTIVO' | 'INACTIVO';
-  rating?: number;
-  projects?: string[];
-  createdAt?: string;
-}
-
-export interface LogEntry {
-  id: string;
-  timestamp: string;
-  level: 'info' | 'warn' | 'error' | 'success';
-  action: string;
-  details?: string;
-  userId?: string;
-  projectId?: string;
-  projectName?: string;
-  itemId?: string;
-  itemName?: string;
-  msg?: string;
-  author?: string;
-  type?: string;
-  createdAt?: string;
-}
-
-export const WAREHOUSE_DATA: WarehouseItem[] = [];
-
-const IVA = 1.12; // IVA Guatemala 12%
-
-// Helper para calcular precio con IVA
 const apu = (mat: number, labor: number) => ({
   mat: Math.round(mat * IVA),
   labor: Math.round(labor * IVA)
 });
 
-// ─── RESIDENCIAL (40 renglones) ───────────────────────────────────────────────
+// ─── RESIDENCIAL ───────────────────────────────────────────────────────────────
 const RESIDENCIAL_ITEMS = [
   { desc: 'Limpieza y chapeo del terreno', unit: 'm2', cat: 'Preliminares', days: 0.05, ...apu(3, 85) },
   { desc: 'Trazo y estaqueado', unit: 'm2', cat: 'Preliminares', days: 0.05, ...apu(2, 95) },
@@ -267,7 +95,7 @@ const RESIDENCIAL_ITEMS = [
   { desc: 'Limpieza final y entrega de obra', unit: 'global', cat: 'Exteriores', days: 1, ...apu(0, 850) },
 ];
 
-// ─── COMERCIAL (40 renglones) ─────────────────────────────────────────────────
+// ─── COMERCIAL ─────────────────────────────────────────────────────────────────
 const COMERCIAL_ITEMS = [
   { desc: 'Demolición y retiro de escombros', unit: 'm3', cat: 'Preliminares', days: 0.5, ...apu(15, 195) },
   { desc: 'Trazo y nivelación topográfica', unit: 'm2', cat: 'Preliminares', days: 0.05, ...apu(4, 145) },
@@ -311,7 +139,7 @@ const COMERCIAL_ITEMS = [
   { desc: 'Limpieza final y entrega', unit: 'global', cat: 'Exteriores', days: 1, ...apu(0, 1250) },
 ];
 
-// ─── INDUSTRIAL (40 renglones) ────────────────────────────────────────────────
+// ─── INDUSTRIAL ────────────────────────────────────────────────────────────────
 const INDUSTRIAL_ITEMS = [
   { desc: 'Limpieza y nivelación de terreno', unit: 'm2', cat: 'Preliminares', days: 0.03, ...apu(5, 75) },
   { desc: 'Trazo topográfico con estación total', unit: 'm2', cat: 'Preliminares', days: 0.03, ...apu(3, 125) },
@@ -355,7 +183,7 @@ const INDUSTRIAL_ITEMS = [
   { desc: 'Limpieza final y entrega de planta', unit: 'global', cat: 'Exteriores', days: 1, ...apu(0, 1850) },
 ];
 
-// ─── CIVIL (40 renglones) ─────────────────────────────────────────────────────
+// ─── CIVIL ─────────────────────────────────────────────────────────────────────
 const CIVIL_ITEMS = [
   { desc: 'Levantamiento topográfico', unit: 'km', cat: 'Preliminares', days: 1, ...apu(850, 1250) },
   { desc: 'Estudio de suelos', unit: 'global', cat: 'Preliminares', days: 3, ...apu(4500, 2500) },
@@ -399,7 +227,7 @@ const CIVIL_ITEMS = [
   { desc: 'Entrega y pruebas finales', unit: 'global', cat: 'Acabados', days: 2, ...apu(0, 2500) },
 ];
 
-// ─── PUBLICA (40 renglones) ───────────────────────────────────────────────────
+// ─── PUBLICA ───────────────────────────────────────────────────────────────────
 const PUBLICA_ITEMS = [
   { desc: 'Estudio de impacto ambiental', unit: 'global', cat: 'Preliminares', days: 5, ...apu(8500, 4500) },
   { desc: 'Trazo y replanteo con GPS', unit: 'm2', cat: 'Preliminares', days: 0.03, ...apu(3, 135) },
@@ -443,8 +271,10 @@ const PUBLICA_ITEMS = [
   { desc: 'Limpieza final y entrega oficial', unit: 'global', cat: 'Acabados', days: 1, ...apu(0, 1850) },
 ];
 
-// Mapa de renglones por tipología
-const ITEMS_BY_TYPOLOGY: Record<Typology, typeof RESIDENCIAL_ITEMS> = {
+import { Typology } from './models';
+type ItemArray = { desc: string; unit: string; cat: string; days: number; mat: number; labor: number }[];
+
+const ITEMS_BY_TYPOLOGY: Record<Typology, ItemArray> = {
   [Typology.RESIDENCIAL]: RESIDENCIAL_ITEMS,
   [Typology.COMERCIAL]:   COMERCIAL_ITEMS,
   [Typology.INDUSTRIAL]:  INDUSTRIAL_ITEMS,
@@ -452,7 +282,7 @@ const ITEMS_BY_TYPOLOGY: Record<Typology, typeof RESIDENCIAL_ITEMS> = {
   [Typology.PUBLICA]:     PUBLICA_ITEMS,
 };
 
-export const DEFAULT_WORK_ITEMS: WorkItem[] = Object.entries(ITEMS_BY_TYPOLOGY).flatMap(
+export const DEFAULT_WORK_ITEMS: import('./models/workItem').WorkItem[] = Object.entries(ITEMS_BY_TYPOLOGY).flatMap(
   ([typo, items]) => items.map((item, index) => ({
     id: `${typo}-${index}`,
     code: `${typo.substring(0, 3).toUpperCase()}-${(index + 1).toString().padStart(3, '0')}`,
@@ -471,9 +301,9 @@ export const DEFAULT_WORK_ITEMS: WorkItem[] = Object.entries(ITEMS_BY_TYPOLOGY).
 );
 
 export const BRAND_COLORS = {
-  primary: '#1A1A1A', // Slate Black
-  secondary: '#F15A24', // Construction Orange
-  accent: '#0071BC', // Blueprint Blue
+  primary: '#1A1A1A',
+  secondary: '#F15A24',
+  accent: '#0071BC',
   bg: '#F8F9FA',
   text: '#2D3436'
 };
@@ -486,18 +316,16 @@ export interface MaterialSummaryItem {
   name: string;
   unit: string;
   totalQuantity: number;
-  category: string; // 'Concreto' | 'Acero' | 'Mampostería' | 'Acabados' | 'Instalaciones' | 'Varios'
+  category: string;
 }
 
-// Materiales estándar por categoría de trabajo (por unidad de medida del renglón)
 export interface MaterialPerUnit {
   materialName: string;
   unit: string;
-  quantity: number; // Cantidad por unidad del renglón
+  quantity: number;
   category: 'concreto' | 'acero' | 'mamposteria' | 'acabados' | 'instalaciones' | 'varios';
 }
 
-// Materiales por categoría de ítem (cantidad por unidad del trabajo)
 export const MATERIALS_BY_CATEGORY: Record<string, MaterialPerUnit[]> = {
   'Cimentación': [
     { materialName: 'Cemento Portland tipo I (saco 42.5kg)', unit: 'saco', quantity: 8.5, category: 'concreto' },
@@ -553,7 +381,6 @@ export const MATERIALS_BY_CATEGORY: Record<string, MaterialPerUnit[]> = {
   ],
 };
 
-// Categorías de materiales para el resumen
 export const MATERIAL_CATEGORIES = [
   { key: 'concreto', label: 'Concreto', color: '#6B7280' },
   { key: 'acero', label: 'Acero y Ferretería', color: '#EF4444' },

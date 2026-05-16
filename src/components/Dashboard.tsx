@@ -36,10 +36,13 @@ import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { Transaction } from '../constants';
 import { useCountUp } from '../hooks/useCountUp';
 import { Modal } from './ui/Modal';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
 import { trackCRUD, trackEvent } from '../utils/logger';
 import { PMath } from '../engine/precision';
 import { useStore, useExistingProjectFilter } from '../store/DataStore';
+import { validateAll, ValidationIssue } from '../utils/validators';
 import {
   BarChart,
   Bar,
@@ -302,11 +305,13 @@ function CustomTooltip({ active, payload, label }: any) {
 export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
    const { settings } = useSettings();
    const store = useStore();
-   const [resetting, setResetting] = useState(false);
-   const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
-   const [editTx, setEditTx] = useState<any | null>(null);
-   const [editTxForm, setEditTxForm] = useState({ description: '', amount: 0, type: 'GASTO', category: '', date: '' });
-   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
+    const [resetting, setResetting] = useState(false);
+    const [validationIssues, setValidationIssues] = useState<ValidationIssue[] | null>(null);
+    const [validationSummary, setValidationSummary] = useState({ high: 0, medium: 0, low: 0 });
+    const [isAccountingModalOpen, setIsAccountingModalOpen] = useState(false);
+    const [editTx, setEditTx] = useState<any | null>(null);
+    const [editTxForm, setEditTxForm] = useState({ description: '', amount: 0, type: 'GASTO', category: '', date: '' });
+    const [isResetModalOpen, setIsResetModalOpen] = useState(false);
     const [resetData, setResetData] = useState<Record<string, {items: any[], selected: string[]}>>({});
     const { selectedProjectId, setSelectedProjectId, executingProjects: ctxExecutingProjects, setExecutingProjects } = useProjectFilter();
    const [selectedYear, setSelectedYear] = useState<string>('todos');
@@ -754,12 +759,12 @@ const generateReport = async () => {
              </select>
           </div>
           <div>
-              <label htmlFor="accounting-project" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Proyecto (opcional)</label>
+              <label htmlFor="accounting-project" className="label">Proyecto (opcional)</label>
               <select
                 id="accounting-project"
                 value={accountingForm.projectId}
                 onChange={(e) => setAccountingForm({ ...accountingForm, projectId: e.target.value })}
-                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
+                className="select"
                 title="Asignar a proyecto"
             >
               <option value="">Sin proyecto especifico</option>
@@ -769,14 +774,14 @@ const generateReport = async () => {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label htmlFor="accounting-quantity" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Cantidad / Unidades</label>
+              <label htmlFor="accounting-quantity" className="label">Cantidad / Unidades</label>
                <input 
-                 id="accounting-quantity"
-                 type="number"
-                 step="0.01"
-                 value={accountingForm.quantity || ''}
-                 onChange={(e) => setAccountingForm({ ...accountingForm, quantity: parseFloat(e.target.value) || 0 })}
-                 className="w-full input-modern text-[10px] font-black focus:outline-none focus:ring-1 focus:ring-secondary"
+                  id="accounting-quantity"
+                  type="number"
+                  step="0.01"
+                  value={accountingForm.quantity || ''}
+                  onChange={(e) => setAccountingForm({ ...accountingForm, quantity: parseFloat(e.target.value) || 0 })}
+                  className="input"
                  placeholder="1"
                  title="Cantidad"
                />
@@ -808,14 +813,14 @@ const generateReport = async () => {
              />
           </div>
 
-          <button 
+          <Button
             type="button"
             onClick={handleAccountingSubmit}
             disabled={accountingForm.cost <= 0 || accountingForm.quantity <= 0}
-            className="w-full bg-primary text-[var(--color-neutral-50)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-neutral-800)] disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2 shadow-xl shadow-primary/10"
+            className="w-full mt-2"
           >
             Registrar en Contabilidad
-          </button>
+          </Button>
         </div>
       </Modal>
 
@@ -863,11 +868,10 @@ const generateReport = async () => {
               )}
             </div>
             <div className="p-5 border-t border-[var(--color-neutral-100)] flex gap-3">
-              <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 rounded-xl border border-[var(--color-neutral-200)] text-[10px] font-black uppercase tracking-widest text-[var(--color-p-600)] hover:bg-[var(--color-neutral-50)] transition-all">Cancelar</button>
-              <button onClick={handleConfirmReset} disabled={resetting || Object.values(resetData).every(v => v.selected.length === 0)}
-                className="flex-1 py-3 rounded-xl bg-[var(--color-error)] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-red)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+              <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1">Cancelar</Button>
+              <Button variant="danger" onClick={handleConfirmReset} disabled={resetting || Object.values(resetData).every((v: any) => v.selected.length === 0)} className="flex-1">
                 {resetting ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Eliminando...</> : <><AlertTriangle size={12} /> Eliminar Seleccionados</>}
-              </button>
+              </Button>
             </div>
           </motion.div>
         </div>
@@ -1234,15 +1238,68 @@ const generateReport = async () => {
 
                 <div className="pt-2 border-t border-[var(--color-neutral-200)]">
                   <button
-                    onClick={handleSystemReset}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-[var(--color-red-bg)] text-[var(--color-error)] border border-dashed border-[var(--color-red-border)]"
+                    onClick={() => {
+                      const result = validateAll(store);
+                      setValidationIssues(result.issues);
+                      setValidationSummary(result.summary);
+                    }}
+                    className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-[var(--color-brand)]/10 text-[var(--color-brand)] border border-dashed border-[var(--color-brand)]/20"
                   >
-                    <RotateCcw size={12} />
-                    Reiniciar Sistema
+                    <ShieldCheck size={12} />
+                    Validar Datos
                   </button>
+                  {validationIssues !== null && (
+                    <div className="mt-2 p-2 rounded-lg bg-[var(--color-neutral-800)] text-[7px]">
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <span className="font-bold uppercase tracking-widest">Salud Datos</span>
+                        {validationSummary.high === 0 && validationSummary.medium === 0 && validationSummary.low === 0 ? (
+                          <span className="text-[var(--color-success)] font-bold">OK</span>
+                        ) : (
+                          <span className="text-[var(--color-warning)] font-bold">{validationIssues.length} issues</span>
+                        )}
+                      </div>
+                      {validationSummary.high > 0 && (
+                        <div className="flex justify-between text-[var(--color-error)]">
+                          <span>Críticos</span><span className="font-bold">{validationSummary.high}</span>
+                        </div>
+                      )}
+                      {validationSummary.medium > 0 && (
+                        <div className="flex justify-between text-[var(--color-warning)]">
+                          <span>Medios</span><span className="font-bold">{validationSummary.medium}</span>
+                        </div>
+                      )}
+                      {validationSummary.low > 0 && (
+                        <div className="flex justify-between text-[var(--color-neutral-400)]">
+                          <span>Leves</span><span className="font-bold">{validationSummary.low}</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
              </div>
           </div>
+
+          {validationIssues !== null && validationIssues.length > 0 && (
+            <div className="bg-[var(--color-red-bg)] rounded-2xl p-3 text-left relative overflow-hidden">
+              <h4 className="text-[9px] font-black text-[var(--color-error)] uppercase tracking-widest mb-2">Detalles</h4>
+              <div className="max-h-32 overflow-y-auto space-y-1">
+                {validationIssues.map((issue, i) => (
+                  <div key={i} className="text-[6px] leading-tight text-[var(--color-neutral-300)] border-b border-[var(--color-red-border)]/30 pb-1 last:border-0">
+                    <span className={cn('font-bold uppercase', issue.severity === 'high' ? 'text-[var(--color-error)]' : issue.severity === 'medium' ? 'text-[var(--color-warning)]' : 'text-[var(--color-neutral-400)]')}>
+                      [{issue.severity}]
+                    </span>{' '}
+                    {issue.collection}: {issue.message}
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setValidationIssues(null)}
+                className="mt-2 text-[6px] font-bold uppercase tracking-widest text-[var(--color-neutral-400)] hover:text-white transition-colors"
+              >
+                Cerrar
+              </button>
+            </div>
+          )}
 
          <div className="bg-[var(--color-neutral-900)] rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
             <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
@@ -1315,17 +1372,17 @@ const generateReport = async () => {
             <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
             <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
               <div className='grid grid-cols-2 gap-3'>
-                <div><label htmlFor="edit-tx-type" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Tipo</label><select id="edit-tx-type" title="Tipo de movimiento" value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
-                <div><label htmlFor="edit-tx-date" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Fecha</label><input id="edit-tx-date" title="Fecha" type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-type" className="label">Tipo</label><select id="edit-tx-type" title="Tipo de movimiento" value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='select'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
+                <div><label htmlFor="edit-tx-date" className="label">Fecha</label><input id="edit-tx-date" title="Fecha" type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='input' /></div>
               </div>
-              <div><label htmlFor="edit-tx-desc" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Descripcion</label><input id="edit-tx-desc" title="Descripción" type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+              <div><label htmlFor="edit-tx-desc" className="label">Descripcion</label><input id="edit-tx-desc" title="Descripción" type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='input' /></div>
               <div className='grid grid-cols-2 gap-3'>
-                <div><label htmlFor="edit-tx-cat" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Categoria</label><input id="edit-tx-cat" title="Categoría" type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
-                <div><label htmlFor="edit-tx-amount" className='text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1'>Monto (Q)</label><input id="edit-tx-amount" title="Monto" type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary' /></div>
+                <div><label htmlFor="edit-tx-cat" className="label">Categoria</label><input id="edit-tx-cat" title="Categoría" type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='input' /></div>
+                <div><label htmlFor="edit-tx-amount" className="label">Monto (Q)</label><input id="edit-tx-amount" title="Monto" type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='input' /></div>
               </div>
               <div className='flex gap-2 pt-2'>
-                <button type='button' onClick={() => setEditTx(null)} className='flex-1 py-2.5 bg-[var(--color-neutral-100)] text-[var(--color-neutral-600)] rounded-xl text-[9px] font-black uppercase'>Cancelar</button>
-                <button type='submit' className='flex-1 py-2.5 bg-[var(--color-neutral-900)] text-[var(--color-neutral-50)] rounded-xl text-[9px] font-black uppercase hover:bg-secondary hover:text-primary transition-all'>Guardar</button>
+                <Button variant="ghost" type='button' onClick={() => setEditTx(null)} className='flex-1'>Cancelar</Button>
+                <Button type='submit' className='flex-1'>Guardar</Button>
               </div>
             </form>
           </div>

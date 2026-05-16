@@ -30,17 +30,19 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { WarehouseItem, PurchaseOrder, PurchaseOrderItem } from '../constants';
 import { cn } from '../utils/cn';
-import { subscribeToCollection, addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { addDocument, updateDocument, deleteDocument, parseError } from '../services/firestoreService';
+import { useStore } from '../store/DataStore';
 import { uploadFile } from '../services/storageService';
 import { usePagination } from '../hooks/usePagination';
 import Pagination from './ui/Pagination';
 import { toast } from 'sonner';
 import { Modal } from './ui/Modal';
+import { Input } from './ui/input';
+import { Button } from './ui/button';
 import { sanitizeString, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
 import { trackCRUD, trackEvent } from '../utils/logger';
 
 export default function InventoryModule() {
-  const [items, setItems] = useState<WarehouseItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [activeCategory, setActiveCategory] = useState('Todos');
   const [selectedZone, setSelectedZone] = useState<string | null>(null);
@@ -48,7 +50,9 @@ export default function InventoryModule() {
   const [filterProject, setFilterProject] = useState('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const store = useStore();
+  const items = store.inventory.items as WarehouseItem[];
+  const loading = store.inventory.isLoading;
   const [newItem, setNewItem] = useState<{name: string, cat: 'Materiales' | 'Herramientas' | 'EPP', stock: number, minStock: number, unit: string, location: string, iconUrl: string, expiryDate: string}>({ name: '', cat: 'Materiales', stock: 0, minStock: 5, unit: 'U', location: 'Almacén Central', iconUrl: '', expiryDate: '' });
   const [iconFile, setIconFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -135,9 +139,9 @@ export default function InventoryModule() {
   };
 
   // Project stock & purchase orders
-  const [projects, setProjects] = useState<any[]>([]);
-  const [suppliers, setSuppliers] = useState<any[]>([]);
-  const [purchaseOrders, setPurchaseOrders] = useState<PurchaseOrder[]>([]);
+  const projects = store.projects.items as any[];
+  const suppliers = store.suppliers.items as any[];
+  const purchaseOrders = store.purchaseOrders.items as PurchaseOrder[];
   const [activeTab, setActiveTab] = useState<'stock' | 'orders'>('stock');
   const [isOCModalOpen, setIsOCModalOpen] = useState(false);
   const [isGenModalOpen, setIsGenModalOpen] = useState(false);
@@ -148,12 +152,7 @@ export default function InventoryModule() {
     projectId: '', selectedItemId: '', supplierId: '', notes: '', items: []
   });
 
-  useEffect(() => {
-    const u1 = subscribeToCollection('projects', setProjects);
-    const u2 = subscribeToCollection('suppliers', setSuppliers);
-    const u3 = subscribeToCollection('purchaseOrders', (data: any[]) => setPurchaseOrders(data));
-    return () => { u1(); u2(); u3(); };
-  }, []);
+
 
   const generateStockFromProject = async (forcePerRenglonMode?: boolean) => {
     const project = projects.find(p => p.id === selectedProjectForGen);
@@ -289,13 +288,7 @@ const createPurchaseOrder = async () => {
     setEditingCell(null);
   };
 
-  useEffect(() => {
-    const unsub = subscribeToCollection('inventory', (data) => {
-      setItems(data);
-      setLoading(false);
-    });
-    return () => unsub();
-  }, []);
+
 
   const handleDelete = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -481,7 +474,7 @@ const createPurchaseOrder = async () => {
             <Package size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Total Items</p>
+            <p className="label truncate">Total Items</p>
             <h3 className="text-sm md:text-xl font-black text-primary truncate">{items.length}</h3>
             <p className="text-[7px] text-slate-400 font-bold">{filteredItems.length} filtrados</p>
           </div>
@@ -491,7 +484,7 @@ const createPurchaseOrder = async () => {
             <ShieldCheck size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Stock Crítico</p>
+            <p className="label truncate">Stock Crítico</p>
             <h3 className={cn('text-sm md:text-xl font-black truncate', criticalItems.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]')}>{criticalItems.length}</h3>
             <p className="text-[7px] text-slate-400 font-bold">de {items.length} items</p>
           </div>
@@ -501,7 +494,7 @@ const createPurchaseOrder = async () => {
             <DollarSign size={16} />
           </div>
           <div className="min-w-0">
-            <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Valor Real Stock</p>
+            <p className="label truncate">Valor Real Stock</p>
             <h3 className="text-sm md:text-xl font-black text-primary truncate">Q {Math.round(totalRealValue).toLocaleString('es-GT')}</h3>
             <p className="text-[7px] text-slate-400 font-bold">stock × costo presupuestado</p>
           </div>
@@ -565,109 +558,46 @@ const createPurchaseOrder = async () => {
         )}
       </div>
 
-      <Modal 
-
-        isOpen={isCreateModalOpen} 
+      <Modal
+        isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         title="Registrar Nuevo Suministro"
       >
-        <form onSubmit={handleCreateItem} className="space-y-6 text-left">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre del Material / Equipo</label>
-            <input 
-              type="text"
-              required
-              placeholder="EJ: CEMENTO UGC"
-              value={newItem.name}
-              onChange={e => setNewItem({...newItem, name: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
-              <select 
-                value={newItem.cat}
-                title="Seleccionar categoría"
-                onChange={e => setNewItem({...newItem, cat: e.target.value as 'Materiales' | 'Herramientas' | 'EPP'})}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"
-              >
+        <form onSubmit={handleCreateItem} className="space-y-4 text-left">
+          <Input label="Nombre del Material / Equipo" required value={newItem.name} onChange={e => setNewItem({...newItem, name: e.target.value})} placeholder="EJ: CEMENTO UGC" />
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="label">Categoría</label>
+              <select value={newItem.cat} onChange={e => setNewItem({...newItem, cat: e.target.value as 'Materiales' | 'Herramientas' | 'EPP'})} title="Seleccionar categoría" className="select">
                 {categories.filter(c => c !== 'Todos').map(c => <option key={c} value={c}>{c}</option>)}
               </select>
             </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Unidad de Medida</label>
-              <input 
-                type="text"
-                placeholder="EJ: SACO, GL, UD"
-                value={newItem.unit}
-                onChange={e => setNewItem({...newItem, unit: e.target.value})}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
-              />
+            <div className="space-y-1">
+              <label className="label">Unidad de Medida</label>
+              <input type="text" placeholder="EJ: SACO, GL, UD" value={newItem.unit} onChange={e => setNewItem({...newItem, unit: e.target.value})} className="input" />
             </div>
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ícono Personalizado</label>
-            <input 
-              type="file"
-              accept="image/*"
-              title="Seleccionar icono"
-              onChange={e => setIconFile(e.target.files?.[0] || null)}
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
-            />
+          <div className="space-y-1">
+            <label className="label">Ícono Personalizado</label>
+            <input type="file" accept="image/*" title="Seleccionar icono" onChange={e => setIconFile(e.target.files?.[0] || null)} className="input" />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stock Inicial</label>
-              <input 
-                type="number"
-                value={newItem.stock}
-                title="Stock inicial"
-                placeholder="0"
-                onChange={e => setNewItem({...newItem, stock: parseFloat(e.target.value)})}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Stock Mínimo</label>
-              <input 
-                type="number"
-                placeholder="0.00"
-                value={newItem.minStock}
-                onChange={e => setNewItem({...newItem, minStock: parseFloat(e.target.value)})}
-                className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
-              />
-            </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Stock Inicial" type="number" value={newItem.stock} onChange={e => setNewItem({...newItem, stock: parseFloat(e.target.value)})} placeholder="0" />
+            <Input label="Stock Mínimo" type="number" value={newItem.minStock} onChange={e => setNewItem({...newItem, minStock: parseFloat(e.target.value)})} placeholder="0" />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Fecha de Vencimiento</label>
-            <input
-              type="date"
-              value={newItem.expiryDate}
-              min={new Date().toISOString().split('T')[0]}
-              title="Fecha de vencimiento"
-              onChange={e => setNewItem({...newItem, expiryDate: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
-            />
+          <div className="space-y-1">
+            <label className="label">Fecha de Vencimiento</label>
+            <input type="date" value={newItem.expiryDate} min={new Date().toISOString().split('T')[0]} title="Fecha de vencimiento" onChange={e => setNewItem({...newItem, expiryDate: e.target.value})} className="input" />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ubicación Física</label>
-            <select
-              value={newItem.location}
-              title="Seleccionar ubicación"
-              onChange={e => setNewItem({...newItem, location: e.target.value})}
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"
-            >
+          <div className="space-y-1">
+            <label className="label">Ubicación Física</label>
+            <select value={newItem.location} title="Seleccionar ubicación" onChange={e => setNewItem({...newItem, location: e.target.value})} className="select">
               {zones.map(z => <option key={z.id} value={z.id}>{z.name}</option>)}
             </select>
           </div>
-          <button 
-            type="submit"
-            disabled={saving}
-            className="w-full bg-slate-900 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-secondary hover:text-primary transition-all disabled:opacity-50"
-          >
-            {saving ? 'PROCESANDO...' : 'REGISTRAR EN SISTEMA'}
-          </button>
+          <Button type="submit" isLoading={saving} className="w-full">
+            REGISTRAR EN SISTEMA
+          </Button>
         </form>
       </Modal>
 
@@ -746,19 +676,18 @@ const createPurchaseOrder = async () => {
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div className="p-4 md:p-6 border-b border-slate-50 flex flex-col md:flex-row gap-4 justify-between items-center">
           <div className="relative w-full md:w-80">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input 
-              type="text" 
-              placeholder="BUSCAR SUMINISTRO..." 
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-p-400" />
+            <input
+              type="text"
+              placeholder="BUSCAR SUMINISTRO..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary transition-all uppercase tracking-widest placeholder:text-slate-300" 
+              className="input pl-10 text-xs font-bold uppercase tracking-widest"
             />
           </div>
-          <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedItemIds(new Set()); }}
-            className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shrink-0 ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+          <Button variant={bulkMode ? "danger" : "ghost"} size="sm" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedItemIds(new Set()); }}>
             {bulkMode ? 'Cancelar' : 'Seleccionar'}
-          </button>
+          </Button>
           <div className="flex gap-1.5 w-full md:w-auto overflow-x-auto no-scrollbar scroll-smooth">
             {categories.map((cat) => (
               <button 
@@ -848,7 +777,7 @@ const createPurchaseOrder = async () => {
                     </div>
                   </td>
                   <td className="hidden md:table-cell px-4 py-2.5">
-                    <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">{item.cat}</span>
+                    <span className="label">{item.cat}</span>
                   </td>
                   <td className="hidden lg:table-cell px-4 py-2.5">
                     <span className="text-[8px] font-bold text-slate-500 truncate max-w-[120px] block">{item.itemName || '—'}</span>
@@ -1003,7 +932,7 @@ const createPurchaseOrder = async () => {
             
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Progreso del Proyecto</span>
+                <span className="label">Progreso del Proyecto</span>
                 <span className="text-[9px] font-black text-secondary">{selectedProject.progress || 0}%</span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
@@ -1014,7 +943,7 @@ const createPurchaseOrder = async () => {
               </div>
               
               <div className="flex items-center justify-between pt-2">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Completitud de Stock</span>
+                <span className="label">Completitud de Stock</span>
                 <span className={cn('text-[9px] font-black', completionRate >= 80 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]')}>
                   {Math.round(completionRate)}%
                 </span>
@@ -1079,145 +1008,96 @@ const createPurchaseOrder = async () => {
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setIsModalOpen(false)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200"
+              className="relative w-full max-w-md bg-white rounded-2xl shadow-modal overflow-hidden border border-p-200"
             >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 text-left">
+              <div className="bg-brand px-6 py-4 flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em]">Movimiento</h3>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Gestión de Stock Real</p>
+                  <h3 className="text-sm font-black text-white uppercase tracking-[0.2em]">Movimiento</h3>
+                  <p className="text-[8px] font-bold text-p-400 uppercase mt-0.5">Gestión de Stock Real</p>
                 </div>
-                <button title="Cerrar" onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-lg text-slate-400"><X size={20} /></button>
+                <button onClick={() => setIsModalOpen(false)} className="p-1 hover:bg-white/10 rounded-lg text-white" aria-label="Cerrar"><X size={16} /></button>
               </div>
 
-              <div className="p-8 space-y-4 text-left overflow-y-auto max-h-[70vh]">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Tipo</label>
-                    <div className="flex bg-slate-50 p-1 rounded-xl border border-slate-200">
-                      <button 
-                        type="button"
+              <div className="p-6 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="label">Tipo</label>
+                    <div className="flex bg-p-50 p-0.5 rounded-lg border border-p-200">
+                      <button type="button"
                         onClick={() => setMovementForm({ ...movementForm, type: 'Entrada', category: entryCategories[0] })}
-                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Entrada' ? "bg-white text-[var(--color-success)] shadow-sm" : "text-slate-400")}
-                      >
+                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Entrada' ? "bg-white text-green-600 shadow-sm" : "text-p-400")}>
                         Entrada
                       </button>
-                      <button 
-                        type="button"
+                      <button type="button"
                         onClick={() => setMovementForm({ ...movementForm, type: 'Salida', category: exitCategories[0] })}
-                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Salida' ? "bg-white text-[var(--color-error)] shadow-sm" : "text-slate-400")}
-                      >
+                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Salida' ? "bg-white text-red-600 shadow-sm" : "text-p-400")}>
                         Salida
                       </button>
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Fecha</label>
-                    <input 
-                      type="date"
-                      value={movementForm.date}
-                      title="Fecha del movimiento"
-                      onChange={(e) => setMovementForm({ ...movementForm, date: e.target.value })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
-                    />
+                  <div className="space-y-1">
+                    <label className="label">Fecha</label>
+                    <input type="date" value={movementForm.date} title="Fecha del movimiento" onChange={(e) => setMovementForm({ ...movementForm, date: e.target.value })} className="input" />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Producto (Opcional)</label>
-                  <select 
-                    value={movementForm.itemId}
-                    title="Seleccionar producto"
-                    onChange={(e) => setMovementForm({ ...movementForm, itemId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
-                  >
+                <div className="space-y-1">
+                  <label className="label">Producto (Opcional)</label>
+                  <select value={movementForm.itemId} title="Seleccionar producto" onChange={(e) => setMovementForm({ ...movementForm, itemId: e.target.value })} className="select">
                     <option value="">Seleccione suministro...</option>
                     {items.map(i => <option key={i.id} value={i.id}>{i.name} (Stock: {i.stock})</option>)}
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (Opcional)</label>
-                  <select
-                    value={movementForm.projectId}
-                    title="Asignar a proyecto"
-                    onChange={(e) => setMovementForm({ ...movementForm, projectId: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
-                  >
+                <div className="space-y-1">
+                  <label className="label">Proyecto (Opcional)</label>
+                  <select value={movementForm.projectId} title="Asignar a proyecto" onChange={(e) => setMovementForm({ ...movementForm, projectId: e.target.value })} className="select">
                     <option value="">Sin proyecto</option>
-                    {projects.filter(p => p.status === 'EJECUCION').map(p => (
+                    {projects.filter((p: any) => p.status === 'EJECUCION').map((p: any) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
                 </div>
 
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Categoría</label>
-                  <select 
-                    value={movementForm.category}
-                    title="Seleccionar categoría"
-                    onChange={(e) => setMovementForm({ ...movementForm, category: e.target.value })}
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
-                  >
+                <div className="space-y-1">
+                  <label className="label">Categoría</label>
+                  <select value={movementForm.category} title="Seleccionar categoría" onChange={(e) => setMovementForm({ ...movementForm, category: e.target.value })} className="select">
                     {(movementForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
                     ))}
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Cantidad</label>
-                    <input 
-                      type="number"
-                      step="0.01"
-                      value={movementForm.quantity || ''}
-                      onChange={(e) => setMovementForm({ ...movementForm, quantity: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
-                      placeholder="0.00"
-                    />
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="label">Cantidad</label>
+                    <input type="number" step="0.01" value={movementForm.quantity || ''} onChange={(e) => setMovementForm({ ...movementForm, quantity: parseFloat(e.target.value) || 0 })} className="input" placeholder="0.00" />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block">Costo / Precio (Q)</label>
-                    <input 
-                      type="number"
-                      step="0.01"
-                      value={movementForm.cost || ''}
-                      onChange={(e) => setMovementForm({ ...movementForm, cost: parseFloat(e.target.value) || 0 })}
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
-                      placeholder="0.00"
-                    />
+                  <div className="space-y-1">
+                    <label className="label">Costo / Precio (Q)</label>
+                    <input type="number" step="0.01" value={movementForm.cost || ''} onChange={(e) => setMovementForm({ ...movementForm, cost: parseFloat(e.target.value) || 0 })} className="input" placeholder="0.00" />
                   </div>
                 </div>
 
-                <div>
-                  <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Descripción</label>
-                  <textarea 
-                    value={movementForm.description}
-                    onChange={(e) => setMovementForm({ ...movementForm, description: e.target.value })}
-                    placeholder="Detalles del movimiento..."
-                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm min-h-[60px]"
-                  />
+                <div className="space-y-1">
+                  <label className="label">Descripción</label>
+                  <textarea value={movementForm.description} onChange={(e) => setMovementForm({ ...movementForm, description: e.target.value })} placeholder="Detalles del movimiento..." className="textarea min-h-[60px]" />
                 </div>
 
-                <button 
-                  type="button"
-                  onClick={handleMovement}
-                  disabled={!movementForm.category || movementForm.quantity <= 0}
-                  className="w-full bg-primary text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-all mt-2 shadow-xl shadow-primary/10"
-                >
+                <Button type="button" onClick={handleMovement} disabled={!movementForm.category || movementForm.quantity <= 0} className="w-full">
                   Confirmar Registro
-                </button>
+                </Button>
               </div>
             </motion.div>
           </div>
@@ -1239,7 +1119,7 @@ const createPurchaseOrder = async () => {
                 <div className="flex items-center gap-2 px-1 py-1">
                   <input type="checkbox" checked={selectedOrderIds.size === purchaseOrders.length && purchaseOrders.length > 0}
                     onChange={toggleSelectAllOrders} className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
-                  <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
+                  <span className="label">
                     {selectedOrderIds.size > 0 ? `${selectedOrderIds.size} seleccionado(s)` : 'Seleccionar todo'}
                   </span>
                 </div>
@@ -1297,26 +1177,23 @@ const createPurchaseOrder = async () => {
       {/* -- Modal: Generar stock desde presupuesto -------------- */}
       <Modal isOpen={isGenModalOpen} onClose={() => setIsGenModalOpen(false)} title="Generar Stock desde Presupuesto">
         <div className="space-y-4 text-left">
-          <p className="text-[9px] text-slate-500 uppercase tracking-widest">Selecciona un proyecto para extraer sus materiales presupuestados y crearlos en inventario por renglón.</p>
-          <div>
-            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
-            <select value={selectedProjectForGen} title="Seleccionar proyecto" onChange={e => { setSelectedProjectForGen(e.target.value); setForcePerRenglon(false); }}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary">
+          <p className="text-[9px] text-p-500 uppercase tracking-widest">Selecciona un proyecto para extraer sus materiales presupuestados y crearlos en inventario por renglón.</p>
+          <div className="space-y-1">
+            <label className="label">Proyecto</label>
+            <select value={selectedProjectForGen} title="Seleccionar proyecto" onChange={e => { setSelectedProjectForGen(e.target.value); setForcePerRenglon(false); }} className="select">
               <option value="">Seleccionar proyecto...</option>
-              {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           {selectedProjectForGen && items.some(i => i.projectId === selectedProjectForGen && !i.itemId) && (
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" checked={forcePerRenglon} onChange={e => setForcePerRenglon(e.target.checked)}
-                className="rounded border-slate-300 text-secondary focus:ring-secondary" />
-              <span className="text-[9px] font-bold text-[var(--color-warning)]">Forzar creación por renglón (reemplaza registros agregados)</span>
+              <input type="checkbox" checked={forcePerRenglon} onChange={e => setForcePerRenglon(e.target.checked)} className="rounded border-p-300 text-accent focus:ring-accent/20" />
+              <span className="text-[9px] font-bold text-amber-600">Forzar creación por renglón (reemplaza registros agregados)</span>
             </label>
           )}
-          <button onClick={() => generateStockFromProject()} disabled={!selectedProjectForGen || generatingStock}
-            className="w-full bg-[var(--color-success)] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-success)] disabled:opacity-50 transition-all">
-            {generatingStock ? 'Generando...' : 'Generar Materiales'}
-          </button>
+          <Button onClick={() => generateStockFromProject()} disabled={!selectedProjectForGen || generatingStock} isLoading={generatingStock} className="w-full bg-green-600 hover:bg-green-700 text-white">
+            Generar Materiales
+          </Button>
         </div>
       </Modal>
 
@@ -1324,31 +1201,28 @@ const createPurchaseOrder = async () => {
       <Modal isOpen={isOCModalOpen} onClose={() => setIsOCModalOpen(false)} title="Nueva Orden de Compra">
         <div className="space-y-4 text-left">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
-              <select value={ocForm.projectId} title="Seleccionar proyecto" onChange={e => setOcForm(f => ({ ...f, projectId: e.target.value, selectedItemId: '' }))}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
+            <div className="space-y-1">
+              <label className="label">Proyecto</label>
+              <select value={ocForm.projectId} title="Seleccionar proyecto" onChange={e => setOcForm(f => ({ ...f, projectId: e.target.value, selectedItemId: '' }))} className="select">
                 <option value="">Seleccionar...</option>
-                {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                {projects.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
-            <div>
-              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proveedor</label>
-              <select value={ocForm.supplierId} title="Seleccionar proveedor" onChange={e => setOcForm(f => ({ ...f, supplierId: e.target.value }))}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
+            <div className="space-y-1">
+              <label className="label">Proveedor</label>
+              <select value={ocForm.supplierId} title="Seleccionar proveedor" onChange={e => setOcForm(f => ({ ...f, supplierId: e.target.value }))} className="select">
                 <option value="">Seleccionar...</option>
-                {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                {suppliers.map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
             </div>
           </div>
 
           {ocForm.projectId && (() => {
-            const project = projects.find(p => p.id === ocForm.projectId);
+            const project = projects.find((p: any) => p.id === ocForm.projectId);
             return (
-              <div>
-                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Renglón</label>
-                <select value={ocForm.selectedItemId} title="Seleccionar renglón" onChange={e => setOcForm(f => ({ ...f, selectedItemId: e.target.value }))}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
+              <div className="space-y-1">
+                <label className="label">Renglón</label>
+                <select value={ocForm.selectedItemId} title="Seleccionar renglón" onChange={e => setOcForm(f => ({ ...f, selectedItemId: e.target.value }))} className="select">
                   <option value="">Seleccionar renglón...</option>
                   {(project?.items || []).map((it: any) =>
                     <option key={it.id} value={it.id}>{it.code} - {it.description}</option>
@@ -1363,7 +1237,7 @@ const createPurchaseOrder = async () => {
             const item = (project?.items || []).find((it: any) => it.id === ocForm.selectedItemId);
             return (
               <div>
-                <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">
+                <label className="label">
                   Materiales de {item?.code} — {item?.description}
                 </label>
                 <div className="max-h-32 overflow-y-auto space-y-1 border border-slate-100 rounded-xl p-2">
@@ -1416,7 +1290,7 @@ const createPurchaseOrder = async () => {
           {/* Items de la OC */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Materiales en OC</label>
+              <label className="label">Materiales en OC</label>
               <button type="button" onClick={() => setOcForm(f => ({ ...f, items: [...f.items, { materialName: '', unit: 'U', qty: 1, unitPrice: 0, total: 0 }] }))}
                 className="flex items-center gap-1 text-[8px] font-black text-[var(--color-info)] hover:text-[var(--color-info)] uppercase">
                 <Plus size={10}/> Manual
@@ -1430,16 +1304,16 @@ const createPurchaseOrder = async () => {
                       {oi.itemName}
                     </span>
                   )}
-                  <input title="Nombre del material" className="col-span-4 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input title="Nombre del material" className="input col-span-4"
                     placeholder="Material" value={oi.materialName}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], materialName: e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <input title="Unidad de medida" className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input title="Unidad de medida" className="input col-span-2"
                     placeholder="Unidad" value={oi.unit}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unit: e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <input type="number" title="Cantidad" className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input type="number" title="Cantidad" className="input col-span-2"
                     placeholder="Cant." value={oi.qty || ''}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], qty: +e.target.value, total: +e.target.value * it[i].unitPrice }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <input type="number" title="Precio unitario" className="col-span-3 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input type="number" title="Precio unitario" className="input col-span-3"
                     placeholder="P.Unit Q" value={oi.unitPrice || ''}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unitPrice: +e.target.value, total: it[i].qty * +e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
                   <button type="button" title="Eliminar material" onClick={() => setOcForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
@@ -1449,46 +1323,32 @@ const createPurchaseOrder = async () => {
             </div>
           </div>
 
-          <div>
-            <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
-            <textarea value={ocForm.notes} title="Notas de la orden" onChange={e => setOcForm(f => ({ ...f, notes: e.target.value }))}
-              className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none resize-none" rows={2} />
+          <div className="space-y-1">
+            <label className="label">Notas</label>
+            <textarea value={ocForm.notes} title="Notas de la orden" onChange={e => setOcForm(f => ({ ...f, notes: e.target.value }))} className="textarea" rows={2} />
           </div>
 
-          <div className="flex justify-between items-center pt-2 border-t border-slate-100">
+          <div className="flex justify-between items-center pt-2 border-t border-p-100">
             <span className="text-[10px] font-black text-primary">Total: Q {ocForm.items.reduce((a, i) => a + i.total, 0).toLocaleString()}</span>
-            <button onClick={createPurchaseOrder}
-              className="px-6 py-2.5 bg-[var(--color-info)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-info)] transition-all">
+            <Button onClick={createPurchaseOrder} variant="default" size="sm">
               Crear Orden
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>
 
       {bulkMode && activeTab === 'stock' && selectedItemIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-modal flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedItemIds.size} seleccionado(s)</span>
-          <button type="button" onClick={handleBulkDeleteItems}
-            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
-            Eliminar
-          </button>
-          <button type="button" title="Cerrar selección" onClick={() => setSelectedItemIds(new Set())}
-            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
-            <X size={14} />
-          </button>
+          <button type="button" onClick={handleBulkDeleteItems} className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">Eliminar</button>
+          <button type="button" onClick={() => setSelectedItemIds(new Set())} aria-label="Cancelar selección" className="p-1.5 hover:bg-white/20 rounded-lg transition-all"><X size={14} /></button>
         </div>
       )}
       {bulkMode && activeTab === 'orders' && selectedOrderIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-modal flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedOrderIds.size} seleccionado(s)</span>
-          <button type="button" onClick={handleBulkDeleteOrders}
-            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
-            Eliminar
-          </button>
-          <button type="button" title="Cerrar selección" onClick={() => setSelectedOrderIds(new Set())}
-            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
-            <X size={14} />
-          </button>
+          <button type="button" onClick={handleBulkDeleteOrders} className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">Eliminar</button>
+          <button type="button" onClick={() => setSelectedOrderIds(new Set())} aria-label="Cancelar selección" className="p-1.5 hover:bg-white/20 rounded-lg transition-all"><X size={14} /></button>
         </div>
       )}
     </div>

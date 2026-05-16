@@ -4,7 +4,7 @@ import { cn } from '../../utils/cn';
 import {
   ChevronLeft, ChevronDown,
   LayoutDashboard, ClipboardList, Building2, Users, Truck, Package, HardHat,
-  BarChart3, TrendingUp, Calendar, GitBranch, LineChart, Sparkles, HelpCircle
+  BarChart3, TrendingUp, Calendar, GitBranch, LineChart, Sparkles, HelpCircle, Settings
 } from "lucide-react";
 
 const dotColorMap: Record<string, string> = {
@@ -172,6 +172,14 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
         { id: "seguimiento", label: "Seguimiento", icon: <TrendingUp size={18} /> },
       ],
     },
+    {
+      title: "Sistema",
+      defaultOpen: false,
+      items: [
+        { id: "ai", label: "Asistente IA", icon: <Sparkles size={18} /> },
+        { id: "settings", label: "Ajustes", icon: <Settings size={18} /> },
+      ],
+    },
   ];
 
   return (
@@ -218,22 +226,6 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
           </NavGroup>
         ))}
 
-        {/* Bottom spacer */}
-        <div className="mt-6" />
-
-        {/* Extra utility items when expanded */}
-        {!isCollapsed && (
-          <div className="space-y-0.5">
-            <button className="sidebar-item opacity-60 hover:opacity-100">
-              <HelpCircle size={16} />
-              Ayuda y Soporte
-            </button>
-            <button className="sidebar-item opacity-60 hover:opacity-100">
-              <Sparkles size={16} />
-              Asistente IA
-            </button>
-          </div>
-        )}
       </div>
 
       {/* Collapse Toggle */}

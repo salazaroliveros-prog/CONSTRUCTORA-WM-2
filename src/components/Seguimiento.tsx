@@ -16,6 +16,7 @@ import {
 } from 'recharts';
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Building2, FileDown, Calendar } from 'lucide-react';
 import { generateProgressReport } from '../lib/reportEngine';
+import { Button } from './ui/button';
 
 function pct(n: number) { return Math.min(100, Math.max(0, Math.round(n))); }
 
@@ -142,20 +143,21 @@ export default function Seguimiento() {
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
             title="Filtrar por proyecto"
-            className="flex-1 md:w-56 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black uppercase focus:outline-none focus:border-[var(--color-accent)] shadow-sm"
+            className="select"
           >
             <option value="ALL">TODOS LOS PROYECTOS EN EJECUCION</option>
             {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
           </select>
 {selected && (
-              <button
+              <Button
                 onClick={() => generateProgressReport(selected, undefined, allTransactions)}
-                className="flex items-center gap-2 bg-slate-900 text-white px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all active:scale-95"
+                variant="default"
+                size="sm"
               >
-               <FileDown size={14} className="text-secondary" />
+               <FileDown size={14} />
                <span className="hidden sm:inline">Informe PDF</span>
-             </button>
-           )}
+             </Button>
+            )}
         </div>
       </div>
 

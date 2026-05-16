@@ -58,9 +58,43 @@ El sistema offline-first (Dexie.js, SyncEngine, RealtimeSync) fue eliminado. La 
 
 ---
 
+## Type System (Unified — `src/models/` is the single source of truth)
+
+> La migración del sistema de tipos duales está **completa** (2026-05-16). Todos los tipos de dominio viven `src/models/`. `src/constants.ts` es un hub de re-exportación que mantiene compatibilidad con imports legacy.
+
+### Archivos de modelo
+
+| Archivo | Tipos |
+|---|---|
+| `src/models/engineering.ts` | `Typology` (enum), `ProjectStatus`, `FinancialConfig`, `EngineeringConstants`, `Dimensions`, `ComputationType`, `TopographyParams` |
+| `src/models/project.ts` | `ProjectDocument`, `Project`, `ProjectItem`, `ProjectSummary`, `CreateProjectInput` |
+| `src/models/client.ts` | `ClientDocument`, `Client` (legacy), `TerrainData`, `ClientSummary`, `EmergencyContact` |
+| `src/models/budget.ts` | `BudgetLineDocument`, `LineCalcResult`, `BudgetTotals`, `ScheduleEstimate`, `Deviation`, `CalcInput`, `CalcOutput` |
+| `src/models/workItem.ts` | `Material`, `Labor`, `WorkItem` |
+| `src/models/staff.ts` | `StaffMember` |
+| `src/models/transaction.ts` | `Transaction` |
+| `src/models/warehouse.ts` | `WarehouseItem`, `WarehouseMovement` |
+| `src/models/payroll.ts` | `Payroll`, `PayrollEmployee` |
+| `src/models/purchaseOrder.ts` | `PurchaseOrder`, `PurchaseOrderItem` |
+| `src/models/supplier.ts` | `Supplier` |
+| `src/models/log.ts` | `LogEntry` |
+
+### Import paths (mantenidos para compatibilidad)
+
+```ts
+// ✅ Preferido — importar del barrel de modelos:
+import { Project, StaffMember, Client, Typology } from '../models';
+
+// ✅ Legacy — sigue funcionando (re-exportado desde constants.ts):
+import { Project, StaffMember, Client, Typology } from '../constants';
+
+// ⚠️ BudgetLine es type alias → usar BudgetLineDocument:
+import { BudgetLineDocument } from '../models/budget';
+```
+
 ## TypeScript — Critical Gotchas
 
-1. **`BudgetLine` type alias is a trap.** `src/models/budget.ts:464` — `export type BudgetLine = BudgetLineDocument`. Constructing objects requires the full `BudgetLineDocument` shape, not `BudgetLine`.
+1. **`BudgetLine` type alias.** `src/models/budget.ts` — `export type BudgetLine = BudgetLineDocument`. Alias exists for backward compat in `constants.ts`. Use `BudgetLineDocument` for construction.
 
 2. **`Project.status` is a literal union, not `string`:**
    ```ts
@@ -68,13 +102,13 @@ El sistema offline-first (Dexie.js, SyncEngine, RealtimeSync) fue eliminado. La 
    ```
    Spreading a Firestore doc (`...project`) produces `status: string`, breaking type checks. Use `as any` on PDF calls in `reportEngine.ts`.
 
-3. **Two `Typology` enums exist** — `src/constants.ts` and `src/models/engineering.ts`. Identical values, different declarations. Imports must match the file's source — do not mix.
+3. **Typology enum is UNIFIED** — defined once in `models/engineering.ts`. Both `constants.ts` and `models/index.ts` re-export the same enum. No more duplicate declarations.
 
 4. **`ENGINEERING` constant** in `budgetEngine.ts` lacks `as const`. Types come from explicit cast (`as SteelRatios`). Do not add `as const` or steel ratio assignments will break.
 
 5. **`budgetDataRaw.ts` circular import risk** — uses `import { BudgetLineDocument } from '../models/budget'` for type+value. If `models/budget.ts` ever re-exports something importing `budgetDataRaw`, it circulars. Keep the import type-only where possible.
 
-6. **Old `Project` (constants.ts) vs new model (models/project.ts).** Legacy has `items: ProjectItem[]`, `marketLevel`, `slabType`, `area`. Report engine (`reportEngine.ts`) bridges both.
+6. **`Project` (legacy) vs `ProjectDocument` (new).** Both coexist in `models/project.ts`. Legacy has `items: ProjectItem[]`, `marketLevel`, `slabType`, `area` + from `constants.ts` re-export. Report engine (`reportEngine.ts`) bridges both.
 
 7. **`financialConfig` vs individual params.** `FinancialConfig` (in `engineering.ts`) is used in `CalcInput`, but many engine functions accept `indirectCosts`, `adminCosts`, `personalCosts` individually. Do not confuse the two forms.
 
