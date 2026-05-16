@@ -73,16 +73,6 @@
   --color-sidebar-border: rgba(255, 255, 255, 0.04);
   --color-sidebar-accent: #f59e0b;
 
-  /* ─── Surfaces ─── */
-  --color-bg:           #f2f4f8;
-  --color-surface:      #ffffff;
-  --color-surface-alt:  #eef0f5;
-  --color-card:         #ffffff;
-  --color-nav:          rgba(255, 255, 255, 0.85);
-  --color-border:       #e4e9f0;
-  --color-border-light: rgba(228, 233, 240, 0.5);
-  --color-border-strong: #cdd3de;
-
   /* ─── Shadows (multi-layer, refined) ─── */
   --shadow-xs:   0 1px 2px rgba(12, 18, 34, 0.03);
   --shadow-sm:   0 1px 3px rgba(12, 18, 34, 0.04), 0 1px 2px rgba(12, 18, 34, 0.02);
@@ -105,8 +95,11 @@
   --ease-in:     cubic-bezier(0.4, 0, 1, 1);
   --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
 
-  /* ─── Global Design System: WM Constructora Core ─── */
+/* ──────────────────────────────────────────────────────
+   COMPONENTS
+   ────────────────────────────────────────────────────── */
 @layer components {
   /* Glassmorphism Card (Login + Dashboard Cards) */
   .glass-card {
@@ -117,6 +110,168 @@
     border-radius: 24px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
+
+  /* Standardized Form Inputs */
+  .glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--color-p-900);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  .glass-input:focus {
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  }
+
+  /* Global Page Container */
+  .page-layout {
+    min-height: 100vh;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
+
+/* ──────────────────────────────────────────────────────
+   BASE
+   ────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background: var(--color-bg);
+    color: var(--color-p-800);
+  }
+
+  *:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--color-accent), 0 0 0 4px var(--color-accent-soft);
+    border-radius: 3px;
+  }
+
+  ::selection { background: rgba(245, 158, 11, 0.2); color: var(--color-p-900); }
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--color-p-300); border-radius: 8px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--color-p-400); }
+
+  img { max-width: 100%; height: auto; display: block; }
+  a { color: inherit; text-decoration: none; }
+}
+
+/* ── Navigation System v2 (Cinematic) ── */
+#page-container {
+  position: relative;
+  transition: 1s all cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 100vh;
+  z-index: 1;
+}
+
+#page-container.menu-open {
+  opacity: 0.3;
+  filter: blur(40px) saturate(1.5);
+  transform: scale(0.92);
+  pointer-events: none;
+}
+
+.nav-glass {
+  background-color: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item-minimal {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  display: block;
+  padding: 10px 20px;
+  line-height: 1;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: lowercase;
+  transition: 0.4s all cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.burger-btn {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 70px;
+  height: 70px;
+  border-radius: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: 0.5s all cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.burger-btn span {
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  display: block;
+  transition: 0.4s all ease;
+}
+
+.full-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+
+/* Clases de componentes fuera del bloque @theme */
+@layer components {
+  .glass-card {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  }
+
+  .glass-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--color-p-900);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    outline: none;
+  }
+  .glass-input:focus {
+    border-color: var(--color-accent);
+    background: rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.2);
+  }
+
+  .page-layout {
+    min-height: 100vh;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+}
 
   /* Standardized Form Inputs */
   .glass-input {
