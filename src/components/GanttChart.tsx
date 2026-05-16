@@ -110,7 +110,7 @@ const TaskBar = React.memo(function TaskBar({
         className={cn(
           'absolute rounded overflow-hidden cursor-grab active:cursor-grabbing z-10',
           task.isCritical
-            ? 'bg-linear-to-r from-[var(--color-error-bg)]0 to-red-600'
+            ? 'bg-linear-to-r from-[var(--color-error-bg)] to-red-600'
             : task.progress === 100
               ? 'bg-linear-to-r from-emerald-500 to-emerald-600'
               : 'bg-linear-to-r from-blue-500 to-blue-600'
@@ -894,7 +894,7 @@ export default function GanttChart() {
       <div className="flex items-center gap-3 shrink-0 px-1 flex-wrap">
         <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Barras:</span>
         {[
-          { color: 'bg-linear-to-r from-[var(--color-error-bg)]0 to-red-600',         label: 'Ruta crítica' },
+          { color: 'bg-linear-to-r from-[var(--color-error-bg)] to-red-600',         label: 'Ruta crítica' },
           { color: 'bg-linear-to-r from-blue-500 to-blue-600',       label: 'Normal'       },
           { color: 'bg-linear-to-r from-emerald-500 to-emerald-600', label: 'Completada'   },
           { color: 'bg-slate-300/70 border border-dashed border-slate-400/50', label: 'Holgura' },
@@ -1355,7 +1355,7 @@ export default function GanttChart() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.05 }}
-                className="px-3 py-1.5 bg-linear-to-r from-[var(--color-error-bg)]0 to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
+                className="px-3 py-1.5 bg-linear-to-r from-[var(--color-error-bg)] to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
               >
                 {t.name.length > 25 ? t.name.substring(0, 25) + '...' : t.name}
                 <span className="ml-2 opacity-75">{t.duration}d</span>

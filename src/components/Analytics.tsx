@@ -1008,8 +1008,8 @@ data={[
                         animate={{ width: `${project.completeness}%` }}
                         transition={{ duration: 0.8, delay: i * 0.1 }}
                         className={`h-full rounded-full ${
-                          project.completeness >= 80 ? 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]0' :
-                          project.completeness >= 50 ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)]0' : 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]0'
+                          project.completeness >= 80 ? 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]' :
+                          project.completeness >= 50 ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]'
                         }`}
                       />
                     </div>

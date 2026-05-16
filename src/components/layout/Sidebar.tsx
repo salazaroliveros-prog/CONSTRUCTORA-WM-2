@@ -40,6 +40,7 @@ const iconColorMap: Record<string, string> = {
 };
 
 interface NavItemProps {
+  id: string;
   icon: React.ReactNode;
   label: string;
   isActive?: boolean;
@@ -48,10 +49,9 @@ interface NavItemProps {
   onClick: () => void;
 }
 
-function NavItem({ icon, label, isActive, isCollapsed, onClick }: NavItemProps) {
-  const key = label.toLowerCase();
-  const dotColor = dotColorMap[key] || "bg-amber-500";
-  const iconColor = iconColorMap[key] || "text-amber-400";
+function NavItem({ id, icon, label, isActive, isCollapsed, onClick }: NavItemProps) {
+  const dotColor = dotColorMap[id] || "bg-amber-500";
+  const iconColor = iconColorMap[id] || "text-amber-400";
   return (
     <div className="relative">
       <button
@@ -176,7 +176,7 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
       title: "Sistema",
       defaultOpen: false,
       items: [
-        { id: "ai", label: "Asistente IA", icon: <Sparkles size={18} /> },
+        { id: "ai", label: "Calc. Presupuestos", icon: <Sparkles size={18} /> },
         { id: "settings", label: "Ajustes", icon: <Settings size={18} /> },
       ],
     },
@@ -216,6 +216,7 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
             {group.items.map((item) => (
               <NavItem
                 key={item.id}
+                id={item.id}
                 icon={item.icon}
                 label={item.label}
                 isActive={activeTab === item.id}

@@ -100,7 +100,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     { id: 'staff',       label: 'Recursos Humanos',    labelMobile: 'RRHH',     icon: <Users size={18} />,          iconMobile: <Users size={18} />, priority: 3 },
     { id: 'clients',     label: 'Clientes',            labelMobile: 'Clientes', icon: <Users size={18} />,           iconMobile: <Users size={18} />, priority: 3 },
     { id: 'analytics',   label: 'Analíticas',          labelMobile: 'Analít.',  icon: <BarChart3 size={18} />,      iconMobile: <BarChart3 size={18} />, priority: 3 },
-    { id: 'ai',          label: 'Asistente IA',        labelMobile: 'IA',       icon: <Sparkles size={18} />,       iconMobile: <Sparkles size={18} />, priority: 4 },
+    { id: 'ai',          label: 'Calculadora de Presupuestos', labelMobile: 'Calc.',  icon: <Sparkles size={18} />,       iconMobile: <Sparkles size={18} />, priority: 4 },
     { id: 'settings',    label: 'Ajustes',             labelMobile: 'Ajustes',  icon: <Settings size={18} />,       iconMobile: <Settings size={18} />, priority: 4 },
   ];
 
@@ -222,24 +222,37 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
           {/* AI */}
           <div className="relative">
-            <button onClick={() => setShowAI(v => !v)} className="p-2 rounded-lg hover:bg-p-100 text-p-500 hover:text-p-700 transition-all" title="Asistente IA">
+            <button onClick={() => setShowAI(v => !v)} className="p-2 rounded-lg hover:bg-p-100 text-p-500 hover:text-p-700 transition-all" title="Calculadora de Presupuestos">
               {showAI ? <X size={15} /> : <Sparkles size={15} className="text-purple-500" />}
             </button>
             <AIFloatingButton variant="inline" open={showAI} onOpenChange={setShowAI} setActiveTab={setActiveTab} />
           </div>
 
-          {/* Avatar */}
+          {/* Avatar & Logout */}
           <div className="flex items-center gap-2 pl-2 border-l border-p-200">
             <div className="hidden sm:block text-right">
               <p className="text-[9px] font-black text-primary uppercase leading-none">{user?.displayName || 'Usuario'}</p>
               <p className="text-[7px] font-bold text-p-500 mt-0.5 tracking-widest uppercase">Admin</p>
             </div>
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-brand flex items-center justify-center text-white text-[10px] font-bold cursor-pointer active:scale-95 transition-transform ring-2 ring-white shadow-sm">
-              {user?.photoURL
-                ? <img src={user?.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                : null}
-              <span className="uppercase" hidden={!!user?.photoURL}>{user?.displayName?.charAt(0) || 'U'}</span>
+            <div className="group relative">
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-brand flex items-center justify-center text-white text-[10px] font-bold cursor-pointer active:scale-95 transition-transform ring-2 ring-white shadow-sm">
+                {user?.photoURL
+                  ? <img src={user?.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer"
+                      onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  : null}
+                <span className="uppercase" hidden={!!user?.photoURL}>{user?.displayName?.charAt(0) || 'U'}</span>
+              </div>
+              
+              {/* Dropdown Logout (hover or click) */}
+              <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-p-200 rounded-xl shadow-modal opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all z-50 overflow-hidden">
+                <button 
+                  onClick={() => signOut()}
+                  className="w-full flex items-center gap-2 px-4 py-3 text-[10px] font-black text-error uppercase tracking-widest hover:bg-red-50 transition-colors"
+                >
+                  <LogOut size={14} />
+                  Cerrar Sesión
+                </button>
+              </div>
             </div>
           </div>
         </div>

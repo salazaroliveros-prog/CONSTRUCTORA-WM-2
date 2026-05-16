@@ -178,7 +178,7 @@ export default function AIAssistant() {
   const totalRecords = Object.values(contextSummary).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-3.5rem) overflow-hidden">
+    <div className="flex flex-col h-full max-h-[calc(100vh-3.5rem)] overflow-hidden">
       {/* Header */}
       <div className="shrink-0 px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
@@ -187,13 +187,13 @@ export default function AIAssistant() {
               <Sparkles size={18} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-(--color-primary) uppercase tracking-tight">Asistente IA</h2>
+              <h2 className="text-lg font-black text-(--color-primary) uppercase tracking-tight">Calculadora de Presupuestos</h2>
               <p className="text-[9px] font-bold text-(--color-neutral-400) uppercase tracking-widest">
-                Informes y análisis con inteligencia artificial
+                Presupuestos, informes y análisis con IA
               </p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent) border border-[color-mix(in_srgb,var(--color-secondary)_20%,transparent) rounded-xl">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-secondary)_20%,transparent)] rounded-xl">
             <div className="status-dot status-dot-blue" />
 <span className="text-[9px] font-black uppercase tracking-widest text-(--color-secondary-dark)">
                {totalRecords} registros cargados
@@ -216,7 +216,7 @@ export default function AIAssistant() {
             <div className="bg-(--color-surface-solid)/60 border border-(--color-neutral-200) rounded-2xl p-5 flex gap-4">
               <div className="icon-box icon-gradient-purple w-9 h-9 shrink-0"><Bot size={16} /></div>
               <div>
-                <p className="text-[13px] font-bold text-(--color-primary) mb-1">¡Hola! Soy tu asistente de informes.</p>
+                <p className="text-[13px] font-bold text-(--color-primary) mb-1">¡Hola! Soy tu calculadora de presupuestos.</p>
                 <p className="text-[12px] text-(--color-neutral-500)">
                   Tengo acceso en tiempo real a todos los datos del sistema. Puedo generar informes, analizar tendencias,
                   calcular métricas y responder preguntas sobre proyectos, finanzas, inventario y más.
@@ -228,7 +228,7 @@ export default function AIAssistant() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SUGGESTIONS.map((s, i) => (
                   <button key={i} onClick={() => sendMessage(s)} disabled={isLoading}
-                    className="text-left px-4 py-3 bg-white /60 border border-(--color-neutral-200) rounded-xl text-[11px] text-(--color-neutral-600) hover:border-(--color-secondary) hover:bg-[color-mix(in_srgb,var(--color-secondary)_5%,transparent) transition-all disabled:opacity-50 group">
+                    className="text-left px-4 py-3 bg-white/60 border border-(--color-neutral-200) rounded-xl text-[11px] text-(--color-neutral-600) hover:border-(--color-secondary) hover:bg-[color-mix(in_srgb,var(--color-secondary)_5%,transparent)] transition-all disabled:opacity-50 group">
                     <Sparkles size={10} className="inline mr-1.5 text-(--color-secondary) group-hover:text-(--color-secondary-dark)" />
                     {s}
                   </button>
@@ -242,7 +242,7 @@ export default function AIAssistant() {
               <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${msg.role === 'user' ? 'bg-(--color-neutral-800) text-white' : 'icon-box icon-gradient-purple'}`}>
                 {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
               </div>
-              <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-(--color-neutral-800) text-white rounded-tr-sm' : 'bg-white /80 border border-(--color-neutral-200) rounded-tl-sm'}`}>
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-(--color-neutral-800) text-white rounded-tr-sm' : 'bg-white/80 border border-(--color-neutral-200) rounded-tl-sm'}`}>
                 {msg.role === 'user' ? (
                   <p className="text-[13px]">{msg.content}</p>
                 ) : (
@@ -275,7 +275,7 @@ export default function AIAssistant() {
             onChange={e => setInput(e.target.value)}
             placeholder="Pide un informe, análisis o consulta sobre tus datos..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-white border border-(--color-neutral-200) rounded-xl text-[13px] text-(--color-neutral-800) placeholder:text-(--color-neutral-400) focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_30%,transparent) focus:border-(--color-secondary) transition-all disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-white border border-(--color-neutral-200) rounded-xl text-[13px] text-(--color-neutral-800) placeholder:text-(--color-neutral-400) focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_30%,transparent)] focus:border-(--color-secondary) transition-all disabled:opacity-50"
           />
           <button type="submit" disabled={isLoading || !input.trim()}
             className="px-4 py-3 bg-(--color-neutral-800) text-white rounded-xl hover:bg-(--color-neutral-900) transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">

@@ -60,79 +60,9 @@ import { calculateFullProject } from '../engine/budgetEngine';
 
 import { sanitizeString } from '../utils/sanitize';
 import { trackCRUD, trackEvent } from '../utils/logger';
+import { CustomTooltip, EditableSubRow } from './Projects/ProjectItemEditor';
+import { ProjectCard } from './Projects/ProjectCard';
 
-function CustomTooltip({ active, payload, label }: any) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[var(--color-surface-solid)]/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-30">
-      {label && <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">{label}</p>}
-      {payload.map((entry: any, i: number) => (
-        <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
-          <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-[10px] font-black text-[var(--color-neutral-50)]">Q{Number(entry.value).toLocaleString()}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-
-// ── Editable sub-row for materials and labor ─────────────────────────────────
-interface SubRowField { key: string; label: string; value: any; type: 'text' | 'number'; small?: boolean; }
-function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
-  fields: SubRowField[];
-  totalQty: number;
-  totalPrice: number;
-  onSave: (data: Record<string, any>) => void;
-  onDelete: () => void;
-}) {
-  const [editing, setEditing] = React.useState(false);
-  const [form, setForm] = React.useState<Record<string, any>>(() =>
-    Object.fromEntries(fields.map(f => [f.key, f.value]))
-  );
-  const handleSave = () => {
-    toast('Guardar cambios?', {
-      description: String(form[fields[0].key] || ''),
-      action: { label: 'Confirmar', onClick: () => { onSave(form); setEditing(false); } },
-      cancel: { label: 'Cancelar', onClick: () => {} }
-    });
-  };
-  if (editing) {
-    return (
-      <div className="bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)] rounded-xl p-2 space-y-1.5">
-        <div className="grid grid-cols-2 gap-1.5">
-          {fields.map(f => (
-<div key={f.key} className={f.small ? '' : 'col-span-2'}>
-               <label className="label" htmlFor={`field-${f.key}`}>{f.label}</label>
-               <input id={`field-${f.key}`} name={f.key} type={f.type} value={form[f.key]} step={f.type === 'number' ? '0.01' : undefined} inputMode={f.type === 'number' ? 'decimal' : undefined} autoComplete="off"
-                 onChange={e => setForm({ ...form, [f.key]: f.type === 'number' ? parseFloat(e.target.value) || 0 : e.target.value })}
-                 className="input" />
-             </div>
-          ))}
-        </div>
-        <div className="flex gap-1.5">
-<Button variant="outline" size="sm" onClick={() => setEditing(false)} className="flex-1">Cancelar</Button>
-            <Button variant="default" size="sm" onClick={handleSave} className="flex-1">Guardar</Button>
-        </div>
-      </div>
-    );
-  }
-  return (
-    <div className="flex justify-between items-center bg-[var(--color-surface-solid)] p-2 rounded-xl border border-[var(--color-neutral-100)] shadow-sm group/sub">
-      <div className="min-w-0 flex-1">
-        <p className="text-[9px] font-black text-[var(--color-primary)] uppercase truncate">{fields[0].value}</p>
-        <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{totalQty.toLocaleString(undefined, {maximumFractionDigits:2})} {fields[1]?.value} · Q {fields[2]?.value}/u</p>
-      </div>
-      <div className="flex items-center gap-1 shrink-0">
-        <div className="text-right mr-1">
-          <p className="text-[9px] font-black text-[var(--color-neutral-600)]">Q {totalPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</p>
-        </div>
-<button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} aria-label="Editar ítem" className="btn-edit opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
-         <button onClick={onDelete} aria-label="Eliminar ítem" className="btn-delete opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
-      </div>
-    </div>
-  );
-}
 export default function ProjectsModule() {
   const [view, setView] = useState<'list' | 'create'>('list');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'kanban'>('grid');
@@ -482,82 +412,6 @@ const addItem = async () => {
 
 
 
-const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any }) => (
-     <motion.div
-       initial={{ opacity: 0, y: 10 }}
-       animate={{ opacity: 1, y: 0 }}
-       onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-       className={`bg-[var(--color-surface-solid)]  rounded-xl sm:rounded-2xl border border-[var(--color-neutral-200)]  shadow-sm  overflow-hidden hover:shadow-lg hover:border-secondary/50 transition-all cursor-pointer group flex flex-col h-full interactive-card shimmer-effect relative ${selectedProjectIds.has(project.id) ? "ring-2 ring-red-500" : ""}`}
-     >
-       {bulkMode && (
-         <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
-            <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)} title="Seleccionar proyecto"
-              className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
-         </div>
-       )}
-       <div className="p-4 space-y-3 flex-1">
-         <div className="flex justify-between items-start">
-           <div className="w-10 h-10 rounded-xl bg-[var(--color-neutral-900)] border border-slate-800 flex items-center justify-center text-[var(--color-secondary)] group-hover:scale-105 transition-transform duration-300 icon-box icon-gradient-blue">
-             <Building2 size={20} />
-           </div>
-           <div className="flex flex-col items-end sm:items-end">
-             <span className={cn(
-               "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest",
-               project.status === 'EJECUCION' ? "bg-[var(--color-secondary)] text-[var(--color-primary)]" :
-               project.status === 'COTIZACION' ? "bg-[var(--color-info)] text-[var(--color-neutral-50)]" :
-               "bg-[var(--color-success)] text-[var(--color-neutral-50)]"
-             )}>
-               {project.status}
-             </span>
-             <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] mt-1 uppercase tracking-tighter">Cód: {project.id.slice(-6).toUpperCase()}</span>
-           </div>
-         </div>
-
-         <div className="space-y-0.5">
-           <h3 className="text-[10px] sm:text-xs font-black text-[var(--color-primary)] uppercase tracking-tight line-clamp-1 group-hover:text-[var(--color-secondary)] transition-colors italic">{project.name}</h3>
-           <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest truncate">{project.clientName}</p>
-         </div>
-
-         <div className="pt-2 space-y-1.5 border-t border-slate-50">
-           <div className="flex justify-between items-end">
-             <span className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Progreso</span>
-             <div className="flex items-center gap-1">
-               {project.status === 'EJECUCION' && (new Date().getTime() - new Date(project.startDate).getTime()) / (new Date(project.endDate || project.startDate).getTime() - new Date(project.startDate).getTime() || 1) > 0.1 && (project.progress || 0) < 10 && (
-                  <span title="Progreso atrasado respecto al tiempo transcurrido"><AlertCircle size={10} className="text-[var(--color-error)] animate-pulse" /></span>
-               )}
-               <span className="text-[9px] font-black text-[var(--color-primary)]">{project.progress || 0}%</span>
-               <div className="w-1 h-1 rounded-full bg-[var(--color-secondary)] animate-pulse" />
-             </div>
-           </div>
-           <div className="h-1.5 bg-[var(--color-neutral-100)]  rounded-full overflow-hidden w-full relative">
-             <motion.div
-               initial={{ width: 0 }}
-               animate={{ width: `${project.progress || 0}%` }}
-               className={cn(
-                 "h-full rounded-full transition-all duration-1000 relative z-10",
-                 project.status === 'EJECUCION' ? "bg-[var(--color-secondary)]" : "bg-slate-400"
-               )}
-             />
-           </div>
-         </div>
-       </div>
-
-       <div className="px-4 py-3 bg-[var(--color-neutral-50)]/50 border-t border-slate-50 flex justify-between items-center mt-auto">
-         <div className="flex flex-col">
-           <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Presupuesto</span>
-           <span className="text-[11px] font-black text-[var(--color-primary)] italic leading-none">Q {(project.budget || 0).toLocaleString()}</span>
-         </div>
-          <button
-            onClick={(e) => handleDelete(e, project.id)}
-            aria-label="Eliminar proyecto"
-            className="p-1.5 text-slate-300 hover:text-[var(--color-error)] hover:bg-[var(--color-error-bg)] rounded-lg transition-all"
-          >
-            <Trash2 size={14} />
-          </button>
-       </div>
-     </motion.div>
-   ));
-
   const toggleItemExpansion = (itemId: string) => {
     setExpandedItems(prev => 
       prev.includes(itemId) ? prev.filter(id => id !== itemId) : [...prev, itemId]
@@ -687,17 +541,10 @@ return (
                  <button
                   onClick={() => setViewMode('grid')}
                   title="Vista de Cuadrícula"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-[var(--color-surface-solid)]  text-[var(--color-neutral-900)]  shadow-sm " : "text-[var(--color-neutral-400)]  hover:text-[var(--color-neutral-600)] ")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-[var(--color-surface-solid)] text-[var(--color-neutral-900)] shadow-sm" : "text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)]")}
                  >
-                  <ListFilter size={15} />
-                </button>
-                <button
-                 onClick={() => setViewMode('grid')}
-                 title="Vista de Cuadrícula"
-                 className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-[var(--color-surface-solid)] text-[var(--color-neutral-900)] shadow-sm" : "text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)]")}
-                >
-                  <LayoutGrid size={15} />
-                </button>
+                   <LayoutGrid size={15} />
+                 </button>
               </div>
 
                 <button
@@ -847,7 +694,14 @@ return (
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: i * 0.06, ease: 'easeOut' }}
               >
-                <ProjectCard project={project} />
+                <ProjectCard
+                  project={project}
+                  bulkMode={bulkMode}
+                  selectedProjectIds={selectedProjectIds}
+                  onSelect={toggleSelectProject}
+                  onClick={(p) => setSelectedProject(p)}
+                  onDelete={handleDelete}
+                />
               </motion.div>
             ))}
         {viewMode === 'kanban' && (

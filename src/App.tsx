@@ -59,7 +59,7 @@ function LoadingSpinner() {
 // ── Login Screen ──
 function LoginScreen({ login }: { login: () => void }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden login-bg">
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 relative overflow-hidden login-bg">
       {/* Decorative elements */}
       <div className="absolute top-20 left-20 w-72 h-72 rounded-full login-deco-1" />
       <div className="absolute bottom-20 right-20 w-96 h-96 rounded-full login-deco-2" />
@@ -69,10 +69,22 @@ function LoginScreen({ login }: { login: () => void }) {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-sm relative z-10"
+        className="w-full max-w-lg relative z-10 flex flex-col sm:flex-row items-center gap-6 sm:gap-8"
       >
+        {/* Illustration from Freepik */}
+        <div className="hidden sm:block w-48 lg:w-56 shrink-0">
+          <img
+            src="/login-bg.jpg"
+            alt="Ilustración de inicio de sesión"
+            className="w-full h-auto opacity-90"
+          />
+          <p className="text-[7px] text-white/20 text-center mt-1 tracking-wider">
+            Designed by starline / Freepik
+          </p>
+        </div>
+
         {/* Glass card */}
-        <div className="rounded-2xl p-8 sm:p-10 login-glass-card">
+        <div className="rounded-2xl p-8 sm:p-10 login-glass-card w-full max-w-sm">
           {/* Logo */}
           <div className="flex justify-center mb-6">
             <img
@@ -467,8 +479,8 @@ function AppContent() {
     },
     {
       id: "ai",
-      label: "Asistente IA",
-      labelMobile: "IA",
+      label: "Calculadora de Presupuestos",
+      labelMobile: "Calc.",
       icon: (
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
@@ -576,6 +588,7 @@ function AppContent() {
               companyName="WM/M&S Constructora"
               breadcrumbs={[{ label: activeItem?.label || "Dashboard" }]}
               onToggleMobile={() => setMobileNavOpen(o => !o)}
+              onSignOut={signOut}
             />
           }
           mobileNav={

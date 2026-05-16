@@ -19,6 +19,7 @@ interface TopBarProps {
   companyName: string;
   breadcrumbs?: { label: string; href?: string }[];
   onToggleMobile?: () => void;
+  onSignOut?: () => void;
 }
 
 export function TopBar({
@@ -32,6 +33,7 @@ export function TopBar({
   companyName,
   breadcrumbs = [],
   onToggleMobile,
+  onSignOut,
 }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -158,11 +160,11 @@ export function TopBar({
           </button>
         </Tooltip>
 
-        <Tooltip content="Asistente IA">
+        <Tooltip content="Calculadora de Presupuestos">
           <button
             onClick={onOpenAI}
             className="relative p-2 rounded-lg transition-colors text-neutral-400 hover:text-accent hover:bg-accent/5 group"
-            aria-label="Asistente IA"
+            aria-label="Calculadora de Presupuestos"
           >
             <Sparkles size={16} className="group-hover:animate-pulse" />
             <motion.span
@@ -282,7 +284,7 @@ export function TopBar({
 
                 <div className="border-t border-border py-1">
                   <button
-                    onClick={() => {}}
+                    onClick={onSignOut}
                     className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error/5 transition-colors"
                   >
                     <LogOut size={15} />

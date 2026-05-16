@@ -119,8 +119,12 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
     const projects = context.projects || [];
     if (projects.length === 0) return;
     
-    const totalBudget = projects.reduce((sum: number, p: any) => sum + (p.presupuesto || 0), 0);
-    const totalSpent = projects.reduce((sum: number, p: any) => sum + (p.gastosActuales || 0), 0);
+    const totalBudget = projects.reduce((sum: number, p: any) => sum + (p.budget || 0), 0);
+    const totalSpent = projects.reduce((sum: number, p: any) => {
+      const budget = p.budget || 0;
+      const progress = p.progress || 0;
+      return sum + (budget * progress / 100);
+    }, 0);
     
     if (totalBudget <= 0) return;
     
@@ -204,11 +208,15 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
            health: budgetHealth,
            summary: {
              totalProjects: context.projects?.length || 0,
-             totalBudget: context.projects?.reduce((sum, p) => sum + (p.presupuesto || 0), 0) || 0,
-             totalSpent: context.projects?.reduce((sum, p) => sum + (p.gastosActuales || 0), 0) || 0,
-             averageVariance: context.projects?.length > 0 
-               ? context.projects.reduce((sum, p) => sum + (((p.gastosActuales || 0) - (p.presupuesto || 0)) / (p.presupuesto || 1) * 100), 0) / context.projects.length
-               : 0
+              totalBudget: context.projects?.reduce((sum, p) => sum + (p.budget || 0), 0) || 0,
+              totalSpent: context.projects?.reduce((sum, p) => sum + ((p.budget || 0) * (p.progress || 0) / 100), 0) || 0,
+              averageVariance: context.projects?.length > 0 
+                ? context.projects.reduce((sum, p) => {
+                    const budget = p.budget || 1;
+                    const spent = (p.budget || 0) * (p.progress || 0) / 100;
+                    return sum + ((spent - budget) / budget * 100);
+                  }, 0) / context.projects.length
+                : 0
            }
          }
        };
@@ -255,7 +263,7 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
           className="fixed bottom-[calc(5.5rem+env(safe-area-inset-bottom,0))] md:bottom-6 right-6 z-300 w-10 h-36 rounded-t-2xl shadow-2xl flex items-center justify-center bg-[linear-gradient(135deg,#8b5cf6,#6366f1)]"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          title="Asistente IA"
+          title="Calculadora de Presupuestos"
         >
           <AnimatePresence mode="wait">
             {open ? (
@@ -298,7 +306,7 @@ export default function AIFloatingButton({ setActiveTab, variant = 'fab', open: 
                   <Sparkles size={12} className="text-white" />
                 </div>
                  <div>
-                   <p className="text-[10px] font-black text-white uppercase tracking-widest">Asistente IA</p>
+                   <p className="text-[10px] font-black text-white uppercase tracking-widest">Calculadora de Presupuestos</p>
                    <div className="flex items-center gap-1 mt-0.5">
                      <p className="text-[8px] text-purple-400 uppercase tracking-widest">Gemini 2.0 Flash</p>
                      {budgetHealth && (
