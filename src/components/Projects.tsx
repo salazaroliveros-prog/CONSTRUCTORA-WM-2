@@ -41,7 +41,7 @@ import { Typology, Project, StaffMember, Client, Transaction } from '../constant
 import { calcRealDuration } from '../lib/ganttCPM';
 import AdvancedProjectCreator from './AdvancedProjectCreator';
 import { Modal } from './ui/Modal';
-import { Input } from './ui/input';
+import { FormGroup } from './ui/FormGroup';
 import { Button } from './ui/button';
 import { cn } from '../utils/cn';
 import { deleteDocument, updateDocument, parseError, generateProjectStock} from '../services/firestoreService';
@@ -1142,24 +1142,12 @@ return (
                     {addingItem ? (
                       <div className="border border-[var(--color-green-border)] bg-[var(--color-success-bg)] rounded-2xl p-4 space-y-3">
                         <p className="text-[9px] font-black text-[var(--color-success)] uppercase tracking-widest">Nuevo Renglon</p>
-                        <div className="grid grid-cols-2 gap-2">
-                          <div>
-                            <label className="label">Código</label>
-                            <input value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" className="input" />
-                          </div>
-                          <div>
-                            <label className="label">Unidad</label>
-                            <input value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." className="input" />
-                          </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <FormGroup label="Código" value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" />
+                          <FormGroup label="Unidad" value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." />
                         </div>
-                        <div>
-                          <label className="label">Descripción</label>
-                          <input value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripcion del renglon..." className="input" />
-                        </div>
-                        <div>
-                          <label className="label">Cantidad en Proyecto</label>
-                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" className="input" />
-                        </div>
+                        <FormGroup label="Descripción" value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripción del renglón..." />
+                        <FormGroup label="Cantidad en Proyecto" type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" />
 
                         {/* Materials sub-section */}
                         <div className="space-y-1.5">
