@@ -307,12 +307,12 @@ export default function ClientsModule() {
                         { label: 'En Ejecución', value: inExec, color: 'text-amber-600' },
                         { label: 'Finalizados', value: done, color: 'text-emerald-600' },
                       ].map(k => (
-                        <div key={k.label} className="bg-black/20 rounded-xl p-3 text-center">
+                        <div key={k.label} className="bg-slate-50 rounded-xl p-3 text-center">
                           <p className={cn('text-xl font-black', k.color)}>{k.value}</p>
                           <p className="text-[7px] font-black text-p-400 uppercase">{k.label}</p>
                         </div>
                       ))}
-                      <div className="col-span-3 bg-black/20 rounded-xl p-3 flex items-center justify-between">
+                      <div className="col-span-3 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
                         <span className="text-[8px] font-black text-p-400 uppercase">Presupuesto Total</span>
                         <span className="text-sm font-black text-[var(--color-mod-clients)]">{fmtQ(totalBudget)}</span>
                       </div>
@@ -326,7 +326,7 @@ export default function ClientsModule() {
                     {clientProjects(selected).length === 0 ? (
                       <p className="text-[9px] text-p-300 font-bold text-center py-4">Sin proyectos registrados</p>
                     ) : clientProjects(selected).map(p => (
-                      <div key={p.id} className="flex items-center gap-3 p-2.5 bg-black/20 rounded-xl border border-p-100">
+                      <div key={p.id} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl border border-p-100">
                         <div className={cn('w-2 h-2 rounded-full shrink-0',
                           p.status === 'EJECUCION' ? 'bg-amber-400' :
                           p.status === 'FINALIZADO' ? 'bg-emerald-400' : 'bg-p-300')} />
@@ -350,7 +350,7 @@ export default function ClientsModule() {
                     <h3 className="text-[9px] font-black text-p-400 uppercase tracking-widest mb-2 flex items-center gap-1">
                       <FileText size={11} /> Notas
                     </h3>
-                    <p className="text-[10px] text-p-600 bg-black/20 rounded-xl p-3 border border-p-100">{selected.notes}</p>
+                    <p className="text-[10px] text-p-600 bg-slate-50 rounded-xl p-3 border border-p-100">{selected.notes}</p>
                   </div>
                 )}
 
@@ -376,7 +376,7 @@ export default function ClientsModule() {
             onClick={e => { if (e.target === e.currentTarget) setShowForm(false); }}
           >
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
-              className="bg-neutral-900/40 rounded-2xl shadow-modal w-full max-w-lg overflow-hidden">
+              className="bg-white rounded-2xl shadow-modal w-full max-w-lg overflow-hidden">
               <div className="bg-brand px-6 py-4 flex items-center justify-between">
                 <h2 className="text-sm font-black text-white uppercase">{editMode ? 'Editar Cliente' : 'Nuevo Cliente'}</h2>
                 <button onClick={() => setShowForm(false)} className="p-1 hover:bg-white/10 rounded-lg text-white" aria-label="Cerrar formulario"><X size={16} /></button>
@@ -434,7 +434,7 @@ export default function ClientsModule() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-modal flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedClientIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteClients}
-            className="px-4 py-1.5 bg-neutral-900/40 text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
             Eliminar
           </button>
           <button type="button" onClick={() => setSelectedClientIds(new Set())} aria-label="Cancelar selección"
@@ -446,4 +446,5 @@ export default function ClientsModule() {
     </div>
   );
 }
+
 

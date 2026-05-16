@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 import { Project } from '../constants';
 
 export const MinimalCard = ({ project, onDelete }: { project: Project; onDelete: (e: any, id: string) => void }) => (
-  <div className="p-4 border-b border-slate-100 hover:bg-black/20 flex items-center justify-between group transition-all">
+  <div className="p-4 border-b border-slate-100 hover:bg-slate-50 flex items-center justify-between group transition-all">
     <div className="flex items-center gap-4">
         <div className="font-black text-xs text-primary">{project.name}</div>
         <div className="text-[10px] text-slate-400 font-bold uppercase">{project.clientName}</div>
@@ -19,7 +19,7 @@ export const MinimalCard = ({ project, onDelete }: { project: Project; onDelete:
 
 export const DashboardCard = ({ project, onDelete }: { project: Project; onDelete: (e: any, id: string) => void }) => (
   <motion.div 
-    className="bg-neutral-900/40 rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-xl transition-all"
+    className="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm hover:shadow-xl transition-all"
     initial={{ opacity: 0 }}
     animate={{ opacity: 1 }}
   >
@@ -39,7 +39,7 @@ export const DashboardCard = ({ project, onDelete }: { project: Project; onDelet
 );
 
 export const ActionableCard = ({ project, onDelete }: { project: Project; onDelete: (e: any, id: string) => void }) => (
-  <div className="bg-neutral-900/40 border-l-4 border-secondary rounded-xl shadow-sm p-4 flex justify-between items-center">
+  <div className="bg-white border-l-4 border-secondary rounded-xl shadow-sm p-4 flex justify-between items-center">
      <div>
         <div className="text-xs font-black uppercase tracking-widest">{project.name}</div>
         <div className="flex gap-2 text-[10px] text-slate-500 mt-1">
@@ -50,4 +50,5 @@ export const ActionableCard = ({ project, onDelete }: { project: Project; onDele
      <button title="Eliminar proyecto" onClick={(e) => onDelete(e, project.id)} className="p-2 border rounded-lg hover:bg-slate-100 text-red-500"><Trash2 size={16} /></button>
   </div>
 );
+
 

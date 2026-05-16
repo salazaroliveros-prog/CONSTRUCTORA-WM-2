@@ -227,7 +227,7 @@ export default function FirestoreTest() {
       </div>
 
       {/* Colecciones */}
-      <div className="bg-neutral-900/40 border border-slate-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Database size={14} className="text-slate-400" />
@@ -300,7 +300,7 @@ export default function FirestoreTest() {
       </div>
 
       {/* Test CRUD */}
-      <div className="bg-neutral-900/40 border border-slate-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Activity size={14} className="text-slate-400" />
@@ -324,7 +324,7 @@ export default function FirestoreTest() {
 
         <div className="space-y-2">
           {results.map((r) => (
-            <div key={r.name} className="flex items-center gap-3 p-3 bg-black/20 rounded-xl">
+            <div key={r.name} className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
               {icon(r.status)}
               <div className="flex-1 min-w-0">
                 <p className="text-[10px] font-black text-primary uppercase">{r.name}</p>
@@ -351,7 +351,7 @@ export default function FirestoreTest() {
       </div>
 
       {/* Monitor polling */}
-      <div className="bg-neutral-900/40 border border-slate-200 rounded-2xl p-6 space-y-4">
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <div className="flex items-center gap-2">
@@ -388,4 +388,5 @@ export default function FirestoreTest() {
     </div>
   );
 }
+
 

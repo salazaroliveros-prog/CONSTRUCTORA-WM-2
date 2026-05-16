@@ -275,7 +275,7 @@ export default function AIAssistant() {
             onChange={e => setInput(e.target.value)}
             placeholder="Pide un informe, análisis o consulta sobre tus datos..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-neutral-900/40 border border-(--color-neutral-200) rounded-xl text-[13px] text-(--color-neutral-800) placeholder:text-(--color-neutral-400) focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_30%,transparent)] focus:border-(--color-secondary) transition-all disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-white border border-(--color-neutral-200) rounded-xl text-[13px] text-(--color-neutral-800) placeholder:text-(--color-neutral-400) focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_30%,transparent)] focus:border-(--color-secondary) transition-all disabled:opacity-50"
           />
           <button type="submit" disabled={isLoading || !input.trim()}
             className="px-4 py-3 bg-(--color-neutral-800) text-white rounded-xl hover:bg-(--color-neutral-900) transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
@@ -289,5 +289,6 @@ export default function AIAssistant() {
     </div>
   );
 }
+
 
 

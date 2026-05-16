@@ -90,3 +90,4 @@ export const ProjectCard = React.memo(({ project, bulkMode, selectedProjectIds, 
   </motion.div>
 ));
 
+

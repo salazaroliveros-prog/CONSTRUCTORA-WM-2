@@ -60,13 +60,13 @@ export default function TopBarClock() {
     <div className="relative z-50">
       <button 
         onClick={() => setShowCalendar(!showCalendar)}
-        className="flex items-center gap-2 p-2 px-3 bg-black/20 text-slate-600 hover:text-primary rounded-xl border border-slate-100 transition-all group"
+        className="flex items-center gap-2 p-2 px-3 bg-slate-50 text-slate-600 hover:text-primary rounded-xl border border-slate-100 transition-all group"
       >
         <div className="flex flex-col items-end leading-none">
           <span className="text-[10px] font-black uppercase">{time.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}</span>
           <span className="text-[9px] font-bold text-slate-400">{time.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
-        <div className="w-8 h-8 rounded-lg bg-neutral-900/40 border border-slate-200 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform shadow-sm">
+        <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-secondary group-hover:scale-105 transition-transform shadow-sm">
           <CalendarIcon size={16} />
         </div>
       </button>
@@ -77,7 +77,7 @@ export default function TopBarClock() {
             initial={{ opacity: 0, y: 10, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute right-0 mt-3 w-80 max-w-[calc(100vw-2rem)] bg-neutral-900/40 border border-slate-200 rounded-3xl shadow-2xl overflow-hidden z-50 ring-1 ring-slate-900/5 transform-origin-top-right"
+            className="absolute right-0 mt-3 w-80 max-w-[calc(100vw-2rem)] bg-white border border-slate-200 rounded-3xl shadow-2xl overflow-hidden z-50 ring-1 ring-slate-900/5 transform-origin-top-right"
           >
             <div className="bg-slate-900 text-white p-5 pb-6">
               <div className="flex justify-between items-center mb-4">
@@ -101,7 +101,7 @@ export default function TopBarClock() {
               </div>
             </div>
 
-            <div className="p-5 bg-black/20">
+            <div className="p-5 bg-slate-50">
               <h4 className="text-[10px] font-black tracking-widest uppercase text-slate-400 mb-3">Actividades de la fecha</h4>
               
               <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
@@ -109,7 +109,7 @@ export default function TopBarClock() {
                   <p className="text-[9px] font-bold text-slate-400 text-center py-4 italic uppercase">Sin actividades</p>
                 ) : (
                   dayEvents.map(e => (
-                    <div key={e.id} className="flex justify-between items-center bg-neutral-900/40 p-3 rounded-xl border border-slate-200 shadow-sm">
+                    <div key={e.id} className="flex justify-between items-center bg-white p-3 rounded-xl border border-slate-200 shadow-sm">
                       <div className="min-w-0 flex-1">
                         <p className="text-[10px] font-black text-primary uppercase truncate">{e.title}</p>
                         <p className="text-[8px] font-bold text-secondary uppercase flex items-center gap-1 mt-0.5">
@@ -130,7 +130,7 @@ export default function TopBarClock() {
                   placeholder="NUEVA ACTIVIDAD..." 
                   value={newEvent.title}
                   onChange={e => setNewEvent({...newEvent, title: e.target.value})}
-                  className="w-full text-[10px] font-black uppercase px-3 py-2 bg-neutral-900/40 border border-slate-200 rounded-lg focus:outline-none focus:border-secondary"
+                  className="w-full text-[10px] font-black uppercase px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-secondary"
                  />
                  <div className="flex gap-2">
                    <input 
@@ -138,7 +138,7 @@ export default function TopBarClock() {
                     value={newEvent.time}
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
                     title="Seleccionar hora"
-                    className="w-full text-[10px] font-black uppercase px-3 py-2 bg-neutral-900/40 border border-slate-200 rounded-lg focus:outline-none focus:border-secondary"
+                    className="w-full text-[10px] font-black uppercase px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-secondary"
                    />
                    <button 
                     onClick={addEvent}
@@ -157,4 +157,5 @@ export default function TopBarClock() {
     </div>
   );
 }
+
 

@@ -122,13 +122,13 @@ export default function PhysicalFinancialDashboard() {
           <div className="flex bg-n-100 rounded-lg p-0.5">
             <button
               onClick={() => setViewMode("chart")}
-              className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", viewMode === "chart" ? "bg-neutral-900/40 shadow-sm text-n-800" : "text-n-500 hover:text-n-700")}
+              className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", viewMode === "chart" ? "bg-white shadow-sm text-n-800" : "text-n-500 hover:text-n-700")}
             >
               <BarChart3 size={14} className="inline mr-1" />Gráfico
             </button>
             <button
               onClick={() => setViewMode("table")}
-              className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", viewMode === "table" ? "bg-neutral-900/40 shadow-sm text-n-800" : "text-n-500 hover:text-n-700")}
+              className={cn("px-3 py-1.5 rounded-md text-xs font-bold transition-all", viewMode === "table" ? "bg-white shadow-sm text-n-800" : "text-n-500 hover:text-n-700")}
             >
               Tabla
             </button>
@@ -300,4 +300,5 @@ export default function PhysicalFinancialDashboard() {
     </div>
   );
 }
+
 

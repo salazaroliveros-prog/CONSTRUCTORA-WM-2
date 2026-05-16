@@ -133,7 +133,7 @@ export default function Seguimiento() {
   return (
     <div className="flex flex-col h-full p-3 gap-3 overflow-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
         <div>
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-[0.2em]">Módulo de Análisis</p>
           <h1 className="text-sm font-black text-slate-900  uppercase tracking-tight">Seguimiento de Avance</h1>
@@ -170,7 +170,7 @@ export default function Seguimiento() {
           { label: 'Costo Acumulado', value: fmtQ(totalCostAll), color: totalCostAll > totalBudget ? '#ef4444' : '#10b981', icon: <AlertTriangle size={14} /> },
         ].map((k, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-            className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm">
+            className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
               <div className="p-1.5 rounded-lg text-white bg-[var(--k-bg)]" style={{ '--k-bg': k.color } as React.CSSProperties}>{k.icon}</div>
               <p className="text-[9px] sm:text-[8px] font-black text-slate-400  uppercase tracking-widest">{k.label}</p>
@@ -184,7 +184,7 @@ export default function Seguimiento() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 flex-1 grid-rows-[minmax(auto,1fr)]">
 
         {/* Ring charts per project */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Avance por Proyecto</p>
 
           {displayProjects.length === 0 ? (
@@ -219,22 +219,22 @@ export default function Seguimiento() {
               </div>
 
               {/* Pendiente de aportar */}
-              <div className="w-full mt-3 bg-black/20 rounded-xl p-3">
+              <div className="w-full mt-3 bg-slate-50 rounded-xl p-3">
                 <div className="w-full text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">Resumen Financiero</div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-neutral-900/40 rounded-lg p-2 text-center">
+                  <div className="bg-white rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Presupuesto</p>
                     <p className="text-[10px] font-black text-slate-800">{fmtQ(displayProjects[0]?.budget || 0)}</p>
                   </div>
-                  <div className="bg-neutral-900/40 rounded-lg p-2 text-center">
+                  <div className="bg-white rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Aportado</p>
                     <p className="text-[10px] font-black text-[var(--color-success)]">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
                   </div>
-                  <div className="bg-neutral-900/40 rounded-lg p-2 text-center">
+                  <div className="bg-white rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Ejecutado</p>
                     <p className="text-[10px] font-black text-[var(--color-info)]">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                   </div>
-                  <div className="bg-neutral-900/40 rounded-lg p-2 text-center">
+                  <div className="bg-white rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Pendiente de Aportar</p>
                     <p className={cn("text-[10px] font-black",
                       ((displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)) > 0
@@ -251,7 +251,7 @@ export default function Seguimiento() {
             /* All projects: list with small rings */
             <div className="space-y-3 overflow-auto max-h-64">
               {displayProjects.map(p => (
-                <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-black/20 transition-colors cursor-pointer"
+                <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
                   onClick={() => setSelectedId(p.id)}>
                   <RingChart value={p.fisico} color="#f59e0b" label="Fís." size={56} />
                   <RingChart value={p.financiero} color="#3b82f6" label="Fin." size={56} />
@@ -271,7 +271,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Comparison bar chart */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Comparativa Físico vs Financiero</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
@@ -287,7 +287,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Deviation chart */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Desviación (Físico − Financiero)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={desvData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
@@ -303,7 +303,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Budget vs Cost area */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Presupuesto vs Costos (Q)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
@@ -322,7 +322,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Status pie */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Distribución por Estado</p>
           <ResponsiveContainer width="100%" height={150}>
             <PieChart>
@@ -337,7 +337,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Materials: Budgeted vs Executed vs In Stock */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2 xl:col-span-3">
+        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2 xl:col-span-3">
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest">Materiales: Presupuestado vs Ejecutado</p>
@@ -385,7 +385,7 @@ export default function Seguimiento() {
                     <p className="text-[8px] font-black text-slate-400  uppercase tracking-widest mb-2">Detalle por Renglón</p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {Array.from(itemMap.entries()).map(([itemId, itemData]) => (
-                        <details key={itemId} className="bg-black/20 border border-slate-100 rounded-xl overflow-hidden">
+                        <details key={itemId} className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
                           <summary className="px-3 py-2 text-[9px] font-black text-slate-700 cursor-pointer hover:bg-slate-100 transition-all uppercase tracking-wider">
                             {itemData.itemName}
                           </summary>
@@ -393,7 +393,7 @@ export default function Seguimiento() {
                             {itemData.materials.map((m, i) => {
                               const pct = m.budgeted > 0 ? Math.round((m.used / m.budgeted) * 100) : 0;
                               return (
-                                <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-neutral-900/40 rounded-lg px-2 py-1.5">
+                                <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white rounded-lg px-2 py-1.5">
                                   <span className="font-bold text-slate-700 truncate col-span-2">{m.name}</span>
                                   <span className="text-slate-500 text-center">P: {m.budgeted} {m.unit}</span>
                                   <span className="text-[var(--color-info)] text-center">B: {m.stock}</span>
@@ -415,7 +415,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Gantt Chart - Project Timeline */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2">
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Cronograma de Proyecto (Gantt)</p>
             <Calendar size={16} className="text-slate-400" />
@@ -431,7 +431,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Critical Path Analysis */}
-        <div className="bg-neutral-900/40 border border-slate-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Análisis de Ruta Crítica</p>
             <AlertTriangle size={16} className="text-[var(--color-accent)]" />
@@ -450,5 +450,6 @@ export default function Seguimiento() {
     </div>
   );
 }
+
 
 

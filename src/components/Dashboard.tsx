@@ -1142,7 +1142,7 @@ const generateReport = async () => {
                     <span className="truncate">{p.name}</span>
                     <span className="text-secondary">{p.progress || 0}%</span>
                   </div>
-                  <div className="h-1.5 bg-neutral-900/40 rounded-full overflow-hidden border border-[var(--color-neutral-200)]">
+                  <div className="h-1.5 bg-white rounded-full overflow-hidden border border-[var(--color-neutral-200)]">
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${p.progress || 0}%` }}
@@ -1391,4 +1391,5 @@ const generateReport = async () => {
     </div>
   );
 }
+
 

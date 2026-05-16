@@ -114,7 +114,7 @@ export function PurchaseOrderPanel({
       {/* Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-neutral-900/40 rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
             <div className="p-4 border-b border-slate-200 flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <ShoppingCart size={20} />
@@ -140,7 +140,7 @@ export function PurchaseOrderPanel({
                 <select
                   value={selectedSupplier}
                   onChange={(e) => setSelectedSupplier(e.target.value)}
-                  className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-neutral-900/40"
+                  className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white"
                   title="Seleccionar proveedor"
                 >
                   <option value="">Seleccione un proveedor...</option>
@@ -179,7 +179,7 @@ export function PurchaseOrderPanel({
                         return (
                           <label
                             key={itemId}
-                            className="flex items-center gap-3 p-2 border-b border-slate-100 hover:bg-black/20 cursor-pointer"
+                            className="flex items-center gap-3 p-2 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -246,4 +246,5 @@ export function PurchaseOrderPanel({
     </>
   );
 }
+
 

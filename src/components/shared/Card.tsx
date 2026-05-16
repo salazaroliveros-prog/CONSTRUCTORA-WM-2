@@ -25,7 +25,7 @@ export function Card({ children, accent, className, padding = "md", hover = true
   return (
     <div
       className={cn(
-        "bg-neutral-900/40 border border-border rounded-xl shadow-card relative overflow-hidden",
+        "bg-white border border-border rounded-xl shadow-card relative overflow-hidden",
         hover && "hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-250",
         accent && `card-accent-${accent}`,
         paddingClasses[padding],
@@ -86,4 +86,5 @@ export function StatCard({ icon, iconBg, label, value, trend, className }: StatC
     </Card>
   );
 }
+
 

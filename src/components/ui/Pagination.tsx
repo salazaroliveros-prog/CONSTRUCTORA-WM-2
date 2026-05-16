@@ -57,7 +57,7 @@ export default function Pagination({
           <button
             onClick={onPrev}
             disabled={currentPage === 1}
-            className="p-1 rounded-md border border-slate-100  bg-neutral-900/40 /80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-md border border-slate-100  bg-white /80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronLeft size={12} />
           </button>
@@ -65,7 +65,7 @@ export default function Pagination({
           <button
             onClick={onNext}
             disabled={currentPage === totalPages}
-            className="p-1 rounded-md border border-slate-100  bg-neutral-900/40 /80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1 rounded-md border border-slate-100  bg-white /80 text-slate-300 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
           >
             <ChevronRight size={12} />
           </button>
@@ -84,7 +84,7 @@ export default function Pagination({
         <button
           onClick={onPrev}
           disabled={currentPage === 1}
-            className="p-1.5 rounded-lg border border-slate-200 bg-neutral-900/40 /80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-slate-200 bg-white /80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <ChevronLeft size={16} />
         </button>
@@ -109,7 +109,7 @@ export default function Pagination({
         <button
           onClick={onNext}
           disabled={currentPage === totalPages}
-            className="p-1.5 rounded-lg border border-slate-200 bg-neutral-900/40 /80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+            className="p-1.5 rounded-lg border border-slate-200 bg-white /80 text-slate-600 hover:text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-all"
         >
           <ChevronRight size={16} />
         </button>
@@ -117,4 +117,5 @@ export default function Pagination({
     </div>
   );
 }
+
 

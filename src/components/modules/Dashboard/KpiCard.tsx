@@ -194,3 +194,4 @@ export function KpiGrid({ kpis }: DashboardGridProps) {
 // Re-export for backward compatibility with existing Dashboard
 export { MiniRing };
 export type { KpiCardProps, DashboardGridProps };
+

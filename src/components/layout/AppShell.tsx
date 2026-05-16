@@ -8,12 +8,12 @@ interface AppShellProps {
 
 export function AppShell({ children, isMenuOpen }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-black overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8f9fa] overflow-x-hidden">
       <div 
         id="page-container" 
         className={isMenuOpen ? "menu-open" : ""}
       >
-        <main className="pt-32 pb-20 px-4 sm:px-6 md:px-8">
+        <main className="pt-24 pb-20 px-4 sm:px-6 md:px-8">
           <div className="w-full max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
@@ -37,4 +37,5 @@ export function AppShell({ children, isMenuOpen }: AppShellProps) {
     </div>
   );
 }
+
 

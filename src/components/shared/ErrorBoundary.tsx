@@ -66,3 +66,4 @@ export function withErrorBoundary<P extends object>(
 }
 
 export default ErrorBoundary;
+

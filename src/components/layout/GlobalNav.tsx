@@ -16,16 +16,7 @@ interface GlobalNavProps {
 }
 
 export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: GlobalNavProps) {
-  const [isSticky, setIsSticky] = useState(false);
-  const { signOut, user } = useAuth();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsSticky(window.scrollY > 50);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const { signOut } = useAuth();
 
   const menuItems = [
     { id: "dashboard", label: "inicio", icon: <LayoutDashboard size={20} /> },
@@ -48,73 +39,30 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
 
   return (
     <>
-      <header className={cn(
-        "fixed top-0 left-0 right-0 z-[100000] flex flex-col items-center transition-all duration-700 pointer-events-none",
-        isSticky ? "pt-5 sticky" : "pt-8"
-      )}>
-        {/* Logo area */}
-        <motion.div 
-          initial={false}
-          animate={{ 
-            opacity: isSticky ? 0 : 1,
-            scale: isSticky ? 0.8 : 1,
-            y: isSticky ? -20 : 0
-          }}
-          className="mb-6 pointer-events-auto"
+      <div className="fixed top-6 left-6 z-[100001]">
+        <button 
+          onClick={() => setIsMenuOpen(!isMenuOpen)}
+          className={cn(
+            "burger-btn shadow-xl transition-all duration-500 hover:scale-110",
+            isMenuOpen ? "bg-white text-black" : "bg-p-900 text-white"
+          )}
+          aria-label="Menú principal"
         >
-          <img src="/logo.png" alt="Logo" className="w-16 h-16 object-contain filter invert brightness-200" />
-        </motion.div>
-
-        {/* Floating Nav Bar */}
-        <nav className={cn(
-          "flex items-center justify-center nav-glass transition-all duration-1000 ease-[cubic-bezier(0.075,0.82,0.165,1)] pointer-events-auto",
-          isSticky 
-            ? "w-[80px] h-[80px] rounded-full" 
-            : "w-[90%] max-w-[600px] h-[70px] rounded-[100px] px-6"
-        )}>
-          {/* Main Nav Items (Hidden when sticky) */}
-          <div className={cn(
-            "flex items-center gap-2 transition-all duration-500",
-            isSticky ? "opacity-0 scale-50 pointer-events-none hidden" : "opacity-100 scale-100"
-          )}>
-            {menuItems.slice(0, 5).map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleItemClick(item.id)}
-                className={cn(
-                  "nav-item-minimal hover:text-amber-400 transition-colors",
-                  activeTab === item.id && "text-amber-500"
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
-
-          {/* Burger Button (Always active when sticky, or as extra when not) */}
-          <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={cn(
-              "burger-btn transition-all duration-700",
-              isSticky ? "scale-100 opacity-100" : "absolute right-4 w-10 h-10 bg-transparent border-none"
+          <AnimatePresence mode="wait">
+            {isMenuOpen ? (
+              <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
+                <X size={24} className="text-black" />
+              </motion.div>
+            ) : (
+              <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} className="flex flex-col gap-1.5 items-center">
+                <span className="w-6 h-[2px] bg-current block" />
+                <span className="w-4 h-[2px] bg-current block mr-auto" />
+                <span className="w-6 h-[2px] bg-current block" />
+              </motion.div>
             )}
-          >
-            <AnimatePresence mode="wait">
-              {isMenuOpen ? (
-                <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }}>
-                  <X size={24} className="text-white" />
-                </motion.div>
-              ) : (
-                <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} className="flex flex-col gap-1.5 items-center">
-                  <span className="w-6 h-[2px] bg-neutral-900/40 block" />
-                  <span className="w-4 h-[2px] bg-neutral-900/40 block ml-auto" />
-                  <span className="w-6 h-[2px] bg-neutral-900/40 block" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </button>
-        </nav>
-      </header>
+          </AnimatePresence>
+        </button>
+      </div>
 
       {/* Full Menu Overlay */}
       <AnimatePresence>
@@ -123,7 +71,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="full-menu-overlay z-[99999]"
+            className="full-menu-overlay z-[100000] bg-black/90 backdrop-blur-2xl"
           >
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-4xl p-10">
               {menuItems.map((item, i) => (
@@ -180,4 +128,5 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
     </>
   );
 }
+
 
