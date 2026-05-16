@@ -1182,7 +1182,7 @@ const generateReport = async () => {
                     <td className='px-2 py-1.5 text-[7px] font-bold text-[var(--color-neutral-500)] whitespace-nowrap'>{t.date?.slice(5) || '--'}</td>
                     <td className='px-2 py-1.5 text-[8px] font-black text-primary uppercase truncate'>{t.description || '--'}</td>
                     <td className={cn('px-2 py-1.5 text-[8px] font-black text-right', t.type === 'INGRESO' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]')}>
-                      Q{(t.amount || 0).toLocaleString()}
+                      {fmtQ(t.amount || 0)}
                     </td>
                     <td className='px-2 py-1.5 text-right'>
                       <div className='flex gap-1 justify-end'>
@@ -1315,14 +1315,14 @@ const generateReport = async () => {
                    </div>
                 </div>
                 <div className="pt-4 border-t border-white/5 space-y-2">
-                   <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
-                      <span>Ingresos</span>
-                      <span className="text-[var(--color-success)]">+ Q{globalIncome.toLocaleString()}</span>
-                   </div>
-                   <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
-                      <span>Egresos</span>
-                      <span className="text-[var(--color-error)]">- Q{globalExpenses.toLocaleString()}</span>
-                   </div>
+                    <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
+                       <span>Ingresos</span>
+                       <span className="text-[var(--color-success)]">+ {fmtQ(globalIncome)}</span>
+                    </div>
+                    <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
+                       <span>Egresos</span>
+                       <span className="text-[var(--color-error)]">- {fmtQ(globalExpenses)}</span>
+                    </div>
                 </div>
             </div>
          </div>

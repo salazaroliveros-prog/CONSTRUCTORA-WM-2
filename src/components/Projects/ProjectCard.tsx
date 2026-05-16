@@ -3,6 +3,7 @@ import { Building2, AlertCircle, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../utils/cn';
 import type { Project } from '../../constants';
+import { fmtQ } from '../../utils/format';
 
 interface ProjectCardProps {
   project: Project;
@@ -76,7 +77,7 @@ export const ProjectCard = React.memo(({ project, bulkMode, selectedProjectIds, 
     <div className="px-4 py-3 bg-[var(--color-neutral-50)]/50 border-t border-slate-50 flex justify-between items-center mt-auto">
       <div className="flex flex-col">
         <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Presupuesto</span>
-        <span className="text-[11px] font-black text-[var(--color-primary)] italic leading-none">Q {(project.budget || 0).toLocaleString()}</span>
+        <span className="text-[11px] font-black text-[var(--color-primary)] italic leading-none">{fmtQ(project.budget || 0)}</span>
       </div>
       <button
         onClick={(e) => onDelete(e, project.id)}

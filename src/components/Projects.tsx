@@ -729,7 +729,7 @@ return (
                     <p className="text-[10px] font-black text-[var(--color-primary)] uppercase leading-tight">{p.name}</p>
                      <p className="text-[8px] text-[var(--color-neutral-600)]  font-bold uppercase">{p.clientName}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-black text-[var(--color-secondary)]">Q {(p.budget || 0).toLocaleString()}</span>
+                      <span className="text-[8px] font-black text-[var(--color-secondary)]">{fmtQ(p.budget || 0)}</span>
                       <div className="w-16 h-1.5 bg-[var(--color-neutral-100)]  rounded-full overflow-hidden" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties}>
                         <div className="h-full bg-[var(--color-neutral-900)]  rounded-full w-[var(--pw)]" />
                       </div>
@@ -951,7 +951,7 @@ return (
                   <div className="grid grid-cols-2 gap-3">
                     <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-100)] rounded-2xl p-4 shadow-sm group">
                       <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mb-1">Costo Directo</p>
-                      <p className="text-sm font-black text-[var(--color-primary)] uppercase group-hover:text-[var(--color-secondary)]">Q {(selectedProject.directCosts || 0).toLocaleString()}</p>
+                      <p className="text-sm font-black text-[var(--color-primary)] uppercase group-hover:text-[var(--color-secondary)]">{fmtQ(selectedProject.directCosts || 0)}</p>
                     </div>
                     <div className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-100)] rounded-2xl p-4 shadow-sm">
                       <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mb-1">Indirecto ({selectedProject.indirectCosts || 0}%)</p>
@@ -1335,7 +1335,7 @@ Q {PMath.fmtQ(
                 </h4>
                 <div className="bg-[var(--color-neutral-900)] rounded-3xl p-6 text-[var(--color-neutral-50)] shadow-xl shadow-[rgba(15,23,42,0.4)] overflow-hidden">
                    <p className="text-[8px] font-black text-[var(--color-neutral-500)] uppercase tracking-widest mb-1">Presupuesto Ejecutable</p>
-                    <p className="text-lg sm:text-xl font-black text-[var(--color-secondary)] tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">Q {(selectedProject.budget || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <p className="text-lg sm:text-xl font-black text-[var(--color-secondary)] tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">{fmtQ(selectedProject.budget || 0)}</p>
                    
                    <div className="space-y-8">
                      <div>

@@ -534,9 +534,9 @@ data={[
                 {itemsBreakdown.map((row, i) => (
                   <tr key={i} className="border-b border-slate-50 hover:bg-[var(--color-neutral-50)]">
                     <td className="py-2 pr-4 font-bold text-primary uppercase">{row.name}</td>
-                     <td className="py-2 pr-4 font-bold text-[var(--color-neutral-600)] text-right">Q {row.Materiales.toLocaleString('es-GT')}</td>
-                     <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">Q {row.ManoObra.toLocaleString('es-GT')}</td>
-                    <td className="py-2 font-black text-secondary text-right">Q {row.Total.toLocaleString('es-GT')}</td>
+                      <td className="py-2 pr-4 font-bold text-[var(--color-neutral-600)] text-right">{fmtQ(row.Materiales)}</td>
+                      <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">{fmtQ(row.ManoObra)}</td>
+                     <td className="py-2 font-black text-secondary text-right">{fmtQ(row.Total)}</td>
                   </tr>
                 ))}
  <tr className="bg-[var(--color-neutral-50)] font-black">

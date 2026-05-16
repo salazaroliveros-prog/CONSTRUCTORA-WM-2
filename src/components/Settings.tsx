@@ -325,7 +325,7 @@ export default function Settings() {
           </div>
           <div className="bg-[var(--color-surface-solid)] p-6 rounded-3xl border border-[var(--color-neutral-200)]">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {(['Q', '$', '€', '£'] as Currency[]).map(c => (
+              {(['Q.', 'Q', '$', '€', '£'] as Currency[]).map(c => (
                 <button
                   key={c}
                   onClick={() => updateSettings({ currency: c })}

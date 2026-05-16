@@ -7,7 +7,7 @@ export type GraphType = 'bar' | 'line' | 'area';
 export type CardStyle = 'flat' | 'elevated' | 'glass' | 'bordered';
 export type TransitionSpeed = 'none' | 'fast' | 'normal' | 'slow';
 export type TypographyStyle = 'inter' | 'space' | 'mono';
-export type Currency = 'Q' | '$' | '€' | '£';
+export type Currency = 'Q' | 'Q.' | '$' | '€' | '£';
 
 interface AppSettings {
   primaryColor: string;
@@ -49,7 +49,7 @@ const defaultSettings: AppSettings = {
   companyEmail: 'contacto@constructorawm.com',
   companyPhone: '+502 1234-5678',
   companyAddress: 'Ciudad de Guatemala',
-  currency: 'Q',
+  currency: 'Q.',
   activeModules: ALL_MODULES,
   aiModel: 'gemini-2.5-flash',
   aiApiKey: '',
