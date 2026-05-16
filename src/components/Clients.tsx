@@ -182,7 +182,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, email o NIT..."
             className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-400" />
         </div>
-        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)}
+        <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} title="Filtrar por estado"
           className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none">
           <option value="ALL">Todos</option>
           <option value="ACTIVO">Activos</option>
@@ -224,7 +224,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               >
                 {bulkMode && (
                   <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
-                    <input type="checkbox" checked={selectedClientIds.has(c.id)} onChange={() => toggleSelectClient(c.id)}
+                    <input type="checkbox" checked={selectedClientIds.has(c.id)} onChange={() => toggleSelectClient(c.id)} aria-label="Seleccionar cliente"
                       className="w-4 h-4 accent-red-500 cursor-pointer" />
                   </div>
                 )}
@@ -248,9 +248,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <span className="text-[8px] font-black text-slate-500">{cProjs.length} proy.</span>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={e => { e.stopPropagation(); setSelected(c); openEdit(c); }}
-                        className="p-1 hover:bg-blue-50 rounded text-slate-400 hover:text-blue-600"><Pencil size={11} /></button>
+                        className="p-1 hover:bg-blue-50 rounded text-slate-400 hover:text-blue-600" aria-label="Editar cliente"><Pencil size={11} /></button>
                       <button onClick={e => { e.stopPropagation(); handleDelete(c); }}
-                        className="p-1 hover:bg-red-50 rounded text-slate-400 hover:text-red-500"><Trash2 size={11} /></button>
+                        className="p-1 hover:bg-red-50 rounded text-slate-400 hover:text-red-500" aria-label="Eliminar cliente"><Trash2 size={11} /></button>
                     </div>
                     <ChevronRight size={13} className={cn('text-slate-300 transition-transform', selected?.id === c.id && 'rotate-90 text-blue-400')} />
                   </div>
@@ -273,7 +273,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             >
               {/* Header perfil */}
               <div className="bg-slate-900 p-5 text-white relative">
-                <button onClick={() => setSelected(null)} className="absolute top-3 right-3 p-1 hover:bg-white/10 rounded-lg">
+                <button onClick={() => setSelected(null)} className="absolute top-3 right-3 p-1 hover:bg-white/10 rounded-lg" aria-label="Cerrar perfil">
                   <X size={14} />
                 </button>
                 <div className="flex items-center gap-4">
@@ -339,7 +339,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                         <div className="text-right shrink-0">
                           <p className="text-[9px] font-black text-blue-600">{p.progress || 0}%</p>
                           <div className="w-16 h-1 bg-slate-200 rounded mt-0.5">
-                            <div className="h-full bg-blue-400 rounded" style={{ width: `${p.progress || 0}%` }} />
+                            <div className="h-full bg-blue-400 rounded progress-fill-dynamic" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties} />
                           </div>
                         </div>
                       </div>
@@ -363,7 +363,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     className="flex-1 flex items-center justify-center gap-1.5 py-2 bg-slate-900 text-white rounded-xl text-xs font-black uppercase hover:bg-slate-700 transition-all">
                     <Pencil size={12} /> Editar
                   </button>
-                  <button onClick={() => handleDelete(selected)}
+                  <button onClick={() => handleDelete(selected)} aria-label="Eliminar cliente"
                     className="flex items-center justify-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-black uppercase hover:bg-red-100 transition-all">
                     <Trash2 size={12} />
                   </button>
@@ -385,18 +385,18 @@ const handleSubmit = async (e: React.FormEvent) => {
               className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden">
               <div className="bg-slate-900 px-6 py-4 flex items-center justify-between">
                 <h2 className="text-sm font-black text-white uppercase">{editMode ? 'Editar Cliente' : 'Nuevo Cliente'}</h2>
-                <button onClick={() => setShowForm(false)} className="p-1 hover:bg-white/10 rounded-lg text-white"><X size={16} /></button>
+                <button onClick={() => setShowForm(false)} className="p-1 hover:bg-white/10 rounded-lg text-white" aria-label="Cerrar formulario"><X size={16} /></button>
               </div>
               <form onSubmit={handleSubmit} className="p-6 space-y-4">
                 <div className="grid grid-cols-2 gap-3">
                   <div className="col-span-2 space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo / Razón Social *</label>
-                    <input required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                    <input required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Nombre completo"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tipo</label>
-                    <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as any }))}
+                    <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as any }))} title="Tipo de cliente"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400">
                       <option value="PERSONA">Persona Individual</option>
                       <option value="EMPRESA">Empresa / Jurídico</option>
@@ -409,7 +409,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Correo</label>
-                    <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                    <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="correo@ejemplo.com"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400" />
                   </div>
                   <div className="space-y-1">
@@ -419,12 +419,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
                   <div className="col-span-2 space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Dirección</label>
-                    <input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
+                    <input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} placeholder="Dirección física"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Estado</label>
-                    <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as any }))}
+                    <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as any }))} title="Estado del cliente"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400">
                       <option value="ACTIVO">Activo</option>
                       <option value="INACTIVO">Inactivo</option>
@@ -432,7 +432,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   </div>
                   <div className="col-span-2 space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Notas</label>
-                    <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={2}
+                    <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Notas opcionales"
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400 resize-none" />
                   </div>
                 </div>
@@ -453,7 +453,7 @@ const handleSubmit = async (e: React.FormEvent) => {
             className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
             Eliminar
           </button>
-          <button type="button" onClick={() => setSelectedClientIds(new Set())}
+          <button type="button" onClick={() => setSelectedClientIds(new Set())} aria-label="Cancelar selección"
             className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
             <X size={14} />
           </button>

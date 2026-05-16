@@ -128,10 +128,10 @@ export default function EffectsShowcase() {
         <h2 className="text-2xl font-bold text-[var(--color-primary)]">Barras de Progreso</h2>
         <div className="space-y-3">
           <div className="progress-bar">
-            <div className="progress-bar-fill" style={{ width: '75%' }}></div>
+            <div className="progress-bar-fill w-3/4"></div>
           </div>
           <div className="progress-bar">
-            <div className="progress-bar-fill" style={{ width: '45%' }}></div>
+            <div className="progress-bar-fill w-[45%]"></div>
           </div>
         </div>
       </div>

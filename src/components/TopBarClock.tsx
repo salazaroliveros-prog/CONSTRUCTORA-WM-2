@@ -84,7 +84,7 @@ export default function TopBarClock() {
                 <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2">
                   <CalendarDays size={16} className="text-secondary" /> Calendario
                 </h3>
-                <button onClick={() => setShowCalendar(false)} className="text-slate-400 hover:text-white transition-colors">
+                <button onClick={() => setShowCalendar(false)} aria-label="Cerrar calendario" className="text-slate-400 hover:text-white transition-colors">
                   <X size={18} />
                 </button>
               </div>
@@ -94,6 +94,7 @@ export default function TopBarClock() {
                     type="date" 
                     value={selectedDate.toISOString().split('T')[0]}
                     onChange={(e) => setSelectedDate(new Date(e.target.value))}
+                    title="Seleccionar fecha"
                     className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-xs font-bold uppercase focus:outline-none focus:border-secondary transition-all"
                   />
                 </div>
@@ -115,7 +116,7 @@ export default function TopBarClock() {
                           <Clock size={10} /> {e.time}
                         </p>
                       </div>
-                      <button onClick={() => removeEvent(e.id)} className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0">
+                      <button onClick={() => removeEvent(e.id)} aria-label="Eliminar actividad" className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all shrink-0">
                         <X size={14} />
                       </button>
                     </div>
@@ -136,10 +137,12 @@ export default function TopBarClock() {
                     type="time" 
                     value={newEvent.time}
                     onChange={e => setNewEvent({...newEvent, time: e.target.value})}
+                    title="Seleccionar hora"
                     className="w-full text-[10px] font-black uppercase px-3 py-2 bg-white border border-slate-200 rounded-lg focus:outline-none focus:border-secondary"
                    />
                    <button 
                     onClick={addEvent}
+                    aria-label="Agregar actividad"
                     disabled={!newEvent.title || !newEvent.time}
                     className="aspect-square h-full bg-secondary text-primary rounded-lg flex items-center justify-center hover:bg-secondary/90 disabled:opacity-50 transition-colors"
                    >

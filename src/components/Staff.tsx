@@ -463,7 +463,7 @@ export default function StaffModule() {
   );
 
   return (
-    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0))]">
 
       {/* KPI Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
@@ -595,7 +595,7 @@ export default function StaffModule() {
                         isSelected ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100 hover:border-secondary/30")}>
                       {bulkMode && (
                         <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
-                          <input type="checkbox" checked={selectedPersonalIds.has(m.id)} onChange={() => toggleSelectPersonal(m.id)}
+                          <input type="checkbox" checked={selectedPersonalIds.has(m.id)} onChange={() => toggleSelectPersonal(m.id)} title="Seleccionar personal"
                             className="w-4 h-4 accent-red-500 cursor-pointer" />
                         </div>
                       )}
@@ -649,8 +649,8 @@ export default function StaffModule() {
                        <tr className="border-b border-slate-100">
                          {bulkMode && (
                            <th className="px-2 py-2 w-6">
-                             <input type="checkbox" checked={currentItems.length > 0 && selectedPersonalIds.size === currentItems.length}
-                               onChange={toggleSelectAllPersonal} className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+<input type="checkbox" checked={currentItems.length > 0 && selectedPersonalIds.size === currentItems.length}
+                                onChange={toggleSelectAllPersonal} title="Seleccionar todo" className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
                            </th>
                          )}
                          <th className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Colaborador</th>
@@ -685,7 +685,7 @@ export default function StaffModule() {
                                <div className="flex items-center gap-2">
                                  <div className={cn("w-6 h-6 rounded-md flex items-center justify-center font-black text-[8px] shrink-0",
                                    isSelected ? "bg-secondary text-primary" : "bg-slate-900 text-secondary")}>{initials}</div>
-                                 <span className="text-[9px] font-black text-primary uppercase truncate max-w-[100px]">{m.name}</span>
+                                 <span className="text-[9px] font-black text-primary uppercase truncate max-w-25">{m.name}</span>
                                </div>
                              </td>
                              <td className="px-3 py-2">
@@ -746,10 +746,10 @@ export default function StaffModule() {
              className="px-3 py-1 bg-white text-red-600 rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
              Eliminar
            </button>
-           <button type="button" onClick={() => setSelectedPersonalIds(new Set())}
-             className="p-1 hover:bg-white/20 rounded-md transition-all">
-             <X size={12} />
-           </button>
+            <button type="button" onClick={() => setSelectedPersonalIds(new Set())} aria-label="Deseleccionar"
+              className="p-1 hover:bg-white/20 rounded-md transition-all">
+              <X size={12} />
+            </button>
          </div>
        )}
        {bulkMode && activeStaffTab !== 'personal' && selectedPayrollIds.size > 0 && (
@@ -759,10 +759,10 @@ export default function StaffModule() {
              className="px-3 py-1 bg-white text-red-600 rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
              Eliminar
            </button>
-           <button type="button" onClick={() => setSelectedPayrollIds(new Set())}
-             className="p-1 hover:bg-white/20 rounded-md transition-all">
-             <X size={12} />
-           </button>
+            <button type="button" onClick={() => setSelectedPayrollIds(new Set())} aria-label="Deseleccionar"
+              className="p-1 hover:bg-white/20 rounded-md transition-all">
+              <X size={12} />
+            </button>
          </div>
        )}
 
@@ -855,7 +855,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                              </div>
                              <div className="flex items-center gap-1 mt-0.5">
                                <div className="flex-1 bg-slate-200 rounded-full h-1">
-                                 <div className="bg-secondary h-1 rounded-full transition-all" style={{ width: `${p.progress || 0}%` }} />
+                                  <div className="bg-secondary h-1 rounded-full transition-all w-[var(--progress)]" style={{ '--progress': `${p.progress || 0}%` } as React.CSSProperties} />
                                </div>
                                <span className="text-[6px] font-black text-slate-500">{p.progress || 0}%</span>
                              </div>
@@ -957,8 +957,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
               <div className="grid gap-2">
                 {bulkMode && payrolls.length > 0 && (
                   <div className="flex items-center gap-2 px-1 py-1">
-                    <input type="checkbox" checked={selectedPayrollIds.size === payrolls.length && payrolls.length > 0}
-                      onChange={toggleSelectAllPayroll} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                     <input type="checkbox" checked={selectedPayrollIds.size === payrolls.length && payrolls.length > 0}
+                       onChange={toggleSelectAllPayroll} title="Seleccionar todas las planillas" className="w-4 h-4 accent-red-500 cursor-pointer" />
                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                       {selectedPayrollIds.size > 0 ? `${selectedPayrollIds.size} seleccionado(s)` : 'Seleccionar todo'}
                     </span>
@@ -1029,7 +1029,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                                   </button>
                                 </>
                               )}
-                              <button type="button" onClick={(e) => { e.stopPropagation(); handleDeletePayroll(pay.id); }}
+                              <button type="button" onClick={(e) => { e.stopPropagation(); handleDeletePayroll(pay.id); }} aria-label="Eliminar planilla"
                                 className="px-2 py-1 bg-red-100 text-red-600 rounded-lg text-[8px] font-black uppercase hover:bg-red-200 transition-all">
                                 <Trash2 size={10} className="inline" />
                               </button>
@@ -1176,16 +1176,16 @@ animate={{ opacity: 1, x: 0, width: 280 }}
            <div className="grid grid-cols-2 gap-2">
              <div>
                <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
-               <select value={payrollForm.projectId} onChange={e => setPayrollForm(f => ({ ...f, projectId: e.target.value, employees: [] }))}
-                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[9px] font-black focus:outline-none focus:border-secondary">
+                <select value={payrollForm.projectId} onChange={e => setPayrollForm(f => ({ ...f, projectId: e.target.value, employees: [] }))} title="Proyecto"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[9px] font-black focus:outline-none focus:border-secondary">
                  <option value="">Seleccionar...</option>
                  {projects.filter(p => p.status === 'EJECUCION').map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                </select>
              </div>
              <div>
                <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Período</label>
-               <input type="month" value={payrollForm.period} onChange={e => setPayrollForm(f => ({ ...f, period: e.target.value }))}
-                 className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[9px] font-black focus:outline-none focus:border-secondary" />
+                <input type="month" value={payrollForm.period} onChange={e => setPayrollForm(f => ({ ...f, period: e.target.value }))} title="Mes"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-[9px] font-black focus:outline-none focus:border-secondary" />
              </div>
            </div>
            <div>
@@ -1232,29 +1232,29 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                        </div>
                        <div className="flex items-center gap-2 mt-0.5">
                          <label className="text-[6px] text-slate-500">Días:</label>
-                         <input type="number" min={1} max={30} value={e.daysWorked}
-                           onChange={e => {
-                             const emps = [...payrollForm.employees];
-                             const days = Math.min(30, Math.max(1, +e.target.value || 1));
-                             emps[i] = { ...emps[i], daysWorked: days, grossPay: Math.round(emps[i].dailySalary * days * 100) / 100 };
-                             const gross = emps[i].grossPay;
-                             emps[i].igss = Math.round(gross * 0.0483 * 100) / 100;
-                             emps[i].irtra = Math.round(gross * 0.01 * 100) / 100;
-                             emps[i].intecap = Math.round(gross * 0.01 * 100) / 100;
-                             emps[i].deductions = Math.round((emps[i].igss + emps[i].irtra + emps[i].intecap) * 100) / 100;
-                             emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
-                             setPayrollForm(f => ({ ...f, employees: emps }));
-                           }}
-                           className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                          <input type="number" min={1} max={30} value={e.daysWorked} title="Días trabajados"
+                            onChange={e => {
+                              const emps = [...payrollForm.employees];
+                              const days = Math.min(30, Math.max(1, +e.target.value || 1));
+                              emps[i] = { ...emps[i], daysWorked: days, grossPay: Math.round(emps[i].dailySalary * days * 100) / 100 };
+                              const gross = emps[i].grossPay;
+                              emps[i].igss = Math.round(gross * 0.0483 * 100) / 100;
+                              emps[i].irtra = Math.round(gross * 0.01 * 100) / 100;
+                              emps[i].intecap = Math.round(gross * 0.01 * 100) / 100;
+                              emps[i].deductions = Math.round((emps[i].igss + emps[i].irtra + emps[i].intecap) * 100) / 100;
+                              emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                              setPayrollForm(f => ({ ...f, employees: emps }));
+                            }}
+                            className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                          <label className="text-[6px] text-slate-500 ml-1">Bon:</label>
-                         <input type="number" min={0} value={e.bonuses}
-                           onChange={e => {
-                             const emps = [...payrollForm.employees];
-                             emps[i] = { ...emps[i], bonuses: +e.target.value || 0 };
-                             emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
-                             setPayrollForm(f => ({ ...f, employees: emps }));
-                           }}
-                           className="w-14 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                          <input type="number" min={0} value={e.bonuses} title="Bonificaciones"
+                            onChange={e => {
+                              const emps = [...payrollForm.employees];
+                              emps[i] = { ...emps[i], bonuses: +e.target.value || 0 };
+                              emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                              setPayrollForm(f => ({ ...f, employees: emps }));
+                            }}
+                            className="w-14 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                        </div>
                      </div>
                    ))}
@@ -1264,8 +1264,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
            )}
            <div>
              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
-             <textarea value={payrollForm.notes} onChange={e => setPayrollForm(f => ({ ...f, notes: e.target.value }))}
-               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[8px] font-black focus:outline-none resize-none" rows={2} />
+              <textarea value={payrollForm.notes} onChange={e => setPayrollForm(f => ({ ...f, notes: e.target.value }))} title="Notas"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[8px] font-black focus:outline-none resize-none" rows={2} />
            </div>
            <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-[9px]">
              <span className="font-black text-slate-500">
@@ -1300,29 +1300,29 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                    </div>
                    <div className="flex items-center gap-2 mt-1">
                      <label className="text-[6px] text-slate-500">Días:</label>
-                     <input type="number" min={1} max={30} value={e.daysWorked}
-                       onChange={ev => {
-                         const emps = [...editingPayrollForm.employees];
-                         const days = Math.min(30, Math.max(1, +ev.target.value || 1));
-                         emps[i] = { ...emps[i], daysWorked: days, grossPay: Math.round(emps[i].dailySalary * days * 100) / 100 };
-                         const gross = emps[i].grossPay;
-                         emps[i].igss = Math.round(gross * 0.0483 * 100) / 100;
-                         emps[i].irtra = Math.round(gross * 0.01 * 100) / 100;
-                         emps[i].intecap = Math.round(gross * 0.01 * 100) / 100;
-                         emps[i].deductions = Math.round((emps[i].igss + emps[i].irtra + emps[i].intecap) * 100) / 100;
-                         emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
-                         setEditingPayrollForm(f => ({ ...f, employees: emps }));
-                       }}
-                       className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                      <input type="number" min={1} max={30} value={e.daysWorked} title="Días trabajados"
+                        onChange={ev => {
+                          const emps = [...editingPayrollForm.employees];
+                          const days = Math.min(30, Math.max(1, +ev.target.value || 1));
+                          emps[i] = { ...emps[i], daysWorked: days, grossPay: Math.round(emps[i].dailySalary * days * 100) / 100 };
+                          const gross = emps[i].grossPay;
+                          emps[i].igss = Math.round(gross * 0.0483 * 100) / 100;
+                          emps[i].irtra = Math.round(gross * 0.01 * 100) / 100;
+                          emps[i].intecap = Math.round(gross * 0.01 * 100) / 100;
+                          emps[i].deductions = Math.round((emps[i].igss + emps[i].irtra + emps[i].intecap) * 100) / 100;
+                          emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                          setEditingPayrollForm(f => ({ ...f, employees: emps }));
+                        }}
+                        className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                      <label className="text-[6px] text-slate-500 ml-1">Bon:</label>
-                     <input type="number" min={0} value={e.bonuses}
-                       onChange={ev => {
-                         const emps = [...editingPayrollForm.employees];
-                         emps[i] = { ...emps[i], bonuses: +ev.target.value || 0 };
-                         emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
-                         setEditingPayrollForm(f => ({ ...f, employees: emps }));
-                       }}
-                       className="w-14 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                      <input type="number" min={0} value={e.bonuses} title="Bonificaciones"
+                        onChange={ev => {
+                          const emps = [...editingPayrollForm.employees];
+                          emps[i] = { ...emps[i], bonuses: +ev.target.value || 0 };
+                          emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
+                          setEditingPayrollForm(f => ({ ...f, employees: emps }));
+                        }}
+                        className="w-14 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                    </div>
                  </div>
                ))}
@@ -1330,8 +1330,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
            </div>
            <div>
              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
-             <textarea value={editingPayrollForm.notes} onChange={e => setEditingPayrollForm(f => ({ ...f, notes: e.target.value }))}
-               className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[8px] font-black focus:outline-none resize-none" rows={2} />
+              <textarea value={editingPayrollForm.notes} onChange={e => setEditingPayrollForm(f => ({ ...f, notes: e.target.value }))} title="Notas"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[8px] font-black focus:outline-none resize-none" rows={2} />
            </div>
            <div className="flex justify-between items-center pt-1 border-t border-slate-100 text-[9px]">
              <span className="font-black text-slate-500">

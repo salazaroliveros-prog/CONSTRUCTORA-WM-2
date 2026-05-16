@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundarySta
     }
     if (this.state.hasError) {
       return (
-        <div className="min-h-[400px] flex flex-col items-center justify-center bg-surface rounded-2xl p-8">
+        <div className="min-h-100 flex flex-col items-center justify-center bg-surface rounded-2xl p-8">
           <div className="text-5xl mb-4">⚠️</div>
           <h3 className="text-lg font-black text-red-400 mb-2 uppercase tracking-tight">
             Error al cargar la vista

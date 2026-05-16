@@ -129,7 +129,7 @@ const hasDeviation = line.actualCost !== undefined && line.actualCost > 0 && lin
     <>
       <tr className={`group hover:bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)]/30 transition-colors ${hasDeviation ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)]/20' : ''}`}>
         {/* Renglon */}
-        <td style={{ paddingLeft: `${depth * 1.5 + 0.5}rem` }}>
+        <td className="[padding-left:var(--pl)]" style={{ '--pl': `${depth * 1.5 + 0.5}rem` } as React.CSSProperties}>
           <div className="flex items-center gap-1.5 py-1.5">
 {hasChildren ? (
                 <button onClick={() => onToggle(line.id)} aria-label={`Expandir renglón ${line.code}`} className="w-5 h-5 flex items-center justify-center rounded hover:bg-[var(--color-neutral-200)] transition-colors">

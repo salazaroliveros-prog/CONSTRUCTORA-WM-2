@@ -190,16 +190,26 @@ const rentabilidadData = displayProjects
    }, [displayProjects]);
 
 // ── KPIs financieros y operativos mejorados ────────────────────────────────────────────────────────
-   const totalIngresos = PMath.sum(transactions.filter(t => t.type === 'INGRESO' && (!t.projectId || existingProjectIds.has(t.projectId))).map(t => Number(t.amount || 0)));
-   const totalGastos = PMath.sum(transactions.filter(t => t.type === 'GASTO' && (!t.projectId || existingProjectIds.has(t.projectId))).map(t => Number(t.amount || 0)));
+   // Sanity: sin proyectos activos no debe haber datos financieros fantasma
+   const hasProjects = projects.length > 0;
+   const totalIngresos = hasProjects
+     ? PMath.sum(transactions.filter(t => t.type === 'INGRESO' && existingProjectIds.has(t.projectId)).map(t => Number(t.amount || 0)))
+     : 0;
+   const totalGastos = hasProjects
+     ? PMath.sum(transactions.filter(t => t.type === 'GASTO' && existingProjectIds.has(t.projectId)).map(t => Number(t.amount || 0)))
+     : 0;
    const netoCaja = PMath.sub(totalIngresos, totalGastos);
    const totalPresupuesto = PMath.sum(displayProjects.map(p => p.budget || 0));
 
    // Nuevas métricas cruzadas
    const activeStaff = staff.filter(s => s.status === 'Activo');
    const totalSalaries = PMath.sum(activeStaff.map(s => Number(s.salary || 0)));
-   const criticalInventory = inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && (!i.projectId || existingProjectIds.has(i.projectId)));
-   const pendingOrders = purchaseOrders.filter(po => po.status === 'PENDIENTE' && (!po.projectId || existingProjectIds.has(po.projectId)));
+   const criticalInventory = hasProjects
+     ? inventory.filter(i => (i.stock || 0) <= (i.minStock || 0) && existingProjectIds.has(i.projectId))
+     : [];
+   const pendingOrders = hasProjects
+     ? purchaseOrders.filter(po => po.status === 'PENDIENTE' && existingProjectIds.has(po.projectId))
+     : [];
    const totalPendingValue = PMath.sum(pendingOrders.map(po => Number(po.total || 0)));
 
    // Eficiencia de personal por proyecto
@@ -211,13 +221,15 @@ const rentabilidadData = displayProjects
    }).filter(p => p.staffCount > 0);
 
    // Análisis de proveedores
-   const supplierAnalysis = suppliers.map(s => {
-     const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id && (!po.projectId || existingProjectIds.has(po.projectId)));
-     const totalSpent = PMath.sum(supplierOrders.map(po => Number(po.total || 0)));
-     const avgOrderValue = supplierOrders.length > 0 ? PMath.div(totalSpent, supplierOrders.length) : 0;
-     const pendingCount = supplierOrders.filter(po => po.status === 'PENDIENTE').length;
-     return { ...s, totalSpent, avgOrderValue, orderCount: supplierOrders.length, pendingCount };
-   }).sort((a, b) => b.totalSpent - a.totalSpent);
+   const supplierAnalysis = hasProjects
+     ? suppliers.map(s => {
+         const supplierOrders = purchaseOrders.filter(po => po.supplierId === s.id && existingProjectIds.has(po.projectId));
+         const totalSpent = PMath.sum(supplierOrders.map(po => Number(po.total || 0)));
+         const avgOrderValue = supplierOrders.length > 0 ? PMath.div(totalSpent, supplierOrders.length) : 0;
+         const pendingCount = supplierOrders.filter(po => po.status === 'PENDIENTE').length;
+         return { ...s, totalSpent, avgOrderValue, orderCount: supplierOrders.length, pendingCount };
+       }).sort((a, b) => b.totalSpent - a.totalSpent)
+     : [];
 
    // Análisis de inventario por proyecto
    const inventoryByProject = displayProjects.map(p => {

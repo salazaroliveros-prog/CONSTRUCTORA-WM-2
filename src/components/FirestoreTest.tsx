@@ -241,9 +241,10 @@ export default function FirestoreTest() {
                 {totalDocs} docs totales
               </span>
             )}
-            <button
+              <button
               onClick={loadCollections}
               disabled={loadingCols}
+              aria-label="Verificar colecciones"
               className="p-1.5 rounded-lg hover:bg-slate-100 transition-colors disabled:opacity-50"
             >
               <RefreshCw size={13} className={loadingCols ? 'animate-spin text-blue-500' : 'text-slate-400'} />
@@ -375,7 +376,7 @@ export default function FirestoreTest() {
           </div>
         </div>
 
-        <div className="bg-slate-900 rounded-xl p-4 font-mono text-[9px] min-h-[80px] space-y-1">
+        <div className="bg-slate-900 rounded-xl p-4 font-mono text-[9px] min-h-20 space-y-1">
           {pollLog.length === 0
             ? <p className="text-slate-500">Esperando eventos...</p>
             : pollLog.map((log, i) => (

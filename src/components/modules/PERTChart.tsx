@@ -172,6 +172,7 @@ export default function PERTChart({ tasks: propTasks = [], className, projectNam
                   value={targetDays}
                   onChange={e => setTargetDays(Math.max(1, Number(e.target.value)))}
                   className="input w-20 text-center text-sm"
+                  title="Días meta"
                 />
                 <span className="text-xs font-bold text-n-500">días</span>
               </div>
@@ -195,8 +196,7 @@ export default function PERTChart({ tasks: propTasks = [], className, projectNam
               const maxY = Math.max(...ys.map(y => y + 72)) + 40;
               return `${minX} ${minY} ${maxX - minX} ${maxY - minY}`;
             })()}
-            className="w-full h-full"
-            style={{ minHeight: 400 }}
+            className="w-full h-full min-h-[400px]"
           >
             <defs>
               <marker id="arrowhead" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">

@@ -59,49 +59,65 @@ function LoadingSpinner() {
 // ── Login Screen ──
 function LoginScreen({ login }: { login: () => void }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen flex items-center justify-center p-6 relative overflow-hidden login-bg">
+      {/* Decorative elements */}
+      <div className="absolute top-20 left-20 w-72 h-72 rounded-full login-deco-1" />
+      <div className="absolute bottom-20 right-20 w-96 h-96 rounded-full login-deco-2" />
+      <div className="absolute top-1/2 right-1/3 w-48 h-48 rounded-full login-deco-3" />
+
       <motion.div
-        initial={{ opacity: 0, y: 20, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-        className="w-full max-w-md"
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-sm relative z-10"
       >
-        {/* Card with glassmorphism */}
-        <div className="bg-surface/80 backdrop-blur-2xl border border-border rounded-3xl p-8 sm:p-10 shadow-xl shadow-primary/5">
+        {/* Glass card */}
+        <div className="rounded-2xl p-8 sm:p-10 login-glass-card">
           {/* Logo */}
-          <div className="flex justify-center mb-8">
-            <Logo />
+          <div className="flex justify-center mb-6">
+            <img
+              src="/logo.png"
+              alt="Constructora WM"
+              className="h-16 w-auto"
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
+            />
           </div>
 
           {/* Title */}
           <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-black text-primary uppercase tracking-tighter leading-tight">
+            <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight leading-tight">
               Sistema de Gestión
-              <br />
-              <span className="bg-gradient-to-r from-secondary to-warning bg-clip-text text-transparent">
-                Constructora
-              </span>
             </h1>
-            <p className="text-xs font-bold text-neutral-400 uppercase tracking-[0.2em] mt-3">
-              Sistema de Gestión de Obra Profesional
+            <span className="text-2xl sm:text-3xl font-black bg-linear-to-r from-amber-400 to-amber-300 bg-clip-text text-transparent tracking-tight">
+              Constructora
+            </span>
+            <p className="text-xs font-medium text-white/40 uppercase tracking-[0.15em] mt-3">
+              Panel de Control Profesional
             </p>
           </div>
 
-          {/* Login Button */}
+          {/* Login Button with Google logo */}
           <motion.button
             onClick={login}
             whileHover={{ scale: 1.02, y: -1 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center justify-center gap-3 bg-primary text-white py-4 rounded-2xl font-black uppercase text-sm tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/10 active:scale-[0.97]"
+            whileTap={{ scale: 0.97 }}
+            className="w-full flex items-center justify-center gap-3 py-3 rounded-xl font-semibold text-sm transition-all login-btn-google"
           >
-            <LogIn size={18} className="group-hover:translate-x-1 transition-transform" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+              <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+              <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+              <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+              <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+            </svg>
             Acceder con Google
           </motion.button>
 
           {/* Footer */}
-          <div className="mt-6 pt-4 border-t border-border">
-            <p className="text-[10px] font-semibold text-neutral-300 uppercase tracking-widest text-center">
-              Desarrollado para alta eficiencia operativa
+          <div className="mt-6 pt-4 login-footer-divider">
+            <p className="text-[10px] font-medium text-white/25 uppercase tracking-widest text-center">
+              ERP Constructora WM · Gestión de Obra Profesional
             </p>
           </div>
         </div>
@@ -113,7 +129,7 @@ function LoginScreen({ login }: { login: () => void }) {
 // ── Unauthorized Screen ──
 function UnauthorizedScreen({ user, signOut }: { user: any; signOut: () => void }) {
   return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-gradient-to-br from-neutral-950 via-neutral-900 to-neutral-950">
+    <div className="min-h-screen flex items-center justify-center p-6 bg-linear-to-br from-neutral-950 via-neutral-900 to-neutral-950">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -121,7 +137,7 @@ function UnauthorizedScreen({ user, signOut }: { user: any; signOut: () => void 
       >
         <div className="bg-surface/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center space-y-6">
           {/* Avatar */}
-          <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-neutral-700 to-neutral-900 flex items-center justify-center shadow-2xl">
+          <div className="w-20 h-20 mx-auto rounded-full bg-linear-to-br from-neutral-700 to-neutral-900 flex items-center justify-center shadow-2xl">
             {user?.photoURL ? (
               <img
                 src={user.photoURL}
@@ -171,11 +187,25 @@ function UnauthorizedScreen({ user, signOut }: { user: any; signOut: () => void 
 
 // ── Offline Banner ──
 function OfflineBanner() {
-  const { isOnline } = useNetworkStatus();
-  if (isOnline) return null;
+  const { isOnline, syncStatus } = useNetworkStatus();
+  if (isOnline) {
+    if (syncStatus.syncing) {
+      return (
+        <div className="fixed top-0 left-0 right-0 z-9999 bg-blue-500/90 backdrop-blur-md text-white text-center text-xs font-bold py-2 px-4 shadow-lg shadow-blue-500/20">
+          Sincronizando datos con el servidor…
+        </div>
+      );
+    }
+    if (syncStatus.lastSync) {
+      const ago = Math.round((Date.now() - new Date(syncStatus.lastSync).getTime()) / 1000);
+      if (ago < 30) return null;
+    }
+    return null;
+  }
   return (
-    <div className="fixed top-0 left-0 right-0 z-[9999] bg-amber-500/90 backdrop-blur-md text-amber-950 text-center text-xs font-bold py-2 px-4 shadow-lg shadow-amber-500/20">
-      Sin conexión a internet — los datos no se actualizarán hasta que se restablezca la conexión
+    <div className="fixed top-0 left-0 right-0 z-9999 bg-amber-500/90 backdrop-blur-md text-amber-950 text-center text-xs font-bold py-2 px-4 shadow-lg shadow-amber-500/20">
+      Sin conexión a internet
+      {syncStatus.pending > 0 && ` — ${syncStatus.pending} cambio${syncStatus.pending > 1 ? 's' : ''} pendiente${syncStatus.pending > 1 ? 's' : ''} de sincronizar`}
     </div>
   );
 }
@@ -184,15 +214,11 @@ function OfflineBanner() {
 function LoadingScreen() {
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center"
-      style={{
-        background:
-          "radial-gradient(ellipse at center, #0f2040 0%, #0a0f1e 60%, #000 100%)",
-      }}
+      className="min-h-screen flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#0f2040_0%,#0a0f1e_60%,#000_100%)]"
     >
       {/* Animated logo */}
       <div className="relative w-20 h-20 z-10">
-        <div className="absolute inset-0 rounded-full bg-gradient-to-br from-amber-500 to-amber-600 shadow-xl shadow-amber-500/30 animate-pulse" />
+        <div className="absolute inset-0 rounded-full bg-linear-to-br from-amber-500 to-amber-600 shadow-xl shadow-amber-500/30 animate-pulse" />
         <div className="absolute inset-2 rounded-full bg-primary flex items-center justify-center">
           <span className="text-white font-black text-lg">WM</span>
         </div>
@@ -471,6 +497,7 @@ function AppContent() {
   );
 
   const activeItem = menuItems.find((m) => m.id === activeTab);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   // Rendering
   if (loading) {
@@ -545,9 +572,10 @@ function AppContent() {
               onOpenAI={() => {}}
               onOpenSearch={() => {}}
               userName={user?.displayName || "Usuario"}
-              userPhoto={user?.photoURL}
+              userPhoto={user?.photoURL ?? undefined}
               companyName="WM/M&S Constructora"
               breadcrumbs={[{ label: activeItem?.label || "Dashboard" }]}
+              onToggleMobile={() => setMobileNavOpen(o => !o)}
             />
           }
           mobileNav={
@@ -558,8 +586,8 @@ function AppContent() {
                 onClick: (id: string) => setActiveTab(id),
                 iconMobile: item.icon,
               }))}
-              isOpen={false}
-              onClose={() => {}}
+              isOpen={mobileNavOpen}
+              onClose={() => setMobileNavOpen(false)}
             />
           }
         >

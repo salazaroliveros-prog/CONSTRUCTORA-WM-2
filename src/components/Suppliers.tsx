@@ -253,7 +253,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
   );
 
   return (
-    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div className="flex flex-col h-full gap-4 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0))]">
 
 {/* KPI Strip */}
        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
@@ -351,8 +351,8 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                            (isSelected || selectedSupplierIds.has(s.id)) ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100 hover:border-secondary/40")}>
                          {bulkMode && (
                            <div className="absolute top-1.5 left-1.5 z-10" onClick={e => e.stopPropagation()}>
-                             <input type="checkbox" checked={selectedSupplierIds.has(s.id)} onChange={() => toggleSelectSupplier(s.id)}
-                               className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                              <input type="checkbox" checked={selectedSupplierIds.has(s.id)} onChange={() => toggleSelectSupplier(s.id)} title="Seleccionar proveedor"
+                                className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
                            </div>
                          )}
                          {/* Top row: icon + name + status + actions */}
@@ -413,8 +413,8 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                         <tr className="border-b border-slate-100">
                         {bulkMode && (
                           <th className="px-2 py-2 w-6">
-                            <input type="checkbox" checked={currentItems.length > 0 && selectedSupplierIds.size === currentItems.length}
-                              onChange={toggleSelectAllSuppliers} className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                             <input type="checkbox" checked={currentItems.length > 0 && selectedSupplierIds.size === currentItems.length}
+                               onChange={toggleSelectAllSuppliers} title="Seleccionar todo" className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
                           </th>
                         )}
                           <th className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Proveedor</th>
@@ -447,7 +447,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                                <div className="flex items-center gap-2">
                                  <div className={cn("w-6 h-6 rounded-md flex items-center justify-center shrink-0",
                                    isSelected ? "bg-secondary text-primary" : "bg-slate-900 text-secondary")}><Truck size={10} /></div>
-                                 <span className="text-[9px] font-black text-primary uppercase truncate max-w-[100px]">{s.name}</span>
+                                  <span className="text-[9px] font-black text-primary uppercase truncate max-w-25">{s.name}</span>
                                </div>
                              </td>
                              <td className="hidden sm:table-cell px-3 py-2 text-[8px] text-slate-500 font-bold uppercase">{s.category || '--'}</td>
@@ -859,10 +859,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
             className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
             Eliminar
           </button>
-          <button type="button" onClick={() => setSelectedSupplierIds(new Set())}
-            className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
-            <X size={14} />
-          </button>
+          <button type="button" onClick={() => setSelectedSupplierIds(new Set())} aria-label="Deseleccionar"
+             className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
+             <X size={14} />
+           </button>
         </div>
       )}
      </div>

@@ -1,5 +1,7 @@
 import { auth } from '../lib/firebase';
 import { apiFetch, docToObject, objToFirestore, collectionQuery, nowISO } from './firebaseApi';
+import { cacheCollection, getCachedCollection, clearCache } from './cacheService';
+import { addToQueue, getQueue, removeFromQueue } from './offlineQueue';
 
 export const parseError = (error: unknown): string => {
   if (error instanceof Error) {
@@ -24,10 +26,17 @@ export const getDocumentsForCollection = async (collectionName: string): Promise
     const results = await collectionQuery(collectionName, [
       { field: 'ownerId', op: 'EQUAL', val: auth.currentUser.uid },
     ]);
-    return results
+    const data = results
       .filter((r: any) => r.document)
       .map((r: any) => docToObject(r.document));
+    cacheCollection(collectionName, data);
+    return data;
   } catch (error) {
+    const cached = getCachedCollection(collectionName);
+    if (cached) {
+      console.info(`[firestoreService] Offline — serving cached ${collectionName} (${cached.length} items)`);
+      return cached;
+    }
     console.error(`[firestoreService] Error fetching ${collectionName}:`, error);
     return [];
   }
@@ -38,7 +47,6 @@ export const subscribeToCollection = (
   callback: (data: any[]) => void
 ) => {
   let cancelled = false;
-
   if (!auth.currentUser) return () => {};
 
   const fetch = async () => {
@@ -48,7 +56,6 @@ export const subscribeToCollection = (
   };
 
   fetch();
-
   const intervalId = window.setInterval(fetch, 30000);
 
   return () => {
@@ -69,11 +76,31 @@ const sanitize = (obj: any): any => {
   return obj;
 };
 
+function isOffline(): boolean {
+  return !navigator.onLine;
+}
+
 export const addDocument = async (
   collectionName: string,
   data: any
 ): Promise<string | null> => {
   if (!auth.currentUser) throw new Error('Not authenticated');
+
+  if (isOffline()) {
+    const docId = crypto.randomUUID();
+    addToQueue({
+      collection: collectionName,
+      action: 'create',
+      docId,
+      data: { ...data, ownerId: auth.currentUser.uid },
+    });
+    const cached = getCachedCollection(collectionName) || [];
+    cached.push({ id: docId, ...data, ownerId: auth.currentUser.uid });
+    cacheCollection(collectionName, cached);
+    console.info(`[offline] Queued create ${collectionName}/${docId}`);
+    return docId;
+  }
+
   try {
     const clean = sanitize(data);
     const doc = {
@@ -91,9 +118,25 @@ export const addDocument = async (
     });
 
     const id = (result.name as string).split('/').pop() || '';
+    const cached = getCachedCollection(collectionName) || [];
+    cached.push({ id, ...clean, ownerId: auth.currentUser.uid, createdAt: nowISO(), updatedAt: nowISO() });
+    cacheCollection(collectionName, cached);
     return id;
   } catch (error) {
     console.error(`[firestoreService] Error creating ${collectionName}:`, error);
+    if (!navigator.onLine) {
+      const docId = crypto.randomUUID();
+      addToQueue({
+        collection: collectionName,
+        action: 'create',
+        docId,
+        data: { ...data, ownerId: auth.currentUser.uid },
+      });
+      const cached = getCachedCollection(collectionName) || [];
+      cached.push({ id: docId, ...data, ownerId: auth.currentUser.uid });
+      cacheCollection(collectionName, cached);
+      return docId;
+    }
     throw error;
   }
 };
@@ -104,6 +147,23 @@ export const updateDocument = async (
   data: any
 ): Promise<void> => {
   if (!auth.currentUser) throw new Error('Not authenticated');
+
+  if (isOffline()) {
+    addToQueue({
+      collection: collectionName,
+      action: 'update',
+      docId: id,
+      data,
+    });
+    const cached = getCachedCollection(collectionName) || [];
+    const idx = cached.findIndex((d: any) => d.id === id);
+    if (idx >= 0) cached[idx] = { ...cached[idx], ...data };
+    else cached.push({ id, ...data });
+    cacheCollection(collectionName, cached);
+    console.info(`[offline] Queued update ${collectionName}/${id}`);
+    return;
+  }
+
   try {
     const clean = sanitize(data);
     const fields = objToFirestore({ ...clean, updatedAt: nowISO() });
@@ -117,6 +177,10 @@ export const updateDocument = async (
           body: JSON.stringify({ fields }),
         });
         await generateProjectStock({ id, ...current, ...data });
+        const cached = getCachedCollection(collectionName) || [];
+        const idx = cached.findIndex((d: any) => d.id === id);
+        if (idx >= 0) cached[idx] = { ...cached[idx], ...data };
+        cacheCollection(collectionName, cached);
         return;
       }
     }
@@ -125,8 +189,20 @@ export const updateDocument = async (
       method: 'PATCH',
       body: JSON.stringify({ fields }),
     });
+    const cached = getCachedCollection(collectionName) || [];
+    const idx = cached.findIndex((d: any) => d.id === id);
+    if (idx >= 0) cached[idx] = { ...cached[idx], ...data };
+    cacheCollection(collectionName, cached);
   } catch (error) {
     console.error(`[firestoreService] Error updating ${collectionName}/${id}:`, error);
+    if (!navigator.onLine) {
+      addToQueue({
+        collection: collectionName,
+        action: 'update',
+        docId: id,
+        data,
+      });
+    }
     throw error;
   }
 };
@@ -136,11 +212,29 @@ export const deleteDocument = async (
   id: string
 ): Promise<boolean> => {
   if (!auth.currentUser) return false;
+
+  if (isOffline()) {
+    addToQueue({
+      collection: collectionName,
+      action: 'delete',
+      docId: id,
+    });
+    const cached = getCachedCollection(collectionName) || [];
+    cacheCollection(collectionName, cached.filter((d: any) => d.id !== id));
+    console.info(`[offline] Queued delete ${collectionName}/${id}`);
+    return true;
+  }
+
   try {
     await apiFetch(`/documents/${collectionName}/${id}`, { method: 'DELETE' });
+    const cached = getCachedCollection(collectionName) || [];
+    cacheCollection(collectionName, cached.filter((d: any) => d.id !== id));
     return true;
   } catch (error) {
     console.error(`[firestoreService] Error deleting ${collectionName}/${id}:`, error);
+    if (!navigator.onLine) {
+      addToQueue({ collection: collectionName, action: 'delete', docId: id });
+    }
     return false;
   }
 };
@@ -197,44 +291,6 @@ export const checkUniqueField = async (
   }
 };
 
-export const writeWithOfflineQueue = async (
-  collectionName: string,
-  docId: string,
-  data: any,
-  operation: 'create' | 'update' | 'delete' = 'create'
-): Promise<void> => {
-  if (!auth.currentUser) throw new Error('Not authenticated');
-  const sanitized = sanitize(data);
-  try {
-    if (operation === 'delete') {
-      await apiFetch(`/documents/${collectionName}/${docId}`, { method: 'DELETE' });
-    } else if (operation === 'create') {
-      const doc = {
-        fields: objToFirestore({
-          ...sanitized,
-          ownerId: auth.currentUser.uid,
-          createdAt: nowISO(),
-          updatedAt: nowISO(),
-        }),
-      };
-      await apiFetch(`/documents/${collectionName}`, {
-        method: 'POST',
-        body: JSON.stringify(doc),
-      });
-    } else {
-      const fields = objToFirestore({ ...sanitized, updatedAt: nowISO() });
-      const mask = Object.keys(fields).join(',');
-      await apiFetch(`/documents/${collectionName}/${docId}?updateMask.fieldPaths=${mask}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ fields }),
-      });
-    }
-  } catch (error: any) {
-    console.error(`[firestoreService] Error ${operation} ${collectionName}/${docId}:`, error);
-    throw error;
-  }
-};
-
 export const REQUIRED_COLLECTIONS = [
   'projects',
   'clients',
@@ -283,6 +339,67 @@ async function getDocument(collectionName: string, id: string): Promise<any | nu
     return null;
   }
 }
+
+export const processPendingQueue = async (): Promise<{ processed: number; failed: number }> => {
+  const queue = getQueue();
+  if (queue.length === 0 || !auth.currentUser) return { processed: 0, failed: 0 };
+
+  let processed = 0;
+  let failed = 0;
+
+  for (const op of queue) {
+    try {
+      if (op.action === 'create' && op.data) {
+        const clean = sanitize(op.data);
+        const doc = {
+          fields: objToFirestore({ ...clean, ownerId: auth.currentUser.uid, createdAt: nowISO(), updatedAt: nowISO() }),
+        };
+        await apiFetch(`/documents/${op.collection}?documentId=${op.docId}`, {
+          method: 'POST',
+          body: JSON.stringify(doc),
+        });
+      } else if (op.action === 'update' && op.docId && op.data) {
+        const clean = sanitize(op.data);
+        const fields = objToFirestore({ ...clean, updatedAt: nowISO() });
+        const mask = Object.keys(fields).join(',');
+
+        if (op.collection === 'projects' && op.data.status === 'EJECUCION') {
+          const current = await getDocument(op.collection, op.docId);
+          if (current && current.status !== 'EJECUCION') {
+            await apiFetch(`/documents/${op.collection}/${op.docId}?updateMask.fieldPaths=${mask}`, {
+              method: 'PATCH',
+              body: JSON.stringify({ fields }),
+            });
+            await generateProjectStock({ id: op.docId, ...current, ...op.data });
+            removeFromQueue(op.id);
+            processed++;
+            continue;
+          }
+        }
+
+        await apiFetch(`/documents/${op.collection}/${op.docId}?updateMask.fieldPaths=${mask}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ fields }),
+        });
+      } else if (op.action === 'delete' && op.docId) {
+        await apiFetch(`/documents/${op.collection}/${op.docId}`, { method: 'DELETE' });
+      }
+      removeFromQueue(op.id);
+      processed++;
+    } catch (e) {
+      console.error(`[sync] Failed to process ${op.action} ${op.collection}/${op.docId}:`, e);
+      op.retries++;
+      if (op.retries >= 5) {
+        console.warn(`[sync] Giving up on ${op.action} ${op.collection}/${op.docId} after 5 retries`);
+        removeFromQueue(op.id);
+      }
+      failed++;
+    }
+  }
+
+  clearCache();
+  return { processed, failed };
+};
 
 export const generateProjectStock = async (project: any): Promise<number> => {
   if (!auth.currentUser || !project.id) return 0;

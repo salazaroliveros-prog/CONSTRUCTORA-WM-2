@@ -110,10 +110,10 @@ const TaskBar = React.memo(function TaskBar({
         className={cn(
           'absolute rounded overflow-hidden cursor-grab active:cursor-grabbing z-10',
           task.isCritical
-            ? 'bg-gradient-to-r from-red-500 to-red-600'
+            ? 'bg-linear-to-r from-red-500 to-red-600'
             : task.progress === 100
-              ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
-              : 'bg-gradient-to-r from-blue-500 to-blue-600'
+              ? 'bg-linear-to-r from-emerald-500 to-emerald-600'
+              : 'bg-linear-to-r from-blue-500 to-blue-600'
         )}
         style={{ left: `${barLeft}%`, width: `${barWidth}%`, top: '18%', bottom: '35%' }}
         initial={{ scaleX: 0, originX: 0 }}
@@ -751,7 +751,7 @@ export default function GanttChart() {
       {/* ── Header ── */}
       <div className="flex items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl shadow">
+          <div className="p-2 bg-linear-to-br from-blue-500 to-blue-700 rounded-xl shadow">
             <Activity size={18} className="text-white" />
           </div>
           <div>
@@ -764,6 +764,7 @@ export default function GanttChart() {
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
+            title="Seleccionar proyecto"
             className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-blue-500"
           >
             {projects.length === 0
@@ -839,7 +840,7 @@ export default function GanttChart() {
               className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-white hover:shadow transition-all"
               title="Alejar"
             >−</button>
-            <span className="text-[10px] font-bold text-slate-600 min-w-[36px] text-center">{Math.round(zoomLevel * 100)}%</span>
+            <span className="text-[10px] font-bold text-slate-600 min-w-9 text-center">{Math.round(zoomLevel * 100)}%</span>
             <button
               onClick={() => setZoomLevel(z => Math.min(3, z + 0.25))}
               className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-white hover:shadow transition-all"
@@ -891,9 +892,9 @@ export default function GanttChart() {
       <div className="flex items-center gap-3 shrink-0 px-1 flex-wrap">
         <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Barras:</span>
         {[
-          { color: 'bg-gradient-to-r from-red-500 to-red-600',         label: 'Ruta crítica' },
-          { color: 'bg-gradient-to-r from-blue-500 to-blue-600',       label: 'Normal'       },
-          { color: 'bg-gradient-to-r from-emerald-500 to-emerald-600', label: 'Completada'   },
+          { color: 'bg-linear-to-r from-red-500 to-red-600',         label: 'Ruta crítica' },
+          { color: 'bg-linear-to-r from-blue-500 to-blue-600',       label: 'Normal'       },
+          { color: 'bg-linear-to-r from-emerald-500 to-emerald-600', label: 'Completada'   },
           { color: 'bg-slate-300/70 border border-dashed border-slate-400/50', label: 'Holgura' },
           { color: 'bg-slate-300/30 border border-dashed border-slate-400/30', label: 'Original' },
         ].map(l => (
@@ -927,7 +928,7 @@ export default function GanttChart() {
       </div>
 
       {/* ── Diagrama ── */}
-      <div ref={chartRef} className="flex-1 bg-white border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
+      <div ref={chartRef} className="flex-1 bg-white border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-125">
         <div
           style={{
             minWidth: Math.max(1100, 1100 * zoomLevel),
@@ -1228,7 +1229,7 @@ export default function GanttChart() {
                         t.isCritical && 'bg-red-50/60'
                       )}
                     >
-                      <td className="px-3 py-1.5 font-bold text-slate-700 max-w-[180px] truncate">
+                      <td className="px-3 py-1.5 font-bold text-slate-700 max-w-45 truncate">
                         {t.isCritical && <span className="text-red-500 mr-1">⚠</span>}
                         {t.name}
                       </td>
@@ -1329,7 +1330,7 @@ export default function GanttChart() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="shrink-0 bg-gradient-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4"
+          className="shrink-0 bg-linear-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
@@ -1352,7 +1353,7 @@ export default function GanttChart() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.05 }}
-                className="px-3 py-1.5 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
+                className="px-3 py-1.5 bg-linear-to-r from-red-500 to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
               >
                 {t.name.length > 25 ? t.name.substring(0, 25) + '...' : t.name}
                 <span className="ml-2 opacity-75">{t.duration}d</span>
@@ -1367,7 +1368,7 @@ export default function GanttChart() {
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
-          className="shrink-0 bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-4 shadow-xl"
+          className="shrink-0 bg-linear-to-br from-slate-800 to-slate-900 rounded-xl p-4 shadow-xl"
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">

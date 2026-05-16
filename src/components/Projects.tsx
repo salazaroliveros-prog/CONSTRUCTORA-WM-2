@@ -61,7 +61,7 @@ import { trackCRUD, trackEvent } from '../utils/logger';
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[var(--color-surface-solid)]/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-[120px]">
+    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[var(--color-surface-solid)]/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-30">
       {label && <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
@@ -502,8 +502,8 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
      >
        {bulkMode && (
          <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
-           <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
-             className="w-4 h-4 accent-red-500 cursor-pointer" />
+            <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)} title="Seleccionar proyecto"
+              className="w-4 h-4 accent-red-500 cursor-pointer" />
          </div>
        )}
        <div className="p-4 space-y-3 flex-1">
@@ -558,12 +558,13 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
            <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Presupuesto</span>
            <span className="text-[11px] font-black text-[var(--color-primary)] italic leading-none">Q {(project.budget || 0).toLocaleString()}</span>
          </div>
-         <button
-           onClick={(e) => handleDelete(e, project.id)}
-           className="p-1.5 text-slate-300 hover:text-[var(--color-error)] hover:bg-red-50 rounded-lg transition-all"
-         >
-           <Trash2 size={14} />
-         </button>
+          <button
+            onClick={(e) => handleDelete(e, project.id)}
+            aria-label="Eliminar proyecto"
+            className="p-1.5 text-slate-300 hover:text-[var(--color-error)] hover:bg-red-50 rounded-lg transition-all"
+          >
+            <Trash2 size={14} />
+          </button>
        </div>
      </motion.div>
    ));
@@ -611,7 +612,7 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
   }
 
   return (
-    <div id="projects-dashboard" className="space-y-6 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div id="projects-dashboard" className="space-y-6 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0))]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="text-left">
           <h2 className="text-xl md:text-2xl font-black tracking-tight text-[var(--color-primary)] uppercase">Proyectos</h2>
@@ -624,9 +625,9 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
             >
               <Download size={18} /> Exportar
             </button>
-            <button 
+            <button
               onClick={() => setView('create')}
-              className="btn-primary-enhanced btn-liquid flex-[2] md:flex-none px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg"
+              className="btn-primary-enhanced btn-liquid flex-2 md:flex-none px-6 py-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 shadow-lg"
             >
               <Plus size={18} /> Nueva Cotización
             </button>
@@ -721,14 +722,15 @@ return (
                   className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-[var(--color-neutral-50)] shadow-sm ' : 'bg-[var(--color-neutral-100)]  text-[var(--color-neutral-500)]  hover:text-slate-800 '}`}>
                  {bulkMode ? 'Cancelar' : 'Seleccionar'}
                </button>
-               <div className="flex flex-col gap-0.5 min-w-[120px]">
-                <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
-                  <Clock size={7} /> Estado
-                </span>
-                <select
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                  className="h-8 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-[120px]"
+                <div className="flex flex-col gap-0.5 min-w-30">
+                 <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                   <Clock size={7} /> Estado
+                 </span>
+                 <select
+                   title="Filtrar por estado"
+                   value={statusFilter}
+                   onChange={(e) => setStatusFilter(e.target.value)}
+                   className="h-8 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-30"
                 >
                   <option value="ALL">TODOS</option>
                   <option value="COTIZACION">COTIZACIÓN</option>
@@ -737,14 +739,15 @@ return (
                 </select>
               </div>
 
-              <div className="flex flex-col gap-0.5 min-w-[120px]">
-                <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
-                  <Building2 size={7} /> Tipología
-                </span>
-                <select
-                  value={typologyFilter}
-                  onChange={(e) => setTypologyFilter(e.target.value)}
-                  className="h-8 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-[120px]"
+              <div className="flex flex-col gap-0.5 min-w-30">
+                 <span className="text-[6px] font-black text-[var(--color-neutral-400)] uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                   <Building2 size={7} /> Tipología
+                 </span>
+                 <select
+                   title="Filtrar por tipología"
+                   value={typologyFilter}
+                   onChange={(e) => setTypologyFilter(e.target.value)}
+                   className="h-8 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-2 text-[7px] font-black uppercase tracking-widest focus:outline-none focus:border-secondary shadow-sm cursor-pointer w-full md:min-w-30"
                 >
                  <option value="ALL">TODAS</option>
                  {Object.values(Typology).map(t => (
@@ -757,13 +760,13 @@ return (
 
 {viewMode === 'table' ? (
             <div className="overflow-x-auto no-scrollbar">
-              <table className="w-full text-left min-w-[480px] sm:min-w-[600px]">
+              <table className="w-full text-left min-w-120 sm:min-w-150">
                <thead>
                  <tr className="bg-[var(--color-neutral-50)]/50 border-b border-[var(--color-neutral-100)]">
                    {bulkMode && (
                      <th className="px-2 py-2 w-6">
-                       <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
-                         onChange={toggleSelectAllProjects} className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                        <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
+                          onChange={toggleSelectAllProjects} title="Seleccionar todo" className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
                      </th>
                    )}
                    <th className="px-4 py-2 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Proyecto</th>
@@ -784,8 +787,8 @@ return (
                     >
                      {bulkMode && (
                        <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
-                         <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)}
-                           className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                          <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)} title="Seleccionar proyecto"
+                            className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
                        </td>
                      )}
                      <td className="px-4 py-2">
@@ -794,19 +797,19 @@ return (
                            <Building2 size={14} />
                          </div>
                          <div className="min-w-0">
-                            <p className="text-[7px] sm:text-[8px] font-black text-[var(--color-primary)] uppercase tracking-tight truncate max-w-[80px] sm:max-w-[120px] md:max-w-none group-hover:text-[var(--color-secondary)] transition-colors">{project.name}</p>
+                             <p className="text-[7px] sm:text-[8px] font-black text-[var(--color-primary)] uppercase tracking-tight truncate max-w-20 sm:max-w-30 md:max-w-none group-hover:text-[var(--color-secondary)] transition-colors">{project.name}</p>
                             <p className="text-[6px] text-[var(--color-neutral-400)]  font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
                          </div>
                        </div>
                      </td>
                       <td className="hidden sm:table-cell px-2 sm:px-4 py-2">
                        <div className="flex flex-col">
-                          <span className="text-[7px] font-black text-[var(--color-neutral-900)]  uppercase truncate max-w-[120px]">{project.clientName}</span>
+                           <span className="text-[7px] font-black text-[var(--color-neutral-900)]  uppercase truncate max-w-30">{project.clientName}</span>
                           <span className="text-[6px] font-bold text-[var(--color-neutral-400)]  uppercase tracking-widest">{project.typology}</span>
                        </div>
                      </td>
                      <td className="px-4 py-2">
-                       <div className="flex flex-col gap-1 min-w-[70px]">
+                          <div className="flex flex-col gap-1 min-w-17.5">
                          <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest">
                            <span className={cn(
                              project.status === 'EJECUCION' ? "text-[var(--color-secondary)]" :
@@ -829,13 +832,14 @@ return (
                      </td>
                      <td className="px-4 py-2 text-right">
                        <div className="flex items-center justify-end gap-1">
-                          <button
-                            onClick={(e) => handleDelete(e, project.id)}
-                            className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-[var(--color-error)] hover:bg-red-50 :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
-                          >
-                            <Trash2 size={12} />
-                          </button>
-                          <button className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  group-hover:text-[var(--color-secondary)] group-hover:bg-[var(--color-neutral-900)] :bg-[var(--color-neutral-700)] transition-all">
+                           <button
+                             onClick={(e) => handleDelete(e, project.id)}
+                             aria-label="Eliminar proyecto"
+                             className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-[var(--color-error)] hover:bg-red-50 :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
+                           >
+                             <Trash2 size={12} />
+                           </button>
+                           <button aria-label="Ver detalles" className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  group-hover:text-[var(--color-secondary)] group-hover:bg-[var(--color-neutral-900)] :bg-[var(--color-neutral-700)] transition-all">
                            <ChevronRight size={14} />
                          </button>
                        </div>
@@ -883,8 +887,8 @@ return (
                      <p className="text-[8px] text-[var(--color-neutral-600)]  font-bold uppercase">{p.clientName}</p>
                     <div className="flex items-center justify-between">
                       <span className="text-[8px] font-black text-[var(--color-secondary)]">Q {(p.budget || 0).toLocaleString()}</span>
-                      <div className="w-16 h-1.5 bg-[var(--color-neutral-100)]  rounded-full overflow-hidden">
-                        <div className="h-full bg-[var(--color-neutral-900)]  rounded-full" style={{ width: `${p.progress || 0}%` }} />
+                      <div className="w-16 h-1.5 bg-[var(--color-neutral-100)]  rounded-full overflow-hidden" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties}>
+                        <div className="h-full bg-[var(--color-neutral-900)]  rounded-full w-[var(--pw)]" />
                       </div>
                     </div>
                   </motion.div>
@@ -956,7 +960,7 @@ return (
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
                   <span className="text-[7px] font-black text-[var(--color-neutral-400)]  uppercase tracking-widest">Plantilla PDF</span>
-                  <select value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="h-8 bg-[var(--color-surface-solid)]  border border-[var(--color-neutral-200)]  rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer text-[var(--color-neutral-900)] ">
+                   <select title="Plantilla PDF" value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="h-8 bg-[var(--color-surface-solid)]  border border-[var(--color-neutral-200)]  rounded-lg px-2 text-[8px] font-black uppercase focus:outline-none focus:border-secondary cursor-pointer text-[var(--color-neutral-900)] ">
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
@@ -974,18 +978,18 @@ return (
                 <div className="col-span-2 md:col-span-4 bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)] rounded-2xl p-5 space-y-4">
                   <p className="text-[9px] font-black text-[var(--color-warning)] uppercase tracking-widest">Modo Edicion</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Nombre del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
                     <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Cliente</label>
-                      <select value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400">
+                      <select title="Seleccionar cliente" value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400">
                         <option value="">— Seleccionar —</option>
                         {allClients.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         {editForm.clientName && !allClients.find(c => c.name === editForm.clientName) && <option value={editForm.clientName}>{editForm.clientName}</option>}
                       </select>
                     </div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Estado</label><select value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Fin</label><input type="date" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Estado</label><select title="Seleccionar estado" value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} placeholder="Ubicación del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" title="Fecha de inicio" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Fin</label><input type="date" title="Fecha de fin" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
                   </div>
                 </div>
               )}
@@ -999,6 +1003,7 @@ return (
                   value={selectedProject.location || ''}
                   onBlur={(e) => handleUpdateProject({ location: e.target.value })}
                   onChange={(e) => setSelectedProject({ ...selectedProject, location: e.target.value })}
+                  placeholder="Ubicación"
                   className="w-full text-xs font-black text-[var(--color-primary)] uppercase border border-[var(--color-neutral-200)] rounded-lg p-1"
                 />
               </div>
@@ -1013,6 +1018,7 @@ return (
                 <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1">Adjuntos</p>
                 <input 
                   type="file"
+                  title="Subir archivo adjunto"
                   onChange={async (e) => {
                     const file = e.target.files?.[0];
                     if (file) {
@@ -1309,7 +1315,7 @@ return (
                         </div>
                         <div>
                           <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Cantidad en Proyecto</label>
-                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} className="w-full bg-[var(--color-surface-solid)] border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-emerald-400" />
+                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" className="w-full bg-[var(--color-surface-solid)] border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-emerald-400" />
                         </div>
 
                         {/* Materials sub-section */}
@@ -1325,7 +1331,7 @@ return (
                               <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
                               <div className="flex gap-0.5">
                                 <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
-                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} className="text-red-400 hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
+                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} aria-label="Eliminar material" className="text-red-400 hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
                               </div>
                             </div>
                           ))}
@@ -1344,7 +1350,7 @@ return (
                               <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
                               <div className="flex gap-0.5">
                                 <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
-                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} className="text-red-400 hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
+                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} aria-label="Eliminar mano de obra" className="text-red-400 hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
                               </div>
                             </div>
                           ))}
@@ -1389,8 +1395,8 @@ Q {PMath.fmtQ(
                               {expandedItems.includes(item.id) ? <ChevronUp size={14} className="text-[var(--color-neutral-400)] shrink-0" /> : <ChevronDown size={14} className="text-[var(--color-neutral-400)] shrink-0" />}
                             </button>
                             <div className="flex gap-1 shrink-0 ml-2">
-                              <button onClick={() => { setEditingItem(item.id); setItemEditForm({ code: item.code, description: item.description, projectQuantity: item.projectQuantity, unit: item.unit }); }} className="btn-edit"><Pencil size={12} /></button>
-                              <button onClick={() => deleteItem(item.id)} className="btn-delete"><Trash2 size={12} /></button>
+                              <button aria-label="Editar renglón" onClick={() => { setEditingItem(item.id); setItemEditForm({ code: item.code, description: item.description, projectQuantity: item.projectQuantity, unit: item.unit }); }} className="btn-edit"><Pencil size={12} /></button>
+                              <button aria-label="Eliminar renglón" onClick={() => deleteItem(item.id)} className="btn-delete"><Trash2 size={12} /></button>
                             </div>
                           </div>
 
@@ -1500,21 +1506,22 @@ Q {PMath.fmtQ(
                            animate={{ width: `${selectedProject.progress || 0}%` }}
                            className="h-full bg-[var(--color-secondary)] rounded-full relative z-10" 
                          />
-                         <div className="absolute inset-0 bg-[var(--color-secondary)]/10 animate-pulse" style={{ width: `${selectedProject.progress || 0}%` }} />
+                          <div className="absolute inset-0 bg-[var(--color-secondary)]/10 animate-pulse w-[var(--pw)]" style={{ '--pw': `${selectedProject.progress || 0}%` } as React.CSSProperties} />
                        </div>
                        
                        <div className="space-y-3">
                          <label className="text-[8px] font-black text-[var(--color-neutral-500)] uppercase tracking-widest">Ajustar Nivel de Avance</label>
-                         <input 
-                           type="range"
-                           min="0"
-                           max="100"
-                           step="1"
-                           value={selectedProject.progress || 0}
-                           disabled={updatingProgress}
-                           onChange={(e) => handleUpdateProgress(selectedProject.id, parseInt(e.target.value))}
-                           className="w-full h-2 bg-[var(--color-neutral-800)] rounded-lg appearance-none cursor-pointer accent-secondary"
-                         />
+                          <input 
+                            type="range"
+                            min="0"
+                            max="100"
+                            step="1"
+                            value={selectedProject.progress || 0}
+                            disabled={updatingProgress}
+                            onChange={(e) => handleUpdateProgress(selectedProject.id, parseInt(e.target.value))}
+                            title="Ajustar nivel de avance"
+                            className="w-full h-2 bg-[var(--color-neutral-800)] rounded-lg appearance-none cursor-pointer accent-secondary"
+                          />
                          <div className="flex justify-between text-[7px] font-bold text-[var(--color-neutral-600)] uppercase">
                            <span>Inicio</span>
                            <span>Completado</span>
@@ -1553,7 +1560,7 @@ Q {PMath.fmtQ(
 
             <button 
               onClick={() => setSelectedProject(null)}
-              className="w-full bg-[var(--color-neutral-100)] text-[var(--color-primary)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[var(--color-neutral-200)] transition-all font-bold"
+              className="w-full bg-[var(--color-neutral-100)] text-[var(--color-primary)] py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-[var(--color-neutral-200)] transition-all"
             >
               Cerrar Vista Detallada
             </button>
@@ -1568,7 +1575,7 @@ Q {PMath.fmtQ(
             className="px-4 py-1.5 bg-[var(--color-surface-solid)] text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
             Eliminar
           </button>
-          <button type="button" onClick={() => setSelectedProjectIds(new Set())}
+          <button type="button" onClick={() => setSelectedProjectIds(new Set())} aria-label="Cancelar selección"
             className="p-1.5 hover:bg-[var(--color-surface-solid)]/20 rounded-lg transition-all">
             <X size={14} />
           </button>

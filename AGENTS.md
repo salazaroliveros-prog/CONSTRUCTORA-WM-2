@@ -251,6 +251,35 @@ La función `writeWithOfflineQueue` ahora escribe directamente en Firestore sin 
 
 ---
 
+## Recent Improvements (2026-05-17)
+
+### 1. Offline-First System v2 — localStorage-based (reemplaza Dexie.js eliminado)
+- **`src/services/cacheService.ts`**: Cache de lectura en localStorage para datos de Firestore. `cacheCollection()` guarda datos con timestamp, `getCachedCollection()` recupera en modo offline. Prefijo `app_cache_v1_`.
+- **`src/services/offlineQueue.ts`**: Cola de escritura offline. `addToQueue()` encola creates/updates/deletes con UUID, `getQueue()` lista pendientes, `removeFromQueue()` limpia tras sincronizar. Prefijo `app_offline_queue_v1`.
+- **`src/services/firestoreService.ts`**: Integración completa de cache + queue:
+  - `getDocumentsForCollection()`: intenta Firestore primero, si falla sirve cache. Cachea automáticamente en éxito.
+  - `addDocument()`/`updateDocument()`/`deleteDocument()`: detectan `navigator.onLine`, si offline → encolan operación + actualizan cache local inmediatamente (UI responde al instante). En online ejecutan Firestore directo.
+  - Generan UUID cliente para creates offline y usan `POST ?documentId=` para ID predecible (sin mapeo de IDs al sincronizar).
+  - `processPendingQueue()`: procesa cola FIFO al reconectar. Maneja `EJECUCION→generateProjectStock`, reintentos hasta 5, descarta si excede.
+- **`src/contexts/NetworkStatusContext.tsx`**: Heartbeat cada 30s contra Firestore REST API (HEAD), dispara `triggerSync()` automático al reconectar. Expone `syncStatus` (pending, lastSync, syncing) para UI.
+- **`src/store/DataStore.ts`**: Siembra stores desde cache en init (instantáneo incluso offline). Luego suscripciones Firestore reemplazan con datos frescos cuando hay conexión.
+
+### 2. Analytics — Datos fantasma eliminados
+- `totalIngresos`/`totalGastos` ahora requieren `hasProjects=true` y solo cuentan transacciones con `projectId` existente. Sin proyectos → Q0.
+- `criticalInventory`, `pendingOrders`, `supplierAnalysis` usan mismo guard. Lint+build OK.
+
+### 3. Navegación Móvil — Hamburguesa + Bottom Sheet funcional
+- **TopBar**: Nuevo botón hamburguesa `<Menu />` visible en `<lg`. Prop `onToggleMobile`.
+- **MobileNav**: `isOpen` ahora stateful (antes hardcodeado `false`). Toggle desde hamburguesa o botón flotante.
+- **OfflineBanner**: Muestra "sincronizando…" durante sync, y contador de cambios pendientes offline.
+
+### 4. Responsive Design v3 — Layout adaptativo
+- **AppShell**: Sidebar `hidden lg:flex`, mobileNav `lg:hidden`, header `h-14 sm:h-16`.
+- **TopBar**: Search oculto en `<lg` con botón de búsqueda alternativo. Reloj/divisores/fullscreen ocultos en `<sm`. Breadcrumbs ocultos en `<md`.
+- **Sidebar**: Colapsable en desktop con animación `width: 64 ↔ 248`.
+- **Tablas**: `table-wrap` con overflow-x-auto, `table-compact` para denso.
+- **Grids**: Cards stack vertical en mobile, multidireccional en tablet/desktop con media queries.
+
 ## Recent Improvements (2026-05-16)
 
 ### 1. Budget Engine — Cálculos corregidos de tax/waste/conttingency

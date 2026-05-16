@@ -70,7 +70,7 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
   const trackColor = 'var(--color-neutral-200)';
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <div className="relative" style={{ width: 40, height: 40 }}>
+      <div className="mini-ring-wrap">
         <svg width={40} height={40} className="-rotate-90">
           <circle cx={20} cy={20} r={r} fill="none" stroke={trackColor} strokeWidth={4} />
           <motion.circle cx={20} cy={20} r={r} fill="none" stroke={color} strokeWidth={4} strokeLinecap="round"
@@ -81,7 +81,7 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[8px] font-black" style={{ color }}>{value}%</span>
+           <span className="text-[8px] font-black mini-ring-pct" style={{ '--c': color } as React.CSSProperties}>{value}%</span>
         </div>
       </div>
         <span className="text-[7px] sm:text-[6px] font-black text-[var(--color-neutral-600)] uppercase tracking-wide leading-none">{label}</span>
@@ -127,7 +127,7 @@ function GaugeChart({ value, max = 100, label, color = 'var(--color-secondary)' 
           transition={{ duration: 1.5, ease: 'easeOut' }}
         />
         {/* Center text */}
-        <text x="70" y="65" textAnchor="middle" className="text-2xl font-black fill-current" style={{ fill: color }}>
+        <text x="70" y="65" textAnchor="middle" className="text-2xl font-black fill-current gauge-center-val" style={{ '--c': color } as React.CSSProperties}>
           {Math.round(value)}%
         </text>
       </svg>
@@ -204,8 +204,7 @@ function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index
       transition={{ duration: 0.3, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseLeave}
-      style={{ transition: 'transform 0.15s ease, box-shadow 0.15s ease' }}
-      className="relative glass-card p-3 cursor-default will-change-transform overflow-hidden group shimmer-effect"
+      className="relative glass-card p-3 cursor-default will-change-transform overflow-hidden group shimmer-effect kpi-card"
     >
       {/* Color accent bar top */}
       <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
@@ -291,7 +290,7 @@ function CustomTooltip({ active, payload, label }: any) {
       {label && <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1.5">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
-          <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
+          <div className="w-1.5 h-1.5 rounded-full shrink-0 dot-color" style={{ '--dot-bg': entry.color } as React.CSSProperties} />
           <span className="text-[8px] font-bold text-[var(--color-neutral-300)] uppercase">{entry.name}:</span>
           <span className="text-[9px] font-black text-[var(--color-neutral-50)]">Q{Number(entry.value).toLocaleString()}</span>
         </div>
@@ -875,12 +874,13 @@ const generateReport = async () => {
       )}
 
       {/* Hidden report capture */}
-      <div ref={reportCaptureRef} style={{ display: 'none' }} />
+      <div ref={reportCaptureRef} className="hidden" />
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-2 shrink-0">
         <div className="flex items-center gap-1.5 flex-1 min-w-0">
            <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)}
+             title="Filtrar por proyecto"
              className={cn("input-modern text-[9px] font-bold max-w-[180px]")}
            >
              <option value="ALL">Todos los proyectos</option>
@@ -891,12 +891,14 @@ const generateReport = async () => {
           <div className="flex items-center gap-1 text-[8px] text-slate-400">
             <Calendar size={12} />
             <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
-              className={cn("input-modern text-[9px] font-bold w-[130px]")}
-            />
-            <span className="text-slate-300">—</span>
-            <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
-              className={cn("input-modern text-[9px] font-bold w-[130px]")}
-            />
+             title="Fecha inicial"
+             className={cn("input-modern text-[9px] font-bold w-[130px]")}
+           />
+           <span className="text-slate-300">—</span>
+           <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
+             title="Fecha final"
+             className={cn("input-modern text-[9px] font-bold w-[130px]")}
+           />
           </div>
         </div>
         <button onClick={generateReport} disabled={generating}
@@ -1085,6 +1087,7 @@ const generateReport = async () => {
               <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Estado de Cuentas por Proyecto</h2>
               {availableYears.length > 2 && (
                 <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
+                  title="Filtrar por año"
                   className="text-[8px] font-bold uppercase tracking-wider bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary">
                   {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'Todos' : y}</option>)}
                 </select>

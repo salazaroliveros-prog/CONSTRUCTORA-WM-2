@@ -23,6 +23,7 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { subscribeToCollection, addDocument as _addDoc, updateDocument as _updateDoc, deleteDocument as _deleteDoc } from '../services/firestoreService';
 import { Project, Transaction, WarehouseItem, StaffMember, Supplier, PurchaseOrder, Client, LogEntry } from '../constants';
+import { getCachedCollection } from '../services/cacheService';
 
 // ─── Tipos de colección ────────────────────────────────────────────────────────
 type CollectionName = 
@@ -102,6 +103,17 @@ export function useStore(): DataStoreState {
   useEffect(() => {
     if (subscriptionsInitialized) return;
     subscriptionsInitialized = true;
+
+    // Seed from cache so UI renders instantly even offline
+    for (const [name, store] of Object.entries(stores)) {
+      const cached = getCachedCollection(name);
+      if (cached && cached.length > 0) {
+        (store as any).items = cached.map((d: any) => ({ id: d.id, ...d }));
+        (store as any).byId = new Map(cached.map((d: any) => [d.id, { id: d.id, ...d }]));
+        (store as any).isLoading = false;
+      }
+    }
+    subscribers.forEach(fn => fn());
 
     const unsubs: (() => void)[] = [];
 

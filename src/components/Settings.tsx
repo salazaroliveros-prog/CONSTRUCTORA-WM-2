@@ -80,11 +80,11 @@ export default function Settings() {
                 {/* Color swatches */}
                 <div className="flex gap-1 mb-3">
                   {theme.swatches.map((color, i) => (
-                    <div
-                      key={i}
-                      className="w-5 h-5 rounded-full border border-[var(--color-surface-solid)]/30 shadow-sm"
-                      style={{ backgroundColor: color }}
-                    />
+                <div
+                  key={i}
+                  className="w-5 h-5 rounded-full border border-[var(--color-surface-solid)]/30 shadow-sm bg-[var(--swatch-bg)]"
+                  style={{ '--swatch-bg': color } as React.CSSProperties}
+                />
                   ))}
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-widest">{theme.label}</p>
@@ -100,6 +100,7 @@ export default function Settings() {
                 type="color" 
                 value={settings.primaryColor}
                 onChange={(e) => updateSettings({ primaryColor: e.target.value })}
+                title="Color primario"
                 className="w-10 h-10 rounded-xl bg-transparent border-none cursor-pointer"
               />
             </div>
@@ -109,6 +110,7 @@ export default function Settings() {
                 type="color" 
                 value={settings.secondaryColor}
                 onChange={(e) => updateSettings({ secondaryColor: e.target.value })}
+                title="Color secundario"
                 className="w-10 h-10 rounded-xl bg-transparent border-none cursor-pointer"
               />
             </div>
@@ -235,6 +237,7 @@ export default function Settings() {
                 </div>
                 <button 
                   onClick={() => updateSettings({ compactMode: !settings.compactMode })}
+                  aria-label="Alternar modo compacto"
                   className={cn("w-12 h-6 rounded-full transition-all relative", settings.compactMode ? "bg-[var(--color-secondary)]" : "bg-slate-300")}
                 >
                   <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-[var(--color-surface-solid)] transition-all shadow-sm", settings.compactMode ? "right-1" : "left-1")} />
@@ -313,6 +316,7 @@ export default function Settings() {
               <select
                 value={settings.aiModel}
                 onChange={e => updateSettings({ aiModel: e.target.value })}
+                title="Seleccionar modelo de IA"
                 className="w-full px-4 py-3 rounded-xl text-[12px] font-bold text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
               >
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash — rápido y eficiente (actual)</option>

@@ -17,7 +17,7 @@ function MiniRing({ value, color, label }: MiniRingProps) {
 
   return (
     <div className="flex flex-col items-center gap-0.5">
-      <div className="relative" style={{ width: 40, height: 40 }}>
+      <div className="relative w-10 h-10">
         <svg width={40} height={40} className="-rotate-90">
           <circle cx={20} cy={20} r={r} fill="none" stroke={trackColor} strokeWidth={4} />
           <motion.circle
@@ -35,12 +35,12 @@ function MiniRing({ value, color, label }: MiniRingProps) {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[8px] font-black" style={{ color }}>
+          <span className="text-[8px] font-black [color:var(--ring-color)]" style={{ '--ring-color': color } as React.CSSProperties}>
             {value}%
           </span>
         </div>
       </div>
-      <span className="text-[7px] font-black text-[var(--color-neutral-500)] uppercase tracking-wider leading-none">
+      <span className="text-[7px] font-black text-(--color-neutral-500) uppercase tracking-wider leading-none">
         {label}
       </span>
     </div>
@@ -107,10 +107,10 @@ function KpiCard({ kpi, index }: KpiCardProps) {
         <div className="flex items-center gap-1.5">
           <div
             className={cn(
-              "flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3",
+              "flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 [color:var(--kpi-icon-color)]",
               kpi.color.replace("bg-", "bg-opacity-15 bg-")
             )}
-            style={{ color: `var(--${kpi.color.replace("bg-", "")})` }}
+            style={{ '--kpi-icon-color': `var(--${kpi.color.replace("bg-", "")})` } as React.CSSProperties}
           >
             {kpi.icon}
           </div>
@@ -132,10 +132,10 @@ function KpiCard({ kpi, index }: KpiCardProps) {
             className={cn(
               "text-[7px] sm:text-[6px] font-bold uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
               trend > 0
-                ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)]"
+                ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-(--color-success)"
                 : trend < 0
                 ? "bg-error/10 text-error"
-                : "bg-[var(--color-neutral-50)] text-[var(--color-neutral-400)]"
+                : "bg-(--color-neutral-50) text-(--color-neutral-400)"
             )}
           >
             {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}

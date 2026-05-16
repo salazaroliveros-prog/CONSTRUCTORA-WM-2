@@ -169,10 +169,10 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
         settings.typography === 'space' && 'font-space',
         settings.typography === 'mono' && 'font-mono'
       )}
-      style={{ '--primary': settings.primaryColor, '--secondary': settings.secondaryColor } as any}
+      style={{ '--primary': settings.primaryColor, '--secondary': settings.secondaryColor } as React.CSSProperties}
     >
 {/* ── Topbar ─────────────────────────────────────────────── */}
-          <header className="h-16 sm:h-[4.25rem] backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors bg-white/80 border-slate-200">
+          <header className="h-16 sm:h-17 backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors bg-white/80">
             {/* Left: Logo / Avatar */}
             <div className="flex items-center shrink-0">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
@@ -210,7 +210,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                   className="bg-transparent border-none focus:outline-none text-[9px] font-black w-full uppercase tracking-widest placeholder:text-slate-300 text-slate-700"
                 />
                 {globalResults.length > 0 && (
-                  <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-[60] overflow-hidden">
+                  <div className="absolute top-full left-0 mt-2 w-full bg-white border border-slate-200 rounded-xl shadow-xl z-60 overflow-hidden">
                     {globalResults.map((r, i) => (
                       <button key={i} onMouseDown={() => { setActiveTab(r.module); setGlobalSearch(''); }}
                         className="w-full text-left px-3 py-2 hover:bg-slate-50 border-b border-slate-50 last:border-0 transition-colors text-slate-700">
@@ -255,7 +255,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                       initial={{ opacity: 0, y: 8, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 8, scale: 0.95 }}
-   className="absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-[51] border bg-white border-slate-200"
+   className="absolute right-0 mt-2 w-72 rounded-2xl shadow-2xl p-4 z-51 border bg-white border-slate-200"
                     >
                      {/* ...notification list (unchanged) */}
                    </motion.div>
@@ -265,7 +265,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
       {!isFullscreen && (
         <button
           onClick={() => document.documentElement.requestFullscreen?.()?.catch(() => {})}
-          className="fixed top-2 right-2 z-[99] w-7 h-7 rounded-lg bg-white/70 backdrop-blur-md shadow-md border border-slate-200/50 flex items-center justify-center hover:scale-110 hover:bg-white/90 transition-all duration-200"
+          className="fixed top-2 right-2 z-99 w-7 h-7 rounded-lg bg-white/70 backdrop-blur-md shadow-md border border-slate-200/50 flex items-center justify-center hover:scale-110 hover:bg-white/90 transition-all duration-200"
           title="Pantalla completa (F11)"
           aria-label="Entrar en pantalla completa"
         >
@@ -295,7 +295,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
              {/* Avatar */}
               <div className="flex items-center gap-2 pl-2 border-l border-slate-100">
                 <div className="hidden sm:block text-right">
-                  <p className="text-[9px] font-black text-primary uppercase leading-none truncate max-w-[90px]">{user?.displayName || 'Usuario'}</p>
+                  <p className="text-[9px] font-black text-primary uppercase leading-none truncate max-w-22.5">{user?.displayName || 'Usuario'}</p>
                   <p className="text-[7px] font-bold text-slate-600 mt-0.5 tracking-widest uppercase">Admin</p>
                 </div>
                 <div className="w-8 h-8 rounded-xl shadow-lg border-2 border-white ring-1 ring-slate-200 overflow-hidden bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer active:scale-95 transition-transform">
@@ -312,7 +312,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
       {/* ── Content (full screen, no bottom padding) ────────── */}
       <main className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 scroll-smooth bg-transparent min-h-0 flex flex-col">
-        <div className="w-full max-w-[1800px] mx-auto h-full">
+        <div className="w-full max-w-450 mx-auto h-full">
           {children}
         </div>
       </main>
@@ -326,7 +326,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: 16, scale: 0.85 }}
               transition={{ type: "spring", stiffness: 350, damping: 28 }}
-              className="fixed bottom-0 md:bottom-2 left-0 right-0 z-[49] flex justify-center"
+              className="fixed bottom-0 md:bottom-2 left-0 right-0 z-49 flex justify-center"
             >
               <div className="flex items-stretch md:items-center overflow-x-auto overflow-y-hidden no-scrollbar gap-0.5 md:gap-0 px-1.5 py-1.5 rounded-none md:rounded-2xl bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl shadow-[0_-2px_20px_rgba(0,0,0,0.08)] md:shadow-[0_8px_32px_rgba(0,0,0,0.12)] border-t md:border border-slate-200/50 dark:border-slate-700/50 w-full md:w-[calc(100%-2rem)] md:max-w-4xl md:mx-auto">
                 {mobileMenuItems.map((item) => {
@@ -337,7 +337,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
                       onClick={() => { setActiveTab(item.id); setNavOpen(false); }}
                       title={item.label}
                       className={cn(
-                        "relative flex flex-col items-center justify-center gap-0.5 min-w-[3.25rem] flex-shrink-0 md:flex-1 md:min-w-0 py-1.5 rounded-xl transition-all duration-200",
+                        "relative flex flex-col items-center justify-center gap-0.5 min-w-13 shrink-0 md:flex-1 md:min-w-0 py-1.5 rounded-xl transition-all duration-200",
                         "hover:scale-[1.6] md:hover:scale-[1.4] hover:z-10 hover:shadow-[0_0_20px_rgba(251,191,36,0.25)] hover:bg-white/90 dark:hover:bg-slate-800/90",
                         "active:scale-95",
                         isActive
@@ -379,7 +379,7 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.7 }}
             onClick={() => setNavOpen(true)}
-            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[49] w-10 h-10 rounded-full bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl shadow-[0_4px_20px_rgba(0,0,0,0.10)] border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center hover:scale-110 hover:shadow-[0_4px_24px_rgba(251,191,36,0.20)] active:scale-95 transition-all duration-200"
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 z-49 w-10 h-10 rounded-full bg-white/75 dark:bg-slate-900/75 backdrop-blur-2xl shadow-[0_4px_20px_rgba(0,0,0,0.10)] border border-slate-200/50 dark:border-slate-700/50 flex items-center justify-center hover:scale-110 hover:shadow-[0_4px_24px_rgba(251,191,36,0.20)] active:scale-95 transition-all duration-200"
             title="Abrir menú"
             aria-label="Abrir navegación"
           >

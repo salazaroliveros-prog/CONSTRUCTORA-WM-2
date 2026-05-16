@@ -112,6 +112,7 @@ export default function PhysicalFinancialDashboard() {
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
             className="select w-auto text-xs"
+            title="Seleccionar proyecto"
           >
             <option value="ALL">Todos los proyectos</option>
             {active.map(p => (
@@ -199,7 +200,7 @@ export default function PhysicalFinancialDashboard() {
 
             {viewMode === "chart" ? (
               <div className="p-4 overflow-x-auto">
-                <div className="relative" style={{ minWidth: Math.max(items.length * 60, 600) }}>
+                <div className="relative" style={{ minWidth: `${Math.max(items.length * 60, 600)}px` } as React.CSSProperties}>
                   <div className="flex mb-1 text-[9px] font-bold text-n-400 uppercase tracking-wider">
                     <div className="w-48 shrink-0 pl-2">Renglón</div>
                     {Array.from({ length: Math.ceil(maxDays / 5) + 1 }, (_, i) => (
@@ -270,10 +271,10 @@ export default function PhysicalFinancialDashboard() {
                         <td className="font-mono">día {item.endDay}</td>
                         <td>
                           <div className="flex items-center gap-2">
-                            <div className="w-16 h-1.5 bg-n-200 rounded-full overflow-hidden">
+                            <div                   className="w-16 h-1.5 bg-n-200 rounded-full overflow-hidden">
                               <div
-                                className="h-full rounded-full bg-accent transition-all"
-                                style={{ width: `${Math.min(item.progress, 100)}%` }}
+                                className="h-full rounded-full bg-accent transition-all progress-fill-dynamic"
+                                style={{ '--w': `${Math.min(item.progress, 100)}%` } as React.CSSProperties}
                               />
                             </div>
                             <span className="text-[10px] font-bold text-n-500">{item.progress}%</span>

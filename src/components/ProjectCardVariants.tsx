@@ -12,7 +12,7 @@ export const MinimalCard = ({ project, onDelete }: { project: Project; onDelete:
     </div>
     <div className="flex items-center gap-4">
         <div className="text-xs font-black italic">Q {project.budget.toLocaleString()}</div>
-        <button onClick={(e) => onDelete(e, project.id)} className="opacity-0 group-hover:opacity-100"><Trash2 size={14}/></button>
+        <button title="Eliminar proyecto" onClick={(e) => onDelete(e, project.id)} className="opacity-0 group-hover:opacity-100"><Trash2 size={14}/></button>
     </div>
   </div>
 );
@@ -32,7 +32,7 @@ export const DashboardCard = ({ project, onDelete }: { project: Project; onDelet
      </div>
      <div className="font-black text-sm uppercase mb-2">{project.name}</div>
      <div className="w-full bg-slate-100 h-2 rounded-full mb-4">
-         <div className="bg-secondary h-2 rounded-full" style={{ width: `${project.progress}%` }}></div>
+         <div className="bg-secondary h-2 rounded-full progress-fill-dynamic" style={{ '--w': `${project.progress}%` } as React.CSSProperties}></div>
      </div>
      <button onClick={(e) => onDelete(e, project.id)} className="w-full text-[10px] font-bold uppercase border p-2 rounded-lg hover:bg-red-50 hover:border-red-200 transition-all">ELIMINAR</button>
   </motion.div>
@@ -47,6 +47,6 @@ export const ActionableCard = ({ project, onDelete }: { project: Project; onDele
             <span className="flex items-center gap-1"><FileText size={10} /> {project.items.length} items</span>
         </div>
      </div>
-     <button onClick={(e) => onDelete(e, project.id)} className="p-2 border rounded-lg hover:bg-slate-100 text-red-500"><Trash2 size={16} /></button>
+     <button title="Eliminar proyecto" onClick={(e) => onDelete(e, project.id)} className="p-2 border rounded-lg hover:bg-slate-100 text-red-500"><Trash2 size={16} /></button>
   </div>
 );

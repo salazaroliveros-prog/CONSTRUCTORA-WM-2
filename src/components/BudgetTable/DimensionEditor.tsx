@@ -137,6 +137,7 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
         <button
           onClick={handleCancel}
           className="p-1 hover:bg-blue-100 rounded transition-colors text-slate-600"
+          aria-label="Cerrar editor de dimensiones"
         >
           <X size={14} />
         </button>

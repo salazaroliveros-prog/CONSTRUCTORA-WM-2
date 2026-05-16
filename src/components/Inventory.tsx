@@ -534,8 +534,9 @@ const createPurchaseOrder = async () => {
         {/* Filtro por proyecto mejorado */}
         <div className="flex flex-col gap-1">
           <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Proyecto</span>
-          <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
-            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary min-w-[160px]">
+           <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
+             title="Filtrar por proyecto"
+             className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary min-w-40">
             <option value="ALL">Todos los proyectos ({validItems.length})</option>
             <option value="GENERAL">Sin proyecto ({validItems.filter(i => !i.projectId).length})</option>
             {projects.filter(p => p.status === 'EJECUCION').map((p: any) => {
@@ -587,6 +588,7 @@ const createPurchaseOrder = async () => {
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Categoría</label>
               <select 
                 value={newItem.cat}
+                title="Seleccionar categoría"
                 onChange={e => setNewItem({...newItem, cat: e.target.value as 'Materiales' | 'Herramientas' | 'EPP'})}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"
               >
@@ -609,6 +611,7 @@ const createPurchaseOrder = async () => {
             <input 
               type="file"
               accept="image/*"
+              title="Seleccionar icono"
               onChange={e => setIconFile(e.target.files?.[0] || null)}
               className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
             />
@@ -619,6 +622,8 @@ const createPurchaseOrder = async () => {
               <input 
                 type="number"
                 value={newItem.stock}
+                title="Stock inicial"
+                placeholder="0"
                 onChange={e => setNewItem({...newItem, stock: parseFloat(e.target.value)})}
                 className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
               />
@@ -640,6 +645,7 @@ const createPurchaseOrder = async () => {
               type="date"
               value={newItem.expiryDate}
               min={new Date().toISOString().split('T')[0]}
+              title="Fecha de vencimiento"
               onChange={e => setNewItem({...newItem, expiryDate: e.target.value})}
               className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary"
             />
@@ -648,6 +654,7 @@ const createPurchaseOrder = async () => {
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Ubicación Física</label>
             <select
               value={newItem.location}
+              title="Seleccionar ubicación"
               onChange={e => setNewItem({...newItem, location: e.target.value})}
               className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-xs font-black uppercase tracking-widest focus:outline-none focus:border-secondary appearance-none"
             >
@@ -819,15 +826,16 @@ const createPurchaseOrder = async () => {
                       )}
                       <div className="min-w-0 text-left">
                         {editingCell?.id === item.id && editingCell.field === 'name' ? (
-                          <input
-                            autoFocus
-                            value={editingCell.value}
-                            onChange={e => setEditingCell({...editingCell, value: e.target.value})}
-                            onBlur={saveInlineEdit}
-                            onKeyDown={e => { if (e.key === 'Enter') saveInlineEdit(); if (e.key === 'Escape') setEditingCell(null); }}
-                            className="text-[11px] font-black uppercase w-full border-b-2 border-secondary bg-transparent focus:outline-none"
-                            onClick={e => e.stopPropagation()}
-                          />
+              <input
+                autoFocus
+                title="Nombre del suministro"
+                value={editingCell.value}
+                onChange={e => setEditingCell({...editingCell, value: e.target.value})}
+                onBlur={saveInlineEdit}
+                onKeyDown={e => { if (e.key === 'Enter') saveInlineEdit(); if (e.key === 'Escape') setEditingCell(null); }}
+                className="text-[11px] font-black uppercase w-full border-b-2 border-secondary bg-transparent focus:outline-none"
+                onClick={e => e.stopPropagation()}
+              />
                         ) : (
                           <p
                             className="text-[11px] font-black text-primary uppercase truncate group-hover:text-secondary transition-colors cursor-text"
@@ -850,6 +858,7 @@ const createPurchaseOrder = async () => {
                       {editingCell?.id === item.id && editingCell.field === 'stock' ? (
                         <input
                           autoFocus type="number"
+                          title="Stock"
                           value={editingCell.value}
                           onChange={e => setEditingCell({...editingCell, value: e.target.value})}
                           onBlur={saveInlineEdit}
@@ -888,12 +897,13 @@ const createPurchaseOrder = async () => {
                   <td className="px-4 py-2.5 text-right">
                     <div className="flex items-center justify-end gap-2">
                       <button 
+                        title="Eliminar suministro"
                         onClick={(e) => handleDelete(e, item.id)}
                         className="btn-delete hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 size={14} />
                       </button>
-                      <button className="p-2 text-slate-400 hover:text-secondary transition-all">
+                      <button title="Ver detalles" className="p-2 text-slate-400 hover:text-secondary transition-all">
                         <ChevronRight size={16} className={cn("transition-transform duration-300", selectedItem === item.id ? "rotate-90" : "")} />
                       </button>
                     </div>
@@ -998,8 +1008,8 @@ const createPurchaseOrder = async () => {
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div 
-                  className="h-full bg-secondary rounded-full transition-all duration-500" 
-                  style={{ width: `${selectedProject.progress || 0}%` }}
+                  className="h-full bg-secondary rounded-full transition-all duration-500 progress-fill-dynamic" 
+                  style={{ '--w': `${selectedProject.progress || 0}%` } as React.CSSProperties}
                 />
               </div>
               
@@ -1011,10 +1021,10 @@ const createPurchaseOrder = async () => {
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div 
-                  className={cn('h-full rounded-full transition-all duration-500', 
+                  className={cn('h-full rounded-full transition-all duration-500 progress-fill-dynamic', 
                     completionRate >= 80 ? 'bg-green-500' : completionRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
                   )} 
-                  style={{ width: `${completionRate}%` }}
+                  style={{ '--w': `${completionRate}%` } as React.CSSProperties}
                 />
               </div>
             </div>
@@ -1087,7 +1097,7 @@ const createPurchaseOrder = async () => {
                   <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em]">Movimiento</h3>
                   <p className="text-[9px] font-bold text-slate-400 uppercase mt-1">Gestión de Stock Real</p>
                 </div>
-                <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-lg text-slate-400"><X size={20} /></button>
+                <button title="Cerrar" onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-white rounded-lg text-slate-400"><X size={20} /></button>
               </div>
 
               <div className="p-8 space-y-4 text-left overflow-y-auto max-h-[70vh]">
@@ -1116,6 +1126,7 @@ const createPurchaseOrder = async () => {
                     <input 
                       type="date"
                       value={movementForm.date}
+                      title="Fecha del movimiento"
                       onChange={(e) => setMovementForm({ ...movementForm, date: e.target.value })}
                       className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary shadow-sm"
                     />
@@ -1126,6 +1137,7 @@ const createPurchaseOrder = async () => {
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Producto (Opcional)</label>
                   <select 
                     value={movementForm.itemId}
+                    title="Seleccionar producto"
                     onChange={(e) => setMovementForm({ ...movementForm, itemId: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
                   >
@@ -1138,6 +1150,7 @@ const createPurchaseOrder = async () => {
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto (Opcional)</label>
                   <select
                     value={movementForm.projectId}
+                    title="Asignar a proyecto"
                     onChange={(e) => setMovementForm({ ...movementForm, projectId: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
                   >
@@ -1152,6 +1165,7 @@ const createPurchaseOrder = async () => {
                   <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest block mb-1">Categoría</label>
                   <select 
                     value={movementForm.category}
+                    title="Seleccionar categoría"
                     onChange={(e) => setMovementForm({ ...movementForm, category: e.target.value })}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-[10px] font-black uppercase focus:outline-none focus:border-secondary shadow-sm"
                   >
@@ -1256,7 +1270,7 @@ const createPurchaseOrder = async () => {
                       <CheckCircle2 size={11}/> Recibir
                     </button>
                   )}
-                  <button type="button" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
+                  <button type="button" title="Eliminar orden" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
                     className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all opacity-60 hover:opacity-100">
                     <Trash2 size={11} />
                   </button>
@@ -1286,7 +1300,7 @@ const createPurchaseOrder = async () => {
           <p className="text-[9px] text-slate-500 uppercase tracking-widest">Selecciona un proyecto para extraer sus materiales presupuestados y crearlos en inventario por renglón.</p>
           <div>
             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
-            <select value={selectedProjectForGen} onChange={e => { setSelectedProjectForGen(e.target.value); setForcePerRenglon(false); }}
+            <select value={selectedProjectForGen} title="Seleccionar proyecto" onChange={e => { setSelectedProjectForGen(e.target.value); setForcePerRenglon(false); }}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary">
               <option value="">Seleccionar proyecto...</option>
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -1312,7 +1326,7 @@ const createPurchaseOrder = async () => {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proyecto</label>
-              <select value={ocForm.projectId} onChange={e => setOcForm(f => ({ ...f, projectId: e.target.value, selectedItemId: '' }))}
+              <select value={ocForm.projectId} title="Seleccionar proyecto" onChange={e => setOcForm(f => ({ ...f, projectId: e.target.value, selectedItemId: '' }))}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
                 <option value="">Seleccionar...</option>
                 {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -1320,7 +1334,7 @@ const createPurchaseOrder = async () => {
             </div>
             <div>
               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Proveedor</label>
-              <select value={ocForm.supplierId} onChange={e => setOcForm(f => ({ ...f, supplierId: e.target.value }))}
+              <select value={ocForm.supplierId} title="Seleccionar proveedor" onChange={e => setOcForm(f => ({ ...f, supplierId: e.target.value }))}
                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
                 <option value="">Seleccionar...</option>
                 {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
@@ -1333,7 +1347,7 @@ const createPurchaseOrder = async () => {
             return (
               <div>
                 <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Renglón</label>
-                <select value={ocForm.selectedItemId} onChange={e => setOcForm(f => ({ ...f, selectedItemId: e.target.value }))}
+                <select value={ocForm.selectedItemId} title="Seleccionar renglón" onChange={e => setOcForm(f => ({ ...f, selectedItemId: e.target.value }))}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-secondary">
                   <option value="">Seleccionar renglón...</option>
                   {(project?.items || []).map((it: any) =>
@@ -1416,19 +1430,19 @@ const createPurchaseOrder = async () => {
                       {oi.itemName}
                     </span>
                   )}
-                  <input className="col-span-4 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input title="Nombre del material" className="col-span-4 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
                     placeholder="Material" value={oi.materialName}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], materialName: e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <input className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input title="Unidad de medida" className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
                     placeholder="Unidad" value={oi.unit}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unit: e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <input type="number" className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input type="number" title="Cantidad" className="col-span-2 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
                     placeholder="Cant." value={oi.qty || ''}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], qty: +e.target.value, total: +e.target.value * it[i].unitPrice }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <input type="number" className="col-span-3 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
+                  <input type="number" title="Precio unitario" className="col-span-3 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none"
                     placeholder="P.Unit Q" value={oi.unitPrice || ''}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unitPrice: +e.target.value, total: it[i].qty * +e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
-                  <button type="button" onClick={() => setOcForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
+                  <button type="button" title="Eliminar material" onClick={() => setOcForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
                     className="col-span-1 text-red-400 hover:text-red-600 flex justify-center"><X size={12}/></button>
                 </div>
               ))}
@@ -1437,7 +1451,7 @@ const createPurchaseOrder = async () => {
 
           <div>
             <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest block mb-1">Notas</label>
-            <textarea value={ocForm.notes} onChange={e => setOcForm(f => ({ ...f, notes: e.target.value }))}
+            <textarea value={ocForm.notes} title="Notas de la orden" onChange={e => setOcForm(f => ({ ...f, notes: e.target.value }))}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none resize-none" rows={2} />
           </div>
 
@@ -1458,7 +1472,7 @@ const createPurchaseOrder = async () => {
             className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
             Eliminar
           </button>
-          <button type="button" onClick={() => setSelectedItemIds(new Set())}
+          <button type="button" title="Cerrar selección" onClick={() => setSelectedItemIds(new Set())}
             className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
             <X size={14} />
           </button>
@@ -1471,7 +1485,7 @@ const createPurchaseOrder = async () => {
             className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
             Eliminar
           </button>
-          <button type="button" onClick={() => setSelectedOrderIds(new Set())}
+          <button type="button" title="Cerrar selección" onClick={() => setSelectedOrderIds(new Set())}
             className="p-1.5 hover:bg-white/20 rounded-lg transition-all">
             <X size={14} />
           </button>

@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { cn } from '../../utils/cn';
 import {
   Search, Maximize, HelpCircle, Bell, User, Sparkles,
-  Settings, LogOut, ChevronDown, FileText
+  Settings, LogOut, ChevronDown, FileText, Menu
 } from "lucide-react";
 import { Tooltip } from "../ui/tooltip";
 import TopBarClock from "./TopBarClock";
@@ -18,6 +18,7 @@ interface TopBarProps {
   userPhoto?: string;
   companyName: string;
   breadcrumbs?: { label: string; href?: string }[];
+  onToggleMobile?: () => void;
 }
 
 export function TopBar({
@@ -30,6 +31,7 @@ export function TopBar({
   userPhoto,
   companyName,
   breadcrumbs = [],
+  onToggleMobile,
 }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -63,8 +65,18 @@ export function TopBar({
 
   return (
     <header className="h-14 sm:h-16 backdrop-blur-xl bg-surface/80 border-b border-border/50 px-3 sm:px-5 flex items-center gap-2 shrink-0 z-30">
-      {/* Left: Search */}
+      {/* Left: Hamburger + Search */}
       <div className="flex items-center gap-1 shrink-0 min-w-0">
+        {/* Mobile hamburger */}
+        {onToggleMobile && (
+          <button
+            onClick={onToggleMobile}
+            className="lg:hidden p-2 text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 rounded-lg transition-colors"
+            aria-label="Menú de navegación"
+          >
+            <Menu size={20} />
+          </button>
+        )}
         <div className={cn(
           "hidden lg:flex items-center gap-2 bg-neutral-50 border border-border rounded-xl px-3 py-1.5 transition-all duration-200",
           searchFocused ? "border-secondary ring-2 ring-secondary/10 w-64" : "w-48 hover:border-neutral-300"

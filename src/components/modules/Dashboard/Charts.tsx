@@ -42,8 +42,8 @@ export function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
           <div
-            className="w-1.5 h-1.5 rounded-full shrink-0"
-            style={{ backgroundColor: entry.color }}
+            className="w-1.5 h-1.5 rounded-full shrink-0 [background-color:var(--chart-color)]"
+            style={{ '--chart-color': entry.color } as React.CSSProperties}
           />
           <span className="text-[8px] font-bold text-[var(--color-neutral-50)] uppercase">
             {entry.name}:
@@ -151,8 +151,8 @@ export function GaugeChart({
           x="70"
           y="65"
           textAnchor="middle"
-          className="text-2xl font-black"
-          style={{ fill: color }}
+          className="text-2xl font-black [fill:var(--chart-fill)]"
+          style={{ '--chart-fill': color } as React.CSSProperties}
         >
           {Math.round(value)}%
         </text>

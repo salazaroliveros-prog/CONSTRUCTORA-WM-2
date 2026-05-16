@@ -272,7 +272,7 @@ const handleAddLog = async (e: React.FormEvent) => {
                       <td className="px-4 py-3 text-right">
                         <div className="flex items-center justify-end gap-2">
                           <div className="w-20 h-1.5 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
-                             <div className="h-full bg-[var(--color-neutral-900)] rounded-full" style={{ width: `${p.progress || 0}%` }} />
+                              <div className="h-full bg-[var(--color-neutral-900)] rounded-full progress-fill-dynamic" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties} />
                            </div>
                            <span className="text-[9px] font-black text-[var(--color-neutral-700)] w-8">{p.progress || 0}%</span>
                           {p.status === 'EJECUCION' && (
@@ -315,19 +315,19 @@ const handleAddLog = async (e: React.FormEvent) => {
           {/* Formulario nueva entrada */}
           <form onSubmit={handleAddLog} className="p-4 border-b border-[var(--color-neutral-800)] space-y-2">
              <div className="grid grid-cols-2 gap-2">
-               <select value={logType} onChange={e => setLogType(e.target.value)}
-                 className="bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
+                <select title="Filtrar tipo de evento" value={logType} onChange={e => setLogType(e.target.value)}
+                  className="bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
                 {LOG_TYPES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
               </select>
-              <select value={logProjectId} onChange={e => { setLogProjectId(e.target.value); setLogItemId(''); }}
-                 className="bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
+               <select title="Filtrar proyecto" value={logProjectId} onChange={e => { setLogProjectId(e.target.value); setLogItemId(''); }}
+                  className="bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
                  <option value="">— Proyecto —</option>
                 {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select>
             </div>
             {logProjectId && (
-              <select value={logItemId} onChange={e => setLogItemId(e.target.value)}
-                 className="w-full bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
+               <select title="Seleccionar renglón" value={logItemId} onChange={e => setLogItemId(e.target.value)}
+                  className="w-full bg-[var(--color-neutral-800)] border-none rounded-lg px-2 py-1.5 text-[8px] font-black uppercase text-[var(--color-neutral-300)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]">
                  <option value="">— Renglón (opcional) —</option>
                 {(projects.find(p => p.id === logProjectId)?.items ?? []).filter((i: any) => i.selected).map((i: any) => (
                   <option key={i.id} value={i.id}>{i.description}</option>
@@ -337,9 +337,9 @@ const handleAddLog = async (e: React.FormEvent) => {
             <div className="flex gap-2">
               <input value={logMsg} onChange={e => setLogMsg(e.target.value)} placeholder="Descripción del evento..."
                  className="flex-1 bg-[var(--color-neutral-800)] border-none rounded-lg px-3 py-2 text-[9px] font-bold text-[var(--color-neutral-50)] placeholder:text-[var(--color-neutral-600)] focus:outline-none focus:ring-1 focus:ring-[var(--color-secondary)]" />
-              <button type="submit" disabled={savingLog || !logMsg.trim()}
-                 className="p-2 bg-[var(--color-secondary)] text-[var(--color-primary)] rounded-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30">
-                <Plus size={14} />
+               <button type="submit" aria-label="Agregar evento" disabled={savingLog || !logMsg.trim()}
+                  className="p-2 bg-[var(--color-secondary)] text-[var(--color-primary)] rounded-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-30">
+                 <Plus size={14} />
               </button>
             </div>
           </form>
@@ -398,9 +398,9 @@ const handleAddLog = async (e: React.FormEvent) => {
                       )}
                     </div>
                   </div>
-                  <button type="button" onClick={() => handleDeleteLog(log.id)}
-                     className="p-1 opacity-0 group-hover:opacity-100 hover:bg-[var(--color-error)]/20 rounded text-[var(--color-neutral-500)] hover:text-[var(--color-error)] transition-all shrink-0">
-                    <Trash2 size={11} />
+                   <button type="button" aria-label="Eliminar evento" onClick={() => handleDeleteLog(log.id)}
+                      className="p-1 opacity-0 group-hover:opacity-100 hover:bg-[var(--color-error)]/20 rounded text-[var(--color-neutral-500)] hover:text-[var(--color-error)] transition-all shrink-0">
+                     <Trash2 size={11} />
                   </button>
                 </div>
               </motion.div>
@@ -437,8 +437,8 @@ const handleAddLog = async (e: React.FormEvent) => {
              <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest mt-0.5">Ingresa el % completado por actividad · se guarda en Gantt automáticamente</p>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <select value={activeProject?.id ?? ''} onChange={e => setSelectedProjectId(e.target.value)}
-               className="px-3 py-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]">
+             <select title="Seleccionar proyecto" value={activeProject?.id ?? ''} onChange={e => setSelectedProjectId(e.target.value)}
+                className="px-3 py-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]">
               {execProjects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
             <button onClick={handleSaveProgress} disabled={savingProgress || !activeProject}
@@ -471,8 +471,8 @@ const handleAddLog = async (e: React.FormEvent) => {
                      <span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-neutral-600)] flex-1">{cat}</span>
                      <span className="text-[7px] font-bold text-[var(--color-neutral-400)]">{items.length} renglones</span>
                      <div className="w-16 h-1.5 bg-[var(--color-neutral-200)] rounded-full overflow-hidden mx-2">
-                       <div className={cn('h-full rounded-full', catAvg >= 100 ? 'bg-[var(--color-success)]' : catAvg > 0 ? 'bg-[var(--color-info)]' : 'bg-[var(--color-neutral-300)]')}
-                        style={{ width: `${catAvg}%` }} />
+                        <div className={cn('h-full rounded-full progress-fill-dynamic', catAvg >= 100 ? 'bg-[var(--color-success)]' : catAvg > 0 ? 'bg-[var(--color-info)]' : 'bg-[var(--color-neutral-300)]')}
+                         style={{ '--pw': `${catAvg}%` } as React.CSSProperties} />
                     </div>
                      <span className={cn('text-[9px] font-black w-8 text-right', catAvg >= 100 ? 'text-[var(--color-success)]' : catAvg > 0 ? 'text-[var(--color-info)]' : 'text-[var(--color-neutral-400)]')}>
                       {catAvg}%
@@ -489,8 +489,8 @@ const handleAddLog = async (e: React.FormEvent) => {
                                <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{item.projectQuantity} {item.unit}</p>
                             </div>
                             <div className="flex items-center gap-2 shrink-0 w-48">
-                              <input type="range" min={0} max={100} value={val}
-                                onChange={e => setItemProgress(prev => ({ ...prev, [item.id]: parseInt(e.target.value) }))}
+                               <input type="range" title="Porcentaje de avance" min={0} max={100} value={val}
+                                 onChange={e => setItemProgress(prev => ({ ...prev, [item.id]: parseInt(e.target.value) }))}
                                  className="flex-1 h-1.5 accent-[var(--color-info)] cursor-pointer" />
                                <span className={cn('text-[9px] font-black w-8 text-right',
                                  val >= 100 ? 'text-[var(--color-success)]' : val > 0 ? 'text-[var(--color-info)]' : 'text-[var(--color-neutral-400)]')}>

@@ -30,7 +30,7 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
   const isOver = value > 100;
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="relative" style={{ width: size, height: size }}>
+      <div className="relative w-[var(--ring-size)] h-[var(--ring-size)]" style={{ '--ring-size': `${size}px` } as React.CSSProperties}>
         <svg width={size} height={size} className="-rotate-90">
           <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={6} />
           <motion.circle
@@ -141,6 +141,7 @@ export default function Seguimiento() {
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
+            title="Filtrar por proyecto"
             className="flex-1 md:w-56 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black uppercase focus:outline-none focus:border-amber-400 shadow-sm"
           >
             <option value="ALL">TODOS LOS PROYECTOS EN EJECUCION</option>
@@ -169,7 +170,7 @@ export default function Seguimiento() {
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
             className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
             <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 rounded-lg text-white" style={{ background: k.color }}>{k.icon}</div>
+              <div className="p-1.5 rounded-lg text-white bg-[var(--k-bg)]" style={{ '--k-bg': k.color } as React.CSSProperties}>{k.icon}</div>
               <p className="text-[9px] sm:text-[8px] font-black text-slate-400  uppercase tracking-widest">{k.label}</p>
             </div>
             <p className="text-sm font-black text-slate-900 ">{k.value}</p>
@@ -178,7 +179,7 @@ export default function Seguimiento() {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 flex-1" style={{ gridAutoRows: 'minmax(auto, 1fr)' }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 flex-1 grid-rows-[minmax(auto,1fr)]">
 
         {/* Ring charts per project */}
         <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">

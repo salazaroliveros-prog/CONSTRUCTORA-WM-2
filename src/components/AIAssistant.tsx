@@ -22,9 +22,9 @@ const SUGGESTIONS = [
 function renderInline(text: string): React.ReactNode {
   return text.split(/(\*\*[^*]+\*\*|`[^`]+`)/g).map((part, i) => {
     if (part.startsWith('**') && part.endsWith('**'))
-      return <strong key={i} className="font-black text-[var(--color-secondary)]">{part.slice(2, -2)}</strong>;
+      return <strong key={i} className="font-black text-(--color-secondary)">{part.slice(2, -2)}</strong>;
     if (part.startsWith('`') && part.endsWith('`'))
-      return <code key={i} className="px-1 py-0.5 bg-[var(--color-neutral-100)] rounded text-[11px] font-mono">{part.slice(1, -1)}</code>;
+      return <code key={i} className="px-1 py-0.5 bg-(--color-neutral-100) rounded text-[11px] font-mono">{part.slice(1, -1)}</code>;
     return part;
   });
 }
@@ -44,11 +44,11 @@ const flushTable = () => {
             {rows.map((row, ri) => {
               const cells = row.split('|').filter(c => c.trim() !== '');
               return (
-                 <tr key={ri} className={`border-b border-[var(--color-neutral-200)] ${ri === 0 ? 'bg-[var(--color-neutral-100)]/50' : ''}`}>
+                 <tr key={ri} className={`border-b border-(--color-neutral-200) ${ri === 0 ? 'bg-(--color-neutral-100)/50' : ''}`}>
                   {cells.map((cell, ci) =>
                     ri === 0
-                      ? <th key={ci} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-[var(--color-neutral-500)]">{cell.trim()}</th>
-                      : <td key={ci} className="px-3 py-1.5 text-[var(--color-neutral-700)]">{renderInline(cell.trim())}</td>
+                      ? <th key={ci} className="px-3 py-1.5 text-[10px] font-black uppercase tracking-wide text-(--color-neutral-500)">{cell.trim()}</th>
+                      : <td key={ci} className="px-3 py-1.5 text-(--color-neutral-700)">{renderInline(cell.trim())}</td>
                   )}
                 </tr>
               );
@@ -63,14 +63,14 @@ const flushTable = () => {
   lines.forEach((line, i) => {
     if (line.startsWith('|')) { tableRows.push(line); return; }
     flushTable();
-    if (line.startsWith('### ')) { elements.push(<h3 key={i} className="font-black text-[var(--color-secondary)] text-sm mt-3 mb-1">{line.slice(4)}</h3>); return; }
-    if (line.startsWith('## '))  { elements.push(<h2 key={i} className="font-black text-[var(--color-secondary)] text-base mt-4 mb-1">{line.slice(3)}</h2>); return; }
-    if (line.startsWith('# '))   { elements.push(<h1 key={i} className="font-black text-[var(--color-secondary)] text-lg mt-4 mb-2">{line.slice(2)}</h1>); return; }
-    if (line.startsWith('- ') || line.startsWith('* ')) { elements.push(<li key={i} className="ml-4 list-disc text-[var(--color-neutral-700)]">{renderInline(line.slice(2))}</li>); return; }
-    if (/^\d+\. /.test(line)) { elements.push(<li key={i} className="ml-4 list-decimal text-[var(--color-neutral-700)]">{renderInline(line.replace(/^\d+\. /, ''))}</li>); return; }
+    if (line.startsWith('### ')) { elements.push(<h3 key={i} className="font-black text-(--color-secondary) text-sm mt-3 mb-1">{line.slice(4)}</h3>); return; }
+    if (line.startsWith('## '))  { elements.push(<h2 key={i} className="font-black text-(--color-secondary) text-base mt-4 mb-1">{line.slice(3)}</h2>); return; }
+    if (line.startsWith('# '))   { elements.push(<h1 key={i} className="font-black text-(--color-secondary) text-lg mt-4 mb-2">{line.slice(2)}</h1>); return; }
+    if (line.startsWith('- ') || line.startsWith('* ')) { elements.push(<li key={i} className="ml-4 list-disc text-(--color-neutral-700)">{renderInline(line.slice(2))}</li>); return; }
+    if (/^\d+\. /.test(line)) { elements.push(<li key={i} className="ml-4 list-decimal text-(--color-neutral-700)">{renderInline(line.replace(/^\d+\. /, ''))}</li>); return; }
     if (line.startsWith('---')) { elements.push(<hr key={i} className="divider-gradient my-2" />); return; }
     if (line.trim() === '') { elements.push(<div key={i} className="h-1" />); return; }
-    elements.push(<p key={i} className="text-[var(--color-neutral-700)]">{renderInline(line)}</p>);
+    elements.push(<p key={i} className="text-(--color-neutral-700)">{renderInline(line)}</p>);
   });
   flushTable();
 
@@ -81,8 +81,8 @@ function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <button onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-      className="p-1 rounded hover:bg-[var(--color-neutral-100)] transition-colors" title="Copiar">
-      {copied ? <Check size={12} className="text-[var(--color-success)]" /> : <Copy size={12} className="text-[var(--color-neutral-400)]" />}
+      className="p-1 rounded hover:bg-(--color-neutral-100) transition-colors" title="Copiar">
+      {copied ? <Check size={12} className="text-(--color-success)" /> : <Copy size={12} className="text-(--color-neutral-400)" />}
     </button>
   );
 }
@@ -178,7 +178,7 @@ export default function AIAssistant() {
   const totalRecords = Object.values(contextSummary).reduce((a, b) => a + b, 0);
 
   return (
-    <div className="flex flex-col h-full max-h-[calc(100vh-3.5rem)] overflow-hidden">
+    <div className="flex flex-col h-full max-h-[calc(100vh-3.5rem) overflow-hidden">
       {/* Header */}
       <div className="shrink-0 px-6 pt-6 pb-4">
         <div className="flex items-center justify-between">
@@ -187,22 +187,22 @@ export default function AIAssistant() {
               <Sparkles size={18} />
             </div>
             <div>
-              <h2 className="text-lg font-black text-[var(--color-primary)] uppercase tracking-tight">Asistente IA</h2>
-              <p className="text-[9px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest">
+              <h2 className="text-lg font-black text-(--color-primary) uppercase tracking-tight">Asistente IA</h2>
+              <p className="text-[9px] font-bold text-(--color-neutral-400) uppercase tracking-widest">
                 Informes y análisis con inteligencia artificial
               </p>
             </div>
           </div>
-          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-secondary)_20%,transparent)] rounded-xl">
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent) border border-[color-mix(in_srgb,var(--color-secondary)_20%,transparent) rounded-xl">
             <div className="status-dot status-dot-blue" />
-<span className="text-[9px] font-black uppercase tracking-widest text-[var(--color-secondary-dark)]">
+<span className="text-[9px] font-black uppercase tracking-widest text-(--color-secondary-dark)">
                {totalRecords} registros cargados
              </span>
           </div>
         </div>
         <div className="flex flex-wrap gap-1.5 mt-3">
           {Object.entries(contextSummary).map(([key, count]) => (
-            <span key={key} className="px-2 py-0.5 bg-[var(--color-neutral-100)] rounded-full text-[9px] font-bold text-[var(--color-neutral-500)] uppercase tracking-wide">
+            <span key={key} className="px-2 py-0.5 bg-(--color-neutral-100) rounded-full text-[9px] font-bold text-(--color-neutral-500) uppercase tracking-wide">
               {key}: {count}
             </span>
           ))}
@@ -213,23 +213,23 @@ export default function AIAssistant() {
       <div className="flex-1 overflow-y-auto px-6 space-y-4 pb-4">
         {messages.length === 0 ? (
           <div className="space-y-6 py-4">
-            <div className="bg-[var(--color-surface-solid)]/60 border border-[var(--color-neutral-200)] rounded-2xl p-5 flex gap-4">
+            <div className="bg-(--color-surface-solid)/60 border border-(--color-neutral-200) rounded-2xl p-5 flex gap-4">
               <div className="icon-box icon-gradient-purple w-9 h-9 shrink-0"><Bot size={16} /></div>
               <div>
-                <p className="text-[13px] font-bold text-[var(--color-primary)] mb-1">¡Hola! Soy tu asistente de informes.</p>
-                <p className="text-[12px] text-[var(--color-neutral-500)]">
+                <p className="text-[13px] font-bold text-(--color-primary) mb-1">¡Hola! Soy tu asistente de informes.</p>
+                <p className="text-[12px] text-(--color-neutral-500)">
                   Tengo acceso en tiempo real a todos los datos del sistema. Puedo generar informes, analizar tendencias,
                   calcular métricas y responder preguntas sobre proyectos, finanzas, inventario y más.
                 </p>
               </div>
             </div>
             <div>
-              <p className="text-[9px] font-black uppercase tracking-widest text-[var(--color-neutral-400)] mb-3">Sugerencias rápidas</p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-(--color-neutral-400) mb-3">Sugerencias rápidas</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 {SUGGESTIONS.map((s, i) => (
                   <button key={i} onClick={() => sendMessage(s)} disabled={isLoading}
-                    className="text-left px-4 py-3 bg-white /60 border border-[var(--color-neutral-200)] rounded-xl text-[11px] text-[var(--color-neutral-600)] hover:border-[var(--color-secondary)] hover:bg-[color-mix(in_srgb,var(--color-secondary)_5%,transparent)] transition-all disabled:opacity-50 group">
-                    <Sparkles size={10} className="inline mr-1.5 text-[var(--color-secondary)] group-hover:text-[var(--color-secondary-dark)]" />
+                    className="text-left px-4 py-3 bg-white /60 border border-(--color-neutral-200) rounded-xl text-[11px] text-(--color-neutral-600) hover:border-(--color-secondary) hover:bg-[color-mix(in_srgb,var(--color-secondary)_5%,transparent) transition-all disabled:opacity-50 group">
+                    <Sparkles size={10} className="inline mr-1.5 text-(--color-secondary) group-hover:text-(--color-secondary-dark)" />
                     {s}
                   </button>
                 ))}
@@ -239,17 +239,17 @@ export default function AIAssistant() {
         ) : (
           messages.map((msg) => (
             <div key={msg.id} className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'}`}>
-              <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${msg.role === 'user' ? 'bg-[var(--color-neutral-800)] text-white' : 'icon-box icon-gradient-purple'}`}>
+              <div className={`shrink-0 w-8 h-8 rounded-xl flex items-center justify-center ${msg.role === 'user' ? 'bg-(--color-neutral-800) text-white' : 'icon-box icon-gradient-purple'}`}>
                 {msg.role === 'user' ? <User size={14} /> : <Bot size={14} />}
               </div>
-              <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-[var(--color-neutral-800)] text-white rounded-tr-sm' : 'bg-white /80 border border-[var(--color-neutral-200)] rounded-tl-sm'}`}>
+              <div className={`max-w-[85%] rounded-2xl px-4 py-3 ${msg.role === 'user' ? 'bg-(--color-neutral-800) text-white rounded-tr-sm' : 'bg-white /80 border border-(--color-neutral-200) rounded-tl-sm'}`}>
                 {msg.role === 'user' ? (
                   <p className="text-[13px]">{msg.content}</p>
                 ) : (
                   <div>
                     {msg.content
                       ? <MarkdownText text={msg.content} />
-                      : <Loader2 size={14} className="animate-spin text-[var(--color-secondary)]" />
+                      : <Loader2 size={14} className="animate-spin text-(--color-secondary)" />
                     }
                     {msg.content && <div className="flex justify-end mt-2"><CopyButton text={msg.content} /></div>}
                   </div>
@@ -262,10 +262,10 @@ export default function AIAssistant() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 px-6 pb-6 pt-3 border-t border-[var(--color-neutral-200)]">
+      <div className="shrink-0 px-6 pb-6 pt-3 border-t border-(--color-neutral-200)">
         {messages.length > 0 && (
           <button onClick={() => { abortRef.current?.abort(); setMessages([]); setIsLoading(false); }}
-            className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)] mb-3 transition-colors">
+            className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-(--color-neutral-400) hover:text-(--color-neutral-600) mb-3 transition-colors">
             <RotateCcw size={10} /> Nueva conversación
           </button>
         )}
@@ -275,14 +275,14 @@ export default function AIAssistant() {
             onChange={e => setInput(e.target.value)}
             placeholder="Pide un informe, análisis o consulta sobre tus datos..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 bg-white border border-[var(--color-neutral-200)] rounded-xl text-[13px] text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-400)] focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_30%,transparent)] focus:border-[var(--color-secondary)] transition-all disabled:opacity-50"
+            className="flex-1 px-4 py-3 bg-white border border-(--color-neutral-200) rounded-xl text-[13px] text-(--color-neutral-800) placeholder:text-(--color-neutral-400) focus:outline-none focus:ring-2 focus:ring-[color-mix(in_srgb,var(--color-secondary)_30%,transparent) focus:border-(--color-secondary) transition-all disabled:opacity-50"
           />
           <button type="submit" disabled={isLoading || !input.trim()}
-            className="px-4 py-3 bg-[var(--color-neutral-800)] text-white rounded-xl hover:bg-[var(--color-neutral-900)] transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
+            className="px-4 py-3 bg-(--color-neutral-800) text-white rounded-xl hover:bg-(--color-neutral-900) transition-all active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-2">
             {isLoading ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>
         </form>
-        <p className="text-[8px] text-[var(--color-neutral-300)] text-center mt-2 uppercase tracking-widest">
+        <p className="text-[8px] text-(--color-neutral-300) text-center mt-2 uppercase tracking-widest">
           Powered by Vercel AI SDK · Gemini 2.0 Flash
         </p>
       </div>
