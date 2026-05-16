@@ -167,12 +167,13 @@ export const updateDocument = async (
   try {
     const clean = sanitize(data);
     const fields = objToFirestore({ ...clean, updatedAt: nowISO() });
-    const mask = Object.keys(fields).join(',');
+    const params = new URLSearchParams();
+    Object.keys(fields).forEach(k => params.append('updateMask.fieldPaths', k));
 
     if (collectionName === 'projects' && data.status === 'EJECUCION') {
       const current = await getDocument(collectionName, id);
       if (current && current.status !== 'EJECUCION') {
-        await apiFetch(`/documents/${collectionName}/${id}?updateMask.fieldPaths=${mask}`, {
+        await apiFetch(`/documents/${collectionName}/${id}?${params.toString()}`, {
           method: 'PATCH',
           body: JSON.stringify({ fields }),
         });
@@ -185,7 +186,7 @@ export const updateDocument = async (
       }
     }
 
-    await apiFetch(`/documents/${collectionName}/${id}?updateMask.fieldPaths=${mask}`, {
+    await apiFetch(`/documents/${collectionName}/${id}?${params.toString()}`, {
       method: 'PATCH',
       body: JSON.stringify({ fields }),
     });
@@ -257,8 +258,9 @@ export const saveUserSettings = async (
   try {
     const clean = sanitize(data);
     const fields = objToFirestore(clean);
-    const mask = Object.keys(fields).join(',');
-    await apiFetch(`/documents/userSettings/${uid}?updateMask.fieldPaths=${mask}`, {
+    const params = new URLSearchParams();
+    Object.keys(fields).forEach(k => params.append('updateMask.fieldPaths', k));
+    await apiFetch(`/documents/userSettings/${uid}?${params.toString()}`, {
       method: 'PATCH',
       body: JSON.stringify({ fields }),
     });
@@ -361,12 +363,13 @@ export const processPendingQueue = async (): Promise<{ processed: number; failed
       } else if (op.action === 'update' && op.docId && op.data) {
         const clean = sanitize(op.data);
         const fields = objToFirestore({ ...clean, updatedAt: nowISO() });
-        const mask = Object.keys(fields).join(',');
+        const params = new URLSearchParams();
+        Object.keys(fields).forEach(k => params.append('updateMask.fieldPaths', k));
 
         if (op.collection === 'projects' && op.data.status === 'EJECUCION') {
           const current = await getDocument(op.collection, op.docId);
           if (current && current.status !== 'EJECUCION') {
-            await apiFetch(`/documents/${op.collection}/${op.docId}?updateMask.fieldPaths=${mask}`, {
+            await apiFetch(`/documents/${op.collection}/${op.docId}?${params.toString()}`, {
               method: 'PATCH',
               body: JSON.stringify({ fields }),
             });
@@ -377,7 +380,7 @@ export const processPendingQueue = async (): Promise<{ processed: number; failed
           }
         }
 
-        await apiFetch(`/documents/${op.collection}/${op.docId}?updateMask.fieldPaths=${mask}`, {
+        await apiFetch(`/documents/${op.collection}/${op.docId}?${params.toString()}`, {
           method: 'PATCH',
           body: JSON.stringify({ fields }),
         });
