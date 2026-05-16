@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
 import { Typology, ProjectStatus, FinancialConfig, DEFAULT_FINANCIAL_CONFIG, TopographyParams } from './engineering';
 import { BudgetLineDocument, BudgetTotals } from './budget';
 
@@ -26,7 +25,7 @@ export interface ProjectDocument {
     materialTotal: number;
     laborTotal: number;
     equipmentTotal: number;
-    calculatedAt: Timestamp;
+    calculatedAt: string;
   };
   startDate?: string;
   endDate?: string;
@@ -38,8 +37,8 @@ export interface ProjectDocument {
   ganttConfig?: Record<string, any>;
   notes?: string;
   ownerId: string;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface ProjectSummary {

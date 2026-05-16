@@ -1044,6 +1044,124 @@ const calculateProjectMaterials = (project: Project) => {
   return Object.values(summary).sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
 };
 
+// ─── Informe Físico-Financiero con membrete y firmas ─────────────────────────
+export const generatePhysicalFinancialPDF = (
+  project: any,
+  items: Array<{ code: string; description: string; unit: string; quantity: number; plannedCost: number; actualCost: number; duration: number; startDay: number; endDay: number; progress: number }>
+) => {
+  const doc = new jsPDF('landscape');
+  const pw = doc.internal.pageSize.getWidth();
+  const ph = doc.internal.pageSize.getHeight();
+
+  // ── Letterhead ──
+  setFill(doc, COLORS.primary);
+  doc.rect(0, 0, pw, 45, 'F');
+
+  doc.setFontSize(16);
+  doc.setFont('helvetica', 'bold');
+  setTxt(doc, COLORS.secondary);
+  doc.text('CONSTRUCTORA WM / M&S', pw / 2, 18, { align: 'center' });
+
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  setTxt(doc, COLORS.white);
+  doc.text('Sistema de Gestión de Obra Profesional', pw / 2, 28, { align: 'center' });
+  doc.text(`Reporte Físico-Financiero · ${new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' })}`, pw / 2, 37, { align: 'center' });
+
+  // ── Project info ──
+  setTxt(doc, COLORS.dark);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text(project?.name || 'Proyecto', 15, 55);
+  doc.setFontSize(8);
+  doc.setFont('helvetica', 'normal');
+  setTxt(doc, COLORS.gray);
+  doc.text(`Estado: ${project?.status || 'N/A'} | ${items.length} renglones | Generado: ${new Date().toLocaleString('es-GT')}`, 15, 62);
+
+  // ── Summary bar ──
+  const totalPlanned = items.reduce((s, i) => s + i.plannedCost, 0);
+  const totalActual = items.reduce((s, i) => s + i.actualCost, 0);
+  const overallProgress = items.length > 0 ? Math.round(items.reduce((s, i) => s + i.progress, 0) / items.length) : 0;
+
+  doc.setFillColor(240, 240, 245);
+  doc.rect(15, 66, pw - 30, 14, 'F');
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'bold');
+  setTxt(doc, COLORS.dark);
+  doc.text(`Planificado: Q${totalPlanned.toLocaleString()}`, 20, 75);
+  doc.text(`Real: Q${totalActual.toLocaleString()}`, 80, 75);
+  doc.text(`Avance: ${overallProgress}%`, 160, 75);
+  doc.text(`Renglones: ${items.length}`, 220, 75);
+
+  // ── Data table ──
+  autoTable(doc, {
+    startY: 84,
+    head: [['Código', 'Descripción', 'Und', 'Cantidad', 'Costo Plan.', 'Costo Real', 'Duración', 'Inicio', 'Fin', 'Avance (%)']],
+    body: items.map(i => [
+      i.code,
+      i.description,
+      i.unit,
+      i.quantity,
+      fmtCurrency(i.plannedCost),
+      fmtCurrency(i.actualCost),
+      `${i.duration}d`,
+      `día ${i.startDay}`,
+      `día ${i.endDay}`,
+      `${i.progress}%`,
+    ]),
+    foot: [[
+      { content: 'TOTALES', colSpan: 4, styles: { fontStyle: 'bold' } },
+      { content: fmtCurrency(totalPlanned), styles: { fontStyle: 'bold' } },
+      { content: fmtCurrency(totalActual), styles: { fontStyle: 'bold', textColor: totalActual > totalPlanned ? [239, 68, 68] : [16, 185, 129] } },
+      { content: '', styles: { fontStyle: 'bold' } },
+      { content: '', styles: { fontStyle: 'bold' } },
+      { content: '', styles: { fontStyle: 'bold' } },
+      { content: `${overallProgress}%`, styles: { fontStyle: 'bold' } },
+    ]],
+    theme: 'striped',
+    headStyles: { fillColor: COLORS.primary, fontStyle: 'bold', fontSize: 7 },
+    footStyles: { fillColor: [248, 250, 252], fontStyle: 'bold', fontSize: 7 },
+    styles: { fontSize: 7, cellPadding: 3 },
+    columnStyles: {
+      0: { cellWidth: 22 },
+      1: { cellWidth: 'auto' },
+      2: { cellWidth: 12 },
+      3: { cellWidth: 16, halign: 'right' },
+      4: { cellWidth: 28, halign: 'right' },
+      5: { cellWidth: 28, halign: 'right' },
+      6: { cellWidth: 18, halign: 'center' },
+      7: { cellWidth: 16, halign: 'center' },
+      8: { cellWidth: 16, halign: 'center' },
+      9: { cellWidth: 20, halign: 'center' },
+    },
+  });
+
+  // ── Signature fields ──
+  const lastY = (doc as any).lastAutoTable?.finalY || 84;
+  const sigY = Math.max(lastY + 20, ph - 80);
+
+  setDraw(doc, COLORS.gray);
+  doc.line(30, sigY, 130, sigY);
+  doc.line(pw - 30, sigY, pw - 130, sigY);
+  doc.setFontSize(7);
+  doc.setFont('helvetica', 'normal');
+  setTxt(doc, COLORS.gray);
+  doc.text('Firma del Contratista', 80, sigY + 6, { align: 'center' });
+  doc.text('Firma del Supervisor', pw - 80, sigY + 6, { align: 'center' });
+
+  doc.setFontSize(6);
+  setTxt(doc, COLORS.gray);
+  doc.text('Nombre: _________________________', 80, sigY + 13, { align: 'center' });
+  doc.text('Nombre: _________________________', pw - 80, sigY + 13, { align: 'center' });
+  doc.text('Fecha: __________________________', 80, sigY + 19, { align: 'center' });
+  doc.text('Fecha: __________________________', pw - 80, sigY + 19, { align: 'center' });
+
+  // ── Footer ──
+  addFooter(doc, 1, 1);
+
+  doc.save(`Fisico_Financiero_${(project?.name || 'proyecto').replace(/\s/g, '_')}.pdf`);
+};
+
 const addFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();

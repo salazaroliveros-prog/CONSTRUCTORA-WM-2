@@ -3,12 +3,8 @@ import {
   getAuth, GoogleAuthProvider, signInWithPopup,
   signInWithRedirect, getRedirectResult,
   signOut, onAuthStateChanged, User, getIdToken,
-  browserLocalPersistence, setPersistence, connectAuthEmulator
+  browserLocalPersistence, setPersistence
 } from 'firebase/auth'
-import {
-  getFirestore,
-  connectFirestoreEmulator
-} from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import firebaseConfig from './firebaseConfig'
 
@@ -18,7 +14,6 @@ if (!getApps().length) {
 
 export const app = getApp()
 export const auth = getAuth(app)
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId)
 export const storage = getStorage(app)
 
 setPersistence(auth, browserLocalPersistence).catch(console.error)

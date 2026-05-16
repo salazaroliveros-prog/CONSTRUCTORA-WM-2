@@ -17,8 +17,10 @@
     "@genkit-ai/mcp": "^1.34.0",
     "@google-cloud/language": "^7.2.2",
     "@google-cloud/storage": "^7.19.0",
+    "@radix-ui/themes": "^3.3.0",
+    "@vscode/webview-ui-toolkit": "^1.4.0",
     "ai": "^6.0.175",
-    "azure": "^2.3.1-preview",
+    "azure": "^0.7.18",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -49,7 +51,7 @@
     "tailwindcss": "^4.3.0",
     "terser": "^5.47.1",
     "typescript": "~5.8.2",
-    "vercel": "^53.4.0",
+    "vercel": "^50.41.0",
     "vite": "^8.0.12"
   }
 }

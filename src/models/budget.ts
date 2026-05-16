@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
 import {
   Typology as EnumTypology,
   Dimensions,

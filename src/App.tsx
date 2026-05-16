@@ -11,6 +11,7 @@ import { Toaster } from "sonner";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { SettingsProvider } from "./contexts/SettingsContext";
 import { ProjectFilterProvider } from "./contexts/ProjectFilterContext";
+import { NetworkStatusProvider, useNetworkStatus } from "./contexts/NetworkStatusContext";
 
 // Layout
 import { AppShell } from "./components/layout/AppShell";
@@ -40,6 +41,8 @@ const SettingsModule = lazy(() => import("./components/Settings"));
 const SeguimientoModule = lazy(() => import("./components/Seguimiento"));
 const AIAssistantModule = lazy(() => import("./components/AIAssistant"));
 const GanttChartModule = lazy(() => import("./components/GanttChart"));
+const PERTChartModule = lazy(() => import("./components/modules/PERTChart"));
+const PhysicalFinancialModule = lazy(() => import("./components/modules/PhysicalFinancialDashboard"));
 const EffectsShowcaseModule = lazy(() => import("./components/EffectsShowcase"));
 
 // ── Loading Spinner Component ──
@@ -166,6 +169,17 @@ function UnauthorizedScreen({ user, signOut }: { user: any; signOut: () => void 
   );
 }
 
+// ── Offline Banner ──
+function OfflineBanner() {
+  const { isOnline } = useNetworkStatus();
+  if (isOnline) return null;
+  return (
+    <div className="fixed top-0 left-0 right-0 z-[9999] bg-amber-500/90 backdrop-blur-md text-amber-950 text-center text-xs font-bold py-2 px-4 shadow-lg shadow-amber-500/20">
+      Sin conexión a internet — los datos no se actualizarán hasta que se restablezca la conexión
+    </div>
+  );
+}
+
 // ── Loading Screen (app startup) ──
 function LoadingScreen() {
   return (
@@ -232,6 +246,8 @@ function AppContent() {
     "seguimiento",
     "ai",
     "gantt",
+    "pert",
+    "fisico-financiero",
     "effects",
   ]);
 
@@ -323,6 +339,40 @@ function AppContent() {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" />
           <path d="M16 2v4M8 2v4M3 10h18" />
+        </svg>
+      ),
+    },
+    {
+      id: "pert",
+      label: "PERT",
+      labelMobile: "PERT",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="5" cy="6" r="3" />
+          <circle cx="12" cy="6" r="3" />
+          <circle cx="19" cy="6" r="3" />
+          <circle cx="5" cy="18" r="3" />
+          <circle cx="12" cy="18" r="3" />
+          <circle cx="19" cy="18" r="3" />
+          <line x1="8" y1="6" x2="9" y2="6" />
+          <line x1="15" y1="6" x2="16" y2="6" />
+          <line x1="5" y1="9" x2="5" y2="15" />
+          <line x1="12" y1="9" x2="12" y2="15" />
+          <line x1="19" y1="9" x2="19" y2="15" />
+          <line x1="8" y1="18" x2="9" y2="18" />
+          <line x1="15" y1="18" x2="16" y2="18" />
+        </svg>
+      ),
+    },
+    {
+      id: "fisico-financiero",
+      label: "Físico-Fin.",
+      labelMobile: "Fís-Fin",
+      icon: (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 3v18h18" />
+          <path d="M7 16h2v5H7zM11 11h2v10h-2zM15 8h2v13h-2zM19 5h2v16h-2z" />
+          <path d="M3 13c4-6 12-6 16 0" />
         </svg>
       ),
     },
@@ -463,6 +513,10 @@ function AppContent() {
         return <AIAssistantModule />;
       case "gantt":
         return <GanttChartModule />;
+      case "pert":
+        return <PERTChartModule />;
+      case "fisico-financiero":
+        return <PhysicalFinancialModule />;
       case "effects":
         return <EffectsShowcaseModule />;
       default:
@@ -471,69 +525,74 @@ function AppContent() {
   };
 
   return (
-    <PageTransition key={activeTab}>
-      <AppShell
-        sidebar={
-          <Sidebar
-            isCollapsed={false}
-            activeTab={activeTab}
-            onNavigate={handleNavigate}
-            onToggleCollapse={() => {}}
-          />
-        }
-        topBar={
-          <TopBar
-            onToggleFullscreen={() => {}}
-            onOpenNotifications={() => {}}
-            unreadCount={0}
-            onOpenAI={() => {}}
-            onOpenSearch={() => {}}
-            userName={user?.displayName || "Usuario"}
-            userPhoto={user?.photoURL}
-            companyName="WM/M&S Constructora"
-            breadcrumbs={[{ label: activeItem?.label || "Dashboard" }]}
-          />
-        }
-        mobileNav={
-          <MobileNav
-menuItems={menuItems.map((item) => ({
-               ...item,
-               active: activeTab === item.id,
-               onClick: (id: string) => setActiveTab(id),
-               iconMobile: item.icon,
-             }))}
-            isOpen={false}
-            onClose={() => {}}
-          />
-        }
-      >
-        {renderModule()}
-      </AppShell>
-    </PageTransition>
+    <>
+      <OfflineBanner />
+      <PageTransition key={activeTab}>
+        <AppShell
+          sidebar={
+            <Sidebar
+              isCollapsed={false}
+              activeTab={activeTab}
+              onNavigate={handleNavigate}
+              onToggleCollapse={() => {}}
+            />
+          }
+          topBar={
+            <TopBar
+              onToggleFullscreen={() => {}}
+              onOpenNotifications={() => {}}
+              unreadCount={0}
+              onOpenAI={() => {}}
+              onOpenSearch={() => {}}
+              userName={user?.displayName || "Usuario"}
+              userPhoto={user?.photoURL}
+              companyName="WM/M&S Constructora"
+              breadcrumbs={[{ label: activeItem?.label || "Dashboard" }]}
+            />
+          }
+          mobileNav={
+            <MobileNav
+              menuItems={menuItems.map((item) => ({
+                ...item,
+                active: activeTab === item.id,
+                onClick: (id: string) => setActiveTab(id),
+                iconMobile: item.icon,
+              }))}
+              isOpen={false}
+              onClose={() => {}}
+            />
+          }
+        >
+          {renderModule()}
+        </AppShell>
+      </PageTransition>
+    </>
   );
 }
 
 // ── Root App ──
 export default function App() {
   return (
-    <AuthProvider>
-      <SettingsProvider>
-        <ProjectFilterProvider>
-          <Toaster
-            position="bottom-right"
-            richColors
-            toastOptions={{
-              classNames: {
-                success: "border-l-emerald-500",
-                error: "border-l-red-500",
-                warning: "border-l-amber-500",
-                info: "border-l-blue-500",
-              },
-            }}
-          />
-          <AppContent />
-        </ProjectFilterProvider>
-      </SettingsProvider>
-    </AuthProvider>
+    <NetworkStatusProvider>
+      <AuthProvider>
+        <SettingsProvider>
+          <ProjectFilterProvider>
+            <Toaster
+              position="bottom-right"
+              richColors
+              toastOptions={{
+                classNames: {
+                  success: "border-l-emerald-500",
+                  error: "border-l-red-500",
+                  warning: "border-l-amber-500",
+                  info: "border-l-blue-500",
+                },
+              }}
+            />
+            <AppContent />
+          </ProjectFilterProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </NetworkStatusProvider>
   );
 }

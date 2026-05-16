@@ -26,6 +26,9 @@ export interface GanttConfig {
     duration?: number;
     dependencies?: string[];
     workers?: number;
+    startOffset?: number;
+    startOverridden?: boolean;
+    durationOverridden?: boolean;
   }>;
   progress: Record<string, number>;
 }

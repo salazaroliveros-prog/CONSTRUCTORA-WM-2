@@ -1,4 +1,3 @@
-import { Timestamp } from 'firebase/firestore';
 import { TopographyParams, LegalRestrictions, ServiceAvailability, LogisticsInfo } from './engineering';
 
 export interface EmergencyContact {
@@ -33,8 +32,8 @@ export interface ClientDocument {
   ultimaCompra?: string;
   notas?: string;
   ownerId: string;
-  createdAt?: Timestamp;
-  updatedAt?: Timestamp;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface TerrainData {

@@ -48,15 +48,18 @@ function TaskTooltip({ task, startDate, expectedProgress }: {
   );
 }
 
-// ── Barra de una tarea ────────────────────────────────────────────────────────
+// ── Barra de una tarea con drag & drop, redimension y baseline ────────────────
 const TaskBar = React.memo(function TaskBar({
-  task, maxDuration, startDate, onProgressChange, todayDay
+  task, maxDuration, startDate, onProgressChange, onStartDrag, onResize,
+  chartRef
 }: {
   task: GanttTask;
   maxDuration: number;
   startDate: string;
   onProgressChange: (id: string, val: number) => void;
-  todayDay: number;
+  onStartDrag: (id: string, e: React.PointerEvent) => void;
+  onResize: (id: string, edge: 'left' | 'right', e: React.PointerEvent) => void;
+  chartRef: React.RefObject<HTMLDivElement | null>;
 }) {
   const [hover, setHover] = useState(false);
   const base     = new Date(startDate);
@@ -68,74 +71,88 @@ const TaskBar = React.memo(function TaskBar({
   const dateEnd   = fmtDate(addDays(base, task.earlyFinish));
 
   // Avance esperado a hoy (0-100) dentro de la barra
+  const todayDay = Math.max(0, Math.round((Date.now() - base.getTime()) / 86400000));
   const expectedProgress = (() => {
     if (todayDay <= task.earlyStart) return 0;
     if (todayDay >= task.earlyFinish) return 100;
     return Math.round(((todayDay - task.earlyStart) / task.duration) * 100);
   })();
 
-  // Posición de la línea de avance esperado dentro de la barra (% relativo a la barra)
   const expectedLineLeft = barLeft + (expectedProgress / 100) * barWidth;
   const showExpectedLine = expectedProgress > 0 && expectedProgress < 100 && task.progress !== 100;
 
   return (
     <div
-      className="flex-1 relative h-8"
+      className="flex-1 relative h-9 select-none"
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       {/* Track */}
-      <div className="absolute inset-y-1.5 left-0 right-0 bg-slate-100 rounded" />
+      <div className="absolute inset-y-1 left-0 right-0 bg-slate-100 rounded" />
 
       {/* Holgura */}
       {task.slack > 0 && (
         <div
-          className="absolute rounded bg-slate-300/50 border border-dashed border-slate-400/40"
-          style={{ left: `${barLeft + barWidth}%`, width: `${slackW}%`, top: '30%', bottom: '30%' }}
+          className="absolute rounded bg-slate-300/60 border border-dashed border-slate-400/40"
+          style={{ left: `${barLeft + barWidth}%`, width: `${slackW}%`, top: '25%', bottom: '25%' }}
         />
       )}
 
-      {/* Barra principal */}
+      {/* Baseline bar (original plan — ghost bar behind) */}
+      <div
+        className="absolute rounded bg-slate-300/30 border border-dashed border-slate-400/30"
+        style={{ left: `${barLeft}%`, width: `${barWidth}%`, top: '60%', bottom: '5%' }}
+        title="Plan original"
+      />
+
+      {/* Barra principal (draggable) */}
       <motion.div
         className={cn(
-          'absolute rounded overflow-hidden',
+          'absolute rounded overflow-hidden cursor-grab active:cursor-grabbing z-10',
           task.isCritical
             ? 'bg-gradient-to-r from-red-500 to-red-600'
             : task.progress === 100
               ? 'bg-gradient-to-r from-emerald-500 to-emerald-600'
               : 'bg-gradient-to-r from-blue-500 to-blue-600'
         )}
-        style={{ left: `${barLeft}%`, width: `${barWidth}%`, top: '14%', bottom: '14%' }}
+        style={{ left: `${barLeft}%`, width: `${barWidth}%`, top: '18%', bottom: '35%' }}
         initial={{ scaleX: 0, originX: 0 }}
         animate={{ scaleX: 1 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
+        onPointerDown={e => { e.stopPropagation(); onStartDrag(task.id, e); }}
       >
-        {/* Progreso real (franja blanca semitransparente) */}
+        {/* Progreso real */}
         <div
           className="absolute inset-0 bg-white/25"
           style={{ width: `${task.progress}%` }}
         />
-        {/* Texto dentro de la barra: % avance */}
         {barWidth > 5 && (
           <span className="absolute inset-0 flex items-center justify-center text-[7px] font-black text-white drop-shadow">
             {task.progress > 0 ? `${task.progress}%` : ''}
           </span>
         )}
+
+        {/* Resize handle — izquierda */}
+        <div
+          className="absolute left-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-white/30 transition-colors rounded-l"
+          onPointerDown={e => { e.stopPropagation(); onResize(task.id, 'left', e); }}
+        />
+
+        {/* Resize handle — derecha */}
+        <div
+          className="absolute right-0 top-0 bottom-0 w-2 cursor-col-resize hover:bg-white/30 transition-colors rounded-r"
+          onPointerDown={e => { e.stopPropagation(); onResize(task.id, 'right', e); }}
+        />
       </motion.div>
 
-      {/* Línea de avance esperado (donde debería estar hoy) */}
+      {/* Línea de avance esperado */}
       {showExpectedLine && (
         <div
           className="absolute z-20 pointer-events-none"
-          style={{ left: `${expectedLineLeft}%`, top: '8%', bottom: '8%', width: 2 }}
+          style={{ left: `${expectedLineLeft}%`, top: '4%', bottom: '4%', width: 2 }}
         >
-          {/* Línea punteada blanca con sombra */}
           <div className="w-full h-full border-l-2 border-dashed border-white/90 drop-shadow" />
-          {/* Etiqueta flotante */}
-          <div
-            className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap"
-            style={{ fontSize: 6 }}
-          >
+          <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap" style={{ fontSize: 6 }}>
             <span className={cn(
               'px-1 py-0.5 rounded font-black text-white',
               task.progress >= expectedProgress ? 'bg-emerald-500' : 'bg-red-500'
@@ -146,32 +163,28 @@ const TaskBar = React.memo(function TaskBar({
         </div>
       )}
 
-      {/* Fecha inicio — izquierda de la barra */}
-      <span
-        className="absolute text-[6px] font-bold text-slate-500 whitespace-nowrap"
-        style={{ left: `${barLeft}%`, top: 0, transform: 'translateX(-100%) translateX(-2px)' }}
-      >
+      {/* Fecha inicio */}
+      <span className="absolute text-[6px] font-bold text-slate-500 whitespace-nowrap"
+        style={{ left: `${barLeft}%`, top: 0, transform: 'translateX(-100%) translateX(-2px)' }}>
         {dateStart}
       </span>
 
-      {/* Fecha fin — derecha de la barra */}
-      <span
-        className="absolute text-[6px] font-bold text-slate-500 whitespace-nowrap"
-        style={{ left: `${barLeft + barWidth}%`, bottom: 0, transform: 'translateX(2px)' }}
-      >
+      {/* Fecha fin */}
+      <span className="absolute text-[6px] font-bold text-slate-500 whitespace-nowrap"
+        style={{ left: `${barLeft + barWidth}%`, bottom: 0, transform: 'translateX(2px)' }}>
         {dateEnd}
       </span>
 
       {/* Tooltip */}
       {hover && <TaskTooltip task={task} startDate={startDate} expectedProgress={expectedProgress} />}
 
-      {/* Slider de avance sobre la barra */}
+      {/* Slider de avance */}
       {hover && (
         <input
           type="range" min={0} max={100} value={task.progress}
           onChange={e => onProgressChange(task.id, parseInt(e.target.value))}
-          className="absolute inset-0 w-full opacity-0 cursor-pointer"
-          style={{ left: `${barLeft}%`, width: `${barWidth}%` }}
+          className="absolute inset-0 w-full opacity-0 cursor-pointer z-20"
+          style={{ left: `${barLeft}%`, width: `${barWidth}%`, top: '18%', bottom: '35%' }}
           title={`Avance: ${task.progress}%`}
         />
       )}
@@ -222,9 +235,12 @@ export default function GanttChart() {
   const [showFinancialSummary, setShowFinancialSummary] = useState(false);
   const [financialViewMode, setFinancialViewMode] = useState<'tables' | 'charts'>('tables');
   const [showSlackTable, setShowSlackTable]       = useState(false);
+  const [zoomLevel, setZoomLevel]                 = useState(1);
+  const [dragTaskId, setDragTaskId]               = useState<string | null>(null);
+  const [dragType, setDragType]                   = useState<'move' | 'resize-left' | 'resize-right' | null>(null);
+  const chartRef                                  = useRef<HTMLDivElement>(null);
   const saveTimer                                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Cargar proyectos en ejecución
   useEffect(() => {
     return subscribeToCollection('projects', (data: any[]) => {
       const exec = data.filter(p => p.status === 'EJECUCION');
@@ -299,6 +315,79 @@ export default function GanttChart() {
   const criticalPath = tasks.filter(t => t.isCritical);
   const todayDay     = project?.startDate ? daysSinceStart(project.startDate) : 0;
   const todayLine    = project?.startDate ? (todayDay / maxDuration) * 100 : null;
+
+  // Pointer event tracking for drag/resize
+  const dragStartX = useRef(0);
+  const dragStartVal = useRef(0);
+
+  // Handle pointer move for drag/resize
+  useEffect(() => {
+    if (!dragTaskId || !dragType || !chartRef.current) return;
+
+    const onPointerMove = (e: PointerEvent) => {
+      if (!chartRef.current) return;
+      const chart = chartRef.current;
+      const maxW = maxDuration;
+      const pxPerDay = (chart.scrollWidth) / maxW;
+      const deltaDays = Math.round((e.clientX - dragStartX.current) / pxPerDay);
+      const newVal = Math.max(0, dragStartVal.current + deltaDays);
+
+      setConfig(prev => {
+        const overrides = { ...prev.overrides };
+        const taskOver = { ...(overrides[dragTaskId] || {}) };
+
+        if (dragType === 'move') {
+          taskOver.startOffset = newVal;
+          taskOver.startOverridden = true;
+        } else if (dragType === 'resize-right') {
+          taskOver.duration = Math.max(1, newVal);
+          taskOver.durationOverridden = true;
+        } else if (dragType === 'resize-left') {
+          taskOver.startOffset = Math.max(0, dragStartVal.current - newVal);
+          taskOver.duration = Math.max(1, newVal);
+          taskOver.startOverridden = true;
+          taskOver.durationOverridden = true;
+        }
+
+        overrides[dragTaskId] = taskOver;
+        return { ...prev, overrides };
+      });
+    };
+
+    const onPointerUp = () => {
+      setDragTaskId(null);
+      setDragType(null);
+    };
+
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    return () => {
+      window.removeEventListener('pointermove', onPointerMove);
+      window.removeEventListener('pointerup', onPointerUp);
+    };
+  }, [dragTaskId, dragType, maxDuration]);
+
+  const handleStartDrag = (id: string, e: React.PointerEvent) => {
+    e.preventDefault();
+    setDragTaskId(id);
+    setDragType('move');
+    dragStartX.current = e.clientX;
+    const task = tasks.find(t => t.id === id);
+    dragStartVal.current = task ? task.earlyStart : 0;
+  };
+
+  const handleResize = (id: string, edge: 'left' | 'right', e: React.PointerEvent) => {
+    e.preventDefault();
+    setDragTaskId(id);
+    setDragType(edge === 'left' ? 'resize-left' : 'resize-right');
+    dragStartX.current = e.clientX;
+    const task = tasks.find(t => t.id === id);
+    if (edge === 'right') {
+      dragStartVal.current = task ? task.duration : 1;
+    } else {
+      dragStartVal.current = task ? task.earlyStart : 0;
+    }
+  };
 
   // Avance global ponderado por duración
   const globalProgress = useMemo(() => {
@@ -743,6 +832,33 @@ export default function GanttChart() {
             <span className="hidden sm:inline">Financiero</span>
           </button>
           
+          {/* Zoom controls */}
+          <div className="flex items-center bg-slate-100 rounded-lg p-1 gap-1">
+            <button
+              onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.25))}
+              className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-white hover:shadow transition-all"
+              title="Alejar"
+            >−</button>
+            <span className="text-[10px] font-bold text-slate-600 min-w-[36px] text-center">{Math.round(zoomLevel * 100)}%</span>
+            <button
+              onClick={() => setZoomLevel(z => Math.min(3, z + 0.25))}
+              className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-white hover:shadow transition-all"
+              title="Acercar"
+            >+</button>
+          </div>
+
+          <button
+            onClick={() => {
+              const el = chartRef.current?.querySelector('[data-today]');
+              if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            }}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-all"
+            title="Ir a hoy"
+          >
+            <Clock size={14} />
+            <span className="hidden sm:inline">Hoy</span>
+          </button>
+
           <button
             onClick={handleExport}
             disabled={tasks.length === 0}
@@ -779,6 +895,7 @@ export default function GanttChart() {
           { color: 'bg-gradient-to-r from-blue-500 to-blue-600',       label: 'Normal'       },
           { color: 'bg-gradient-to-r from-emerald-500 to-emerald-600', label: 'Completada'   },
           { color: 'bg-slate-300/70 border border-dashed border-slate-400/50', label: 'Holgura' },
+          { color: 'bg-slate-300/30 border border-dashed border-slate-400/30', label: 'Original' },
         ].map(l => (
           <div key={l.label} className="flex items-center gap-1">
             <div className={cn('w-5 h-2.5 rounded-sm', l.color)} />
@@ -810,8 +927,16 @@ export default function GanttChart() {
       </div>
 
       {/* ── Diagrama ── */}
-      <div className="flex-1 bg-white border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
-        <div style={{ minWidth: 1100, minHeight: '100%' }} className="p-4">
+      <div ref={chartRef} className="flex-1 bg-white border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-[500px]">
+        <div
+          style={{
+            minWidth: Math.max(1100, 1100 * zoomLevel),
+            minHeight: '100%',
+            transform: `scaleX(${zoomLevel})`,
+            transformOrigin: 'top left',
+          }}
+          className="p-4"
+        >
 
           {/* Escala de tiempo */}
           <div className="flex mb-3 pl-72">
@@ -845,12 +970,52 @@ export default function GanttChart() {
                   <div
                     className="absolute top-0 bottom-0 border-l-2 border-amber-400 z-10"
                     style={{ left: `${todayLine}%` }}
+                    data-today
                   >
                     <span className="absolute -top-5 -translate-x-1/2 text-[7px] font-black text-amber-500 uppercase bg-amber-50 px-1 rounded">Hoy</span>
                   </div>
                 )}
               </div>
             </div>
+
+            {/* SVG Overlay para flechas de dependencia */}
+            {showDependencies && (
+              <svg
+                className="absolute inset-0 w-full h-full pointer-events-none z-5 overflow-visible"
+                style={{ display: 'block' }}
+              >
+                {tasks.filter(t => t.dependencies && t.dependencies.length > 0).map(task =>
+                  task.dependencies.map(depId => {
+                    const from = tasks.find(t => t.id === depId);
+                    if (!from) return null;
+                    const x1 = (from.earlyFinish / maxDuration) * 100;
+                    const x2 = (task.earlyStart / maxDuration) * 100;
+                    if (x2 <= x1) return null;
+
+                    const col = 'rgba(100,116,139,0.5)';
+                    const midX = (x1 + x2) / 2;
+                    // Bezier curve: start → up → right → down → end
+                    const d = `M ${x1}% 50 C ${x1 + (midX - x1) * 0.5}% 50, ${midX}% 25, ${midX}% 0 
+                               L ${midX}% 100 C ${midX}% 75, ${x1 + (x2 - x1) * 0.8}% 50, ${x2}% 50`;
+
+                    return (
+                      <g key={`${task.id}-${depId}`}>
+                        <path d={d} fill="none" stroke={col} strokeWidth={1.5} strokeDasharray="4 2"
+                          markerEnd="url(#arrowhead)" />
+                        <path d={d} fill="none" stroke="transparent" strokeWidth={8} className="pointer-events-auto"
+                          onPointerEnter={() => toast.info(`${from.name} → ${task.name}`, { duration: 1500 })}
+                        />
+                      </g>
+                    );
+                  })
+                )}
+                <defs>
+                  <marker id="arrowhead" markerWidth={6} markerHeight={4} refX={6} refY={2} orient="auto">
+                    <polygon points="0 0, 6 2, 0 4" fill="rgba(100,116,139,0.6)" />
+                  </marker>
+                </defs>
+              </svg>
+            )}
 
             {/* Tareas por categoría */}
             {Array.from(byCategory.entries()).map(([cat, catTasks]) => {
@@ -999,13 +1164,15 @@ export default function GanttChart() {
                           </div>
                         </div>
 
-                        {/* Barra Gantt */}
+                        {/* Barra Gantt con drag, resize y baseline */}
                         <TaskBar
                           task={task}
                           maxDuration={maxDuration}
                           startDate={project?.startDate ?? new Date().toISOString()}
                           onProgressChange={handleProgressChange}
-                          todayDay={todayDay}
+                          onStartDrag={handleStartDrag}
+                          onResize={handleResize}
+                          chartRef={chartRef}
                         />
                       </div>
                     );

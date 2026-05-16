@@ -1,296 +1,240 @@
-import {
-  collection,
-  query,
-  where,
-  onSnapshot,
-  addDoc,
-  updateDoc,
-  deleteDoc,
-  doc,
-  setDoc,
-  Timestamp,
-  serverTimestamp,
-  getDoc,
-  FirestoreError,
-  getDocs
-} from 'firebase/firestore'
-import { db, auth } from '../lib/firebase'
+import { auth } from '../lib/firebase';
+import { apiFetch, docToObject, objToFirestore, collectionQuery, nowISO } from './firebaseApi';
 
 export const parseError = (error: unknown): string => {
   if (error instanceof Error) {
     try {
-      const parsed = JSON.parse(error.message)
+      const parsed = JSON.parse(error.message);
       if (parsed && typeof parsed.error === 'string') {
         if (parsed.error.includes('Missing or insufficient permissions')) {
-          return 'Permisos insuficientes para realizar esta operación'
+          return 'Permisos insuficientes para realizar esta operación';
         }
-        return parsed.error
+        return parsed.error;
       }
     } catch {
-      return error.message
+      return error.message;
     }
   }
-  return String(error)
-}
+  return String(error);
+};
 
-enum OperationType {
-  CREATE = 'create',
-  UPDATE = 'update',
-  DELETE = 'delete',
-  LIST = 'list',
-  GET = 'get',
-  WRITE = 'write'
-}
-
-interface FirestoreErrorInfo {
-  error: string
-  operationType: OperationType
-  path: string | null
-  authInfo: any
-}
-
-function handleFirestoreError(
-  error: unknown,
-  operationType: OperationType,
-  path: string | null,
-  throwOnError: boolean = true
-): string {
-  const errInfo: FirestoreErrorInfo = {
-    error: error instanceof Error ? error.message : String(error),
-    authInfo: {
-      userId: auth.currentUser?.uid,
-      email: auth.currentUser?.email,
-      emailVerified: auth.currentUser?.emailVerified
-    },
-    operationType,
-    path
-  }
-  const msg = JSON.stringify(errInfo)
-  console.error('Firestore Error:', msg)
-  if (throwOnError) {
-    throw new Error(msg)
-  }
-  return msg
-}
-
-
-export const getDocumentsForCollection = async (
-  collectionName: string
-): Promise<any[]> => {
-  if (!auth.currentUser) return []
+export const getDocumentsForCollection = async (collectionName: string): Promise<any[]> => {
+  if (!auth.currentUser) return [];
   try {
-    const q = query(
-      collection(db, collectionName),
-      where('ownerId', '==', auth.currentUser.uid)
-    )
-    const snapshot = await getDocs(q)
-    return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
+    const results = await collectionQuery(collectionName, [
+      { field: 'ownerId', op: 'EQUAL', val: auth.currentUser.uid },
+    ]);
+    return results
+      .filter((r: any) => r.document)
+      .map((r: any) => docToObject(r.document));
   } catch (error) {
-    console.error(
-      `[firestoreService] Error fetching ${collectionName}:`,
-      error?.message || error
-    )
-    return []
+    console.error(`[firestoreService] Error fetching ${collectionName}:`, error);
+    return [];
   }
-}
+};
 
 export const subscribeToCollection = (
   collectionName: string,
   callback: (data: any[]) => void
 ) => {
-  if (!auth.currentUser) return () => {}
+  let cancelled = false;
 
-  const q = query(
-    collection(db, collectionName),
-    where('ownerId', '==', auth.currentUser.uid)
-  )
+  if (!auth.currentUser) return () => {};
 
-  return onSnapshot(
-    q,
-    (snapshot) => {
-      const data = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-      callback(data)
-    },
-    (error: FirestoreError) => {
-      console.error(
-        '[firestoreService] Subscription error:',
-        collectionName,
-        error?.message || error
-      )
-    }
-  )
-}
+  const fetch = async () => {
+    if (cancelled) return;
+    const data = await getDocumentsForCollection(collectionName);
+    if (!cancelled) callback(data);
+  };
+
+  fetch();
+
+  const intervalId = window.setInterval(fetch, 30000);
+
+  return () => {
+    cancelled = true;
+    clearInterval(intervalId);
+  };
+};
 
 const sanitize = (obj: any): any => {
-  if (Array.isArray(obj)) return obj.map(sanitize)
+  if (Array.isArray(obj)) return obj.map(sanitize);
   if (obj !== null && typeof obj === 'object') {
     return Object.fromEntries(
       Object.entries(obj)
         .filter(([, v]) => v !== undefined)
         .map(([k, v]) => [k, sanitize(v)])
-    )
+    );
   }
-  return obj
-}
+  return obj;
+};
 
 export const addDocument = async (
   collectionName: string,
   data: any
 ): Promise<string | null> => {
-  if (!auth.currentUser) throw new Error('Not authenticated')
+  if (!auth.currentUser) throw new Error('Not authenticated');
   try {
-    const docRef = await addDoc(collection(db, collectionName), {
-      ...sanitize(data),
-      ownerId: auth.currentUser.uid,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp()
-    })
-    return docRef.id
-  } catch (error) {
-    handleFirestoreError(error, OperationType.CREATE, collectionName)
-    return null
-  }
-}
+    const clean = sanitize(data);
+    const doc = {
+      fields: objToFirestore({
+        ...clean,
+        ownerId: auth.currentUser.uid,
+        createdAt: nowISO(),
+        updatedAt: nowISO(),
+      }),
+    };
 
-/**
- * Actualiza un documento y, si el estado cambia a EJECUCION,
- * genera automáticamente el inventario desde el presupuesto.
- */
+    const result = await apiFetch(`/documents/${collectionName}`, {
+      method: 'POST',
+      body: JSON.stringify(doc),
+    });
+
+    const id = (result.name as string).split('/').pop() || '';
+    return id;
+  } catch (error) {
+    console.error(`[firestoreService] Error creating ${collectionName}:`, error);
+    throw error;
+  }
+};
+
 export const updateDocument = async (
   collectionName: string,
   id: string,
   data: any
 ): Promise<void> => {
-  if (!auth.currentUser) throw new Error('Not authenticated')
+  if (!auth.currentUser) throw new Error('Not authenticated');
   try {
-    const docRef = doc(db, collectionName, id)
-    const newData = { ...sanitize(data), updatedAt: serverTimestamp() }
+    const clean = sanitize(data);
+    const fields = objToFirestore({ ...clean, updatedAt: nowISO() });
+    const mask = Object.keys(fields).join(',');
 
     if (collectionName === 'projects' && data.status === 'EJECUCION') {
-      const snap = await getDoc(docRef)
-      if (snap.exists()) {
-        const currentData = snap.data()
-        if (currentData.status !== 'EJECUCION') {
-          await updateDoc(docRef, newData)
-          await generateProjectStock({ id, ...currentData, ...data } as any)
-          return
-        }
+      const current = await getDocument(collectionName, id);
+      if (current && current.status !== 'EJECUCION') {
+        await apiFetch(`/documents/${collectionName}/${id}?updateMask.fieldPaths=${mask}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ fields }),
+        });
+        await generateProjectStock({ id, ...current, ...data });
+        return;
       }
     }
 
-    await updateDoc(docRef, newData)
+    await apiFetch(`/documents/${collectionName}/${id}?updateMask.fieldPaths=${mask}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ fields }),
+    });
   } catch (error) {
-    handleFirestoreError(error, OperationType.UPDATE, `${collectionName}/${id}`)
+    console.error(`[firestoreService] Error updating ${collectionName}/${id}:`, error);
+    throw error;
   }
-}
+};
 
-/** Cargar configuración del usuario desde Firestore. Retorna null si no existe o hay error. */
+export const deleteDocument = async (
+  collectionName: string,
+  id: string
+): Promise<boolean> => {
+  if (!auth.currentUser) return false;
+  try {
+    await apiFetch(`/documents/${collectionName}/${id}`, { method: 'DELETE' });
+    return true;
+  } catch (error) {
+    console.error(`[firestoreService] Error deleting ${collectionName}/${id}:`, error);
+    return false;
+  }
+};
+
 export const loadUserSettings = async (
   uid: string
 ): Promise<Record<string, unknown> | null> => {
   try {
-    const snap = await getDoc(doc(db, 'userSettings', uid))
-    return snap.exists() ? snap.data() : null
+    const result = await apiFetch(`/documents/userSettings/${uid}`);
+    return docToObject(result);
   } catch {
-    return null
+    return null;
   }
-}
+};
 
-/** Guardar/actualizar configuración del usuario. Retorna true si tuvo éxito. */
 export const saveUserSettings = async (
   uid: string,
   data: Record<string, unknown>
 ): Promise<boolean> => {
   try {
-    await setDoc(doc(db, 'userSettings', uid), sanitize(data), { merge: true })
-    return true
+    const clean = sanitize(data);
+    const fields = objToFirestore(clean);
+    const mask = Object.keys(fields).join(',');
+    await apiFetch(`/documents/userSettings/${uid}?updateMask.fieldPaths=${mask}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ fields }),
+    });
+    return true;
   } catch (error) {
-    console.error('[firestoreService] Error saving user settings:', error)
-    return false
+    console.error('[firestoreService] Error saving user settings:', error);
+    return false;
   }
-}
+};
 
-/**
- * Verifica si un valor ya existe en una colección (excluyendo un documento opcional).
- */
 export const checkUniqueField = async (
   collectionName: string,
   field: string,
   value: string | number,
   excludeId?: string
 ): Promise<boolean> => {
-  if (!auth.currentUser) return false
+  if (!auth.currentUser) return false;
   try {
-    const q = query(
-      collection(db, collectionName),
-      where('ownerId', '==', auth.currentUser.uid),
-      where(field, '==', value)
-    )
-    const snapshot = await getDocs(q)
+    const results = await collectionQuery(collectionName, [
+      { field: 'ownerId', op: 'EQUAL', val: auth.currentUser.uid },
+      { field, op: 'EQUAL', val: value },
+    ]);
+    const docs = results.filter((r: any) => r.document).map((r: any) => docToObject(r.document));
     if (excludeId) {
-      return snapshot.docs.some((d) => d.id !== excludeId)
+      return docs.some((d) => d.id !== excludeId);
     }
-    return snapshot.docs.length > 0
+    return docs.length > 0;
   } catch {
-    return false
+    return false;
   }
-}
+};
 
-/**
- * Escritura directa en Firestore (100% online).
- */
 export const writeWithOfflineQueue = async (
   collectionName: string,
   docId: string,
   data: any,
   operation: 'create' | 'update' | 'delete' = 'create'
 ): Promise<void> => {
-  if (!auth.currentUser) throw new Error('Not authenticated')
-
-  const sanitized = sanitize(data)
-
+  if (!auth.currentUser) throw new Error('Not authenticated');
+  const sanitized = sanitize(data);
   try {
-    const docRef = doc(db, collectionName, docId)
-
     if (operation === 'delete') {
-      await deleteDoc(docRef)
+      await apiFetch(`/documents/${collectionName}/${docId}`, { method: 'DELETE' });
     } else if (operation === 'create') {
-      await addDoc(collection(db, collectionName), {
-        ...sanitized,
-        ownerId: auth.currentUser.uid,
-        createdAt: serverTimestamp(),
-        updatedAt: serverTimestamp()
-      })
+      const doc = {
+        fields: objToFirestore({
+          ...sanitized,
+          ownerId: auth.currentUser.uid,
+          createdAt: nowISO(),
+          updatedAt: nowISO(),
+        }),
+      };
+      await apiFetch(`/documents/${collectionName}`, {
+        method: 'POST',
+        body: JSON.stringify(doc),
+      });
     } else {
-      await updateDoc(docRef, {
-        ...sanitized,
-        updatedAt: serverTimestamp()
-      })
+      const fields = objToFirestore({ ...sanitized, updatedAt: nowISO() });
+      const mask = Object.keys(fields).join(',');
+      await apiFetch(`/documents/${collectionName}/${docId}?updateMask.fieldPaths=${mask}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ fields }),
+      });
     }
   } catch (error: any) {
-    console.error(
-      `[firestoreService] Escritura fallida (${collectionName}/${docId}):`,
-      error?.message || error
-    )
-    throw error
+    console.error(`[firestoreService] Error ${operation} ${collectionName}/${docId}:`, error);
+    throw error;
   }
-}
+};
 
-export const deleteDocument = async (
-  collectionName: string,
-  id: string
-): Promise<boolean> => {
-  if (!auth.currentUser) return false
-  try {
-    await deleteDoc(doc(db, collectionName, id))
-    return true
-  } catch (error) {
-    handleFirestoreError(error, OperationType.DELETE, `${collectionName}/${id}`)
-    return false
-  }
-}
-
-/** All collections required by the app */
 export const REQUIRED_COLLECTIONS = [
   'projects',
   'clients',
@@ -299,79 +243,80 @@ export const REQUIRED_COLLECTIONS = [
   'inventory',
   'transactions',
   'purchaseOrders',
-  'logs'
-] as const
+  'logs',
+] as const;
 
 export type CollectionStatus = {
-  name: string
-  count: number
-  ok: boolean
-  error?: string
-  ms: number
-}
+  name: string;
+  count: number;
+  ok: boolean;
+  error?: string;
+  ms: number;
+};
 
-/**
- * Checks connectivity and document count for every required collection.
- */
 export const checkCollections = async (): Promise<CollectionStatus[]> => {
-  if (!auth.currentUser) throw new Error('Not authenticated')
-  const results: CollectionStatus[] = []
+  if (!auth.currentUser) throw new Error('Not authenticated');
+  const results: CollectionStatus[] = [];
   for (const name of REQUIRED_COLLECTIONS) {
-    const t = Date.now()
+    const t = Date.now();
     try {
-      const snap = await getDocs(
-        query(collection(db, name), where('ownerId', '==', auth.currentUser.uid))
-      )
-      results.push({ name, count: snap.size, ok: true, ms: Date.now() - t })
+      const data = await getDocumentsForCollection(name);
+      results.push({ name, count: data.length, ok: true, ms: Date.now() - t });
     } catch (e: any) {
       results.push({
         name,
         count: 0,
         ok: false,
         error: e?.message || String(e),
-        ms: Date.now() - t
-      })
+        ms: Date.now() - t,
+      });
     }
   }
-  return results
+  return results;
+};
+
+async function getDocument(collectionName: string, id: string): Promise<any | null> {
+  try {
+    const result = await apiFetch(`/documents/${collectionName}/${id}`);
+    return docToObject(result);
+  } catch {
+    return null;
+  }
 }
 
-/**
- * Generates inventory items from a project's budget materials.
- */
 export const generateProjectStock = async (project: any): Promise<number> => {
-  if (!auth.currentUser || !project.id) return 0
+  if (!auth.currentUser || !project.id) return 0;
 
-  const materialsMap = new Map<string, { unit: string; qty: number; cost: number }>()
+  const materialsMap = new Map<string, { unit: string; qty: number; cost: number }>();
   for (const item of project.items || []) {
     for (const m of item.materials || []) {
-      const key = `${m.name}__${m.unit || 'U'}`
-      const qty = (m.quantity || 0) * (item.projectQuantity || 1)
+      const key = `${m.name}__${m.unit || 'U'}`;
+      const qty = (m.quantity || 0) * (item.projectQuantity || 1);
       if (materialsMap.has(key)) {
-        materialsMap.get(key)!.qty += qty
+        materialsMap.get(key)!.qty += qty;
       } else {
-        materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.price || 0 })
+        materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.price || 0 });
       }
     }
   }
-  if (materialsMap.size === 0) return 0
+  if (materialsMap.size === 0) return 0;
 
-  const existing = await getDocs(
-    query(
-      collection(db, 'inventory'),
-      where('ownerId', '==', auth.currentUser.uid),
-      where('projectId', '==', project.id)
-    )
-  )
+  const existing = await collectionQuery('inventory', [
+    { field: 'ownerId', op: 'EQUAL', val: auth.currentUser.uid },
+    { field: 'projectId', op: 'EQUAL', val: project.id },
+  ]);
   const existingNames = new Set(
-    existing.docs.map((d) => `${d.data().name}__${d.data().unit}`)
-  )
+    existing.filter((r: any) => r.document).map((r: any) => {
+      const d = docToObject(r.document);
+      return `${d.name}__${d.unit}`;
+    })
+  );
 
-  let created = 0
-  const today = new Date().toISOString().split('T')[0]
+  let created = 0;
+  const today = new Date().toISOString().split('T')[0];
   for (const [key, mat] of materialsMap) {
-    if (existingNames.has(key)) continue
-    const [name] = key.split('__')
+    if (existingNames.has(key)) continue;
+    const [name] = key.split('__');
     await addDocument('inventory', {
       name,
       cat: 'Materiales',
@@ -385,9 +330,9 @@ export const generateProjectStock = async (project: any): Promise<number> => {
       projectName: project.name,
       budgetedQty: Math.round(mat.qty * 100) / 100,
       budgetedCost: mat.cost,
-      usedQty: 0
-    })
-    created++
+      usedQty: 0,
+    });
+    created++;
   }
-  return created
-}
+  return created;
+};
