@@ -767,7 +767,7 @@ export default function GanttChart() {
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
             title="Seleccionar proyecto"
-            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]"
+            className="px-3 py-2 bg-neutral-900/40 border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]"
           >
             {projects.length === 0
               ? <option value="">Sin proyectos en ejecución</option>
@@ -781,7 +781,7 @@ export default function GanttChart() {
               onClick={() => setViewMode('compact')}
               className={cn(
                 'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                viewMode === 'compact' ? 'bg-white shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'compact' ? 'bg-neutral-900/40 shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
               )}
               title="Vista Compacta"
             >
@@ -791,7 +791,7 @@ export default function GanttChart() {
               onClick={() => setViewMode('expanded')}
               className={cn(
                 'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                viewMode === 'expanded' ? 'bg-white shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'expanded' ? 'bg-neutral-900/40 shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
               )}
               title="Vista Expandida"
             >
@@ -801,7 +801,7 @@ export default function GanttChart() {
               onClick={() => setViewMode('detailed')}
               className={cn(
                 'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                viewMode === 'detailed' ? 'bg-white shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'detailed' ? 'bg-neutral-900/40 shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
               )}
               title="Vista Detallada"
             >
@@ -814,7 +814,7 @@ export default function GanttChart() {
             onClick={() => setShowDependencies(!showDependencies)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase transition-all',
-              showDependencies ? 'bg-[var(--color-mod-dashboard)]/10 text-[var(--color-mod-dashboard)] border border-[var(--color-mod-dashboard)]' : 'bg-white border border-slate-200 text-slate-600 hover:border-[var(--color-mod-dashboard)]'
+              showDependencies ? 'bg-[var(--color-mod-dashboard)]/10 text-[var(--color-mod-dashboard)] border border-[var(--color-mod-dashboard)]' : 'bg-neutral-900/40 border border-slate-200 text-slate-600 hover:border-[var(--color-mod-dashboard)]'
             )}
             title="Mostrar dependencias"
           >
@@ -827,7 +827,7 @@ export default function GanttChart() {
             onClick={() => setShowFinancialSummary(!showFinancialSummary)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase transition-all',
-              showFinancialSummary ? 'bg-[var(--color-success-bg)] text-[var(--color-success)] border border-[var(--color-green-border)]' : 'bg-white border border-slate-200 text-slate-600 hover:border-[var(--color-green-border)]'
+              showFinancialSummary ? 'bg-[var(--color-success-bg)] text-[var(--color-success)] border border-[var(--color-green-border)]' : 'bg-neutral-900/40 border border-slate-200 text-slate-600 hover:border-[var(--color-green-border)]'
             )}
             title="Resumen financiero"
           >
@@ -839,13 +839,13 @@ export default function GanttChart() {
           <div className="flex items-center bg-slate-100 rounded-lg p-1 gap-1">
             <button
               onClick={() => setZoomLevel(z => Math.max(0.5, z - 0.25))}
-              className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-white hover:shadow transition-all"
+              className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-neutral-900/40 hover:shadow transition-all"
               title="Alejar"
             >−</button>
             <span className="text-[10px] font-bold text-slate-600 min-w-9 text-center">{Math.round(zoomLevel * 100)}%</span>
             <button
               onClick={() => setZoomLevel(z => Math.min(3, z + 0.25))}
-              className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-white hover:shadow transition-all"
+              className="px-1.5 py-1 rounded text-[10px] font-black text-slate-500 hover:bg-neutral-900/40 hover:shadow transition-all"
               title="Acercar"
             >+</button>
           </div>
@@ -883,7 +883,7 @@ export default function GanttChart() {
           { icon: <DollarSign size={13} className="text-[var(--color-accent)]" />,  label: 'Costo Total',    value: fmtQ(tasks.reduce((s,t)=>s+t.cost,0)),                      color: 'text-[var(--color-warning)]' },
           { icon: <Calendar size={13} className="text-[var(--color-mod-dashboard)]" />,   label: 'Fin Estimado',   value: projectEndReal ?? '—',                                       color: 'text-[var(--color-mod-dashboard)]' },
         ].map(k => (
-          <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-2.5">
+          <div key={k.label} className="bg-neutral-900/40 border border-slate-200 rounded-xl p-2.5">
             <div className="flex items-center gap-1.5 mb-1">{k.icon}<span className="text-[7px] font-black text-slate-400 uppercase">{k.label}</span></div>
             <p className={cn('text-sm font-black leading-tight', k.color)}>{k.value}</p>
           </div>
@@ -919,7 +919,7 @@ export default function GanttChart() {
               'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all border',
               showSlackTable
                 ? 'bg-[var(--color-warning-bg)] text-[var(--color-warning)] border-[var(--color-amber-border)]'
-                : 'bg-white text-slate-500 border-slate-200 hover:border-[var(--color-amber-border)]'
+                : 'bg-neutral-900/40 text-slate-500 border-slate-200 hover:border-[var(--color-amber-border)]'
             )}
             title="Tabla de holguras"
           >
@@ -930,7 +930,7 @@ export default function GanttChart() {
       </div>
 
       {/* ── Diagrama ── */}
-      <div ref={chartRef} className="flex-1 bg-white border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-125">
+      <div ref={chartRef} className="flex-1 bg-neutral-900/40 border border-slate-200 rounded-xl overflow-x-auto overflow-y-auto max-h-125">
         <div
           style={{
             minWidth: Math.max(1100, 1100 * zoomLevel),
@@ -1031,7 +1031,7 @@ export default function GanttChart() {
                     onClick={() => toggleCat(cat)}
                     className={cn(
                       'w-full flex items-center gap-2 px-2 py-1.5 rounded-lg mb-1 text-left',
-                      catCritical ? 'bg-red-50 border border-[var(--color-red-border)]' : 'bg-slate-50 border border-slate-200'
+                      catCritical ? 'bg-red-50 border border-[var(--color-red-border)]' : 'bg-black/20 border border-slate-200'
                     )}
                   >
                     {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
@@ -1049,7 +1049,7 @@ export default function GanttChart() {
                         key={task.id}
                         className={cn(
                           'flex items-center gap-2 mb-1 px-2 py-1 rounded-lg border',
-                          task.isCritical ? 'bg-[var(--color-error-bg)] border-[var(--color-red-border)]' : 'border-transparent hover:bg-slate-50'
+                          task.isCritical ? 'bg-[var(--color-error-bg)] border-[var(--color-red-border)]' : 'border-transparent hover:bg-black/20'
                         )}
                       >
                         {/* Semáforo de estado */}
@@ -1103,7 +1103,7 @@ export default function GanttChart() {
                                             'flex items-center gap-0.5 px-1.5 py-0.5 rounded cursor-pointer text-[7px] font-bold border transition-all',
                                             checked
                                               ? 'bg-[var(--color-mod-dashboard)]/10 border-[var(--color-mod-dashboard)] text-[var(--color-mod-dashboard)]'
-                                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-[var(--color-mod-dashboard)]'
+                                              : 'bg-black/20 border-slate-200 text-slate-500 hover:border-[var(--color-mod-dashboard)]'
                                           )}
                                         >
                                           <input
@@ -1192,9 +1192,9 @@ export default function GanttChart() {
         <motion.div
           initial={{ opacity: 0, y: -8 }}
           animate={{ opacity: 1, y: 0 }}
-          className="shrink-0 bg-white border border-slate-200 rounded-xl overflow-hidden"
+          className="shrink-0 bg-neutral-900/40 border border-slate-200 rounded-xl overflow-hidden"
         >
-          <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-100">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-black/20 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <AlertTriangle size={13} className="text-[var(--color-accent)]" />
               <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Tabla de Holguras y Fechas Reales</span>
@@ -1203,7 +1203,7 @@ export default function GanttChart() {
           </div>
           <div className="overflow-x-auto max-h-56 overflow-y-auto">
             <table className="w-full text-[8px]">
-              <thead className="sticky top-0 bg-slate-50 z-10">
+              <thead className="sticky top-0 bg-black/20 z-10">
                 <tr className="border-b border-slate-100">
                   <th className="text-left px-3 py-2 font-black text-slate-500 uppercase">Actividad</th>
                   <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Cat.</th>
@@ -1227,7 +1227,7 @@ export default function GanttChart() {
                     <tr
                       key={t.id}
                       className={cn(
-                        'hover:bg-slate-50 transition-colors',
+                        'hover:bg-black/20 transition-colors',
                         t.isCritical && 'bg-[var(--color-error-bg)]'
                       )}
                     >
@@ -1312,7 +1312,7 @@ export default function GanttChart() {
                   );
                 })}
               </tbody>
-              <tfoot className="sticky bottom-0 bg-slate-50 border-t border-slate-200">
+              <tfoot className="sticky bottom-0 bg-black/20 border-t border-slate-200">
                 <tr>
                   <td colSpan={2} className="px-3 py-2 font-black text-slate-700 uppercase text-[8px]">TOTALES</td>
                   <td className="px-2 py-2 text-center font-black text-slate-700">{tasks.reduce((s,t)=>s+t.duration,0)}d</td>
@@ -1676,3 +1676,4 @@ export default function GanttChart() {
     </div>
   );
 }
+

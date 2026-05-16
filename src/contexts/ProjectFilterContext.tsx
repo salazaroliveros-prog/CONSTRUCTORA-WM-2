@@ -27,3 +27,4 @@ export function ProjectFilterProvider({ children }: { children: React.ReactNode 
 export function useProjectFilter() {
   return useContext(ProjectFilterContext);
 }
+

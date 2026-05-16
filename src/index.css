@@ -10,24 +10,29 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 
-  /* ─── Core palette (warmer slate, refined) ─── */
-  --color-p-900: #0c1222;
-  --color-p-800: #1a2332;
-  --color-p-700: #2d3a4a;
-  --color-p-600: #4a5a6e;
-  --color-p-500: #6b7b8f;
-  --color-p-400: #95a3b5;
-  --color-p-300: #c5d0dd;
-  --color-p-200: #dee5ed;
-  --color-p-100: #eef2f6;
-  --color-p-50:  #f6f8fa;
+  /* ─── Core palette (Cinematic Dark) ─── */
+  --color-p-900: #ffffff;
+  --color-p-800: #f8fafc;
+  --color-p-700: #e2e8f0;
+  --color-p-600: #94a3b8;
+  --color-p-500: #64748b;
+  --color-p-400: #475569;
+  --color-p-300: #334155;
+  --color-p-200: #1e293b;
+  --color-p-100: #0f172a;
+  --color-p-50:  #020617;
 
   /* ─── Brand ─── */
-  --color-brand:       #0c1222;
-  --color-brand-light: #1a2332;
+  --color-brand:       #ffffff;
+  --color-brand-light: #f59e0b;
   --color-accent:      #f59e0b;
-  --color-accent-soft: rgba(245, 158, 11, 0.08);
-  --color-accent-glow: rgba(245, 158, 11, 0.2);
+  --color-accent-soft: rgba(245, 158, 11, 0.1);
+  --color-accent-glow: rgba(245, 158, 11, 0.3);
+
+  /* ─── Background Override ─── */
+  --color-bg: #000000;
+  --color-surface: #0a0a0a;
+  --color-surface-solid: #111111;
 
   /* ─── Semantic ─── */
   --color-green:  #059669;

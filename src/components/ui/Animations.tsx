@@ -340,7 +340,7 @@ export function Skeleton({
 // Skeleton Card
 export function SkeletonCard({ className }: { className?: string }) {
   return (
-    <div className={cn('bg-white  rounded-2xl p-4 border border-slate-100 ', className)}>
+    <div className={cn('bg-neutral-900/40  rounded-2xl p-4 border border-slate-100 ', className)}>
       <div className="flex items-center gap-3 mb-4">
         <Skeleton variant="circular" width={40} height={40} />
         <div className="flex-1 space-y-2">
@@ -871,7 +871,7 @@ export function NotificationToast({
       animate={{ opacity: 1, x: 0, scale: 1 }}
       exit={{ opacity: 0, x: 50, scale: 0.9 }}
       className={cn(
-        'flex items-start gap-3 p-4 bg-white  rounded-xl shadow-2xl border-l-4',
+        'flex items-start gap-3 p-4 bg-neutral-900/40  rounded-xl shadow-2xl border-l-4',
         borderColors[type]
       )}
     >
@@ -924,3 +924,4 @@ export default {
   scaleUp,
   cardHover,
 };
+

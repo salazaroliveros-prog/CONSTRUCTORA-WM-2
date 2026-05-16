@@ -527,37 +527,37 @@ function AppContent() {
   const renderModule = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard key="dashboard" />;
       case "execution":
-        return <ExecutionModule />;
+        return <ExecutionModule key="execution" />;
       case "clients":
-        return <ClientsModule />;
+        return <ClientsModule key="clients" />;
       case "inventory":
-        return <InventoryModule />;
+        return <InventoryModule key="inventory" />;
       case "projects":
-        return <ProjectsModule />;
+        return <ProjectsModule key="projects" />;
       case "suppliers":
-        return <SuppliersModule />;
+        return <SuppliersModule key="suppliers" />;
       case "staff":
-        return <StaffModule />;
+        return <StaffModule key="staff" />;
       case "analytics":
-        return <AnalyticsModule />;
+        return <AnalyticsModule key="analytics" />;
       case "settings":
-        return <SettingsModule />;
+        return <SettingsModule key="settings" />;
       case "seguimiento":
-        return <SeguimientoModule />;
+        return <SeguimientoModule key="seguimiento" />;
       case "ai":
-        return <AIAssistantModule />;
+        return <AIAssistantModule key="ai" />;
       case "gantt":
-        return <GanttChartModule />;
+        return <GanttChartModule key="gantt" />;
       case "pert":
-        return <PERTChartModule />;
+        return <PERTChartModule key="pert" />;
       case "fisico-financiero":
-        return <PhysicalFinancialModule />;
+        return <PhysicalFinancialModule key="fisico-financiero" />;
       case "effects":
-        return <EffectsShowcaseModule />;
+        return <EffectsShowcaseModule key="effects" />;
       default:
-        return <Dashboard />;
+        return <Dashboard key="default" />;
     }
   };
 

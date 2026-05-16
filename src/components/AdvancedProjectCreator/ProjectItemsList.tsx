@@ -45,7 +45,7 @@ export function ProjectItemsList({
   } = usePagination<WorkItem>(availableItems, 8);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+    <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Package size={18} className="text-secondary" />
@@ -66,7 +66,7 @@ export function ProjectItemsList({
           placeholder="Buscar renglón por código o descripción..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary"
+          className="w-full pl-10 pr-4 py-2 text-[9px] border border-slate-300 rounded-lg bg-neutral-900/40 focus:outline-none focus:border-secondary"
         />
       </div>
 
@@ -132,3 +132,4 @@ export function ProjectItemsList({
     </div>
   );
 }
+

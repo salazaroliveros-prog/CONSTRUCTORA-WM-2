@@ -189,3 +189,4 @@ export const useCardClass = () => {
       return 'bg-neutral-900 border border-neutral-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-3xl';
   }
 };
+

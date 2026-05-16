@@ -512,3 +512,4 @@ const handleAddLog = async (e: React.FormEvent) => {
     </div>
   );
 }
+

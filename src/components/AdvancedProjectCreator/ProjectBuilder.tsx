@@ -186,7 +186,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
 
       {/* Panel de ítems APU (búsqueda) */}
 {showAPUPanel && (
-         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+         <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-slate-200 p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
            <div className="flex items-center justify-between mb-4">
              <h3 className="text-sm font-bold text-slate-800">Biblioteca APU</h3>
              <button
@@ -238,7 +238,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       />
 
       {/* Tabla de presupuesto */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+      <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-black uppercase text-slate-800">
             Presupuesto Detallado
@@ -305,7 +305,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
 
       {/* Resumen de Materiales */}
       {totalMaterialsSummary.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-slate-200 p-4">
           <h3 className="text-sm font-black uppercase text-slate-800 mb-4">
             Resumen Total de Materiales
           </h3>
@@ -321,7 +321,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
               </thead>
               <tbody>
                 {totalMaterialsSummary.map((mat, idx) => (
-                  <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50">
+                  <tr key={idx} className="border-b border-slate-100 hover:bg-black/20">
                     <td className="py-2 text-slate-700">{mat.name}</td>
                     <td className="py-2 text-right text-slate-600">{mat.unit}</td>
                     <td className="py-2 text-right text-slate-600">
@@ -351,3 +351,4 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
     </div>
   );
 }
+

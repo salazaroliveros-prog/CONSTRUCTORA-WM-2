@@ -161,7 +161,7 @@ export function DimensionEditor({ line, onUpdate, onClose }: DimensionEditorProp
                onChange={(e) => handleChange(field, e.target.value)}
                placeholder="0.00"
                className={cn(
-                 "w-full px-2 py-1.5 text-[9px] border rounded bg-white text-slate-900",
+                 "w-full px-2 py-1.5 text-[9px] border rounded bg-neutral-900/40 text-slate-900",
                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
                  "border-slate-300 placeholder:text-slate-400"
                )}
@@ -205,7 +205,7 @@ const previewQtyRaw = calcDynamicQty(previewLine);
          const contingAmt = subtotal * (line.contingency ?? ENGINEERING.contingency);
          const total = subtotal + taxAmt + profitAmt + contingAmt;
          return hasValidDims ? (
-          <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+          <div className="mt-4 p-3 bg-neutral-900/40 rounded-lg border border-blue-200">
             <div className="flex items-center gap-2 mb-2">
               <Calculator size={12} className="text-blue-600" />
               <span className="text-[8px] font-black text-blue-700 uppercase">Vista previa del cálculo</span>
@@ -250,3 +250,4 @@ const previewQtyRaw = calcDynamicQty(previewLine);
     </div>
   );
 }
+

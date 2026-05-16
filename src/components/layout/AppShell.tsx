@@ -37,3 +37,4 @@ export function AppShell({ children, isMenuOpen }: AppShellProps) {
     </div>
   );
 }
+

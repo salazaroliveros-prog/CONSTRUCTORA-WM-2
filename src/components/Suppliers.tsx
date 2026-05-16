@@ -260,7 +260,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
            { label: 'Total Compras', value: `Q ${totalSpent.toLocaleString('es-GT')}`, icon: <DollarSign size={12}/>, color: 'text-[var(--color-mod-dashboard)]', bg: 'bg-[var(--color-mod-dashboard)]/10' },
          ].map((kpi, i) => (
            <motion.div key={i} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-             className="bg-white rounded-lg border border-slate-100 p-2 flex items-center gap-2 shadow-sm">
+             className="bg-neutral-900/40 rounded-lg border border-slate-100 p-2 flex items-center gap-2 shadow-sm">
              <div className={cn('p-1.5 rounded-md shrink-0', kpi.bg, kpi.color)}>{kpi.icon}</div>
              <div className="min-w-0">
                <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">{kpi.label}</p>
@@ -271,7 +271,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
        </div>
 
 {/* Toolbar */}
-       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white p-3 rounded-xl border border-slate-200 shadow-sm shrink-0">
+       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-neutral-900/40 p-3 rounded-xl border border-slate-200 shadow-sm shrink-0">
          <div className="flex items-center gap-2">
            <div className="p-2 bg-slate-900 text-secondary rounded-lg shrink-0"><Truck size={16} /></div>
            <div className="text-left">
@@ -300,11 +300,11 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
            </select>
             <div className="flex bg-slate-100 p-0.5 rounded-lg gap-0.5">
               <button type="button" onClick={() => setViewMode('grid')} title="Cuadrícula"
-                className={`p-1 rounded-md transition-all ${viewMode === 'grid' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                className={`p-1 rounded-md transition-all ${viewMode === 'grid' ? 'bg-neutral-900/40 text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                 <LayoutGrid size={14} />
               </button>
               <button type="button" onClick={() => setViewMode('table')} title="Tabla"
-                className={`p-1 rounded-md transition-all ${viewMode === 'table' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
+                className={`p-1 rounded-md transition-all ${viewMode === 'table' ? 'bg-neutral-900/40 text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}>
                 <List size={14} />
               </button>
             </div>
@@ -343,7 +343,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
                          transition={{ duration: 0.2, delay: i * 0.03 }}
                          onClick={() => { if (bulkMode) { toggleSelectSupplier(s.id); } else { setSelectedSupplier(isSelected ? null : s); } }}
-                         className={cn("group bg-white rounded-lg border p-2.5 hover:shadow-md transition-all cursor-pointer relative",
+                         className={cn("group bg-neutral-900/40 rounded-lg border p-2.5 hover:shadow-md transition-all cursor-pointer relative",
                            (isSelected || selectedSupplierIds.has(s.id)) ? "border-secondary shadow-md ring-2 ring-secondary/20" : "border-slate-100 hover:border-secondary/40")}>
                          {bulkMode && (
                            <div className="absolute top-1.5 left-1.5 z-10" onClick={e => e.stopPropagation()}>
@@ -389,7 +389,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                   {/* Placeholder cards to fill the 6×4 grid (24 slots) */}
                   {currentItems.length < GRID_PAGE_SIZE &&
                     Array.from({ length: GRID_PAGE_SIZE - currentItems.length }, (_, i) => (
-                      <div key={`placeholder-${i}`} className="rounded-lg border border-dashed border-slate-100 bg-slate-50/30 p-2.5 flex items-center justify-center">
+                      <div key={`placeholder-${i}`} className="rounded-lg border border-dashed border-slate-100 bg-black/20/30 p-2.5 flex items-center justify-center">
                         <span className="text-[8px] text-slate-300 font-bold uppercase tracking-widest">#{currentItems.length + i + 1}</span>
                       </div>
                     ))
@@ -402,10 +402,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                   )}
                 </div>
             ) : (
-<div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
+<div className="bg-neutral-900/40 rounded-xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
                  <div className="overflow-auto flex-1">
                    <table className="w-full text-left">
-                      <thead className="sticky top-0 bg-slate-50 z-10">
+                      <thead className="sticky top-0 bg-black/20 z-10">
                         <tr className="border-b border-slate-100">
                         {bulkMode && (
                           <th className="px-2 py-2 w-6">
@@ -431,7 +431,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                               initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
                               transition={{ duration: 0.15, delay: i * 0.02 }}
                               onClick={() => { if (bulkMode) { toggleSelectSupplier(s.id); } else { setSelectedSupplier(isSelected ? null : s); } }}
-                              className={cn("hover:bg-slate-50/50 transition-colors group cursor-pointer",
+                              className={cn("hover:bg-black/20/50 transition-colors group cursor-pointer",
                                 (isSelected || selectedSupplierIds.has(s.id)) && "bg-secondary/5 border-l-2 border-secondary")}>
                               {bulkMode && (
                                 <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
@@ -494,7 +494,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                animate={{ opacity: 1, x: 0, width: 280 }}
                exit={{ opacity: 0, x: 40, width: 0 }}
                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="shrink-0 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
+                className="shrink-0 bg-neutral-900/40 border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
                 style={{ minWidth: 200, maxWidth: 320 }}>
                {/* Header */}
                <div className="bg-slate-900 p-3 relative">
@@ -564,7 +564,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                        </div>
                      ) : null)}
                      {selectedSupplier.address && (
-                       <p className="text-[8px] text-slate-500 font-bold bg-slate-50 rounded-md p-1.5">{selectedSupplier.address}</p>
+                       <p className="text-[8px] text-slate-500 font-bold bg-black/20 rounded-md p-1.5">{selectedSupplier.address}</p>
                      )}
                    </div>
                  </div>
@@ -585,14 +585,14 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                      </div>
                    </div>
                    {supplierOCs.length === 0 ? (
-                     <div className="text-center py-3 bg-slate-50 rounded-md border border-dashed border-slate-200">
+                     <div className="text-center py-3 bg-black/20 rounded-md border border-dashed border-slate-200">
                        <ShoppingCart size={14} className="mx-auto mb-1 text-slate-300" />
                        <p className="text-[8px] text-slate-300 font-bold italic">Sin órdenes registradas</p>
                      </div>
                    ) : (
                      <div className="space-y-1">
                        {supplierOCs.map(oc => (
-                         <div key={oc.id} className="bg-slate-50 rounded-md p-1.5 hover:bg-slate-100 transition-all group">
+                         <div key={oc.id} className="bg-black/20 rounded-md p-1.5 hover:bg-slate-100 transition-all group">
                            <div className="flex items-center justify-between mb-0.5">
                              <span className="text-[8px] font-black text-primary uppercase truncate flex-1">{oc.projectName || 'Sin proyecto'}</span>
                              <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full ml-1 shrink-0", OC_STATUS_COLORS[oc.status] || 'bg-slate-100 text-slate-600')}>
@@ -603,7 +603,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                              <div className="flex items-center gap-1.5">
                                <span className="text-[7px] text-slate-400 font-bold">{oc.createdAt ? new Date(oc.createdAt).toLocaleDateString('es-GT') : '--'}</span>
                                {oc.items && oc.items.length > 0 && (
-                                 <span className="text-[6px] font-bold text-slate-500 bg-white px-1 py-0.5 rounded-full">
+                                 <span className="text-[6px] font-bold text-slate-500 bg-neutral-900/40 px-1 py-0.5 rounded-full">
                                    {oc.items.length} item{oc.items.length !== 1 ? 's' : ''}
                                  </span>
                                )}
@@ -668,7 +668,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                  {selectedSupplier.notes && (
                    <div>
                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas</p>
-                     <p className="text-[8px] text-slate-600 bg-slate-50 rounded-md p-1.5">{selectedSupplier.notes}</p>
+                     <p className="text-[8px] text-slate-600 bg-black/20 rounded-md p-1.5">{selectedSupplier.notes}</p>
                    </div>
                  )}
                </div>
@@ -797,7 +797,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedSupplierIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteSuppliers}
-            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
+            className="px-4 py-1.5 bg-neutral-900/40 text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
             Eliminar
           </button>
           <button type="button" onClick={() => setSelectedSupplierIds(new Set())} aria-label="Deseleccionar"
@@ -809,4 +809,5 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
      </div>
    );
  }
+
 

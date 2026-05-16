@@ -114,7 +114,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
   return (
     <div className="space-y-4 mb-6">
       {/* ── Panel principal de costos ──────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+      <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-slate-200 p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Calculator size={18} className="text-emerald-500" />
@@ -159,17 +159,17 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
               <p className="text-[8px] text-slate-400 mt-1">Q {costPerM2.toFixed(0)}/m²</p>
             )}
           </div>
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div className="bg-black/20 rounded-xl p-3 border border-slate-200">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Costo Directo</p>
             <p className="text-lg font-black text-slate-800">{formatQ(totalDirect)}</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{Math.round((totalDirect / (totalBudget || 1)) * 100)}% del total</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div className="bg-black/20 rounded-xl p-3 border border-slate-200">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Duración</p>
             <p className="text-lg font-black text-slate-800">{Math.ceil(estimatedDays)} días</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{Math.ceil(estimatedDays / 6)} semanas</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div className="bg-black/20 rounded-xl p-3 border border-slate-200">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Renglones</p>
             <p className="text-lg font-black text-slate-800">{totalItems}</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{items.filter(i => i.materials?.length).length} con materiales</p>
@@ -177,7 +177,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
         </div>
 
         {/* ── Desglose detallado de costos ────────────────────────────────── */}
-        <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <div className="bg-black/20 rounded-xl p-3 border border-slate-200">
           <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-3">ESTRUCTURA DE COSTOS</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-y-2 gap-x-4 text-[9px]">
             <CostRow icon={<Package size={10} className="text-blue-500" />} label="Materiales" value={materialsTotal} pct={totalDirect} />
@@ -193,7 +193,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
         {/* ── Presupuesto vs Real ────────────────────────────────────────── */}
         {actualExpenses > 0 && (
-          <div className={`mt-3 p-3 rounded-xl border ${budgetVsActual > 10 ? 'bg-red-50 border-red-200' : budgetVsActual < -10 ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+          <div className={`mt-3 p-3 rounded-xl border ${budgetVsActual > 10 ? 'bg-red-50 border-red-200' : budgetVsActual < -10 ? 'bg-green-50 border-green-200' : 'bg-black/20 border-slate-200'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {budgetVsActual > 10 ? <TrendingUp size={14} className="text-red-500" /> : <TrendingDown size={14} className="text-green-500" />}
@@ -214,7 +214,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
       {/* ── Panel de Análisis de Sensibilidad ─────────────────────────────── */}
       {showSensitivity && sensitivityScenarios.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-amber-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 size={16} className="text-amber-500" />
             <h3 className="text-[10px] font-black text-slate-800 uppercase">Análisis de Sensibilidad</h3>
@@ -242,7 +242,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
       {/* ── Panel de Alertas de Desviación ────────────────────────────────── */}
       {showAlerts && deviations.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-neutral-900/40 rounded-xl shadow-sm border border-red-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2 mb-3">
             <ShieldAlert size={16} className="text-red-500" />
             <h3 className="text-[10px] font-black text-slate-800 uppercase">Alertas de Desviación</h3>
@@ -302,3 +302,4 @@ function CostRow({ icon, label, value, pct }: { icon: React.ReactNode; label: st
     </div>
   );
 }
+

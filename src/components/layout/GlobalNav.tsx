@@ -106,9 +106,9 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
                 </motion.div>
               ) : (
                 <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} className="flex flex-col gap-1.5 items-center">
-                  <span className="w-6 h-[2px] bg-white block" />
-                  <span className="w-4 h-[2px] bg-white block ml-auto" />
-                  <span className="w-6 h-[2px] bg-white block" />
+                  <span className="w-6 h-[2px] bg-neutral-900/40 block" />
+                  <span className="w-4 h-[2px] bg-neutral-900/40 block ml-auto" />
+                  <span className="w-6 h-[2px] bg-neutral-900/40 block" />
                 </motion.div>
               )}
             </AnimatePresence>
@@ -180,3 +180,4 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
     </>
   );
 }
+

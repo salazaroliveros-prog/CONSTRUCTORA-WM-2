@@ -271,3 +271,4 @@ export default function PERTChart({ tasks: propTasks = [], className, projectNam
     </div>
   );
 }
+
