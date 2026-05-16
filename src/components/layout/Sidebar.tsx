@@ -45,11 +45,10 @@ interface NavItemProps {
   isActive?: boolean;
   isCollapsed: boolean;
   accent?: string;
-  badge?: number;
   onClick: () => void;
 }
 
-function NavItem({ icon, label, isActive, isCollapsed, badge, onClick }: NavItemProps) {
+function NavItem({ icon, label, isActive, isCollapsed, onClick }: NavItemProps) {
   const key = label.toLowerCase();
   const dotColor = dotColorMap[key] || "bg-amber-500";
   const iconColor = iconColorMap[key] || "text-amber-400";
@@ -81,11 +80,6 @@ function NavItem({ icon, label, isActive, isCollapsed, badge, onClick }: NavItem
             className={cn("w-1.5 h-1.5 rounded-full shrink-0", dotColor)}
             transition={{ type: "spring", stiffness: 500, damping: 30 }}
           />
-        )}
-        {badge && !isCollapsed && (
-          <span className="ml-auto shrink-0 bg-amber-500 text-white text-[9px] font-black rounded-full w-5 h-5 flex items-center justify-center">
-            {badge}
-          </span>
         )}
       </button>
     </div>
@@ -148,7 +142,7 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
       items: [
         { id: "dashboard", label: "Dashboard", icon: <LayoutDashboard size={18} /> },
         { id: "execution", label: "Bitácora", icon: <ClipboardList size={18} /> },
-        { id: "projects", label: "Proyectos", icon: <Building2 size={18} />, badge: 3 },
+        { id: "projects", label: "Proyectos", icon: <Building2 size={18} /> },
       ],
     },
     {
@@ -193,9 +187,7 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
           transition={{ duration: 0.3 }}
           className="flex items-center gap-2.5 overflow-hidden"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
-            <img src="/logo.png" alt="WM" className="w-5 h-5 object-contain" />
-          </div>
+          <img src="/logo.png" alt="WM" className="w-8 h-8 object-contain" />
           {!isCollapsed && (
             <motion.span
               initial={{ opacity: 0, width: 0 }}
@@ -220,7 +212,6 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
                 label={item.label}
                 isActive={activeTab === item.id}
                 isCollapsed={isCollapsed}
-                badge={item.badge}
                 onClick={() => onNavigate(item.id)}
               />
             ))}
