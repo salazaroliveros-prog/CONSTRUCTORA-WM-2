@@ -343,7 +343,7 @@ const createPurchaseOrder = async () => {
     { id: 'Almacén Central', name: 'Almacén Central', short: 'AC', desc: 'Depósito Principal', color: 'bg-primary' },
     { id: 'Zona de Obra A', name: 'Zona de Obra A', short: 'ZA', desc: 'Maquinaria y Equipos', color: 'bg-secondary' },
     { id: 'Zona de Obra B', name: 'Zona de Obra B', short: 'ZB', desc: 'Materiales Pesados', color: 'bg-slate-400' },
-    { id: 'Bodega Acabados', name: 'Bodega Acabados', short: 'BA', desc: 'Material Delicado', color: 'bg-blue-600' },
+    { id: 'Bodega Acabados', name: 'Bodega Acabados', short: 'BA', desc: 'Material Delicado', color: 'bg-[var(--color-info)]' },
   ];
 
   const [movementForm, setMovementForm] = useState({
@@ -487,17 +487,17 @@ const createPurchaseOrder = async () => {
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
-          <div className={cn('p-2 rounded-lg shrink-0', criticalItems.length > 0 ? 'bg-red-100 text-red-500' : 'bg-green-50 text-green-500')}>
+          <div className={cn('p-2 rounded-lg shrink-0', criticalItems.length > 0 ? 'bg-[var(--color-error-bg)] text-[var(--color-error)]' : 'bg-[var(--color-success-bg)] text-[var(--color-success)]')}>
             <ShieldCheck size={16} />
           </div>
           <div className="min-w-0">
             <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest truncate">Stock Crítico</p>
-            <h3 className={cn('text-sm md:text-xl font-black truncate', criticalItems.length > 0 ? 'text-red-500' : 'text-green-600')}>{criticalItems.length}</h3>
+            <h3 className={cn('text-sm md:text-xl font-black truncate', criticalItems.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]')}>{criticalItems.length}</h3>
             <p className="text-[7px] text-slate-400 font-bold">de {items.length} items</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
-          <div className="p-2 bg-green-50 text-green-500 rounded-lg shrink-0">
+          <div className="p-2 bg-[var(--color-success-bg)] text-[var(--color-success)] rounded-lg shrink-0">
             <DollarSign size={16} />
           </div>
           <div className="min-w-0">
@@ -548,17 +548,17 @@ const createPurchaseOrder = async () => {
           </select>
         </div>
         <button onClick={() => setIsGenModalOpen(true)}
-          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow">
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-[var(--color-success)] text-white hover:bg-[var(--color-success)] transition-all shadow">
           <Building2 size={13}/> Generar desde Presupuesto
         </button>
         {activeTab === 'orders' && (
           <>
             <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedOrderIds(new Set()); }}
-              className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+              className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
               {bulkMode ? 'Cancelar' : 'Seleccionar'}
             </button>
             <button onClick={() => setIsOCModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-blue-600 text-white hover:bg-blue-700 transition-all shadow">
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-[var(--color-info)] text-white hover:bg-[var(--color-info)] transition-all shadow">
               <Plus size={13}/> Nueva OC
             </button>
           </>
@@ -756,7 +756,7 @@ const createPurchaseOrder = async () => {
             />
           </div>
           <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedItemIds(new Set()); }}
-            className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shrink-0 ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+            className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all shrink-0 ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
             {bulkMode ? 'Cancelar' : 'Seleccionar'}
           </button>
           <div className="flex gap-1.5 w-full md:w-auto overflow-x-auto no-scrollbar scroll-smooth">
@@ -782,7 +782,7 @@ const createPurchaseOrder = async () => {
                 {bulkMode && (
                   <th className="px-2 py-3 w-8">
                     <input type="checkbox" checked={paginatedItems.length > 0 && selectedItemIds.size === paginatedItems.length}
-                      onChange={toggleSelectAllItems} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                      onChange={toggleSelectAllItems} className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                   </th>
                 )}
                 <th className="px-4 py-3">Suministro</th>
@@ -809,7 +809,7 @@ const createPurchaseOrder = async () => {
                     {bulkMode && (
                       <td className="px-2 py-2.5 w-8" onClick={e => e.stopPropagation()}>
                         <input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleSelectItem(item.id)}
-                          className="w-4 h-4 accent-red-500 cursor-pointer" />
+                          className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                       </td>
                     )}
                     <td className="px-4 py-2.5">
@@ -819,7 +819,7 @@ const createPurchaseOrder = async () => {
                        ) : (
                           <div className={cn(
                             "p-1.5 rounded-lg shrink-0",
-                            item.stock < item.minStock ? "bg-red-50 text-red-500" : "bg-slate-100 text-slate-400"
+                            item.stock < item.minStock ? "bg-red-50 text-[var(--color-error)]" : "bg-slate-100 text-slate-400"
                           )}>
                             {getCatIcon(item.cat)}
                           </div>
@@ -868,7 +868,7 @@ const createPurchaseOrder = async () => {
                         />
                       ) : (
                         <span
-                          className={cn("text-[11px] font-black tabular-nums cursor-text", item.stock < item.minStock ? "text-red-500" : "text-primary")}
+                          className={cn("text-[11px] font-black tabular-nums cursor-text", item.stock < item.minStock ? "text-[var(--color-error)]" : "text-primary")}
                           onDoubleClick={e => { e.stopPropagation(); setEditingCell({id: item.id, field: 'stock', value: String(item.stock)}); }}
                           title="Doble click para editar"
                         >{item.stock} {item.unit}</span>
@@ -899,7 +899,7 @@ const createPurchaseOrder = async () => {
                       <button 
                         title="Eliminar suministro"
                         onClick={(e) => handleDelete(e, item.id)}
-                        className="btn-delete hover:bg-red-50 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                        className="btn-delete hover:bg-[var(--color-error-bg)] rounded-lg transition-all opacity-0 group-hover:opacity-100"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -982,7 +982,7 @@ const createPurchaseOrder = async () => {
               </div>
               <div className="bg-slate-50 p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Crítico</p>
-                <p className={cn('text-lg font-black', criticalProjectItems.length > 0 ? 'text-red-500' : 'text-green-600')}>
+                <p className={cn('text-lg font-black', criticalProjectItems.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]')}>
                   {criticalProjectItems.length}
                 </p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">items bajo mínimo</p>
@@ -994,7 +994,7 @@ const createPurchaseOrder = async () => {
               </div>
               <div className="bg-slate-50 p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Completitud Stock</p>
-                <p className={cn('text-lg font-black', completionRate >= 80 ? 'text-green-600' : completionRate >= 50 ? 'text-amber-600' : 'text-red-500')}>
+                <p className={cn('text-lg font-black', completionRate >= 80 ? 'text-[var(--color-success)]' : completionRate >= 50 ? 'text-[var(--color-warning)]' : 'text-[var(--color-error)]')}>
                   {Math.round(completionRate)}%
                 </p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">stock vs presupuesto</p>
@@ -1015,14 +1015,14 @@ const createPurchaseOrder = async () => {
               
               <div className="flex items-center justify-between pt-2">
                 <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Completitud de Stock</span>
-                <span className={cn('text-[9px] font-black', completionRate >= 80 ? 'text-green-600' : 'text-amber-600')}>
+                <span className={cn('text-[9px] font-black', completionRate >= 80 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]')}>
                   {Math.round(completionRate)}%
                 </span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div 
                   className={cn('h-full rounded-full transition-all duration-500 progress-fill-dynamic', 
-                    completionRate >= 80 ? 'bg-green-500' : completionRate >= 50 ? 'bg-amber-500' : 'bg-red-500'
+                    completionRate >= 80 ? 'bg-[var(--color-success)]' : completionRate >= 50 ? 'bg-[var(--color-accent)]' : 'bg-[var(--color-error)]'
                   )} 
                   style={{ '--w': `${completionRate}%` } as React.CSSProperties}
                 />
@@ -1030,20 +1030,20 @@ const createPurchaseOrder = async () => {
             </div>
             
             {criticalProjectItems.length > 0 && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl">
+              <div className="mt-4 p-3 bg-red-50 border border-[var(--color-red-border)] rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle size={12} className="text-red-500" />
-                  <span className="text-[8px] font-black text-red-600 uppercase tracking-widest">Materiales Críticos</span>
+                  <AlertCircle size={12} className="text-[var(--color-error)]" />
+                  <span className="text-[8px] font-black text-[var(--color-error)] uppercase tracking-widest">Materiales Críticos</span>
                 </div>
                 <div className="space-y-1">
                   {criticalProjectItems.slice(0, 3).map(item => (
                     <div key={item.id} className="flex justify-between items-center text-[8px]">
-                      <span className="font-bold text-red-700 uppercase truncate max-w-[60%]">{item.name}</span>
-                      <span className="font-black text-red-500">{item.stock}/{item.minStock} {item.unit}</span>
+                      <span className="font-bold text-[var(--color-error)] uppercase truncate max-w-[60%]">{item.name}</span>
+                      <span className="font-black text-[var(--color-error)]">{item.stock}/{item.minStock} {item.unit}</span>
                     </div>
                   ))}
                   {criticalProjectItems.length > 3 && (
-                    <p className="text-[7px] font-bold text-red-500 uppercase text-center pt-1">
+                    <p className="text-[7px] font-bold text-[var(--color-error)] uppercase text-center pt-1">
                       +{criticalProjectItems.length - 3} más
                     </p>
                   )}
@@ -1057,7 +1057,7 @@ const createPurchaseOrder = async () => {
                   setSelectedProjectForGen(filterProject);
                   setIsGenModalOpen(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-emerald-600 text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--color-success)] text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-success)] transition-all"
               >
                 <Building2 size={11}/> Generar Faltantes
               </button>
@@ -1066,7 +1066,7 @@ const createPurchaseOrder = async () => {
                   setOcForm(prev => ({ ...prev, projectId: filterProject }));
                   setIsOCModalOpen(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-[var(--color-info)] text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-info)] transition-all"
               >
                 <ShoppingCart size={11}/> Nueva OC
               </button>
@@ -1108,14 +1108,14 @@ const createPurchaseOrder = async () => {
                       <button 
                         type="button"
                         onClick={() => setMovementForm({ ...movementForm, type: 'Entrada', category: entryCategories[0] })}
-                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Entrada' ? "bg-white text-green-600 shadow-sm" : "text-slate-400")}
+                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Entrada' ? "bg-white text-[var(--color-success)] shadow-sm" : "text-slate-400")}
                       >
                         Entrada
                       </button>
                       <button 
                         type="button"
                         onClick={() => setMovementForm({ ...movementForm, type: 'Salida', category: exitCategories[0] })}
-                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Salida' ? "bg-white text-red-600 shadow-sm" : "text-slate-400")}
+                        className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Salida' ? "bg-white text-[var(--color-error)] shadow-sm" : "text-slate-400")}
                       >
                         Salida
                       </button>
@@ -1238,7 +1238,7 @@ const createPurchaseOrder = async () => {
               {bulkMode && purchaseOrders.length > 0 && (
                 <div className="flex items-center gap-2 px-1 py-1">
                   <input type="checkbox" checked={selectedOrderIds.size === purchaseOrders.length && purchaseOrders.length > 0}
-                    onChange={toggleSelectAllOrders} className="w-4 h-4 accent-red-500 cursor-pointer" />
+                    onChange={toggleSelectAllOrders} className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                   <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                     {selectedOrderIds.size > 0 ? `${selectedOrderIds.size} seleccionado(s)` : 'Seleccionar todo'}
                   </span>
@@ -1249,7 +1249,7 @@ const createPurchaseOrder = async () => {
               {bulkMode && (
                 <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedOrderIds.has(order.id)} onChange={() => toggleSelectOrder(order.id)}
-                    className="w-4 h-4 accent-red-500 cursor-pointer" />
+                    className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                 </div>
               )}
               <div className={cn("flex items-start justify-between gap-4 mb-3", bulkMode && "ml-7")}>
@@ -1260,18 +1260,18 @@ const createPurchaseOrder = async () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn('px-2 py-1 rounded-lg text-[8px] font-black uppercase',
-                    order.status === 'RECIBIDA' ? 'bg-emerald-100 text-emerald-700' :
-                    order.status === 'APROBADA' ? 'bg-blue-100 text-blue-700' :
-                    order.status === 'CANCELADA' ? 'bg-red-100 text-red-700' :
-                    'bg-amber-100 text-amber-700')}>{order.status}</span>
+                    order.status === 'RECIBIDA' ? 'bg-[var(--color-success-bg)] text-[var(--color-success)]' :
+                    order.status === 'APROBADA' ? 'bg-[var(--color-info-bg)] text-[var(--color-info)]' :
+                    order.status === 'CANCELADA' ? 'bg-[var(--color-error-bg)] text-[var(--color-error)]' :
+                    'bg-[var(--color-warning-bg)] text-[var(--color-warning)]')}>{order.status}</span>
                   {order.status === 'PENDIENTE' && (
                     <button onClick={() => receiveOrder(order)}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[8px] font-black uppercase hover:bg-emerald-700 transition-all">
+                      className="flex items-center gap-1 px-3 py-1.5 bg-[var(--color-success)] text-white rounded-lg text-[8px] font-black uppercase hover:bg-[var(--color-success)] transition-all">
                       <CheckCircle2 size={11}/> Recibir
                     </button>
                   )}
                   <button type="button" title="Eliminar orden" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
-                    className="p-1.5 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all opacity-60 hover:opacity-100">
+                    className="p-1.5 bg-red-50 text-[var(--color-error)] rounded-lg hover:bg-[var(--color-error-bg)] transition-all opacity-60 hover:opacity-100">
                     <Trash2 size={11} />
                   </button>
                 </div>
@@ -1310,11 +1310,11 @@ const createPurchaseOrder = async () => {
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={forcePerRenglon} onChange={e => setForcePerRenglon(e.target.checked)}
                 className="rounded border-slate-300 text-secondary focus:ring-secondary" />
-              <span className="text-[9px] font-bold text-amber-700">Forzar creación por renglón (reemplaza registros agregados)</span>
+              <span className="text-[9px] font-bold text-[var(--color-warning)]">Forzar creación por renglón (reemplaza registros agregados)</span>
             </label>
           )}
           <button onClick={() => generateStockFromProject()} disabled={!selectedProjectForGen || generatingStock}
-            className="w-full bg-emerald-600 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
+            className="w-full bg-[var(--color-success)] text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-success)] disabled:opacity-50 transition-all">
             {generatingStock ? 'Generando...' : 'Generar Materiales'}
           </button>
         </div>
@@ -1401,7 +1401,7 @@ const createPurchaseOrder = async () => {
                           className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg transition-all shrink-0 ${
                             alreadyInOC
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                              : 'bg-blue-100 text-blue-700 hover:bg-blue-200'
+                              : 'bg-[var(--color-info-bg)] text-[var(--color-info)] hover:bg-blue-200'
                           }`}>
                           {alreadyInOC ? 'Agregado' : '+ Agregar'}
                         </button>
@@ -1418,7 +1418,7 @@ const createPurchaseOrder = async () => {
             <div className="flex justify-between items-center mb-2">
               <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Materiales en OC</label>
               <button type="button" onClick={() => setOcForm(f => ({ ...f, items: [...f.items, { materialName: '', unit: 'U', qty: 1, unitPrice: 0, total: 0 }] }))}
-                className="flex items-center gap-1 text-[8px] font-black text-blue-600 hover:text-blue-800 uppercase">
+                className="flex items-center gap-1 text-[8px] font-black text-[var(--color-info)] hover:text-[var(--color-info)] uppercase">
                 <Plus size={10}/> Manual
               </button>
             </div>
@@ -1443,7 +1443,7 @@ const createPurchaseOrder = async () => {
                     placeholder="P.Unit Q" value={oi.unitPrice || ''}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unitPrice: +e.target.value, total: it[i].qty * +e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
                   <button type="button" title="Eliminar material" onClick={() => setOcForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
-                    className="col-span-1 text-red-400 hover:text-red-600 flex justify-center"><X size={12}/></button>
+                    className="col-span-1 text-[var(--color-error)] hover:text-[var(--color-error)] flex justify-center"><X size={12}/></button>
                 </div>
               ))}
             </div>
@@ -1458,7 +1458,7 @@ const createPurchaseOrder = async () => {
           <div className="flex justify-between items-center pt-2 border-t border-slate-100">
             <span className="text-[10px] font-black text-primary">Total: Q {ocForm.items.reduce((a, i) => a + i.total, 0).toLocaleString()}</span>
             <button onClick={createPurchaseOrder}
-              className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all">
+              className="px-6 py-2.5 bg-[var(--color-info)] text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-info)] transition-all">
               Crear Orden
             </button>
           </div>
@@ -1466,10 +1466,10 @@ const createPurchaseOrder = async () => {
       </Modal>
 
       {bulkMode && activeTab === 'stock' && selectedItemIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedItemIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteItems}
-            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
             Eliminar
           </button>
           <button type="button" title="Cerrar selección" onClick={() => setSelectedItemIds(new Set())}
@@ -1479,10 +1479,10 @@ const createPurchaseOrder = async () => {
         </div>
       )}
       {bulkMode && activeTab === 'orders' && selectedOrderIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedOrderIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteOrders}
-            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
             Eliminar
           </button>
           <button type="button" title="Cerrar selección" onClick={() => setSelectedOrderIds(new Set())}

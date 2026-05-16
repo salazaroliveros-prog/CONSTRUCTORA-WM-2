@@ -173,8 +173,18 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
     >
 {/* ── Topbar ─────────────────────────────────────────────── */}
           <header className="h-16 sm:h-17 backdrop-blur-md border-b border-slate-200/50 px-3 sm:px-5 flex items-center shrink-0 z-30 transition-colors bg-white/80">
-            {/* Left: Logo / Avatar */}
-            <div className="flex items-center shrink-0">
+            {/* Left: Home + Logo / Avatar */}
+            <div className="flex items-center shrink-0 gap-2">
+              {activeTab !== 'dashboard' && (
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-700 flex items-center justify-center text-[12px] font-bold shrink-0 transition-all hover:scale-105 active:scale-95"
+                  title="Ir al inicio"
+                  aria-label="Ir al panel principal"
+                >
+                  ⌂
+                </button>
+              )}
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg overflow-hidden bg-slate-900 flex items-center justify-center text-white text-[10px] font-bold shrink-0">
                 {user?.photoURL
                   ? <img src={user.photoURL} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />

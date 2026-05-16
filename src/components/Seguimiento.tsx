@@ -142,7 +142,7 @@ export default function Seguimiento() {
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
             title="Filtrar por proyecto"
-            className="flex-1 md:w-56 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black uppercase focus:outline-none focus:border-amber-400 shadow-sm"
+            className="flex-1 md:w-56 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-[10px] font-black uppercase focus:outline-none focus:border-[var(--color-accent)] shadow-sm"
           >
             <option value="ALL">TODOS LOS PROYECTOS EN EJECUCION</option>
             {active.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -200,20 +200,48 @@ export default function Seguimiento() {
                 <RingChart value={displayProjects[0]?.financiero ?? 0} color="#06b6d4" label="Financiero" size={100} />
               </div>
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
-                <div className="bg-amber-50 rounded-xl p-2 text-center">
-                  <p className="text-[7px] font-black text-amber-600 uppercase tracking-widest">Presupuesto</p>
+                <div className="bg-[var(--color-warning-bg)] rounded-xl p-2 text-center">
+                  <p className="text-[7px] font-black text-[var(--color-warning)] uppercase tracking-widest">Presupuesto</p>
                   <p className="text-[11px] font-black text-slate-800 ">Q. {fmtQ(displayProjects[0]?.budget || 0)}</p>
                 </div>
-                <div className="bg-blue-50 rounded-xl p-2 text-center">
-                  <p className="text-[7px] font-black text-blue-600 uppercase tracking-widest">Ejecutado</p>
+                <div className="bg-[var(--color-info-bg)] rounded-xl p-2 text-center">
+                  <p className="text-[7px] font-black text-[var(--color-info)] uppercase tracking-widest">Ejecutado</p>
                   <p className="text-[11px] font-black text-slate-800 ">Q. {fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
               <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
                 (displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0)
-                  ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+                  ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-red-50 text-[var(--color-error)]"
               )}>
                 {(displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0) ? '▲ En control' : '▼ Desfase financiero'}
+              </div>
+
+              {/* Pendiente de aportar */}
+              <div className="w-full mt-3 bg-slate-50 rounded-xl p-3">
+                <div className="w-full text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">Resumen Financiero</div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Presupuesto</p>
+                    <p className="text-[10px] font-black text-slate-800">{fmtQ(displayProjects[0]?.budget || 0)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Aportado</p>
+                    <p className="text-[10px] font-black text-[var(--color-success)]">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Ejecutado</p>
+                    <p className="text-[10px] font-black text-[var(--color-info)]">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
+                  </div>
+                  <div className="bg-white rounded-lg p-2 text-center">
+                    <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Pendiente de Aportar</p>
+                    <p className={cn("text-[10px] font-black",
+                      ((displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)) > 0
+                        ? "text-[var(--color-warning)]" : "text-[var(--color-success)]"
+                    )}>
+                      {fmtQ(Math.max(0, (displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)))}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -229,7 +257,7 @@ export default function Seguimiento() {
                     <p className="text-[9px] font-black text-slate-700  uppercase truncate">{p.name}</p>
                     <p className="text-[8px] text-slate-400 font-bold">{p.clientName || 'S/N'}</p>
                     <div className={cn("mt-1 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full inline-block",
-                      p.fisico >= p.financiero ? "bg-emerald-50 text-emerald-600" : "bg-red-50 text-red-500"
+                      p.fisico >= p.financiero ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-red-50 text-[var(--color-error)]"
                     )}>
                       {p.fisico >= p.financiero ? '▲ En control' : '▼ Desfase'}
                     </div>
@@ -366,8 +394,8 @@ export default function Seguimiento() {
                                 <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white rounded-lg px-2 py-1.5">
                                   <span className="font-bold text-slate-700 truncate col-span-2">{m.name}</span>
                                   <span className="text-slate-500 text-center">P: {m.budgeted} {m.unit}</span>
-                                  <span className="text-blue-600 text-center">B: {m.stock}</span>
-                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-emerald-600' : 'text-amber-600')}>
+                                  <span className="text-[var(--color-info)] text-center">B: {m.stock}</span>
+                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]')}>
                                     U: {m.used} ({pct}%)
                                   </span>
                                 </div>
@@ -404,7 +432,7 @@ export default function Seguimiento() {
         <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Análisis de Ruta Crítica</p>
-            <AlertTriangle size={16} className="text-amber-500" />
+            <AlertTriangle size={16} className="text-[var(--color-accent)]" />
           </div>
 
           <div className="space-y-3">

@@ -40,6 +40,32 @@ const COLORS = {
   gray:      [100, 116, 139] as [number, number, number],
 };
 
+// ─── Company info from settings ──────────────────────────────────────────────────
+const getCompanyInfo = () => {
+  try {
+    const raw = localStorage.getItem('app-visual-settings');
+    if (raw) {
+      const s = JSON.parse(raw);
+      return {
+        name: s.companyName || 'CONSTRUCTORA WM/M&S',
+        nit: s.companyNIT || 'N/A',
+        email: s.companyEmail || 'contacto@constructorawm.com',
+        phone: s.companyPhone || '+502 1234-5678',
+        address: s.companyAddress || 'Ciudad de Guatemala',
+        slogan: 'Edificando el Futuro',
+      };
+    }
+  } catch {}
+  return {
+    name: 'CONSTRUCTORA WM/M&S',
+    nit: 'N/A',
+    email: 'contacto@constructorawm.com',
+    phone: '+502 1234-5678',
+    address: 'Ciudad de Guatemala',
+    slogan: 'Edificando el Futuro',
+  };
+};
+
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 const fmtCurrency = (n: number): string =>
   n === 0 ? 'Q. 0.00' : `Q. ${n.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -169,7 +195,8 @@ export function calculateProjectReportTotals(
 // ─── Encabezado de reporte ─────────────────────────────────────────────────────
 const addHeader = (doc: jsPDF, title: string, subtitle?: string) => {
   const pageWidth = doc.internal.pageSize.getWidth();
-  
+  const cinfo = getCompanyInfo();
+
   setFill(doc, COLORS.primary);
   doc.rect(0, 0, pageWidth, 45, 'F');
   setFill(doc, COLORS.secondary);
@@ -178,11 +205,11 @@ const addHeader = (doc: jsPDF, title: string, subtitle?: string) => {
   setTxt(doc, COLORS.white);
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
-  doc.text('CONSTRUCTORA WM/M&S', 15, 22);
+  doc.text(cinfo.name, 15, 22);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
-  doc.text('Sistema de Gestión de Obra Profesional', 15, 32);
+  doc.text(`${cinfo.slogan} · ${cinfo.nit}`, 15, 32);
 
   doc.setFontSize(11);
   doc.setFont('helvetica', 'bold');
@@ -468,6 +495,7 @@ export const generateBudgetPDF = (
   }
 
   // Página de Firmas
+  const cinfo = getCompanyInfo();
   doc.addPage();
   addHeader(doc, 'APROBACIÓN Y FIRMAS', project.name);
   let signY = 80;
@@ -486,7 +514,8 @@ export const generateBudgetPDF = (
   doc.roundedRect(25, signY, signBoxWidth, signBoxHeight, 3, 3, 'S');
   doc.setFontSize(7);
   setTxt(doc, COLORS.white);
-  doc.text('CONSTRUCTORA WM/M&S', 25 + signBoxWidth / 2, signY + 10, { align: 'center' });
+  doc.text(`${cinfo.name} — ${cinfo.slogan}`, 25 + signBoxWidth / 2, signY + 10, { align: 'center' });
+  doc.text(`NIT: ${cinfo.nit}`, 25 + signBoxWidth / 2, signY + 17, { align: 'center' });
   doc.line(35, signY + 32, 25 + signBoxWidth - 10, signY + 32);
   doc.text('Firma y Sello', 25 + signBoxWidth / 2, signY + 38, { align: 'center' });
 
@@ -498,7 +527,7 @@ export const generateBudgetPDF = (
 
   signY += signBoxHeight + 20;
   doc.setFontSize(8);
-  doc.text(`Presupuesto válido por 30 días · Elaborado: ${fmtDate()} · CONSTRUCTORA WM/M&S`, pageWidth / 2, signY, { align: 'center' });
+  doc.text(`${cinfo.slogan} · Presupuesto válido por 30 días · Elaborado: ${fmtDate()} · ${cinfo.name}`, pageWidth / 2, signY, { align: 'center' });
 
   // Footers
   const totalPages = (doc as any).internal.pages.length - 1;
@@ -552,13 +581,14 @@ export const generateBudgetPDFEjecutivo = (
   });
 
   // Resumen final
+  const cinfoEjec = getCompanyInfo();
   const finalY = Math.min((doc as any).lastAutoTable.finalY + 10, 250);
   setFill(doc, COLORS.light);
   doc.roundedRect(15, finalY, pageWidth - 30, 22, 2, 2, 'F');
   setTxt(doc, COLORS.gray);
   doc.setFontSize(7);
-  doc.text(`Presupuesto válido por 30 días · ${override?.marketLabel || ''} · CONSTRUCTORA WM/M&S`, pageWidth / 2, finalY + 8, { align: 'center' });
-  doc.text('Precios sujetos a variación según condiciones de mercado.', pageWidth / 2, finalY + 14, { align: 'center' });
+  doc.text(`${cinfoEjec.slogan} · Presupuesto válido por 30 días · ${override?.marketLabel || ''} · ${cinfoEjec.name}`, pageWidth / 2, finalY + 8, { align: 'center' });
+  doc.text(`${cinfoEjec.nit} · ${cinfoEjec.phone} · ${cinfoEjec.email}`, pageWidth / 2, finalY + 14, { align: 'center' });
 
   addFooter(doc, 1, 1);
   doc.save(`Cotizacion_Ejecutiva_${project.name.replace(/\s/g, '_')}.pdf`);
@@ -629,6 +659,7 @@ export const generateBudgetPDFCliente = (
   });
 
   // Firmas
+  const cinfo = getCompanyInfo();
   const signY = y + 60;
   const signBoxWidth = 80;
   const signBoxHeight = 40;
@@ -638,7 +669,8 @@ export const generateBudgetPDFCliente = (
   doc.roundedRect(25, signY, signBoxWidth, signBoxHeight, 3, 3, 'S');
   doc.setFontSize(7);
   setTxt(doc, COLORS.white);
-  doc.text('CONSTRUCTORA WM/M&S', 25 + signBoxWidth / 2, signY + 10, { align: 'center' });
+  doc.text(cinfo.name, 25 + signBoxWidth / 2, signY + 10, { align: 'center' });
+  doc.text(`${cinfo.slogan} · NIT: ${cinfo.nit}`, 25 + signBoxWidth / 2, signY + 17, { align: 'center' });
   doc.line(35, signY + 30, 25 + signBoxWidth - 10, signY + 30);
   doc.text('Firma y Sello', 25 + signBoxWidth / 2, signY + 36, { align: 'center' });
 
@@ -1054,18 +1086,19 @@ export const generatePhysicalFinancialPDF = (
   const ph = doc.internal.pageSize.getHeight();
 
   // ── Letterhead ──
+  const cinfoFF = getCompanyInfo();
   setFill(doc, COLORS.primary);
   doc.rect(0, 0, pw, 45, 'F');
 
   doc.setFontSize(16);
   doc.setFont('helvetica', 'bold');
   setTxt(doc, COLORS.secondary);
-  doc.text('CONSTRUCTORA WM / M&S', pw / 2, 18, { align: 'center' });
+  doc.text(cinfoFF.name, pw / 2, 18, { align: 'center' });
 
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
   setTxt(doc, COLORS.white);
-  doc.text('Sistema de Gestión de Obra Profesional', pw / 2, 28, { align: 'center' });
+  doc.text(`${cinfoFF.slogan} · ${cinfoFF.nit}`, pw / 2, 28, { align: 'center' });
   doc.text(`Reporte Físico-Financiero · ${new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' })}`, pw / 2, 37, { align: 'center' });
 
   // ── Project info ──
@@ -1165,6 +1198,7 @@ export const generatePhysicalFinancialPDF = (
 const addFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();
+  const cinfo = getCompanyInfo();
 
   setDraw(doc, COLORS.gray);
   doc.setLineWidth(0.5);
@@ -1173,8 +1207,8 @@ const addFooter = (doc: jsPDF, pageNum: number, totalPages: number) => {
   doc.setFontSize(7);
   setTxt(doc, COLORS.gray);
   doc.setFont('helvetica', 'normal');
-  doc.text('Este documento es generado por el Sistema ERP CONSTRUCTORA WM/M&S', 15, pageHeight - 14);
-  doc.text('Presupuesto sujeto a revisión según condiciones de mercado', 15, pageHeight - 10);
+  doc.text(`${cinfo.name} · NIT: ${cinfo.nit} · ${cinfo.phone} · ${cinfo.email} · ${cinfo.address}`, 15, pageHeight - 14);
+  doc.text(`${cinfo.slogan} — Documento generado por el Sistema ERP CONSTRUCTORA WM/M&S`, 15, pageHeight - 10);
   doc.setFont('helvetica', 'bold');
   doc.text(`Página ${pageNum} de ${totalPages}`, pageWidth - 15, pageHeight - 12, { align: 'right' });
 };

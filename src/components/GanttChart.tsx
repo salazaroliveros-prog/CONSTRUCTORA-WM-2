@@ -27,23 +27,23 @@ function TaskTooltip({ task, startDate, expectedProgress }: {
   const gap  = task.progress - expectedProgress;
   return (
     <div className="absolute z-50 bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 bg-slate-900 text-white rounded-xl p-3 shadow-2xl text-[9px] pointer-events-none">
-      <p className="font-black uppercase mb-2 text-amber-400 truncate">{task.name}</p>
+      <p className="font-black uppercase mb-2 text-[var(--color-accent)] truncate">{task.name}</p>
       <div className="grid grid-cols-2 gap-x-3 gap-y-1">
         <span className="text-slate-400">Inicio temprano</span><span className="font-bold">{fmtDate(addDays(base, task.earlyStart))}</span>
         <span className="text-slate-400">Fin temprano</span>   <span className="font-bold">{fmtDate(addDays(base, task.earlyFinish))}</span>
         <span className="text-slate-400">Inicio tardío</span>  <span className="font-bold">{fmtDate(addDays(base, task.lateStart))}</span>
         <span className="text-slate-400">Fin tardío</span>     <span className="font-bold">{fmtDate(addDays(base, task.lateFinish))}</span>
-        <span className="text-slate-400">Holgura</span>        <span className={cn('font-bold', task.slack === 0 ? 'text-red-400' : 'text-green-400')}>{task.slack}d</span>
-        <span className="text-slate-400">Avance real</span>    <span className="font-bold text-blue-400">{task.progress}%</span>
-        <span className="text-slate-400">Esperado hoy</span>   <span className={cn('font-bold', gap >= 0 ? 'text-emerald-400' : 'text-red-400')}>
+        <span className="text-slate-400">Holgura</span>        <span className={cn('font-bold', task.slack === 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]')}>{task.slack}d</span>
+        <span className="text-slate-400">Avance real</span>    <span className="font-bold text-[var(--color-info)]">{task.progress}%</span>
+        <span className="text-slate-400">Esperado hoy</span>   <span className={cn('font-bold', gap >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]')}>
           {expectedProgress}% ({gap >= 0 ? '+' : ''}{gap}%)
         </span>
-        <span className="text-slate-400">Cuadrilla</span>      <span className="font-bold text-purple-400">{task.workers} obrero{task.workers !== 1 ? 's' : ''}</span>
+        <span className="text-slate-400">Cuadrilla</span>      <span className="font-bold text-[var(--color-mod-dashboard)]">{task.workers} obrero{task.workers !== 1 ? 's' : ''}</span>
         <span className="text-slate-400">Rendimiento</span>    <span className="font-bold">{task.durationPerUnit}d/{task.unit}</span>
         <span className="text-slate-400">Cantidad</span>       <span className="font-bold">{task.quantity} {task.unit}</span>
-        <span className="text-slate-400">Costo</span>          <span className="font-bold text-amber-400 col-span-2">{fmtQ(task.cost)}</span>
+        <span className="text-slate-400">Costo</span>          <span className="font-bold text-[var(--color-accent)] col-span-2">{fmtQ(task.cost)}</span>
       </div>
-      {task.isCritical && <p className="mt-2 text-red-400 font-black uppercase text-center">⚠ Ruta Crítica</p>}
+      {task.isCritical && <p className="mt-2 text-[var(--color-error)] font-black uppercase text-center">⚠ Ruta Crítica</p>}
     </div>
   );
 }
@@ -110,7 +110,7 @@ const TaskBar = React.memo(function TaskBar({
         className={cn(
           'absolute rounded overflow-hidden cursor-grab active:cursor-grabbing z-10',
           task.isCritical
-            ? 'bg-linear-to-r from-red-500 to-red-600'
+            ? 'bg-linear-to-r from-[var(--color-error-bg)]0 to-red-600'
             : task.progress === 100
               ? 'bg-linear-to-r from-emerald-500 to-emerald-600'
               : 'bg-linear-to-r from-blue-500 to-blue-600'
@@ -155,7 +155,7 @@ const TaskBar = React.memo(function TaskBar({
           <div className="absolute -top-4 left-1/2 -translate-x-1/2 whitespace-nowrap" style={{ fontSize: 6 }}>
             <span className={cn(
               'px-1 py-0.5 rounded font-black text-white',
-              task.progress >= expectedProgress ? 'bg-emerald-500' : 'bg-red-500'
+              task.progress >= expectedProgress ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]'
             )}>
               {task.progress >= expectedProgress ? '+' : '-'}{Math.abs(task.progress - expectedProgress)}%
             </span>
@@ -212,10 +212,10 @@ function calcTaskStatus(task: GanttTask, todayDay: number): TaskStatus {
 }
 
 const STATUS_CFG: Record<TaskStatus, { dot: string; label: string; badge: string }> = {
-  done:     { dot: 'bg-emerald-500', label: 'Completada', badge: 'bg-emerald-100 text-emerald-700' },
-  'on-track': { dot: 'bg-blue-500',   label: 'Al día',    badge: 'bg-blue-100 text-blue-700'     },
-  'at-risk':  { dot: 'bg-amber-400',  label: 'En riesgo', badge: 'bg-amber-100 text-amber-700'   },
-  delayed:  { dot: 'bg-red-500',    label: 'Retrasada', badge: 'bg-red-100 text-red-700'       },
+  done:     { dot: 'bg-[var(--color-success)]', label: 'Completada', badge: 'bg-[var(--color-success-bg)] text-[var(--color-success)]' },
+  'on-track': { dot: 'bg-[var(--color-info)]',   label: 'Al día',    badge: 'bg-[var(--color-info-bg)] text-[var(--color-info)]'     },
+  'at-risk':  { dot: 'bg-[var(--color-accent)]',  label: 'En riesgo', badge: 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]'   },
+  delayed:  { dot: 'bg-[var(--color-error)]',    label: 'Retrasada', badge: 'bg-[var(--color-error-bg)] text-[var(--color-error)]'       },
   pending:  { dot: 'bg-slate-300',  label: 'Pendiente', badge: 'bg-slate-100 text-slate-500'   },
 };
 
@@ -760,12 +760,12 @@ export default function GanttChart() {
           </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {saving && <span className="text-[8px] font-bold text-amber-500 uppercase animate-pulse">Guardando…</span>}
+          {saving && <span className="text-[8px] font-bold text-[var(--color-accent)] uppercase animate-pulse">Guardando…</span>}
           <select
             value={selectedId}
             onChange={e => setSelectedId(e.target.value)}
             title="Seleccionar proyecto"
-            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-blue-500"
+            className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-info)]"
           >
             {projects.length === 0
               ? <option value="">Sin proyectos en ejecución</option>
@@ -779,7 +779,7 @@ export default function GanttChart() {
               onClick={() => setViewMode('compact')}
               className={cn(
                 'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                viewMode === 'compact' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'compact' ? 'bg-white shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
               )}
               title="Vista Compacta"
             >
@@ -789,7 +789,7 @@ export default function GanttChart() {
               onClick={() => setViewMode('expanded')}
               className={cn(
                 'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                viewMode === 'expanded' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'expanded' ? 'bg-white shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
               )}
               title="Vista Expandida"
             >
@@ -799,7 +799,7 @@ export default function GanttChart() {
               onClick={() => setViewMode('detailed')}
               className={cn(
                 'px-2 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                viewMode === 'detailed' ? 'bg-white shadow text-blue-600' : 'text-slate-500 hover:text-slate-700'
+                viewMode === 'detailed' ? 'bg-white shadow text-[var(--color-info)]' : 'text-slate-500 hover:text-slate-700'
               )}
               title="Vista Detallada"
             >
@@ -812,7 +812,7 @@ export default function GanttChart() {
             onClick={() => setShowDependencies(!showDependencies)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase transition-all',
-              showDependencies ? 'bg-purple-100 text-purple-700 border border-purple-300' : 'bg-white border border-slate-200 text-slate-600 hover:border-purple-300'
+              showDependencies ? 'bg-[var(--color-mod-dashboard)]/10 text-[var(--color-mod-dashboard)] border border-[var(--color-mod-dashboard)]' : 'bg-white border border-slate-200 text-slate-600 hover:border-[var(--color-mod-dashboard)]'
             )}
             title="Mostrar dependencias"
           >
@@ -825,7 +825,7 @@ export default function GanttChart() {
             onClick={() => setShowFinancialSummary(!showFinancialSummary)}
             className={cn(
               'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase transition-all',
-              showFinancialSummary ? 'bg-green-100 text-green-700 border border-green-300' : 'bg-white border border-slate-200 text-slate-600 hover:border-green-300'
+              showFinancialSummary ? 'bg-[var(--color-success-bg)] text-[var(--color-success)] border border-[var(--color-green-border)]' : 'bg-white border border-slate-200 text-slate-600 hover:border-[var(--color-green-border)]'
             )}
             title="Resumen financiero"
           >
@@ -853,7 +853,7 @@ export default function GanttChart() {
               const el = chartRef.current?.querySelector('[data-today]');
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             }}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase bg-amber-50 text-amber-700 border border-amber-200 hover:bg-amber-100 transition-all"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black uppercase bg-[var(--color-warning-bg)] text-[var(--color-warning)] border border-[var(--color-amber-border)] hover:bg-[var(--color-warning-bg)] transition-all"
             title="Ir a hoy"
           >
             <Clock size={14} />
@@ -875,11 +875,11 @@ export default function GanttChart() {
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-2 shrink-0">
         {[
-          { icon: <Calendar size={13} className="text-blue-500" />,    label: 'Duración',       value: `${maxDuration}d`,                                          color: 'text-slate-700' },
-          { icon: <AlertTriangle size={13} className="text-red-500" />, label: 'Ruta Crítica',   value: `${criticalPath.length} tareas`,                            color: 'text-red-600'   },
-          { icon: <TrendingUp size={13} className="text-green-500" />,  label: 'Avance Global',  value: `${globalProgress}%`,                                       color: 'text-green-600' },
-          { icon: <DollarSign size={13} className="text-amber-500" />,  label: 'Costo Total',    value: fmtQ(tasks.reduce((s,t)=>s+t.cost,0)),                      color: 'text-amber-600' },
-          { icon: <Calendar size={13} className="text-purple-500" />,   label: 'Fin Estimado',   value: projectEndReal ?? '—',                                       color: 'text-purple-600' },
+          { icon: <Calendar size={13} className="text-[var(--color-info)]" />,    label: 'Duración',       value: `${maxDuration}d`,                                          color: 'text-slate-700' },
+          { icon: <AlertTriangle size={13} className="text-[var(--color-error)]" />, label: 'Ruta Crítica',   value: `${criticalPath.length} tareas`,                            color: 'text-[var(--color-error)]'   },
+          { icon: <TrendingUp size={13} className="text-[var(--color-success)]" />,  label: 'Avance Global',  value: `${globalProgress}%`,                                       color: 'text-[var(--color-success)]' },
+          { icon: <DollarSign size={13} className="text-[var(--color-accent)]" />,  label: 'Costo Total',    value: fmtQ(tasks.reduce((s,t)=>s+t.cost,0)),                      color: 'text-[var(--color-warning)]' },
+          { icon: <Calendar size={13} className="text-[var(--color-mod-dashboard)]" />,   label: 'Fin Estimado',   value: projectEndReal ?? '—',                                       color: 'text-[var(--color-mod-dashboard)]' },
         ].map(k => (
           <div key={k.label} className="bg-white border border-slate-200 rounded-xl p-2.5">
             <div className="flex items-center gap-1.5 mb-1">{k.icon}<span className="text-[7px] font-black text-slate-400 uppercase">{k.label}</span></div>
@@ -892,7 +892,7 @@ export default function GanttChart() {
       <div className="flex items-center gap-3 shrink-0 px-1 flex-wrap">
         <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Barras:</span>
         {[
-          { color: 'bg-linear-to-r from-red-500 to-red-600',         label: 'Ruta crítica' },
+          { color: 'bg-linear-to-r from-[var(--color-error-bg)]0 to-red-600',         label: 'Ruta crítica' },
           { color: 'bg-linear-to-r from-blue-500 to-blue-600',       label: 'Normal'       },
           { color: 'bg-linear-to-r from-emerald-500 to-emerald-600', label: 'Completada'   },
           { color: 'bg-slate-300/70 border border-dashed border-slate-400/50', label: 'Holgura' },
@@ -916,8 +916,8 @@ export default function GanttChart() {
             className={cn(
               'flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black uppercase transition-all border',
               showSlackTable
-                ? 'bg-amber-100 text-amber-700 border-amber-300'
-                : 'bg-white text-slate-500 border-slate-200 hover:border-amber-300'
+                ? 'bg-[var(--color-warning-bg)] text-[var(--color-warning)] border-[var(--color-amber-border)]'
+                : 'bg-white text-slate-500 border-slate-200 hover:border-[var(--color-amber-border)]'
             )}
             title="Tabla de holguras"
           >
@@ -969,11 +969,11 @@ export default function GanttChart() {
                 {/* Línea de hoy */}
                 {todayLine !== null && todayLine <= 100 && (
                   <div
-                    className="absolute top-0 bottom-0 border-l-2 border-amber-400 z-10"
+                    className="absolute top-0 bottom-0 border-l-2 border-[var(--color-accent)] z-10"
                     style={{ left: `${todayLine}%` }}
                     data-today
                   >
-                    <span className="absolute -top-5 -translate-x-1/2 text-[7px] font-black text-amber-500 uppercase bg-amber-50 px-1 rounded">Hoy</span>
+                    <span className="absolute -top-5 -translate-x-1/2 text-[7px] font-black text-[var(--color-accent)] uppercase bg-[var(--color-warning-bg)] px-1 rounded">Hoy</span>
                   </div>
                 )}
               </div>
@@ -1029,11 +1029,11 @@ export default function GanttChart() {
                     onClick={() => toggleCat(cat)}
                     className={cn(
                       'w-full flex items-center gap-2 px-2 py-1.5 rounded-lg mb-1 text-left',
-                      catCritical ? 'bg-red-50 border border-red-200' : 'bg-slate-50 border border-slate-200'
+                      catCritical ? 'bg-red-50 border border-[var(--color-red-border)]' : 'bg-slate-50 border border-slate-200'
                     )}
                   >
                     {collapsed ? <ChevronRight size={12} /> : <ChevronDown size={12} />}
-                    <span className={cn('text-[9px] font-black uppercase tracking-widest flex-1', catCritical ? 'text-red-600' : 'text-slate-600')}>{cat}</span>
+                    <span className={cn('text-[9px] font-black uppercase tracking-widest flex-1', catCritical ? 'text-[var(--color-error)]' : 'text-slate-600')}>{cat}</span>
                     <span className="text-[7px] font-bold text-slate-400">{catTasks.length} renglones</span>
                   </button>
 
@@ -1047,7 +1047,7 @@ export default function GanttChart() {
                         key={task.id}
                         className={cn(
                           'flex items-center gap-2 mb-1 px-2 py-1 rounded-lg border',
-                          task.isCritical ? 'bg-red-50/50 border-red-100' : 'border-transparent hover:bg-slate-50'
+                          task.isCritical ? 'bg-[var(--color-error-bg)] border-[var(--color-red-border)]' : 'border-transparent hover:bg-slate-50'
                         )}
                       >
                         {/* Semáforo de estado */}
@@ -1068,7 +1068,7 @@ export default function GanttChart() {
                                   <input
                                     type="number" min={1} value={editDuration}
                                     onChange={e => setEditDuration(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className="w-12 px-1.5 py-0.5 text-[10px] border border-slate-300 rounded focus:outline-none focus:border-blue-400"
+                                    className="w-12 px-1.5 py-0.5 text-[10px] border border-slate-300 rounded focus:outline-none focus:border-[var(--color-blue-border)]"
                                   />
                                 </div>
                                 <div className="flex items-center gap-1">
@@ -1076,10 +1076,10 @@ export default function GanttChart() {
                                   <input
                                     type="number" min={1} value={editWorkers}
                                     onChange={e => setEditWorkers(Math.max(1, parseInt(e.target.value) || 1))}
-                                    className="w-12 px-1.5 py-0.5 text-[10px] border border-slate-300 rounded focus:outline-none focus:border-purple-400"
+                                    className="w-12 px-1.5 py-0.5 text-[10px] border border-slate-300 rounded focus:outline-none focus:border-[var(--color-mod-dashboard)]"
                                   />
                                 </div>
-                                <button onClick={handleEditSave} className="p-1 bg-green-500 text-white rounded hover:bg-green-600 ml-auto">
+                                <button onClick={handleEditSave} className="p-1 bg-[var(--color-success)] text-white rounded hover:bg-[var(--color-success)] ml-auto">
                                   <Save size={10} />
                                 </button>
                                 <button onClick={() => setEditingId(null)} className="p-1 bg-slate-200 rounded hover:bg-slate-300">
@@ -1100,8 +1100,8 @@ export default function GanttChart() {
                                           className={cn(
                                             'flex items-center gap-0.5 px-1.5 py-0.5 rounded cursor-pointer text-[7px] font-bold border transition-all',
                                             checked
-                                              ? 'bg-purple-100 border-purple-400 text-purple-700'
-                                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-purple-300'
+                                              ? 'bg-[var(--color-mod-dashboard)]/10 border-[var(--color-mod-dashboard)] text-[var(--color-mod-dashboard)]'
+                                              : 'bg-slate-50 border-slate-200 text-slate-500 hover:border-[var(--color-mod-dashboard)]'
                                           )}
                                         >
                                           <input
@@ -1136,7 +1136,7 @@ export default function GanttChart() {
                                     setEditWorkers(task.workers);
                                     setEditDeps(config.overrides?.[task.id]?.dependencies ?? task.dependencies);
                                   }}
-                                  className="p-0.5 hover:bg-blue-100 rounded text-blue-500"
+                                  className="p-0.5 hover:bg-[var(--color-info-bg)] rounded text-[var(--color-info)]"
                                 >
                                   <Edit2 size={10} />
                                 </button>
@@ -1144,7 +1144,7 @@ export default function GanttChart() {
                                   <button
                                     title="Restaurar valores originales"
                                     onClick={() => handleResetOverride(task.id)}
-                                    className="p-0.5 hover:bg-red-100 rounded text-red-400"
+                                    className="p-0.5 hover:bg-[var(--color-error-bg)] rounded text-[var(--color-error)]"
                                   >
                                     <X size={10} />
                                   </button>
@@ -1161,7 +1161,7 @@ export default function GanttChart() {
                               className="flex-1 h-1 accent-blue-500 cursor-pointer"
                               title={`Avance: ${task.progress}%`}
                             />
-                            <span className="text-[7px] font-black text-blue-600 w-6 text-right">{task.progress}%</span>
+                            <span className="text-[7px] font-black text-[var(--color-info)] w-6 text-right">{task.progress}%</span>
                           </div>
                         </div>
 
@@ -1194,7 +1194,7 @@ export default function GanttChart() {
         >
           <div className="flex items-center justify-between px-4 py-2.5 bg-slate-50 border-b border-slate-100">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={13} className="text-amber-500" />
+              <AlertTriangle size={13} className="text-[var(--color-accent)]" />
               <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">Tabla de Holguras y Fechas Reales</span>
             </div>
             <span className="text-[7px] font-bold text-slate-400">{tasks.length} actividades</span>
@@ -1206,14 +1206,14 @@ export default function GanttChart() {
                   <th className="text-left px-3 py-2 font-black text-slate-500 uppercase">Actividad</th>
                   <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Cat.</th>
                   <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Dur.</th>
-                  <th className="text-center px-2 py-2 font-black text-blue-600 uppercase">Inicio T.</th>
-                  <th className="text-center px-2 py-2 font-black text-blue-600 uppercase">Fin T.</th>
-                  <th className="text-center px-2 py-2 font-black text-purple-600 uppercase">Inicio L.</th>
-                  <th className="text-center px-2 py-2 font-black text-purple-600 uppercase">Fin L.</th>
-                  <th className="text-center px-2 py-2 font-black text-amber-600 uppercase">Holgura</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-info)] uppercase">Inicio T.</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-info)] uppercase">Fin T.</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-mod-dashboard)] uppercase">Inicio L.</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-mod-dashboard)] uppercase">Fin L.</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-warning)] uppercase">Holgura</th>
                   <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Estado</th>
-                  <th className="text-center px-2 py-2 font-black text-green-600 uppercase">Avance</th>
-                  <th className="text-center px-2 py-2 font-black text-blue-500 uppercase">Esperado</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-success)] uppercase">Avance</th>
+                  <th className="text-center px-2 py-2 font-black text-[var(--color-info)] uppercase">Esperado</th>
                   <th className="text-center px-2 py-2 font-black text-slate-500 uppercase">Dif.</th>
                   <th className="text-right px-3 py-2 font-black text-slate-500 uppercase">Costo</th>
                 </tr>
@@ -1226,27 +1226,27 @@ export default function GanttChart() {
                       key={t.id}
                       className={cn(
                         'hover:bg-slate-50 transition-colors',
-                        t.isCritical && 'bg-red-50/60'
+                        t.isCritical && 'bg-[var(--color-error-bg)]'
                       )}
                     >
                       <td className="px-3 py-1.5 font-bold text-slate-700 max-w-45 truncate">
-                        {t.isCritical && <span className="text-red-500 mr-1">⚠</span>}
+                        {t.isCritical && <span className="text-[var(--color-error)] mr-1">⚠</span>}
                         {t.name}
                       </td>
                       <td className="px-2 py-1.5 text-center text-slate-500">{t.category}</td>
                       <td className="px-2 py-1.5 text-center font-bold text-slate-700">{t.duration}d</td>
-                      <td className="px-2 py-1.5 text-center text-blue-600 font-bold">{fmtDate(addDays(base, t.earlyStart))}</td>
-                      <td className="px-2 py-1.5 text-center text-blue-600 font-bold">{fmtDate(addDays(base, t.earlyFinish))}</td>
-                      <td className="px-2 py-1.5 text-center text-purple-600">{fmtDate(addDays(base, t.lateStart))}</td>
-                      <td className="px-2 py-1.5 text-center text-purple-600">{fmtDate(addDays(base, t.lateFinish))}</td>
+                      <td className="px-2 py-1.5 text-center text-[var(--color-info)] font-bold">{fmtDate(addDays(base, t.earlyStart))}</td>
+                      <td className="px-2 py-1.5 text-center text-[var(--color-info)] font-bold">{fmtDate(addDays(base, t.earlyFinish))}</td>
+                      <td className="px-2 py-1.5 text-center text-[var(--color-mod-dashboard)]">{fmtDate(addDays(base, t.lateStart))}</td>
+                      <td className="px-2 py-1.5 text-center text-[var(--color-mod-dashboard)]">{fmtDate(addDays(base, t.lateFinish))}</td>
                       <td className="px-2 py-1.5 text-center">
                         <span className={cn(
                           'px-1.5 py-0.5 rounded-full font-black text-[7px]',
                           t.slack === 0
-                            ? 'bg-red-100 text-red-600'
+                            ? 'bg-[var(--color-error-bg)] text-[var(--color-error)]'
                             : t.slack <= 3
-                              ? 'bg-amber-100 text-amber-600'
-                              : 'bg-green-100 text-green-600'
+                              ? 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]'
+                              : 'bg-[var(--color-success-bg)] text-[var(--color-success)]'
                         )}>
                           {t.slack === 0 ? 'CRÍTICA' : `${t.slack}d`}
                         </span>
@@ -1267,7 +1267,7 @@ export default function GanttChart() {
                         <div className="flex items-center gap-1">
                           <div className="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
                             <div
-                              className={cn('h-full rounded-full', t.progress === 100 ? 'bg-emerald-500' : 'bg-blue-500')}
+                              className={cn('h-full rounded-full', t.progress === 100 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-info)]')}
                               style={{ width: `${t.progress}%` }}
                             />
                           </div>
@@ -1282,7 +1282,7 @@ export default function GanttChart() {
                             if (todayDay >= t.earlyFinish) return 100;
                             return Math.round(((todayDay - t.earlyStart) / t.duration) * 100);
                           })();
-                          return <span className="font-bold text-blue-500">{exp}%</span>;
+                          return <span className="font-bold text-[var(--color-info)]">{exp}%</span>;
                         })()}
                       </td>
                       {/* Diferencia real vs esperado */}
@@ -1298,14 +1298,14 @@ export default function GanttChart() {
                           return (
                             <span className={cn(
                               'px-1.5 py-0.5 rounded-full font-black text-[7px]',
-                              diff >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                              diff >= 0 ? 'bg-[var(--color-success-bg)] text-[var(--color-success)]' : 'bg-[var(--color-error-bg)] text-[var(--color-error)]'
                             )}>
                               {diff >= 0 ? '+' : ''}{diff}%
                             </span>
                           );
                         })()}
                       </td>
-                      <td className="px-3 py-1.5 text-right font-bold text-amber-600">{fmtQ(t.cost)}</td>
+                      <td className="px-3 py-1.5 text-right font-bold text-[var(--color-warning)]">{fmtQ(t.cost)}</td>
                     </tr>
                   );
                 })}
@@ -1315,9 +1315,9 @@ export default function GanttChart() {
                   <td colSpan={2} className="px-3 py-2 font-black text-slate-700 uppercase text-[8px]">TOTALES</td>
                   <td className="px-2 py-2 text-center font-black text-slate-700">{tasks.reduce((s,t)=>s+t.duration,0)}d</td>
                   <td colSpan={6} />
-                  <td className="px-2 py-2 text-center font-black text-blue-600">{globalProgress}%</td>
+                  <td className="px-2 py-2 text-center font-black text-[var(--color-info)]">{globalProgress}%</td>
                   <td colSpan={2} />
-                  <td className="px-3 py-2 text-right font-black text-amber-600">{fmtQ(tasks.reduce((s,t)=>s+t.cost,0))}</td>
+                  <td className="px-3 py-2 text-right font-black text-[var(--color-warning)]">{fmtQ(tasks.reduce((s,t)=>s+t.cost,0))}</td>
                 </tr>
               </tfoot>
             </table>
@@ -1330,17 +1330,17 @@ export default function GanttChart() {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="shrink-0 bg-linear-to-r from-red-50 to-orange-50 border border-red-200 rounded-xl p-4"
+          className="shrink-0 bg-linear-to-r from-[var(--color-error-bg)] to-[var(--color-mod-gantt)]/5 border border-[var(--color-red-border)] rounded-xl p-4"
         >
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <AlertTriangle size={14} className="text-red-600" />
-              <span className="text-[9px] font-black text-red-700 uppercase tracking-wider">
+              <AlertTriangle size={14} className="text-[var(--color-error)]" />
+              <span className="text-[9px] font-black text-[var(--color-error)] uppercase tracking-wider">
                 Ruta Crítica — {criticalPath.length} tareas · {maxDuration} días totales
               </span>
             </div>
             <div className="flex items-center gap-2 text-[8px]">
-              <span className="px-2 py-1 bg-red-100 text-red-700 rounded font-bold">
+              <span className="px-2 py-1 bg-[var(--color-error-bg)] text-[var(--color-error)] rounded font-bold">
                 CRÍTICO
               </span>
               <span className="text-slate-500">Las tareas en rojo no pueden sufrir retrasos</span>
@@ -1353,7 +1353,7 @@ export default function GanttChart() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: idx * 0.05 }}
-                className="px-3 py-1.5 bg-linear-to-r from-red-500 to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
+                className="px-3 py-1.5 bg-linear-to-r from-[var(--color-error-bg)]0 to-red-600 text-white rounded-lg text-[8px] font-bold uppercase shadow-sm"
               >
                 {t.name.length > 25 ? t.name.substring(0, 25) + '...' : t.name}
                 <span className="ml-2 opacity-75">{t.duration}d</span>
@@ -1372,8 +1372,8 @@ export default function GanttChart() {
         >
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-500/20 rounded-lg">
-                <DollarSign size={18} className="text-green-400" />
+              <div className="p-2 bg-[var(--color-success)]/20 rounded-lg">
+                <DollarSign size={18} className="text-[var(--color-success)]" />
               </div>
               <div>
                 <h3 className="text-sm font-black text-white uppercase tracking-wider">Resumen Físico-Financiero</h3>
@@ -1387,7 +1387,7 @@ export default function GanttChart() {
                   onClick={() => setFinancialViewMode('tables')}
                   className={cn(
                     'px-3 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                    financialViewMode === 'tables' ? 'bg-green-500 text-white' : 'text-slate-400 hover:text-white'
+                    financialViewMode === 'tables' ? 'bg-[var(--color-success)] text-white' : 'text-slate-400 hover:text-white'
                   )}
                   title="Ver tablas"
                 >
@@ -1397,7 +1397,7 @@ export default function GanttChart() {
                   onClick={() => setFinancialViewMode('charts')}
                   className={cn(
                     'px-3 py-1.5 rounded-md text-[10px] font-black uppercase transition-all',
-                    financialViewMode === 'charts' ? 'bg-green-500 text-white' : 'text-slate-400 hover:text-white'
+                    financialViewMode === 'charts' ? 'bg-[var(--color-success)] text-white' : 'text-slate-400 hover:text-white'
                   )}
                   title="Ver gráficos"
                 >
@@ -1460,7 +1460,7 @@ export default function GanttChart() {
                   link.click();
                   toast.success('Exportado a Excel/CSV');
                 }}
-                className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-lg text-xs font-black uppercase hover:bg-green-700 transition-all"
+                className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-success)] text-white rounded-lg text-xs font-black uppercase hover:bg-[var(--color-success)] transition-all"
                 title="Exportar a Excel/CSV"
               >
                 <Download size={14} />
@@ -1518,15 +1518,15 @@ export default function GanttChart() {
                 <div className="grid grid-cols-3 gap-3">
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Inversión Total</p>
-                    <p className="text-lg font-black text-green-400">{fmtQ(totalCost)}</p>
+                    <p className="text-lg font-black text-[var(--color-success)]">{fmtQ(totalCost)}</p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Por Semana</p>
-                    <p className="text-lg font-black text-blue-400">{fmtQ(weeklyInvestment)}</p>
+                    <p className="text-lg font-black text-[var(--color-info)]">{fmtQ(weeklyInvestment)}</p>
                   </div>
                   <div className="bg-white/5 rounded-lg p-3 border border-white/10">
                     <p className="text-[8px] text-slate-400 uppercase font-black mb-1">Por Mes</p>
-                    <p className="text-lg font-black text-purple-400">{fmtQ(monthlyInvestment)}</p>
+                    <p className="text-lg font-black text-[var(--color-mod-dashboard)]">{fmtQ(monthlyInvestment)}</p>
                   </div>
                 </div>
 
@@ -1555,9 +1555,9 @@ export default function GanttChart() {
                               className="border-b border-white/5 hover:bg-white/5"
                             >
                               <td className="py-2 font-bold text-slate-300">Semana {w.week}</td>
-                              <td className="py-2 text-right font-black text-green-400">{fmtQ(w.cost)}</td>
+                              <td className="py-2 text-right font-black text-[var(--color-success)]">{fmtQ(w.cost)}</td>
                               <td className="py-2 text-center text-slate-400">{w.tasks}</td>
-                              <td className="py-2 text-right font-bold text-blue-400">{fmtQ(accumulated)}</td>
+                              <td className="py-2 text-right font-bold text-[var(--color-info)]">{fmtQ(accumulated)}</td>
                             </motion.tr>
                           );
                         })}
@@ -1591,9 +1591,9 @@ export default function GanttChart() {
                               className="border-b border-white/5 hover:bg-white/5"
                             >
                               <td className="py-2 font-bold text-slate-300">Mes {m.month}</td>
-                              <td className="py-2 text-right font-black text-purple-400">{fmtQ(m.cost)}</td>
+                              <td className="py-2 text-right font-black text-[var(--color-mod-dashboard)]">{fmtQ(m.cost)}</td>
                               <td className="py-2 text-center text-slate-400">{m.tasks}</td>
-                              <td className="py-2 text-right font-bold text-blue-400">{fmtQ(accumulated)}</td>
+                              <td className="py-2 text-right font-bold text-[var(--color-info)]">{fmtQ(accumulated)}</td>
                             </motion.tr>
                           );
                         })}

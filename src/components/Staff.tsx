@@ -46,14 +46,14 @@ interface Project {
 }
 
 const ROLE_COLORS: Record<string, { bg: string; text: string; dot: string; border: string }> = {
-  'MAESTRO DE OBRA': { bg: 'bg-amber-100',  text: 'text-amber-700',  dot: 'bg-amber-500',  border: 'border-amber-300' },
-  'ALBAÑIL':         { bg: 'bg-blue-100',    text: 'text-blue-700',   dot: 'bg-blue-500',   border: 'border-blue-300' },
+  'MAESTRO DE OBRA': { bg: 'bg-[var(--color-warning-bg)]',  text: 'text-[var(--color-warning)]',  dot: 'bg-[var(--color-accent)]',  border: 'border-[var(--color-amber-border)]' },
+  'ALBAÑIL':         { bg: 'bg-[var(--color-info-bg)]',    text: 'text-[var(--color-info)]',   dot: 'bg-[var(--color-info)]',   border: 'border-[var(--color-blue-border)]' },
   'AYUDANTE':        { bg: 'bg-slate-100',   text: 'text-slate-600',  dot: 'bg-slate-400',  border: 'border-slate-300' },
-  'RESIDENTE':       { bg: 'bg-purple-100',  text: 'text-purple-700', dot: 'bg-purple-500', border: 'border-purple-300' },
-  'PLANIFICADOR':    { bg: 'bg-green-100',   text: 'text-green-700',  dot: 'bg-green-500',  border: 'border-green-300' },
+  'RESIDENTE':       { bg: 'bg-[var(--color-mod-dashboard)]/10',  text: 'text-[var(--color-mod-dashboard)]', dot: 'bg-[var(--color-mod-dashboard)]', border: 'border-[var(--color-mod-dashboard)]' },
+  'PLANIFICADOR':    { bg: 'bg-[var(--color-success-bg)]',   text: 'text-[var(--color-success)]',  dot: 'bg-[var(--color-success)]',  border: 'border-[var(--color-green-border)]' },
   'ELECTRICISTA':    { bg: 'bg-yellow-100',  text: 'text-yellow-700', dot: 'bg-yellow-500', border: 'border-yellow-300' },
-  'PLOMERO':         { bg: 'bg-cyan-100',    text: 'text-cyan-700',   dot: 'bg-cyan-500',   border: 'border-cyan-300' },
-  'SUPERVISOR':      { bg: 'bg-red-100',     text: 'text-red-700',    dot: 'bg-red-500',    border: 'border-red-300' },
+  'PLOMERO':         { bg: 'bg-[var(--color-mod-execution)]/10',    text: 'text-[var(--color-mod-execution)]',   dot: 'bg-[var(--color-mod-execution)]/100',   border: 'border-cyan-300' },
+  'SUPERVISOR':      { bg: 'bg-[var(--color-error-bg)]',     text: 'text-[var(--color-error)]',    dot: 'bg-[var(--color-error)]',    border: 'border-red-300' },
 };
 const getRoleColor = (role: string) =>
   ROLE_COLORS[role?.toUpperCase()] || { bg: 'bg-slate-100', text: 'text-slate-600', dot: 'bg-slate-400', border: 'border-slate-300' };
@@ -468,10 +468,10 @@ export default function StaffModule() {
       {/* KPI Strip */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
 {[
-          { label: 'Total Personal', value: staff.length, icon: <Users size={12}/>, color: 'text-blue-600', bg: 'bg-blue-50' },
-          { label: 'Activos', value: activeCount, icon: <UserCheck size={12}/>, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-          { label: 'Asignados', value: assignedCount, icon: <Building2 size={12}/>, color: 'text-purple-600', bg: 'bg-purple-50' },
-          { label: 'Nómina Total', value: `Q ${totalSalary.toLocaleString('es-GT')}`, icon: <DollarSign size={12}/>, color: 'text-amber-600', bg: 'bg-amber-50' },
+          { label: 'Total Personal', value: staff.length, icon: <Users size={12}/>, color: 'text-[var(--color-info)]', bg: 'bg-[var(--color-info-bg)]' },
+          { label: 'Activos', value: activeCount, icon: <UserCheck size={12}/>, color: 'text-[var(--color-success)]', bg: 'bg-[var(--color-success-bg)]' },
+          { label: 'Asignados', value: assignedCount, icon: <Building2 size={12}/>, color: 'text-[var(--color-mod-dashboard)]', bg: 'bg-[var(--color-mod-dashboard)]/10' },
+          { label: 'Nómina Total', value: `Q ${totalSalary.toLocaleString('es-GT')}`, icon: <DollarSign size={12}/>, color: 'text-[var(--color-warning)]', bg: 'bg-[var(--color-warning-bg)]' },
         ].map((kpi, i) => (
            <motion.div key={i} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
              className="bg-white rounded-lg border border-slate-100 p-2 flex items-center gap-2 shadow-sm">
@@ -539,7 +539,7 @@ export default function StaffModule() {
                  </button>
               </div>
 <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedPersonalIds(new Set()); }}
-                 className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                 className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
                 {bulkMode ? 'Cancelar' : 'Seleccionar'}
               </button>
 <div className="relative flex-1 md:w-48">
@@ -560,11 +560,11 @@ export default function StaffModule() {
           ) : (
             <>
               <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedPayrollIds(new Set()); }}
-                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
                 {bulkMode ? 'Cancelar' : 'Seleccionar'}
               </button>
               <button type="button" onClick={() => setIsPayrollModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-2 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all shrink-0">
+                className="flex items-center gap-1.5 px-3 py-2 bg-[var(--color-success)] text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-[var(--color-success)] transition-all shrink-0">
                 <Plus size={14} /> Nueva Planilla
               </button>
             </>
@@ -596,7 +596,7 @@ export default function StaffModule() {
                       {bulkMode && (
                         <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
                           <input type="checkbox" checked={selectedPersonalIds.has(m.id)} onChange={() => toggleSelectPersonal(m.id)} title="Seleccionar personal"
-                            className="w-4 h-4 accent-red-500 cursor-pointer" />
+                            className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                         </div>
                       )}
                       <div className={cn("flex items-start gap-2.5", bulkMode && "ml-6")}>
@@ -623,10 +623,10 @@ export default function StaffModule() {
                         </div>
                         <div className="flex items-center gap-1.5">
                           {assignedToProjects.length > 0 && (
-                            <span className="text-[7px] font-black bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full">{assignedToProjects.length} proy.</span>
+                            <span className="text-[7px] font-black bg-[var(--color-info-bg)] text-[var(--color-info)] px-1.5 py-0.5 rounded-full">{assignedToProjects.length} proy.</span>
                           )}
                           <span className={cn("text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full",
-                            m.status === 'Activo' || !m.status ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
+                            m.status === 'Activo' || !m.status ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-error-bg)] text-[var(--color-error)]")}>
                             {m.status || 'Activo'}
                           </span>
                         </div>
@@ -650,7 +650,7 @@ export default function StaffModule() {
                          {bulkMode && (
                            <th className="px-2 py-2 w-6">
 <input type="checkbox" checked={currentItems.length > 0 && selectedPersonalIds.size === currentItems.length}
-                                onChange={toggleSelectAllPersonal} title="Seleccionar todo" className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                                onChange={toggleSelectAllPersonal} title="Seleccionar todo" className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
                            </th>
                          )}
                          <th className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Colaborador</th>
@@ -678,7 +678,7 @@ export default function StaffModule() {
 {bulkMode && (
                                <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
                                  <input type="checkbox" checked={selectedPersonalIds.has(m.id)} onChange={() => toggleSelectPersonal(m.id)}
-                                   className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                                   className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
                                </td>
                              )}
                              <td className="px-3 py-2">
@@ -694,7 +694,7 @@ export default function StaffModule() {
                              <td className="hidden sm:table-cell px-3 py-2 text-[8px] text-slate-500 font-bold">{m.documentId || '--'}</td>
                              <td className="hidden md:table-cell px-3 py-2">
                                {assignedToProjects.length > 0
-                                 ? <span className="text-[7px] font-black bg-blue-100 text-blue-700 px-1 py-0.5 rounded-full">{assignedToProjects.length} proy{assignedToProjects.length > 1 ? 's' : ''}</span>
+                                 ? <span className="text-[7px] font-black bg-[var(--color-info-bg)] text-[var(--color-info)] px-1 py-0.5 rounded-full">{assignedToProjects.length} proy{assignedToProjects.length > 1 ? 's' : ''}</span>
                                  : <span className="text-[7px] text-slate-300 font-bold">—</span>}
                              </td>
                              <td className="px-3 py-2 text-right text-[9px] font-black text-primary">
@@ -702,7 +702,7 @@ export default function StaffModule() {
                              </td>
                              <td className="px-3 py-2 text-center">
                                <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full",
-                                 m.status === 'Activo' || !m.status ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-600")}>
+                                 m.status === 'Activo' || !m.status ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-error-bg)] text-[var(--color-error)]")}>
                                  {m.status || 'Activo'}
                                </span>
                              </td>
@@ -740,10 +740,10 @@ export default function StaffModule() {
         </div>
 
 {bulkMode && selectedPersonalIds.size > 0 && activeStaffTab === 'personal' && (
-         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3">
+         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3">
            <span className="text-[8px] font-black uppercase tracking-widest">{selectedPersonalIds.size} seleccionado(s)</span>
            <button type="button" onClick={handleBulkDeletePersonal}
-             className="px-3 py-1 bg-white text-red-600 rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+             className="px-3 py-1 bg-white text-[var(--color-error)] rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
              Eliminar
            </button>
             <button type="button" onClick={() => setSelectedPersonalIds(new Set())} aria-label="Deseleccionar"
@@ -753,10 +753,10 @@ export default function StaffModule() {
          </div>
        )}
        {bulkMode && activeStaffTab !== 'personal' && selectedPayrollIds.size > 0 && (
-         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3">
+         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-4 py-2.5 rounded-xl shadow-2xl flex items-center gap-3">
            <span className="text-[8px] font-black uppercase tracking-widest">{selectedPayrollIds.size} seleccionado(s)</span>
            <button type="button" onClick={handleBulkDeletePayroll}
-             className="px-3 py-1 bg-white text-red-600 rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+             className="px-3 py-1 bg-white text-[var(--color-error)] rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
              Eliminar
            </button>
             <button type="button" onClick={() => setSelectedPayrollIds(new Set())} aria-label="Deseleccionar"
@@ -792,7 +792,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                          <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded", rc.bg, rc.text)}>{selectedMember.role || 'Sin cargo'}</span>
                        ); })()}
                        <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full",
-                         (selectedMember.status || 'Activo') === 'Activo' ? "bg-emerald-500/20 text-emerald-300" : "bg-red-500/20 text-red-300")}>
+                         (selectedMember.status || 'Activo') === 'Activo' ? "bg-[var(--color-success)]/20 text-[var(--color-success)]" : "bg-[var(--color-error)]/20 text-red-300")}>
                          {selectedMember.status || 'Activo'}
                        </span>
                      </div>
@@ -801,13 +801,13 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                </div>
                <div className="flex-1 overflow-y-auto p-3 space-y-3">
                  <div className="grid grid-cols-2 gap-1.5">
-                   <div className="bg-amber-50 rounded-md p-1.5 text-center">
-                     <p className="text-[6px] font-black text-amber-600 uppercase tracking-widest">Salario</p>
-                     <p className="text-[10px] font-black text-amber-700">Q {Number(selectedMember.salary||0).toLocaleString('es-GT')}</p>
+                   <div className="bg-[var(--color-warning-bg)] rounded-md p-1.5 text-center">
+                     <p className="text-[6px] font-black text-[var(--color-warning)] uppercase tracking-widest">Salario</p>
+                     <p className="text-[10px] font-black text-[var(--color-warning)]">Q {Number(selectedMember.salary||0).toLocaleString('es-GT')}</p>
                    </div>
-                   <div className="bg-blue-50 rounded-md p-1.5 text-center">
-                     <p className="text-[6px] font-black text-blue-600 uppercase tracking-widest">Proyectos</p>
-                     <p className="text-[10px] font-black text-blue-700">{memberProjects.length}</p>
+                   <div className="bg-[var(--color-info-bg)] rounded-md p-1.5 text-center">
+                     <p className="text-[6px] font-black text-[var(--color-info)] uppercase tracking-widest">Proyectos</p>
+                     <p className="text-[10px] font-black text-[var(--color-info)]">{memberProjects.length}</p>
                    </div>
                  </div>
                 <div>
@@ -848,8 +848,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                                <p className="text-[8px] font-black text-primary uppercase truncate">{p.name}</p>
                                <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full",
                                  p.status === 'EJECUCION' ? "bg-secondary/20 text-secondary" :
-                                 p.status === 'COTIZACION' ? "bg-blue-100 text-blue-600" :
-                                 "bg-green-100 text-green-600")}>
+                                 p.status === 'COTIZACION' ? "bg-[var(--color-info-bg)] text-[var(--color-info)]" :
+                                 "bg-[var(--color-success-bg)] text-[var(--color-success)]")}>
                                  {p.status}
                                </span>
                              </div>
@@ -862,7 +862,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                            </div>
                            <button type="button" title="Remover del proyecto"
                              onClick={() => handleToggleProject(selectedMember.id, p.id)}
-                             className="ml-1 p-0.5 rounded text-red-400 hover:bg-red-50 hover:text-red-600 transition-all shrink-0 opacity-0 group-hover:opacity-100">
+                             className="ml-1 p-0.5 rounded text-[var(--color-error)] hover:bg-[var(--color-error-bg)] hover:text-[var(--color-error)] transition-all shrink-0 opacity-0 group-hover:opacity-100">
                              <X size={8} />
                            </button>
                          </div>
@@ -875,9 +875,9 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                    <div className="space-y-0.5">
                      {projects.filter(p => p.status === 'EJECUCION' && !p.teamIds?.includes(selectedMember.id)).slice(0, 5).map(p => (
                        <button type="button" key={p.id} onClick={() => handleToggleProject(selectedMember.id, p.id)}
-                         className="w-full flex items-center justify-between bg-slate-50 hover:bg-blue-50 border border-transparent hover:border-blue-200 rounded-md p-1.5 transition-all group">
+                         className="w-full flex items-center justify-between bg-slate-50 hover:bg-[var(--color-info-bg)] border border-transparent hover:border-[var(--color-blue-border)] rounded-md p-1.5 transition-all group">
                          <span className="text-[8px] font-black text-primary uppercase truncate">{p.name}</span>
-                         <Plus size={8} className="text-slate-400 group-hover:text-blue-600 shrink-0" />
+                         <Plus size={8} className="text-slate-400 group-hover:text-[var(--color-info)] shrink-0" />
                        </button>
                      ))}
                      {projects.filter(p => p.status === 'EJECUCION' && !p.teamIds?.includes(selectedMember.id)).length === 0 && (
@@ -911,7 +911,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                                  <div className="flex items-center gap-1">
                                    <span className="text-[7px] font-black text-slate-700">{p.period}</span>
                                    <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full",
-                                     p.status === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700')}>
+                                     p.status === 'PAGADA' ? 'bg-[var(--color-success-bg)] text-[var(--color-success)]' : 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]')}>
                                      {p.status}
                                    </span>
                                  </div>
@@ -934,7 +934,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                    <Pencil size={10} /> Editar
                  </button>
                  <button type="button" title="Eliminar colaborador" onClick={() => handleDelete(selectedMember.id)}
-                  className="p-2 bg-red-50 text-red-500 rounded-lg hover:bg-red-100 transition-all">
+                  className="p-2 bg-red-50 text-[var(--color-error)] rounded-lg hover:bg-[var(--color-error-bg)] transition-all">
                   <Trash2 size={14} />
                 </button>
               </div>
@@ -949,7 +949,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                 <DollarSign size={40} className="text-slate-300 mb-3" />
                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Sin planillas registradas</p>
                 <button type="button" onClick={() => setIsPayrollModalOpen(true)}
-                  className="mt-4 text-[9px] font-black text-emerald-600 border-b border-emerald-600 pb-0.5 uppercase tracking-widest">
+                  className="mt-4 text-[9px] font-black text-[var(--color-success)] border-b border-emerald-600 pb-0.5 uppercase tracking-widest">
                   Crear Primera Planilla
                 </button>
               </div>
@@ -958,14 +958,14 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                 {bulkMode && payrolls.length > 0 && (
                   <div className="flex items-center gap-2 px-1 py-1">
                      <input type="checkbox" checked={selectedPayrollIds.size === payrolls.length && payrolls.length > 0}
-                       onChange={toggleSelectAllPayroll} title="Seleccionar todas las planillas" className="w-4 h-4 accent-red-500 cursor-pointer" />
+                       onChange={toggleSelectAllPayroll} title="Seleccionar todas las planillas" className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                     <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest">
                       {selectedPayrollIds.size > 0 ? `${selectedPayrollIds.size} seleccionado(s)` : 'Seleccionar todo'}
                     </span>
                   </div>
                 )}
                 {payrolls.slice().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(pay => {
-                  const statusColor = pay.status === 'PAGADA' ? 'bg-emerald-100 text-emerald-700' : pay.status === 'BORRADOR' ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-600';
+                  const statusColor = pay.status === 'PAGADA' ? 'bg-[var(--color-success-bg)] text-[var(--color-success)]' : pay.status === 'BORRADOR' ? 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]' : 'bg-[var(--color-error-bg)] text-[var(--color-error)]';
                   return (
                     <div key={pay.id}
                       onClick={() => { if (bulkMode) { toggleSelectPayroll(pay.id); } else { setSelectedPayroll(selectedPayroll?.id === pay.id ? null : pay); } }}
@@ -974,7 +974,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                       {bulkMode && (
                         <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
                           <input type="checkbox" checked={selectedPayrollIds.has(pay.id)} onChange={() => toggleSelectPayroll(pay.id)}
-                            className="w-4 h-4 accent-red-500 cursor-pointer" />
+                            className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                         </div>
                       )}
                       <div className={cn("flex items-center justify-between", bulkMode && "ml-6")}>
@@ -1020,17 +1020,17 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                               {pay.status === 'BORRADOR' && (
                                 <>
                                   <button type="button" onClick={(e) => { e.stopPropagation(); openEditPayroll(pay); }}
-                                    className="px-2 py-1 bg-blue-100 text-blue-700 rounded-lg text-[8px] font-black uppercase hover:bg-blue-200 transition-all">
+                                    className="px-2 py-1 bg-[var(--color-info-bg)] text-[var(--color-info)] rounded-lg text-[8px] font-black uppercase hover:bg-blue-200 transition-all">
                                     <Pencil size={10} className="inline mr-0.5" /> Editar
                                   </button>
                                   <button type="button" onClick={() => markPayrollAsPaid(pay)}
-                                    className="px-2 py-1 bg-emerald-100 text-emerald-700 rounded-lg text-[8px] font-black uppercase hover:bg-emerald-200 transition-all">
+                                    className="px-2 py-1 bg-[var(--color-success-bg)] text-[var(--color-success)] rounded-lg text-[8px] font-black uppercase hover:bg-emerald-200 transition-all">
                                     Marcar Pagada
                                   </button>
                                 </>
                               )}
                               <button type="button" onClick={(e) => { e.stopPropagation(); handleDeletePayroll(pay.id); }} aria-label="Eliminar planilla"
-                                className="px-2 py-1 bg-red-100 text-red-600 rounded-lg text-[8px] font-black uppercase hover:bg-red-200 transition-all">
+                                className="px-2 py-1 bg-[var(--color-error-bg)] text-[var(--color-error)] rounded-lg text-[8px] font-black uppercase hover:bg-red-200 transition-all">
                                 <Trash2 size={10} className="inline" />
                               </button>
                             </div>
@@ -1207,7 +1207,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                <div className="flex justify-between items-center mb-1">
                  <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Empleados</label>
                  <button type="button" onClick={generatePayrollPreview}
-                   className="text-[7px] font-black text-blue-600 uppercase hover:text-blue-800">
+                   className="text-[7px] font-black text-[var(--color-info)] uppercase hover:text-[var(--color-info)]">
                    {payrollForm.employees.length > 0 ? 'Recalcular' : 'Previsualizar'}
                  </button>
                </div>
@@ -1276,7 +1276,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                )}
              </span>
              <button type="button" onClick={createPayroll} disabled={savingPayroll || payrollForm.employees.length === 0}
-               className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition-all">
+               className="px-3 py-1.5 bg-[var(--color-success)] text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-success)] disabled:opacity-50 transition-all">
                {savingPayroll ? 'GUARDANDO...' : 'CREAR BORRADOR'}
              </button>
            </div>
@@ -1338,7 +1338,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                Total: <span className="text-primary">Q {editingPayrollForm.employees.reduce((a, e) => a + e.netPay, 0).toLocaleString('es-GT')}</span>
              </span>
              <button type="button" onClick={saveEditPayroll} disabled={savingEditPayroll}
-               className="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-blue-700 disabled:opacity-50 transition-all">
+               className="px-3 py-1.5 bg-[var(--color-info)] text-white rounded-lg text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-info)] disabled:opacity-50 transition-all">
                {savingEditPayroll ? 'GUARDANDO...' : <><Save size={10} className="inline mr-0.5" />GUARDAR</>}
              </button>
            </div>

@@ -450,7 +450,7 @@ data={[
             {[
               { label: 'Carga', val: displayProjects.length, max: 20, color: 'bg-blue-400' },
               { label: 'Cierre', val: stats.finalizados.length, max: displayProjects.length || 1, color: 'bg-emerald-400' },
-              { label: 'Activos', val: stats.ejecucion.length, max: displayProjects.length || 1, color: 'bg-amber-400' },
+              { label: 'Activos', val: stats.ejecucion.length, max: displayProjects.length || 1, color: 'bg-[var(--color-accent)]' },
             ].map((item, i) => (
               <div key={i} className="text-center">
                 <div className={`w-2 h-2 rounded-full mx-auto mb-1 ${item.color}`} />
@@ -848,25 +848,25 @@ data={[
               </div>
               <div className="space-y-2">
                 {criticalInventory.length > 0 && (
-                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-red-100">
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-red-border)]">
                     <p className="text-[8px] font-black text-[var(--color-error)] uppercase">{criticalInventory.length} Materiales Críticos</p>
                     <p className="text-[7px] text-[var(--color-error)]">Stock bajo mínimo requerido</p>
                   </div>
                 )}
                 {pendingOrders.length > 5 && (
-                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-red-100">
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-red-border)]">
                     <p className="text-[8px] font-black text-[var(--color-error)] uppercase">{pendingOrders.length} OC Pendientes</p>
                     <p className="text-[7px] text-[var(--color-error)]">Órdenes sin recibir</p>
                   </div>
                 )}
                 {staffEfficiency.filter(s => s.efficiency < 1).length > 0 && (
-                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-red-100">
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-red-border)]">
                     <p className="text-[8px] font-black text-[var(--color-error)] uppercase">Baja Eficiencia Personal</p>
                     <p className="text-[7px] text-[var(--color-error)]">{staffEfficiency.filter(s => s.efficiency < 1).length} proyectos afectados</p>
                   </div>
                 )}
                 {(criticalInventory.length === 0 && pendingOrders.length <= 5 && staffEfficiency.filter(s => s.efficiency < 1).length === 0) && (
-                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-green-100">
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-green-border)]">
                     <p className="text-[8px] font-black text-[var(--color-success)] uppercase">✓ Sistema Saludable</p>
                     <p className="text-[7px] text-[var(--color-success)]">Sin alertas críticas</p>
                   </div>
@@ -882,19 +882,19 @@ data={[
               </div>
               <div className="space-y-2">
                 {supplierAnalysis.slice(0, 1).map(s => s.pendingCount > 0 && (
-                  <div key={s.id} className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-blue-100">
+                  <div key={s.id} className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-blue-border)]">
                     <p className="text-[8px] font-black text-[var(--color-info)] uppercase">Seguimiento a {s.name}</p>
                     <p className="text-[7px] text-[var(--color-info)]">{s.pendingCount} órdenes pendientes</p>
                   </div>
                 ))}
                 {inventoryByProject.filter(p => p.completeness < 50).length > 0 && (
-                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-blue-100">
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-blue-border)]">
                     <p className="text-[8px] font-black text-[var(--color-info)] uppercase">Generar Stock Faltante</p>
                     <p className="text-[7px] text-[var(--color-info)]">{inventoryByProject.filter(p => p.completeness < 50).length} proyectos incompletos</p>
                   </div>
                 )}
                 {staffEfficiency.filter(s => s.efficiency > 3).length > 0 && (
-                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-blue-100">
+                  <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-blue-border)]">
                     <p className="text-[8px] font-black text-[var(--color-info)] uppercase">Reconocer Alto Rendimiento</p>
                     <p className="text-[7px] text-[var(--color-info)]">{staffEfficiency.filter(s => s.efficiency > 3).length} equipos destacados</p>
                   </div>
@@ -905,21 +905,21 @@ data={[
             {/* Métricas de conectividad */}
             <div className="bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-success)_20%,transparent)] rounded-2xl p-3">
               <div className="flex items-center gap-2 mb-2">
-                <Building2 size={16} className="text-emerald-500" />
+                <Building2 size={16} className="text-[var(--color-success)]" />
                 <h3 className="text-[10px] font-black text-[var(--color-success)] uppercase tracking-widest">Estado General</h3>
               </div>
               <div className="space-y-2">
-                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-emerald-100">
+                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-green-border)]">
                   <p className="text-[8px] font-black text-[var(--color-success)] uppercase">Proyectos Activos</p>
-                  <p className="text-[7px] text-emerald-500">{stats.ejecucion.length} en ejecución</p>
+                  <p className="text-[7px] text-[var(--color-success)]">{stats.ejecucion.length} en ejecución</p>
                 </div>
-                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-emerald-100">
+                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-green-border)]">
                   <p className="text-[8px] font-black text-[var(--color-success)] uppercase">Personal Asignado</p>
-                  <p className="text-[7px] text-emerald-500">{activeStaff.filter(s => s.projectIds?.length > 0).length} de {activeStaff.length} activos</p>
+                  <p className="text-[7px] text-[var(--color-success)]">{activeStaff.filter(s => s.projectIds?.length > 0).length} de {activeStaff.length} activos</p>
                 </div>
-                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-emerald-100">
+                <div className="bg-[var(--color-surface-solid)] rounded-lg p-2 border border-[var(--color-green-border)]">
                   <p className="text-[8px] font-black text-[var(--color-success)] uppercase">Proveedores Activos</p>
-                  <p className="text-[7px] text-emerald-500">{supplierAnalysis.filter(s => s.orderCount > 0).length} con órdenes</p>
+                  <p className="text-[7px] text-[var(--color-success)]">{supplierAnalysis.filter(s => s.orderCount > 0).length} con órdenes</p>
                 </div>
               </div>
             </div>
@@ -1126,7 +1126,7 @@ data={[
                     module: 'Inventario',
                     total: validInventoryItems.length,
                     connected: validInventoryItems.filter(i => i.projectId && existingProjectIds.has(i.projectId)).length,
-                    icon: <Package size={12} className="text-emerald-500" />
+                    icon: <Package size={12} className="text-[var(--color-success)]" />
                   }
                 ].map((row, i) => {
                   const percentage = row.total > 0 ? precise((row.connected / row.total) * 100, 0) : 0;

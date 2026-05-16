@@ -280,6 +280,42 @@ La función `writeWithOfflineQueue` ahora escribe directamente en Firestore sin 
 - **Tablas**: `table-wrap` con overflow-x-auto, `table-compact` para denso.
 - **Grids**: Cards stack vertical en mobile, multidireccional en tablet/desktop con media queries.
 
+## Recent Improvements (2026-05-18)
+
+### 1. Tipologías expandidas a ~40 renglones c/u
+- **COMERCIAL**: 37 renglones (era 3) — preliminares, cimentación industrial, estructura metálica, fachada muro cortina, instalaciones especializadas (CCTV, ascensor, A/C), acabados comerciales
+- **INDUSTRIAL**: 37 renglones (era 3) — cimentación pesada, losa industrial, estructura metálica soldada, instalaciones contra incendios/compressed air, acabados industriales
+- **CIVIL**: 37 renglones (era 3) — movimiento de tierras con bulldozer, pavimentos asfálticos, puentes/cajones, señalización vial, obras de drenaje
+- **PÚBLICA**: 39 renglones (era 2) — aulas escolares, centros de salud, obras exteriores, instalaciones accesibles, mobiliario urbano
+
+### 2. Reportes PDF — Eslogan, NIT y contacto de empresa
+- **Slogan "Edificando el Futuro"** agregado a headers, footers y bloques de firma
+- **NIT, email, teléfono, dirección** ahora aparecen en footer de todos los PDFs
+- Datos de contacto se leen de `localStorage('app-visual-settings')` — configurables desde Ajustes
+- Función `getCompanyInfo()` en `reportEngine.ts` con defaults
+
+### 3. Configuración de Contacto en Ajustes
+- SettingsContext: nuevos campos `companyNIT`, `companyEmail`, `companyPhone`, `companyAddress` con valores por defecto
+- Settings.tsx: inputs para NIT, correo, teléfono, dirección en sección "Empresa"
+- Persisten igual que el resto de settings (localStorage + Firestore)
+
+### 4. Botón "Inicio" en cada pantalla
+- Layout.tsx: botón ⌂ visible en todas las pantallas excepto Dashboard
+- Navega a `setActiveTab('dashboard')` — siempre vuelve al panel principal
+
+### 5. Columna "Pendiente de Aportar" en Seguimiento
+- Seguimiento.tsx: panel "Resumen Financiero" en vista de proyecto seleccionado
+- Muestra: Presupuesto, Aportado (txIncome), Ejecutado (txExpense), Pendiente = Presupuesto − Aportado
+- Color ámbar si hay saldo pendiente, verde si está cubierto
+
+### 6. Dimensiones estructurales — Verificación
+- `DimensionEditor.tsx` ya detecta cimentación, columnas, soleras, zapatas por descripción
+- `calcDynamicQty()` calcula volumen (l×w×h) para cimentación, columnas, soleras, zapatas
+- `calcSteelReinforcement()` calcula acero automático según ratio de tipología
+- No requirió cambios — la funcionalidad ya estaba completa
+
+---
+
 ## Recent Improvements (2026-05-16)
 
 ### 1. Budget Engine — Cálculos corregidos de tax/waste/conttingency

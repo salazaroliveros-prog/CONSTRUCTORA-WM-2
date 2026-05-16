@@ -1,19 +1,17 @@
 /* ═══════════════════════════════════════════════════════════════
-   ERP Constructora WM/M&S — Professional Design System
-   Minimalist · Elegant · Corporate · Figma-Inspired
+   ERP Constructora WM/M&S — Snow Dashboard Design System
+   Minimalist · Professional · Premium
+   Inspired by ByeWind Snow Dashboard UI Kit
    ═══════════════════════════════════════════════════════════════ */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
-/* ──────────────────────────────────────────────────────
-   TOKENS
-   ────────────────────────────────────────────────────── */
 @theme {
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', 'SF Mono', 'Fira Code', monospace;
 
-  /* Core palette */
+  /* ─── Core palette (warmer slate) ─── */
   --color-p-900: #0f172a;
   --color-p-800: #1e293b;
   --color-p-700: #334155;
@@ -25,13 +23,13 @@
   --color-p-100: #f1f5f9;
   --color-p-50:  #f8fafc;
 
-  /* Brand */
+  /* ─── Brand ─── */
   --color-brand:       #0f172a;
   --color-brand-light: #1e293b;
   --color-accent:      #f59e0b;
   --color-accent-soft: rgba(245,158,11,0.08);
 
-  /* Semantic */
+  /* ─── Semantic ─── */
   --color-green:  #059669;
   --color-red:    #dc2626;
   --color-amber:  #d97706;
@@ -40,8 +38,12 @@
   --color-red-bg:   #fef2f2;
   --color-amber-bg: #fffbeb;
   --color-blue-bg:  #eff6ff;
+  --color-green-border: rgba(5,150,105,0.2);
+  --color-red-border:   rgba(220,38,38,0.2);
+  --color-amber-border: rgba(217,119,6,0.2);
+  --color-blue-border:  rgba(37,99,235,0.2);
 
-  /* Module accents */
+  /* ─── Module accents ─── */
   --color-mod-dashboard: #8b5cf6;
   --color-mod-projects:  #f59e0b;
   --color-mod-execution: #06b6d4;
@@ -56,31 +58,42 @@
   --color-mod-fisico:    #84cc16;
   --color-mod-ai:        #14b8a6;
 
-  /* Surfaces */
-  --color-bg:     #f1f5f9;
+  /* ─── Sidebar (Snow dark) ─── */
+  --color-sidebar:       #12141e;
+  --color-sidebar-alt:   #181b28;
+  --color-sidebar-hover: #1e2132;
+  --color-sidebar-active:#232639;
+  --color-sidebar-text:  #8b8fa8;
+  --color-sidebar-text-active: #f1f5f9;
+  --color-sidebar-border: rgba(255,255,255,0.05);
+  --color-sidebar-accent: #f59e0b;
+
+  /* ─── Surfaces ─── */
+  --color-bg:     #f4f6fa;
   --color-surface: #ffffff;
   --color-surface-solid: #ffffff;
-  --color-surface-alt: #f1f5f9;
+  --color-surface-alt: #f0f2f7;
   --color-card:    #ffffff;
   --color-nav:     rgba(255,255,255,0.85);
-  --color-border:  #e2e8f0;
-  --color-border-light: rgba(226,232,240,0.5);
-  --color-border-strong: #cbd5e1;
+  --color-border:  #e8ecf3;
+  --color-border-light: rgba(232,236,243,0.5);
+  --color-border-strong: #d0d5e0;
 
-  /* Shadows */
-  --shadow-card:   0 1px 3px rgba(15,23,42,0.06), 0 1px 2px rgba(15,23,42,0.04);
-  --shadow-elevated: 0 10px 25px -5px rgba(15,23,42,0.1), 0 4px 10px -5px rgba(15,23,42,0.04);
-  --shadow-modal: 0 25px 50px -12px rgba(15,23,42,0.25);
-  --shadow-glow: 0 0 24px rgba(245,158,11,0.2);
+  /* ─── Shadows (premium multi-layer) ─── */
+  --shadow-card:   0 1px 2px rgba(15,23,42,0.04), 0 1px 4px rgba(15,23,42,0.03);
+  --shadow-elevated: 0 4px 12px rgba(15,23,42,0.06), 0 8px 24px rgba(15,23,42,0.04);
+  --shadow-modal: 0 20px 50px rgba(15,23,42,0.12), 0 8px 20px rgba(15,23,42,0.08);
+  --shadow-glow: 0 0 20px rgba(245,158,11,0.15);
+  --shadow-card-sm: 0 1px 3px rgba(15,23,42,0.04);
 
-  /* Radii */
+  /* ─── Radii ─── */
   --radius-card: 0.75rem;
   --radius-btn:  0.5rem;
   --radius-input: 0.5rem;
   --radius-badge: 9999px;
   --radius-table: 0.5rem;
 
-  /* Easing */
+  /* ─── Easing ─── */
   --ease-out: cubic-bezier(0.16,1,0.3,1);
   --ease-in: cubic-bezier(0.4,0,1,1);
   --ease-smooth: cubic-bezier(0.4,0,0.2,1);
@@ -220,9 +233,11 @@
 
   /* ═══ CARDS ═══ */
   .card {
-    background: var(--color-card); border: 1px solid var(--color-border);
-    border-radius: var(--radius-card); box-shadow: var(--shadow-card);
-    transition: all 200ms var(--ease-smooth);
+    background: var(--color-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    transition: all 220ms var(--ease-smooth);
+    position: relative;
   }
   .card:hover {
     box-shadow: var(--shadow-elevated);
@@ -230,14 +245,14 @@
 
   .card-header {
     display: flex; align-items: center; justify-content: space-between; gap: 0.75rem;
-    padding: 0.875rem 1rem 0.625rem;
+    padding: 1rem 1.125rem 0.75rem;
     border-bottom: 1px solid var(--color-border);
   }
 
-  .card-body  { padding: 1rem; }
+  .card-body  { padding: 1.125rem; }
   .card-footer {
     display: flex; align-items: center; justify-content: flex-end; gap: 0.5rem;
-    padding: 0.625rem 1rem 0.875rem;
+    padding: 0.75rem 1.125rem 1rem;
     border-top: 1px solid var(--color-border);
   }
 
@@ -262,22 +277,25 @@
   .card-accent-fisico::before    { background: var(--color-mod-fisico); }
   .card-accent-ai::before        { background: var(--color-mod-ai); }
 
-  /* Stat card */
+  /* Stat card — Snow-style clean */
   .stat-card {
-    background: var(--color-card); border: 1px solid var(--color-border);
-    border-radius: var(--radius-card); box-shadow: var(--shadow-card);
-    padding: 1rem; transition: all 200ms var(--ease-smooth);
+    background: var(--color-card);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    padding: 1.125rem;
+    transition: all 220ms var(--ease-smooth);
   }
   .stat-card:hover {
     box-shadow: var(--shadow-elevated);
+    transform: translateY(-1px);
   }
   .stat-icon {
-    width: 2.5rem; height: 2.5rem; border-radius: 0.5rem;
+    width: 2.5rem; height: 2.5rem; border-radius: 0.625rem;
     display: flex; align-items: center; justify-content: center;
   }
   .stat-value {
-    font-size: 1.375rem; font-weight: 800; line-height: 1.2;
-    letter-spacing: -0.02em; color: var(--color-p-900);
+    font-size: 1.5rem; font-weight: 800; line-height: 1.15;
+    letter-spacing: -0.03em; color: var(--color-p-900);
   }
   .stat-label {
     font-size: 0.6875rem; font-weight: 600; text-transform: uppercase;
@@ -292,6 +310,7 @@
   .table-wrap {
     overflow-x: auto; border-radius: var(--radius-table);
     border: 1px solid var(--color-border); background: var(--color-surface);
+    box-shadow: var(--shadow-card-sm);
   }
 
   .table {
@@ -306,11 +325,11 @@
     }
     td {
       padding: 0.625rem 0.75rem;
-      border-bottom: 1px solid var(--color-p-100);
+      border-bottom: 1px solid var(--color-border-light);
       color: var(--color-p-700); vertical-align: middle;
     }
     tr:last-child td { border-bottom: none; }
-    tbody tr { transition: background 120ms ease; }
+    tbody tr { transition: background 100ms ease; }
     tbody tr:hover td { background: var(--color-accent-soft); }
   }
 
@@ -421,6 +440,48 @@
     0% { background-position: -600px 0; }
     100% { background-position: 600px 0; }
   }
+
+  /* ═══ SIDEBAR — Snow dark ═══ */
+  .sidebar {
+    background: var(--color-sidebar);
+    border-right: 1px solid var(--color-sidebar-border);
+  }
+  .sidebar-logo {
+    border-bottom: 1px solid var(--color-sidebar-border);
+  }
+  .sidebar-item {
+    display: flex; align-items: center; gap: 0.625rem;
+    padding: 0.5rem 0.75rem; border-radius: 0.5rem;
+    font-size: 0.8125rem; font-weight: 500;
+    color: var(--color-sidebar-text);
+    transition: all 150ms var(--ease-smooth);
+    cursor: pointer; text-decoration: none; width: 100%; border: none; text-align: left;
+  }
+  .sidebar-item:hover {
+    background: var(--color-sidebar-hover);
+    color: var(--color-sidebar-text-active);
+  }
+  .sidebar-item.active {
+    background: var(--color-sidebar-active);
+    color: var(--color-sidebar-text-active);
+  }
+  .sidebar-item.active::before {
+    content: ''; position: absolute; left: -0.75rem; top: 50%; transform: translateY(-50%);
+    width: 3px; height: 1rem; border-radius: 0 3px 3px 0;
+    background: var(--color-sidebar-accent);
+  }
+  .sidebar-group-title {
+    padding: 0.5rem 0.75rem 0.25rem;
+    font-size: 0.5625rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.08em; color: rgba(255,255,255,0.15);
+  }
+  .sidebar-collapse-btn {
+    display: flex; align-items: center; justify-content: center;
+    height: 2.5rem; border-top: 1px solid var(--color-sidebar-border);
+    color: var(--color-sidebar-text);
+    transition: color 150ms ease; cursor: pointer; border: none; background: none; width: 100%;
+  }
+  .sidebar-collapse-btn:hover { color: var(--color-sidebar-text-active); }
 
   /* ═══ LAYOUT ═══ */
   .module-fill { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; }
@@ -535,12 +596,12 @@
     border-top: 1px solid rgba(255,255,255,0.06);
   }
 
-  /* Glass */
+  /* Glass — Snow-style subtle */
   .glass {
-    background: rgba(255,255,255,0.7);
-    -webkit-backdrop-filter: blur(16px);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.75);
+    -webkit-backdrop-filter: blur(20px);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(232,236,243,0.5);
   }
 
   /* Print */

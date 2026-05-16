@@ -64,10 +64,9 @@ export function TopBar({
     });
 
   return (
-    <header className="h-14 sm:h-16 backdrop-blur-xl bg-surface/80 border-b border-border/50 px-3 sm:px-5 flex items-center gap-2 shrink-0 z-30">
+    <header className="h-14 sm:h-16 glass px-3 sm:px-5 flex items-center gap-2 shrink-0 z-30">
       {/* Left: Hamburger + Search */}
       <div className="flex items-center gap-1 shrink-0 min-w-0">
-        {/* Mobile hamburger */}
         {onToggleMobile && (
           <button
             onClick={onToggleMobile}
@@ -79,9 +78,9 @@ export function TopBar({
         )}
         <div className={cn(
           "hidden lg:flex items-center gap-2 bg-neutral-50 border border-border rounded-xl px-3 py-1.5 transition-all duration-200",
-          searchFocused ? "border-secondary ring-2 ring-secondary/10 w-64" : "w-48 hover:border-neutral-300"
+          searchFocused ? "border-accent ring-2 ring-accent/10 w-64" : "w-48 hover:border-neutral-300"
         )}>
-          <Search size={16} className={cn("shrink-0 transition-colors", searchFocused ? "text-secondary" : "text-neutral-400")} />
+          <Search size={16} className={cn("shrink-0 transition-colors", searchFocused ? "text-accent" : "text-neutral-400")} />
           <input
             type="text"
             placeholder="Buscar proyectos, clientes..."
@@ -112,7 +111,7 @@ export function TopBar({
                 <React.Fragment key={b.label}>
                   {i > 0 && <span className="mx-1 text-neutral-300">/</span>}
                   {b.href ? (
-                    <a href={b.href} className="hover:text-secondary transition-colors">{b.label}</a>
+                    <a href={b.href} className="hover:text-accent transition-colors">{b.label}</a>
                   ) : (
                     <span className="text-neutral-500">{b.label}</span>
                   )}
@@ -127,15 +126,12 @@ export function TopBar({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-1 shrink-0">
-        {/* Quick Actions Bar */}
         <div className="hidden sm:flex items-center gap-0.5 px-1 py-1 bg-neutral-50 rounded-lg">
-          {/* Date */}
           <div className="hidden xl:block px-2">
             <span className="text-[9px] font-medium text-neutral-500 whitespace-nowrap capitalize">
               {formatDate(currentTime)}
             </span>
           </div>
-          {/* Clock */}
           <div className="px-2 py-0.5 bg-white rounded-md shadow-sm border border-border/50">
             <span className="text-[10px] font-mono font-bold text-neutral-600">
               {formatTime(currentTime)}
@@ -143,10 +139,8 @@ export function TopBar({
           </div>
         </div>
 
-        {/* Divider */}
         <div className="w-px h-6 bg-border mx-1 hidden sm:block" />
 
-        {/* Fullscreen */}
         <Tooltip content="Pantalla completa">
           <button
             onClick={onToggleFullscreen}
@@ -157,24 +151,22 @@ export function TopBar({
           </button>
         </Tooltip>
 
-        {/* Help */}
         <Tooltip content="Ayuda y guías">
           <button className="hidden sm:flex p-2 text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 rounded-lg transition-colors relative group">
             <HelpCircle size={16} />
-            <span className="absolute -top-1 -right-1 w-2 h-2 bg-secondary rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
           </button>
         </Tooltip>
 
-        {/* AI Assistant */}
         <Tooltip content="Asistente IA">
           <button
             onClick={onOpenAI}
-            className="relative p-2 rounded-lg transition-colors text-neutral-400 hover:text-secondary hover:bg-secondary/5 group"
+            className="relative p-2 rounded-lg transition-colors text-neutral-400 hover:text-accent hover:bg-accent/5 group"
             aria-label="Asistente IA"
           >
             <Sparkles size={16} className="group-hover:animate-pulse" />
             <motion.span
-              className="absolute -top-1 -right-1 w-2 h-2 bg-secondary rounded-full"
+              className="absolute -top-1 -right-1 w-2 h-2 bg-accent rounded-full"
               animate={{ scale: [1, 1.3, 1] }}
               transition={{ duration: 2, repeat: Infinity }}
             />
@@ -192,7 +184,7 @@ export function TopBar({
               <Bell size={16} />
               {unreadCount > 0 && (
                 <motion.span
-                  className="absolute -top-1 -right-1 w-2 h-2 bg-error border border-white rounded-full"
+                  className="absolute -top-1 -right-1 w-2 h-2 bg-red border border-white rounded-full"
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                 />
@@ -230,14 +222,13 @@ export function TopBar({
           </AnimatePresence>
         </div>
 
-        {/* Divider */}
         <div className="w-px h-6 bg-border mx-1" />
 
         {/* User menu */}
         <div className="relative" ref={userMenuRef}>
           <button
             onClick={() => setShowUserMenu(!showUserMenu)}
-            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-neutral-50 transition-colors group"
+            className="flex items-center gap-2 pl-1 pr-2 py-1 rounded-lg hover:bg-neutral-100/50 transition-colors group"
           >
             {userPhoto ? (
               <img
@@ -247,7 +238,7 @@ export function TopBar({
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             ) : (
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary to-primary-light flex items-center justify-center text-white text-[10px] font-black shadow-sm">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-neutral-800 to-neutral-900 flex items-center justify-center text-white text-[10px] font-black shadow-sm">
                 {userName?.charAt(0)?.toUpperCase() || "W"}
               </div>
             )}
@@ -269,13 +260,11 @@ export function TopBar({
                 transition={{ duration: 0.15 }}
                 className="absolute right-0 mt-2 w-56 rounded-2xl bg-surface border border-border shadow-xl z-50 overflow-hidden"
               >
-                {/* User info header */}
                 <div className="px-4 py-3 border-b border-border">
                   <p className="text-sm font-bold text-neutral-800 truncate">{userName}</p>
                   <p className="text-[10px] text-neutral-500 truncate">Administrador del sistema</p>
                 </div>
 
-                {/* Menu items */}
                 <div className="py-1">
                   <button className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-neutral-700 hover:bg-neutral-50 transition-colors">
                     <User size={15} className="text-neutral-400" />

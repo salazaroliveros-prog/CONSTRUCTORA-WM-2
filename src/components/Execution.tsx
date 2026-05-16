@@ -212,10 +212,10 @@ const handleAddLog = async (e: React.FormEvent) => {
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
-          { label: 'Eficiencia Cierre', value: `${stats.performance}%`, icon: <ClipboardList size={16} />, color: 'bg-blue-500', pulse: false },
-          { label: 'Stock Crítico',     value: stats.criticalStock,      icon: <Package size={16} />,      color: stats.criticalStock > 0 ? 'bg-red-500' : 'bg-emerald-500', pulse: stats.criticalStock > 0 },
-          { label: 'Presupuesto Activo',value: fmtQ(stats.totalBudget),  icon: <TrendingUp size={16} />,   color: 'bg-amber-500', pulse: false },
-          { label: 'Con Retraso',       value: stats.delayed,            icon: <AlertTriangle size={16} />,color: stats.delayed > 0 ? 'bg-red-500' : 'bg-green-500', pulse: stats.delayed > 0 },
+          { label: 'Eficiencia Cierre', value: `${stats.performance}%`, icon: <ClipboardList size={16} />, color: 'bg-[var(--color-info)]', pulse: false },
+          { label: 'Stock Crítico',     value: stats.criticalStock,      icon: <Package size={16} />,      color: stats.criticalStock > 0 ? 'bg-[var(--color-error)]' : 'bg-[var(--color-success)]', pulse: stats.criticalStock > 0 },
+          { label: 'Presupuesto Activo',value: fmtQ(stats.totalBudget),  icon: <TrendingUp size={16} />,   color: 'bg-[var(--color-accent)]', pulse: false },
+          { label: 'Con Retraso',       value: stats.delayed,            icon: <AlertTriangle size={16} />,color: stats.delayed > 0 ? 'bg-[var(--color-error)]' : 'bg-[var(--color-success)]', pulse: stats.delayed > 0 },
         ].map((kpi, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
             className="bg-[var(--color-surface-solid)] p-4 rounded-2xl border border-[var(--color-neutral-100)] shadow-sm">

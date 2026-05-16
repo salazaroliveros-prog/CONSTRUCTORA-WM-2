@@ -10,16 +10,16 @@ interface AppShellProps {
 
 export function AppShell({ children, sidebar, topBar, mobileNav }: AppShellProps) {
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-linear-to-br from-n-50 via-white to-n-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-bg">
       {topBar && (
-        <header className="h-14 sm:h-16 backdrop-blur-xl bg-white/80 border-b border-border/50 px-3 sm:px-5 flex items-center shrink-0 z-30">
+        <div className="shrink-0 z-30">
           {topBar}
-        </header>
+        </div>
       )}
 
       <div className="flex flex-1 overflow-hidden">
         {sidebar && (
-          <aside className="hidden lg:flex lg:w-64 lg:shrink-0 border-r border-border/50 bg-white/90 backdrop-blur-xl z-20">
+          <aside className="hidden lg:flex lg:w-64 lg:shrink-0 z-20">
             {sidebar}
           </aside>
         )}

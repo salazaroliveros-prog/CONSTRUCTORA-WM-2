@@ -276,6 +276,42 @@ export default function Settings() {
               />
               {settings.companyLogo && <img src={settings.companyLogo} alt="logo" className="mt-2 h-10 object-contain" />}
             </div>
+            <div>
+              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">NIT</label>
+              <input
+                value={settings.companyNIT}
+                onChange={e => updateSettings({ companyNIT: e.target.value })}
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                placeholder="NIT"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Correo Electrónico</label>
+              <input
+                value={settings.companyEmail}
+                onChange={e => updateSettings({ companyEmail: e.target.value })}
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                placeholder="correo@ejemplo.com"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Teléfono</label>
+              <input
+                value={settings.companyPhone}
+                onChange={e => updateSettings({ companyPhone: e.target.value })}
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                placeholder="+502 1234-5678"
+              />
+            </div>
+            <div>
+              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-2">Dirección</label>
+              <input
+                value={settings.companyAddress}
+                onChange={e => updateSettings({ companyAddress: e.target.value })}
+                className="w-full bg-[var(--color-neutral-50)] border border-[var(--color-neutral-200)] rounded-xl px-4 py-2.5 text-[10px] font-black focus:outline-none focus:border-secondary"
+                placeholder="Dirección de la empresa"
+              />
+            </div>
           </div>
         </section>
 
@@ -317,7 +353,7 @@ export default function Settings() {
                 value={settings.aiModel}
                 onChange={e => updateSettings({ aiModel: e.target.value })}
                 title="Seleccionar modelo de IA"
-                className="w-full px-4 py-3 rounded-xl text-[12px] font-bold text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400"
+                className="w-full px-4 py-3 rounded-xl text-[12px] font-bold text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-mod-dashboard)]/30 focus:border-[var(--color-mod-dashboard)]"
               >
                 <option value="gemini-2.5-flash">Gemini 2.5 Flash — rápido y eficiente (actual)</option>
                 <option value="gemini-2.5-pro">Gemini 2.5 Pro — máxima calidad, análisis profundos</option>
@@ -339,7 +375,7 @@ export default function Settings() {
                 value={settings.aiApiKey}
                 onChange={e => updateSettings({ aiApiKey: e.target.value })}
                 placeholder="AIzaSy..."
-                className="w-full px-4 py-3 rounded-xl text-[12px] text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-purple-400/30 focus:border-purple-400 placeholder:text-slate-300 font-mono"
+                className="w-full px-4 py-3 rounded-xl text-[12px] text-primary border border-[var(--color-neutral-200)] bg-[var(--color-surface-solid)] focus:outline-none focus:ring-2 focus:ring-[var(--color-mod-dashboard)]/30 focus:border-[var(--color-mod-dashboard)] placeholder:text-slate-300 font-mono"
               />
               <p className="text-[8px] text-[var(--color-neutral-400)] mt-2 leading-relaxed">
                 Déjalo vacío para usar la variable de entorno <strong className="text-[var(--color-secondary-dark)]">GEMINI_API_KEY</strong> del servidor.

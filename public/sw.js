@@ -3,7 +3,7 @@
  * Estrategia: network-first con caché de respaldo para navegación SPA.
  * Sin lógica offline-first — la app funciona 100% online.
  */
-const CACHE_VERSION = 'v15';
+const CACHE_VERSION = 'v16';
 const CACHE_NAME = `wm-erp-${CACHE_VERSION}`;
 const STATIC_CACHE = `wm-static-${CACHE_VERSION}`;
 
@@ -60,12 +60,14 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  if (isStaticAsset(url.pathname)) {
-    event.respondWith(staleWhileRevalidate(event.request));
+  if (url.pathname.startsWith('/assets/') && /\.(js|css)$/i.test(url.pathname)) {
     return;
   }
 
-  event.respondWith(networkFirst(event.request));
+  if (isCacheableAsset(url.pathname)) {
+    event.respondWith(networkFirst(event.request));
+    return;
+  }
 });
 
 async function networkFirst(request) {
@@ -101,8 +103,8 @@ async function staleWhileRevalidate(request) {
   return fetchPromise;
 }
 
-function isStaticAsset(pathname) {
-  return /\.(js|css|png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json|map)$/i.test(pathname);
+function isCacheableAsset(pathname) {
+  return /\.(png|jpg|jpeg|gif|svg|ico|webp|woff|woff2|ttf|eot|json|map)$/i.test(pathname);
 }
 
 console.log('[SW] Service Worker loaded');

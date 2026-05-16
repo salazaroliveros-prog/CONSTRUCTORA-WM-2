@@ -109,7 +109,7 @@ function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete }: {
         </div>
         <div className="flex gap-1.5">
 <button aria-label="Cancelar edición" onClick={() => setEditing(false)} className="flex-1 py-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg text-[7px] font-black uppercase text-[var(--color-neutral-500)]">Cancelar</button>
-           <button aria-label="Guardar cambios" onClick={handleSave} className="flex-1 py-1 bg-amber-500 text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase">Guardar</button>
+           <button aria-label="Guardar cambios" onClick={handleSave} className="flex-1 py-1 bg-[var(--color-accent)] text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase">Guardar</button>
         </div>
       </div>
     );
@@ -503,7 +503,7 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
        {bulkMode && (
          <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
             <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)} title="Seleccionar proyecto"
-              className="w-4 h-4 accent-red-500 cursor-pointer" />
+              className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
          </div>
        )}
        <div className="p-4 space-y-3 flex-1">
@@ -515,8 +515,8 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
              <span className={cn(
                "px-2 py-0.5 rounded-full text-[7px] font-black uppercase tracking-widest",
                project.status === 'EJECUCION' ? "bg-[var(--color-secondary)] text-[var(--color-primary)]" :
-               project.status === 'COTIZACION' ? "bg-blue-500 text-[var(--color-neutral-50)]" :
-               "bg-green-500 text-[var(--color-neutral-50)]"
+               project.status === 'COTIZACION' ? "bg-[var(--color-info)] text-[var(--color-neutral-50)]" :
+               "bg-[var(--color-success)] text-[var(--color-neutral-50)]"
              )}>
                {project.status}
              </span>
@@ -561,7 +561,7 @@ const ProjectCard = React.memo(({ project }: { project: any; [key: string]: any 
           <button
             onClick={(e) => handleDelete(e, project.id)}
             aria-label="Eliminar proyecto"
-            className="p-1.5 text-slate-300 hover:text-[var(--color-error)] hover:bg-red-50 rounded-lg transition-all"
+            className="p-1.5 text-slate-300 hover:text-[var(--color-error)] hover:bg-[var(--color-error-bg)] rounded-lg transition-all"
           >
             <Trash2 size={14} />
           </button>
@@ -659,10 +659,10 @@ const totalBudget   = PMath.sum(projects.map(p => p.budget || 0));
 return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 {[
-                 { icon: <Building2 size={12} className="text-blue-500" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-[var(--color-info)]' },
-{ icon: <DollarSign size={12} className="text-amber-500" />,  label: 'Presupuesto Total', value: `Q ${fmtQ(totalBudget/1000)}k`, sub: `Q ${fmtQ(execBudget/1000)}k activo`, color: 'text-[var(--color-warning)]' },
-                  { icon: <TrendingUp size={12} className="text-green-500" />,  label: 'Ejecutado',         value: `Q ${fmtQ(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${precise(deviation, 1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-[var(--color-error)]' : 'text-green-700' },
-                 { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-[var(--color-error)]' : 'text-green-500'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-[var(--color-error)]' : 'text-green-700' },
+                 { icon: <Building2 size={12} className="text-[var(--color-info)]" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-[var(--color-info)]' },
+{ icon: <DollarSign size={12} className="text-[var(--color-accent)]" />,  label: 'Presupuesto Total', value: `Q ${fmtQ(totalBudget/1000)}k`, sub: `Q ${fmtQ(execBudget/1000)}k activo`, color: 'text-[var(--color-warning)]' },
+                  { icon: <TrendingUp size={12} className="text-[var(--color-success)]" />,  label: 'Ejecutado',         value: `Q ${fmtQ(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${precise(deviation, 1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
+                 { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]' },
               ].map(k => (
                 <div key={k.label} className="bg-[var(--color-surface-solid)]  border border-[var(--color-neutral-200)]  rounded-lg p-2 sm:p-3 shadow-sm ">
                   <div className="flex items-center gap-1 mb-1">{k.icon}<span className="text-[6px] sm:text-[7px] font-black text-[var(--color-neutral-400)]  uppercase">{k.label}</span></div>
@@ -719,7 +719,7 @@ return (
                   <Layers size={15} />
                 </button>
                 <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
-                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-[var(--color-neutral-50)] shadow-sm ' : 'bg-[var(--color-neutral-100)]  text-[var(--color-neutral-500)]  hover:text-slate-800 '}`}>
+                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-[var(--color-error)] text-[var(--color-neutral-50)] shadow-sm ' : 'bg-[var(--color-neutral-100)]  text-[var(--color-neutral-500)]  hover:text-slate-800 '}`}>
                  {bulkMode ? 'Cancelar' : 'Seleccionar'}
                </button>
                 <div className="flex flex-col gap-0.5 min-w-30">
@@ -766,7 +766,7 @@ return (
                    {bulkMode && (
                      <th className="px-2 py-2 w-6">
                         <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
-                          onChange={toggleSelectAllProjects} title="Seleccionar todo" className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                          onChange={toggleSelectAllProjects} title="Seleccionar todo" className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
                      </th>
                    )}
                    <th className="px-4 py-2 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest">Proyecto</th>
@@ -783,12 +783,12 @@ return (
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
                       onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-                      className={`group hover:bg-[var(--color-neutral-50)]/50 /50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50  border-l-2 border-red-500" : ""}`}
+                      className={`group hover:bg-[var(--color-neutral-50)]/50 /50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50  border-l-2 border-[var(--color-error)]" : ""}`}
                     >
                      {bulkMode && (
                        <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
                           <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)} title="Seleccionar proyecto"
-                            className="w-3.5 h-3.5 accent-red-500 cursor-pointer" />
+                            className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
                        </td>
                      )}
                      <td className="px-4 py-2">
@@ -813,8 +813,8 @@ return (
                          <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest">
                            <span className={cn(
                              project.status === 'EJECUCION' ? "text-[var(--color-secondary)]" :
-                             project.status === 'COTIZACION' ? "text-blue-500" :
-                             "text-green-500"
+                             project.status === 'COTIZACION' ? "text-[var(--color-info)]" :
+                             "text-[var(--color-success)]"
                            )}>{project.status}</span>
                            <span className="text-[var(--color-neutral-400)]">{project.progress || 0}%</span>
                          </div>
@@ -835,7 +835,7 @@ return (
                            <button
                              onClick={(e) => handleDelete(e, project.id)}
                              aria-label="Eliminar proyecto"
-                             className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-[var(--color-error)] hover:bg-red-50 :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
+                             className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-[var(--color-error)] hover:bg-[var(--color-error-bg)] :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
                            >
                              <Trash2 size={12} />
                            </button>
@@ -865,8 +865,8 @@ return (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
             {[
               { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-[var(--color-neutral-100)]  border-[var(--color-neutral-200)] ', dot: 'bg-slate-400 ' },
-{ id: 'EJECUCION', label: 'Ejecucion', color: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)]  border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] ', dot: 'bg-blue-500' },
-               { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-green-50  border-green-200 ', dot: 'bg-green-500' },
+{ id: 'EJECUCION', label: 'Ejecucion', color: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)]  border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] ', dot: 'bg-[var(--color-info)]' },
+               { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-[var(--color-success-bg)]  border-[var(--color-green-border)] ', dot: 'bg-[var(--color-success)]' },
             ].map(col => (
               <div key={col.id} className={`rounded-2xl border p-4 space-y-3 ${col.color}`}>
                 <div className="flex items-center gap-2 mb-2">
@@ -948,7 +948,7 @@ return (
                 {isEditing ? (
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => { setIsEditing(false); setEditForm({}); }} className="px-3 py-1.5 bg-[var(--color-neutral-100)]  text-[var(--color-neutral-600)]  rounded-lg text-xs font-bold uppercase">Cancelar</button>
-                    <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-emerald-600 text-[var(--color-neutral-50)] rounded-lg text-xs font-bold uppercase">Guardar</button>
+                    <button onClick={handleSaveEdit} className="px-3 py-1.5 bg-[var(--color-success)] text-[var(--color-neutral-50)] rounded-lg text-xs font-bold uppercase">Guardar</button>
                   </div>
                 ) : (
                   <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-[var(--color-neutral-900)]  text-[var(--color-neutral-50)] rounded-lg text-xs font-bold uppercase">
@@ -978,18 +978,18 @@ return (
                 <div className="col-span-2 md:col-span-4 bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)] rounded-2xl p-5 space-y-4">
                   <p className="text-[9px] font-black text-[var(--color-warning)] uppercase tracking-widest">Modo Edicion</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Nombre del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Nombre del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
                     <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Cliente</label>
-                      <select title="Seleccionar cliente" value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400">
+                      <select title="Seleccionar cliente" value={editForm.clientName||""} onChange={e=>setEditForm(p=>({...p,clientName:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]">
                         <option value="">— Seleccionar —</option>
                         {allClients.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                         {editForm.clientName && !allClients.find(c => c.name === editForm.clientName) && <option value={editForm.clientName}>{editForm.clientName}</option>}
                       </select>
                     </div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Estado</label><select title="Seleccionar estado" value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} placeholder="Ubicación del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" title="Fecha de inicio" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
-                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Fin</label><input type="date" title="Fecha de fin" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-amber-400" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Estado</label><select title="Seleccionar estado" value={editForm.status||""} onChange={e=>setEditForm(p=>({...p,status:e.target.value as any}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]"><option value="COTIZACION">Cotizacion</option><option value="EJECUCION">Ejecucion</option><option value="FINALIZADO">Finalizado</option></select></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Ubicacion</label><input value={editForm.location||""} onChange={e=>setEditForm(p=>({...p,location:e.target.value}))} placeholder="Ubicación del proyecto" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Inicio</label><input type="date" title="Fecha de inicio" value={editForm.startDate||""} onChange={e=>setEditForm(p=>({...p,startDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
+                    <div><label className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Fecha Fin</label><input type="date" title="Fecha de fin" value={editForm.endDate||""} onChange={e=>setEditForm(p=>({...p,endDate:e.target.value}))} className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl px-3 py-2 text-[10px] font-black focus:outline-none focus:border-[var(--color-accent)]" /></div>
                   </div>
                 </div>
               )}
@@ -1064,8 +1064,8 @@ return (
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase">Curva S — Avance Físico vs Tiempo</span>
                           <div className="flex items-center gap-3 text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">
-                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-amber-400 inline-block" /> Teórico</span>
-                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-blue-500 inline-block" /> Real</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-accent)] inline-block" /> Teórico</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-[var(--color-info)] inline-block" /> Real</span>
                           </div>
                         </div>
                         <div className="h-48">
@@ -1082,7 +1082,7 @@ return (
                         </div>
                         <div className="flex items-center justify-between mt-2 text-[8px] font-bold">
                           <span className="text-[var(--color-neutral-400)]">Tiempo transcurrido: <span className="text-[var(--color-neutral-700)]">{Math.round(elapsed)}%</span></span>
-                          <span className={cn('font-black', (selectedProject.progress || 0) < elapsed - 10 ? 'text-[var(--color-error)]' : 'text-green-600')}>
+                          <span className={cn('font-black', (selectedProject.progress || 0) < elapsed - 10 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]')}>
                             {(selectedProject.progress || 0) < elapsed - 10 ? `⚠ Retraso ${Math.round(elapsed - (selectedProject.progress || 0))}%` : '✓ Al día'}
                           </span>
                         </div>
@@ -1236,7 +1236,7 @@ return (
                             </div>
                             <div className="bg-[var(--color-surface-solid)] p-3 rounded-xl border border-[var(--color-neutral-100)] text-center">
                               <p className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1">Estado</p>
-                              <p className="text-lg font-black text-amber-600">Pendiente</p>
+                              <p className="text-lg font-black text-[var(--color-warning)]">Pendiente</p>
                               <p className="text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">compras</p>
                             </div>
                           </div>
@@ -1273,13 +1273,13 @@ return (
                           <div className="flex gap-2 pt-2 border-t border-[var(--color-neutral-100)]">
                             <button 
                               onClick={() => toast.info('Generar inventario', { description: 'Ve al módulo de Inventario y usa "Generar desde Presupuesto" para crear los materiales de este proyecto.' })}
-                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-emerald-600 text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all"
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-[var(--color-success)] text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-[var(--color-success)] transition-all"
                             >
                               <Building2 size={10}/> Generar Stock
                             </button>
                             <button 
                               onClick={() => toast.info('Crear orden de compra', { description: 'Ve al módulo de Inventario para crear órdenes de compra para este proyecto.' })}
-                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-blue-700 transition-all"
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-[var(--color-info)] text-[var(--color-neutral-50)] rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-[var(--color-info)] transition-all"
                             >
                               <ShoppingCart size={10}/> Nueva OC
                             </button>
@@ -1297,25 +1297,25 @@ return (
                   <div className="space-y-3">
                     {/* Add new item form */}
                     {addingItem ? (
-                      <div className="border border-emerald-200 bg-emerald-50 rounded-2xl p-4 space-y-3">
+                      <div className="border border-[var(--color-green-border)] bg-[var(--color-success-bg)] rounded-2xl p-4 space-y-3">
                         <p className="text-[9px] font-black text-[var(--color-success)] uppercase tracking-widest">Nuevo Renglon</p>
                         <div className="grid grid-cols-2 gap-2">
                           <div>
                             <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Código</label>
-                            <input value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" className="w-full bg-[var(--color-surface-solid)] border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-emerald-400" />
+                            <input value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-success)]" />
                           </div>
                           <div>
                             <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Unidad</label>
-                            <input value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." className="w-full bg-[var(--color-surface-solid)] border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-emerald-400" />
+                            <input value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-success)]" />
                           </div>
                         </div>
                         <div>
                           <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Descripción</label>
-                          <input value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripcion del renglon..." className="w-full bg-[var(--color-surface-solid)] border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-emerald-400" />
+                          <input value={newItemForm.description} onChange={e => setNewItemForm(p => ({...p, description: e.target.value}))} placeholder="Descripcion del renglon..." className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-success)]" />
                         </div>
                         <div>
                           <label className="text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-0.5">Cantidad en Proyecto</label>
-                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" className="w-full bg-[var(--color-surface-solid)] border border-emerald-200 rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-emerald-400" />
+                          <input type="number" min="0" step="0.01" value={newItemForm.projectQuantity} onChange={e => setNewItemForm(p => ({...p, projectQuantity: parseFloat(e.target.value)||0}))} placeholder="0.00" className="w-full bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-[var(--color-success)]" />
                         </div>
 
                         {/* Materials sub-section */}
@@ -1326,12 +1326,12 @@ return (
                           </div>
                           {newItemForm.materials.map((m, idx) => (
                             <div key={idx} className="grid grid-cols-5 gap-1 items-center">
-                              <input value={m.name} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],name:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Material" className="col-span-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
-                              <input value={m.unit} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],unit:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Und" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
-                              <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
+                              <input value={m.name} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],name:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Material" className="col-span-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
+                              <input value={m.unit} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],unit:e.target.value}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Und" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
+                              <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
                               <div className="flex gap-0.5">
-                                <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
-                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} aria-label="Eliminar material" className="text-red-400 hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
+                                <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
+                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} aria-label="Eliminar material" className="text-[var(--color-error)] hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
                               </div>
                             </div>
                           ))}
@@ -1345,12 +1345,12 @@ return (
                           </div>
                           {newItemForm.labor.map((l, idx) => (
                             <div key={idx} className="grid grid-cols-5 gap-1 items-center">
-                              <input value={l.role} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],role:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Rol" className="col-span-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
-                              <input value={l.unit} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],unit:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Und" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-emerald-300" />
-                              <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
+                              <input value={l.role} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],role:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Rol" className="col-span-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
+                              <input value={l.unit} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],unit:e.target.value}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Und" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black uppercase focus:outline-none focus:border-[var(--color-green-border)]" />
+                              <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
                               <div className="flex gap-0.5">
-                                <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-emerald-300" />
-                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} aria-label="Eliminar mano de obra" className="text-red-400 hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
+                                <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="flex-1 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg px-1.5 py-1 text-[8px] font-black focus:outline-none focus:border-[var(--color-green-border)]" />
+                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} aria-label="Eliminar mano de obra" className="text-[var(--color-error)] hover:text-[var(--color-error)]"><Trash2 size={10} /></button>
                               </div>
                             </div>
                           ))}
@@ -1358,7 +1358,7 @@ return (
 
                         {/* Preview cost */}
                         {(newItemForm.materials.length > 0 || newItemForm.labor.length > 0) && (
-                          <div className="bg-[var(--color-surface-solid)] border border-emerald-100 rounded-xl px-3 py-2 flex justify-between items-center">
+                          <div className="bg-[var(--color-surface-solid)] border border-[var(--color-green-border)] rounded-xl px-3 py-2 flex justify-between items-center">
                             <span className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase">Costo estimado renglon</span>
                             <span className="text-[10px] font-black text-[var(--color-success)]">
 Q {PMath.fmtQ(
@@ -1373,11 +1373,11 @@ Q {PMath.fmtQ(
 
                         <div className="flex gap-2 pt-1">
                           <button onClick={() => { setAddingItem(false); setNewItemForm({code:'',description:'',unit:'M2',projectQuantity:1,materials:[],labor:[]}); }} className="flex-1 py-2 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-xl text-[8px] font-black uppercase text-[var(--color-neutral-500)]">Cancelar</button>
-                          <button onClick={addItem} className="flex-1 py-2 bg-emerald-600 text-[var(--color-neutral-50)] rounded-xl text-[8px] font-black uppercase">Guardar Renglon</button>
+                          <button onClick={addItem} className="flex-1 py-2 bg-[var(--color-success)] text-[var(--color-neutral-50)] rounded-xl text-[8px] font-black uppercase">Guardar Renglon</button>
                         </div>
                       </div>
                     ) : (
-                      <button onClick={() => setAddingItem(true)} className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-emerald-300 rounded-2xl text-[9px] font-black text-[var(--color-success)] uppercase hover:bg-emerald-50 transition-all">
+                      <button onClick={() => setAddingItem(true)} className="w-full flex items-center justify-center gap-2 py-2.5 border border-dashed border-[var(--color-green-border)] rounded-2xl text-[9px] font-black text-[var(--color-success)] uppercase hover:bg-[var(--color-success-bg)] transition-all">
                         <PlusCircle size={14} /> Agregar Renglon
                       </button>
                     )}
@@ -1402,16 +1402,16 @@ Q {PMath.fmtQ(
 
                           {/* Inline edit form for item header */}
                           {editingItem === item.id && (
-                            <div className="px-4 pb-3 bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] border-t border-blue-100 space-y-2">
+                            <div className="px-4 pb-3 bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] border-t border-[var(--color-blue-border)] space-y-2">
                               <p className="text-[8px] font-black text-[var(--color-info)] uppercase tracking-widest pt-2">Editar Renglon</p>
                               <div className="grid grid-cols-2 gap-2">
-                                <input value={itemEditForm.code || ''} onChange={e => setItemEditForm({...itemEditForm, code: e.target.value})} placeholder="Codigo" className="bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-blue-400" />
-                                <input type="number" value={itemEditForm.projectQuantity || 0} onChange={e => setItemEditForm({...itemEditForm, projectQuantity: parseFloat(e.target.value)||0})} placeholder="Cantidad" className="bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-blue-400" />
+                                <input value={itemEditForm.code || ''} onChange={e => setItemEditForm({...itemEditForm, code: e.target.value})} placeholder="Codigo" className="bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-blue-border)]" />
+                                <input type="number" value={itemEditForm.projectQuantity || 0} onChange={e => setItemEditForm({...itemEditForm, projectQuantity: parseFloat(e.target.value)||0})} placeholder="Cantidad" className="bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black focus:outline-none focus:border-[var(--color-blue-border)]" />
                               </div>
-                              <input value={itemEditForm.description || ''} onChange={e => setItemEditForm({...itemEditForm, description: e.target.value})} placeholder="Descripcion" className="w-full bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-blue-400" />
+                              <input value={itemEditForm.description || ''} onChange={e => setItemEditForm({...itemEditForm, description: e.target.value})} placeholder="Descripcion" className="w-full bg-[var(--color-surface-solid)] border border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] rounded-lg px-2 py-1.5 text-[9px] font-black uppercase focus:outline-none focus:border-[var(--color-blue-border)]" />
                               <div className="flex gap-2">
                                 <button onClick={() => setEditingItem(null)} className="flex-1 py-1.5 bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] rounded-lg text-[8px] font-black uppercase text-[var(--color-neutral-500)]">Cancelar</button>
-                                <button onClick={saveItemEdit} className="flex-1 py-1.5 bg-blue-600 text-[var(--color-neutral-50)] rounded-lg text-[8px] font-black uppercase">Guardar</button>
+                                <button onClick={saveItemEdit} className="flex-1 py-1.5 bg-[var(--color-info)] text-[var(--color-neutral-50)] rounded-lg text-[8px] font-black uppercase">Guardar</button>
                               </div>
                             </div>
                           )}
@@ -1532,7 +1532,7 @@ Q {PMath.fmtQ(
                      <div className="pt-6 border-t border-slate-800 space-y-4">
                        <div className="flex justify-between items-center">
                          <span className="text-[8px] font-black text-[var(--color-neutral-500)] uppercase">Prioridad</span>
-                         <span className="px-2 py-0.5 bg-red-500/10 text-[var(--color-error)] rounded text-[7px] font-black">ALTA</span>
+                         <span className="px-2 py-0.5 bg-[var(--color-error)]/10 text-[var(--color-error)] rounded text-[7px] font-black">ALTA</span>
                        </div>
                        <div className="flex justify-between items-center">
                          <span className="text-[8px] font-black text-[var(--color-neutral-500)] uppercase">Tipo Cobro</span>
@@ -1569,10 +1569,10 @@ Q {PMath.fmtQ(
       </Modal>
 
       {bulkMode && selectedProjectIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-[var(--color-neutral-50)] px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-[var(--color-neutral-50)] px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedProjectIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteProjects}
-            className="px-4 py-1.5 bg-[var(--color-surface-solid)] text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            className="px-4 py-1.5 bg-[var(--color-surface-solid)] text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
             Eliminar
           </button>
           <button type="button" onClick={() => setSelectedProjectIds(new Set())} aria-label="Cancelar selección"

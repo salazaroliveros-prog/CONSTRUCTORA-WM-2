@@ -164,7 +164,7 @@ function ActivityHeatmap({ data }: { data: { date: string; value: number }[] }) 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: idx * 0.005, duration: 0.2 }}
-                className="w-4 h-4 rounded-sm cursor-pointer hover:ring-2 hover:ring-slate-400 transition-all"
+                className="w-4 h-4 rounded-sm cursor-pointer hover:ring-2 hover:ring-[var(--color-p-400)] transition-all"
                 style={{ backgroundColor: getColor(value) }}
                 title={`${data[idx]?.date || ''}: ${value} actividades`}
               />
@@ -286,7 +286,7 @@ function AnimatedKpi({ value, currency }: { value: string | number; currency?: b
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] rounded-lg px-3 py-2 shadow-2xl text-left min-w-[120px]">
+    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[var(--color-border)] rounded-lg px-3 py-2 shadow-2xl text-left min-w-[120px]">
       {label && <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1.5">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
@@ -840,7 +840,7 @@ const generateReport = async () => {
                     <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-neutral-50)] border-b border-[var(--color-neutral-100)]">
                       <input title="Seleccionar todos" type="checkbox" checked={allChecked} onChange={() => setResetData(prev => ({ ...prev, [col]: { ...prev[col], selected: allChecked ? [] : items.map((d: any) => d.id) } }))} className="w-4 h-4 accent-red-500 cursor-pointer" />
                       <span className="text-[10px] font-black text-[var(--color-neutral-700)] uppercase tracking-widest flex-1">{labels[col] || col}</span>
-                      <span className="text-[8px] font-bold text-slate-400">{selected.length}/{items.length} seleccionados</span>
+                      <span className="text-[8px] font-bold text-[var(--color-p-500)]">{selected.length}/{items.length} seleccionados</span>
                     </div>
                     <div className="divide-y divide-[var(--color-neutral-50)] max-h-40 overflow-y-auto">
                       {items.map((item: any) => (
@@ -851,7 +851,7 @@ const generateReport = async () => {
                               return { ...prev, [col]: { ...prev[col], selected: sel.includes(item.id) ? sel.filter(s => s !== item.id) : [...sel, item.id] } };
                             })} className="w-3.5 h-3.5 accent-red-500 cursor-pointer shrink-0" />
                           <span className="text-[9px] font-bold text-[var(--color-neutral-600)] truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
-                          <span className="text-[7px] text-slate-300 font-mono ml-auto shrink-0">{item.id.slice(0, 8)}</span>
+                          <span className="text-[7px] text-[var(--color-p-400)] font-mono ml-auto shrink-0">{item.id.slice(0, 8)}</span>
                         </label>
                       ))}
                     </div>
@@ -863,9 +863,9 @@ const generateReport = async () => {
               )}
             </div>
             <div className="p-5 border-t border-[var(--color-neutral-100)] flex gap-3">
-              <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 rounded-xl border border-[var(--color-neutral-200)] text-[10px] font-black uppercase tracking-widest text-slate-500 hover:bg-[var(--color-neutral-50)] transition-all">Cancelar</button>
+              <button onClick={() => setIsResetModalOpen(false)} className="flex-1 py-3 rounded-xl border border-[var(--color-neutral-200)] text-[10px] font-black uppercase tracking-widest text-[var(--color-p-600)] hover:bg-[var(--color-neutral-50)] transition-all">Cancelar</button>
               <button onClick={handleConfirmReset} disabled={resetting || Object.values(resetData).every(v => v.selected.length === 0)}
-                className="flex-1 py-3 rounded-xl bg-red-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
+                className="flex-1 py-3 rounded-xl bg-[var(--color-error)] text-white text-[10px] font-black uppercase tracking-widest hover:bg-[var(--color-red)] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-2">
                 {resetting ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Eliminando...</> : <><AlertTriangle size={12} /> Eliminar Seleccionados</>}
               </button>
             </div>
@@ -888,21 +888,21 @@ const generateReport = async () => {
                <option key={p.id} value={p.id}>{p.name}</option>
              ))}
            </select>
-          <div className="flex items-center gap-1 text-[8px] text-slate-400">
-            <Calendar size={12} />
-            <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
-             title="Fecha inicial"
-             className={cn("input-modern text-[9px] font-bold w-[130px]")}
-           />
-           <span className="text-slate-300">—</span>
-           <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
-             title="Fecha final"
-             className={cn("input-modern text-[9px] font-bold w-[130px]")}
-           />
+           <div className="flex items-center gap-1 text-[8px] text-[var(--color-p-500)]">
+             <Calendar size={12} />
+             <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
+              title="Fecha inicial"
+              className={cn("input-modern text-[9px] font-bold w-[130px]")}
+            />
+            <span className="text-[var(--color-p-400)]">—</span>
+            <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
+              title="Fecha final"
+              className={cn("input-modern text-[9px] font-bold w-[130px]")}
+            />
           </div>
         </div>
         <button onClick={generateReport} disabled={generating}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-[var(--color-neutral-50)] text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-neutral-800)] disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-brand)] text-[var(--color-neutral-50)] text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-brand-light)] disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
         >
           {generating ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</> : <><Printer size={12} /> Reporte</>}
         </button>
@@ -910,11 +910,11 @@ const generateReport = async () => {
       <div className="shrink-0">
         <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
           {[
-            { label: selectedProjectId === 'ALL' ? 'Proyectos Activos' : 'Proyecto Seleccionado', value: filteredProjects.length, currency: false, icon: <Zap size={16} />, color: 'bg-blue-500', spark: null, pulse: executingProjects.length > 0, rings: { fisico: avgFisico, financiero: avgFinanciero }, onNavigate: () => setActiveTab?.('seguimiento') },
-            { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-emerald-500' : 'bg-red-500', spark: sparkNet, sparkColor: netCash >= 0 ? '#34d399' : '#f87171', pulse: false },
-            { label: selectedProjectId === 'ALL' ? 'Presp. Ejecución' : 'Presp. Proyecto', value: executingBudget, currency: true, icon: <TrendingUp size={16} />, color: 'bg-amber-500', spark: sparkInc, sparkColor: '#f59e0b', pulse: false },
-            { label: 'Presp. Fin/Pausa', value: finishedPausedBudget, currency: true, icon: <CheckCircle2 size={16} />, color: 'bg-slate-500', spark: null, pulse: false },
-            { label: 'Alertas Stock', value: criticalStock, currency: false, icon: <ShieldCheck size={16} />, color: criticalStock > 0 ? 'bg-red-500' : 'bg-emerald-500', spark: sparkExp, sparkColor: criticalStock > 0 ? '#f87171' : '#34d399', pulse: criticalStock > 0 },
+            { label: selectedProjectId === 'ALL' ? 'Proyectos Activos' : 'Proyecto Seleccionado', value: filteredProjects.length, currency: false, icon: <Zap size={16} />, color: 'bg-[var(--color-mod-dashboard)]', spark: null, pulse: executingProjects.length > 0, rings: { fisico: avgFisico, financiero: avgFinanciero }, onNavigate: () => setActiveTab?.('seguimiento') },
+            { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]', spark: sparkNet, sparkColor: netCash >= 0 ? 'var(--color-success)' : 'var(--color-error)', pulse: false },
+            { label: selectedProjectId === 'ALL' ? 'Presp. Ejecución' : 'Presp. Proyecto', value: executingBudget, currency: true, icon: <TrendingUp size={16} />, color: 'bg-[var(--color-accent)]', spark: sparkInc, sparkColor: 'var(--color-accent)', pulse: false },
+            { label: 'Presp. Fin/Pausa', value: finishedPausedBudget, currency: true, icon: <CheckCircle2 size={16} />, color: 'bg-[var(--color-p-500)]', spark: null, pulse: false },
+            { label: 'Alertas Stock', value: criticalStock, currency: false, icon: <ShieldCheck size={16} />, color: criticalStock > 0 ? 'bg-[var(--color-error)]' : 'bg-[var(--color-success)]', spark: sparkExp, sparkColor: criticalStock > 0 ? 'var(--color-error)' : 'var(--color-success)', pulse: criticalStock > 0 },
           ].map((kpi, i) => (
             <KpiCard key={i} kpi={kpi} cardClass={cardClass} index={i} />
           ))}
@@ -956,7 +956,7 @@ const generateReport = async () => {
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
                       <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
                       <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <ChartTooltip cursor={{fill: 'rgba(248,250,252,0.05)'}} content={<CustomTooltip />} />
+                      <ChartTooltip cursor={{fill: 'var(--color-p-50)'}} content={<CustomTooltip />} />
                       <Legend wrapperStyle={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase' }} />
                       <Bar dataKey="ingresos" fill="url(#barGradIngresos)" radius={[3, 3, 0, 0]} barSize={15} />
                       <Bar dataKey="gastos" fill="url(#barGradGastos)" radius={[3, 3, 0, 0]} barSize={15} />
@@ -1027,7 +1027,7 @@ const generateReport = async () => {
                    {expenseByCategory.slice(0, 4).map((item, i) => (
                      <div key={i} className="flex items-center gap-1 min-w-0">
                         <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                        <span className="text-[7px] font-black uppercase truncate text-slate-500">{item.name}</span>
+                         <span className="text-[7px] font-black uppercase truncate text-[var(--color-p-500)]">{item.name}</span>
                      </div>
                    ))}
                 </div>
@@ -1045,7 +1045,7 @@ const generateReport = async () => {
                 <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
                   <PolarGrid stroke="var(--border)" />
                   <PolarAngleAxis dataKey="area" tick={{ fontSize: 7, fontWeight: 900, fill: 'var(--text-subtle)' }} />
-                  <Radar name="Rendimiento" dataKey="value" stroke="#f59e0b" fill="#f59e0b" fillOpacity={0.4} strokeWidth={1.5} />
+                  <Radar name="Rendimiento" dataKey="value" stroke="var(--color-accent)" fill="var(--color-accent)" fillOpacity={0.4} strokeWidth={1.5} />
                 </RadarChart>
               </ResponsiveContainer>
             </div>
@@ -1055,8 +1055,8 @@ const generateReport = async () => {
           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
             <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Avances</h2>
             <div className="flex justify-around items-center h-[130px]">
-              <GaugeChart value={avgFisico} label="Físico" color="#10b981" />
-              <GaugeChart value={avgFinanciero} label="Financiero" color="#3b82f6" />
+              <GaugeChart value={avgFisico} label="Físico" color="var(--color-success)" />
+              <GaugeChart value={avgFinanciero} label="Financiero" color="var(--color-info)" />
             </div>
           </div>
 
@@ -1066,14 +1066,14 @@ const generateReport = async () => {
             <div className="flex flex-col items-center justify-center h-[130px]">
               <ActivityHeatmap data={heatmapData} />
               <div className="flex items-center gap-3 mt-2">
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-sm bg-slate-200" />
-                  <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Baja</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-sm bg-emerald-500" />
-                  <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Alta</span>
-                </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-sm bg-[var(--color-p-300)]" />
+                    <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Baja</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-1.5 h-1.5 rounded-sm bg-[var(--color-success)]" />
+                    <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Alta</span>
+                  </div>
               </div>
             </div>
           </div>
@@ -1086,11 +1086,11 @@ const generateReport = async () => {
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Estado de Cuentas por Proyecto</h2>
               {availableYears.length > 2 && (
-                <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
-                  title="Filtrar por año"
-                  className="text-[8px] font-bold uppercase tracking-wider bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1 text-slate-600 focus:outline-none focus:ring-1 focus:ring-secondary">
-                  {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'Todos' : y}</option>)}
-                </select>
+                  <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
+                    title="Filtrar por año"
+                    className="text-[8px] font-bold uppercase tracking-wider bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1 text-[var(--color-p-600)] focus:outline-none focus:ring-1 focus:ring-accent">
+                    {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'Todos' : y}</option>)}
+                  </select>
               )}
             </div>
             <div className="overflow-x-auto overflow-y-auto">
@@ -1108,8 +1108,8 @@ const generateReport = async () => {
                     <tr key={row.id} className="border-b border-[var(--color-neutral-100)] last:border-0 hover:bg-[var(--color-neutral-50)]/50 transition-colors">
                       <td className="py-1 pr-2 font-bold text-primary truncate max-w-[130px] sm:max-w-[180px]">{row.name}</td>
                       <td className="py-1 text-right font-mono font-bold px-1">Q. {fmtQ(row.costoTotal)}</td>
-                      <td className="py-1 text-right font-mono font-bold text-emerald-600 px-1">Q. {fmtQ(row.aportes)}</td>
-                      <td className={cn("py-1 text-right font-mono font-bold pl-1", row.pendiente > 0 ? "text-amber-600" : "text-slate-400")}>Q. {fmtQ(row.pendiente)}</td>
+                      <td className="py-1 text-right font-mono font-bold text-[var(--color-success)] px-1">Q. {fmtQ(row.aportes)}</td>
+                      <td className={cn("py-1 text-right font-mono font-bold pl-1", row.pendiente > 0 ? "text-[var(--color-amber)]" : "text-[var(--color-p-400)]")}>Q. {fmtQ(row.pendiente)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -1118,8 +1118,8 @@ const generateReport = async () => {
                     <tr className="border-t-2 border-[var(--color-neutral-300)]">
                       <td className="py-1.5 pr-2 font-black text-primary text-[10px]">TOTAL</td>
 <td className="py-1.5 text-right font-mono font-black text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.costoTotal)))}</td>
-                       <td className="py-1.5 text-right font-mono font-black text-emerald-600 text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.aportes)))}</td>
-                       <td className={cn("py-1.5 text-right font-mono font-black text-[10px] pl-1", tableData.some(r => r.pendiente > 0) ? "text-amber-600" : "text-slate-400")}>Q. {fmtQ(PMath.sum(tableData.map(r => r.pendiente)))}</td>
+                       <td className="py-1.5 text-right font-mono font-black text-[var(--color-success)] text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.aportes)))}</td>
+                       <td className={cn("py-1.5 text-right font-mono font-black text-[10px] pl-1", tableData.some(r => r.pendiente > 0) ? "text-[var(--color-amber)]" : "text-[var(--color-p-400)]")}>Q. {fmtQ(PMath.sum(tableData.map(r => r.pendiente)))}</td>
                     </tr>
                   </tfoot>
                 )}
@@ -1142,7 +1142,7 @@ const generateReport = async () => {
                     <motion.div 
                       initial={{ width: 0 }}
                       animate={{ width: `${p.progress || 0}%` }}
-                      className="h-full bg-slate-900 rounded-full"
+                      className="h-full bg-[var(--color-accent)] rounded-full"
                     />
                   </div>
                 </div>
@@ -1160,11 +1160,11 @@ const generateReport = async () => {
         <div className={cn(cardClass, 'rounded-xl p-3 text-left')}>
           <div className='flex items-center justify-between mb-1'>
             <h4 className='text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Movimientos Recientes</h4>
-            <span className='text-[7px] font-bold text-slate-400'>{filteredTransactions.length} registros</span>
+            <span className='text-[7px] font-bold text-[var(--color-p-500)]'>{filteredTransactions.length} registros</span>
           </div>
           <div className='overflow-auto max-h-36'>
             <table className='w-full text-left table-fixed'>
-              <thead className='sticky top-0 bg-slate-50 z-10'>
+              <thead className='sticky top-0 bg-[var(--color-p-50)] z-10'>
                 <tr className='border-b border-[var(--color-neutral-100)]'>
                   <th className='w-16 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Fecha</th>
                   <th className='px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Descripcion</th>
@@ -1177,7 +1177,7 @@ const generateReport = async () => {
                   <tr key={t.id || i} className='hover:bg-[var(--color-neutral-50)]/50 transition-colors group'>
                     <td className='px-2 py-1.5 text-[7px] font-bold text-[var(--color-neutral-500)] whitespace-nowrap'>{t.date?.slice(5) || '--'}</td>
                     <td className='px-2 py-1.5 text-[8px] font-black text-primary uppercase truncate'>{t.description || '--'}</td>
-                    <td className={cn('px-2 py-1.5 text-[8px] font-black text-right', t.type === 'INGRESO' ? 'text-emerald-600' : 'text-red-500')}>
+                    <td className={cn('px-2 py-1.5 text-[8px] font-black text-right', t.type === 'INGRESO' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]')}>
                       Q{(t.amount || 0).toLocaleString()}
                     </td>
                     <td className='px-2 py-1.5 text-right'>
@@ -1202,7 +1202,7 @@ const generateReport = async () => {
                 {/* Cotización */}
                 <button
                   onClick={() => setActiveTab?.('projects')}
-                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white"
+                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-[var(--color-brand)] to-[var(--color-brand-light)] text-white"
                 >
                   <Plus size={14} />
                   Nueva Cotización
@@ -1211,7 +1211,7 @@ const generateReport = async () => {
                 {/* Registro Contable */}
                 <button
                   onClick={() => setIsAccountingModalOpen(true)}
-                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-green-500 to-green-600 text-white"
+                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-[var(--color-green)] to-[#047857] text-white"
                 >
                   <ArrowUpRight size={14} />
                   Registro Contable
@@ -1235,7 +1235,7 @@ const generateReport = async () => {
                 <div className="pt-2 border-t border-[var(--color-neutral-200)]">
                   <button
                     onClick={handleSystemReset}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-red-50 text-red-500 border border-dashed border-red-200"
+                    className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-[var(--color-red-bg)] text-[var(--color-error)] border border-dashed border-[var(--color-red-border)]"
                   >
                     <RotateCcw size={12} />
                     Reiniciar Sistema
@@ -1257,16 +1257,16 @@ const generateReport = async () => {
                       <div className="progress-neon-fill h-full rounded-full transition-all duration-700" style={{ width: `${liquidityPct}%` }} />
                    </div>
                 </div>
-               <div className="pt-4 border-t border-white/5 space-y-2">
-                  <div className="flex justify-between text-[9px] font-bold uppercase text-slate-400">
-                     <span>Ingresos</span>
-                     <span className="text-emerald-400">+ Q{globalIncome.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-[9px] font-bold uppercase text-slate-400">
-                     <span>Egresos</span>
-                     <span className="text-red-400">- Q{globalExpenses.toLocaleString()}</span>
-                  </div>
-               </div>
+                <div className="pt-4 border-t border-white/5 space-y-2">
+                   <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
+                      <span>Ingresos</span>
+                      <span className="text-[var(--color-success)]">+ Q{globalIncome.toLocaleString()}</span>
+                   </div>
+                   <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
+                      <span>Egresos</span>
+                      <span className="text-[var(--color-error)]">- Q{globalExpenses.toLocaleString()}</span>
+                   </div>
+                </div>
             </div>
          </div>
 
@@ -1285,19 +1285,19 @@ const generateReport = async () => {
                   });
                   const total = projects.length;
                   const COLORS: Record<string, string> = {
-                    RESIDENCIAL: 'bg-blue-400',
-                    COMERCIAL: 'bg-green-400',
-                    INDUSTRIAL: 'bg-purple-400',
-                    CIVIL: 'bg-red-400',
-                    PUBLICA: 'bg-amber-400',
+                    RESIDENCIAL: 'bg-[var(--color-mod-clients)]',
+                    COMERCIAL: 'bg-[var(--color-accent)]',
+                    INDUSTRIAL: 'bg-[var(--color-mod-stock)]',
+                    CIVIL: 'bg-[var(--color-mod-seguimiento)]',
+                    PUBLICA: 'bg-[var(--color-mod-dashboard)]',
                   };
                   return Object.entries(typeCounts)
                     .sort((a, b) => b[1] - a[1])
                     .map(([type, count]) => (
                       <div key={type} className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${COLORS[type as keyof typeof COLORS] || 'bg-slate-400'}`} />
+                        <div className={`w-2 h-2 rounded-full ${COLORS[type as keyof typeof COLORS] || 'bg-[var(--color-p-400)]'}`} />
                         <span className="text-[8px] font-bold text-[var(--color-neutral-50)] uppercase">{type}</span>
-                        <span className="text-[8px] font-black text-[rgba(255,255,255,0.8)] ml-auto">{count} ({Math.round(count/total*100)}%)</span>
+                        <span className="text-[8px] font-black text-white/60 ml-auto">{count} ({Math.round(count/total*100)}%)</span>
                       </div>
                     ));
                 })()}

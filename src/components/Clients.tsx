@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+
 import {
   Users, Search, Plus, Trash2, Pencil, X, Building2,
   Phone, Mail, MapPin, FileText, TrendingUp, CheckCircle2,
@@ -180,7 +181,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={13} />
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre, email o NIT..."
-            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-bold focus:outline-none focus:border-blue-400" />
+            className="w-full bg-white border border-slate-200 rounded-xl pl-9 pr-3 py-2 text-xs font-bold focus:outline-none focus:border-[var(--color-blue-border)]" />
         </div>
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value as any)} title="Filtrar por estado"
           className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold uppercase focus:outline-none">
@@ -189,7 +190,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <option value="INACTIVO">Inactivos</option>
         </select>
         <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedClientIds(new Set()); }}
-          className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-red-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+          className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
           {bulkMode ? 'Cancelar' : 'Seleccionar'}
         </button>
         <button onClick={openCreate}
@@ -219,25 +220,25 @@ const handleSubmit = async (e: React.FormEvent) => {
                 onClick={() => { if (bulkMode) { toggleSelectClient(c.id); } else { setSelected(prev => prev?.id === c.id ? null : c); } }}
                 className={cn(
                   'bg-white border rounded-xl p-3 cursor-pointer hover:shadow-md transition-all group relative',
-                  selected?.id === c.id || selectedClientIds.has(c.id) ? 'border-blue-400 shadow-md' : 'border-slate-200'
+                  selected?.id === c.id || selectedClientIds.has(c.id) ? 'border-[var(--color-blue-border)] shadow-md' : 'border-slate-200'
                 )}
               >
                 {bulkMode && (
                   <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedClientIds.has(c.id)} onChange={() => toggleSelectClient(c.id)} aria-label="Seleccionar cliente"
-                      className="w-4 h-4 accent-red-500 cursor-pointer" />
+                      className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
                   </div>
                 )}
                 <div className={cn("flex items-center gap-3", bulkMode && "ml-7")}>
                   <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center font-black text-[10px] shrink-0',
-                    c.type === 'EMPRESA' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700')}>
+                    c.type === 'EMPRESA' ? 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]' : 'bg-[var(--color-info-bg)] text-[var(--color-info)]')}>
                     {c.type === 'EMPRESA' ? <Building2 size={16} /> : c.name?.split(' ').map(n => n[0]).join('').substring(0, 2)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="text-[10px] font-black text-slate-800 uppercase truncate">{c.name}</p>
                       <span className={cn('text-[7px] font-black px-1.5 py-0.5 rounded uppercase shrink-0',
-                        isActive ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-500')}>
+                        isActive ? 'bg-[var(--color-success-bg)] text-[var(--color-success)]' : 'bg-slate-100 text-slate-500')}>
                         {isActive ? 'Activo' : 'Inactivo'}
                       </span>
                     </div>
@@ -248,11 +249,11 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <span className="text-[8px] font-black text-slate-500">{cProjs.length} proy.</span>
                     <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button onClick={e => { e.stopPropagation(); setSelected(c); openEdit(c); }}
-                        className="p-1 hover:bg-blue-50 rounded text-slate-400 hover:text-blue-600" aria-label="Editar cliente"><Pencil size={11} /></button>
+                        className="p-1 hover:bg-[var(--color-info-bg)] rounded text-slate-400 hover:text-[var(--color-info)]" aria-label="Editar cliente"><Pencil size={11} /></button>
                       <button onClick={e => { e.stopPropagation(); handleDelete(c); }}
-                        className="p-1 hover:bg-red-50 rounded text-slate-400 hover:text-red-500" aria-label="Eliminar cliente"><Trash2 size={11} /></button>
+                        className="p-1 hover:bg-[var(--color-error-bg)] rounded text-slate-400 hover:text-[var(--color-error)]" aria-label="Eliminar cliente"><Trash2 size={11} /></button>
                     </div>
-                    <ChevronRight size={13} className={cn('text-slate-300 transition-transform', selected?.id === c.id && 'rotate-90 text-blue-400')} />
+                    <ChevronRight size={13} className={cn('text-slate-300 transition-transform', selected?.id === c.id && 'rotate-90 text-[var(--color-info)]')} />
                   </div>
                 </div>
               </motion.div>
@@ -278,7 +279,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                 </button>
                 <div className="flex items-center gap-4">
                   <div className={cn('w-14 h-14 rounded-2xl flex items-center justify-center font-black text-lg',
-                    selected.type === 'EMPRESA' ? 'bg-amber-500 text-white' : 'bg-blue-500 text-white')}>
+                    selected.type === 'EMPRESA' ? 'bg-[var(--color-accent)] text-white' : 'bg-[var(--color-info)] text-white')}>
                     {selected.type === 'EMPRESA' ? <Building2 size={24} /> : selected.name?.split(' ').map(n => n[0]).join('').substring(0, 2)}
                   </div>
                   <div>
@@ -304,9 +305,9 @@ const handleSubmit = async (e: React.FormEvent) => {
                   return (
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { label: 'Proyectos', value: cProjs.length, color: 'text-blue-600' },
-                        { label: 'En Ejecución', value: inExec, color: 'text-amber-600' },
-                        { label: 'Finalizados', value: done, color: 'text-green-600' },
+                        { label: 'Proyectos', value: cProjs.length, color: 'text-[var(--color-info)]' },
+                        { label: 'En Ejecución', value: inExec, color: 'text-[var(--color-warning)]' },
+                        { label: 'Finalizados', value: done, color: 'text-[var(--color-success)]' },
                       ].map(k => (
                         <div key={k.label} className="bg-slate-50 rounded-xl p-3 text-center">
                           <p className={cn('text-xl font-black', k.color)}>{k.value}</p>
@@ -315,7 +316,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                       ))}
                       <div className="col-span-3 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
                         <span className="text-[8px] font-black text-slate-400 uppercase">Presupuesto Total</span>
-                        <span className="text-sm font-black text-purple-700">{fmtQ(totalBudget)}</span>
+                        <span className="text-sm font-black text-[var(--color-mod-dashboard)]">{fmtQ(totalBudget)}</span>
                       </div>
                     </div>
                   );
@@ -330,14 +331,14 @@ const handleSubmit = async (e: React.FormEvent) => {
                     ) : clientProjects(selected).map(p => (
                       <div key={p.id} className="flex items-center gap-3 p-2.5 bg-slate-50 rounded-xl border border-slate-100">
                         <div className={cn('w-2 h-2 rounded-full shrink-0',
-                          p.status === 'EJECUCION' ? 'bg-amber-400' :
+                          p.status === 'EJECUCION' ? 'bg-[var(--color-accent)]' :
                           p.status === 'FINALIZADO' ? 'bg-green-400' : 'bg-slate-300')} />
                         <div className="flex-1 min-w-0">
                           <p className="text-[9px] font-black text-slate-700 uppercase truncate">{p.name}</p>
                           <p className="text-[7px] font-bold text-slate-400 uppercase">{p.status} · {fmtQ(p.budget || 0)}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-[9px] font-black text-blue-600">{p.progress || 0}%</p>
+                          <p className="text-[9px] font-black text-[var(--color-info)]">{p.progress || 0}%</p>
                           <div className="w-16 h-1 bg-slate-200 rounded mt-0.5">
                             <div className="h-full bg-blue-400 rounded progress-fill-dynamic" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties} />
                           </div>
@@ -364,7 +365,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                     <Pencil size={12} /> Editar
                   </button>
                   <button onClick={() => handleDelete(selected)} aria-label="Eliminar cliente"
-                    className="flex items-center justify-center gap-1.5 px-4 py-2 bg-red-50 text-red-600 border border-red-200 rounded-xl text-xs font-black uppercase hover:bg-red-100 transition-all">
+                    className="flex items-center justify-center gap-1.5 px-4 py-2 bg-red-50 text-[var(--color-error)] border border-[var(--color-red-border)] rounded-xl text-xs font-black uppercase hover:bg-[var(--color-error-bg)] transition-all">
                     <Trash2 size={12} />
                   </button>
                 </div>
@@ -392,12 +393,12 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <div className="col-span-2 space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Nombre Completo / Razón Social *</label>
                     <input required value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="Nombre completo"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-blue-border)]" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Tipo</label>
                     <select value={form.type} onChange={e => setForm(p => ({ ...p, type: e.target.value as any }))} title="Tipo de cliente"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400">
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-blue-border)]">
                       <option value="PERSONA">Persona Individual</option>
                       <option value="EMPRESA">Empresa / Jurídico</option>
                     </select>
@@ -405,27 +406,27 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">NIT</label>
                     <input value={form.nit} onChange={e => setForm(p => ({ ...p, nit: e.target.value }))} placeholder="CF o número"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-blue-border)]" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Correo</label>
                     <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))} placeholder="correo@ejemplo.com"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[var(--color-blue-border)]" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Teléfono</label>
                     <input value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} placeholder="+502"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[var(--color-blue-border)]" />
                   </div>
                   <div className="col-span-2 space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Dirección</label>
                     <input value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))} placeholder="Dirección física"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[var(--color-blue-border)]" />
                   </div>
                   <div className="space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Estado</label>
                     <select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value as any }))} title="Estado del cliente"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-blue-400">
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold uppercase focus:outline-none focus:border-[var(--color-blue-border)]">
                       <option value="ACTIVO">Activo</option>
                       <option value="INACTIVO">Inactivo</option>
                     </select>
@@ -433,7 +434,7 @@ const handleSubmit = async (e: React.FormEvent) => {
                   <div className="col-span-2 space-y-1">
                     <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Notas</label>
                     <textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={2} placeholder="Notas opcionales"
-                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-blue-400 resize-none" />
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5 text-xs font-bold focus:outline-none focus:border-[var(--color-blue-border)] resize-none" />
                   </div>
                 </div>
                 <button type="submit" disabled={saving}
@@ -447,10 +448,10 @@ const handleSubmit = async (e: React.FormEvent) => {
       </AnimatePresence>
 
       {bulkMode && selectedClientIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-red-600 text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedClientIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteClients}
-            className="px-4 py-1.5 bg-white text-red-600 rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-red-50 transition-all">
+            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
             Eliminar
           </button>
           <button type="button" onClick={() => setSelectedClientIds(new Set())} aria-label="Cancelar selección"

@@ -21,6 +21,10 @@ interface AppSettings {
   compactMode: boolean;
   companyName: string;
   companyLogo: string;
+  companyNIT: string;
+  companyEmail: string;
+  companyPhone: string;
+  companyAddress: string;
   currency: Currency;
   activeModules: string[];
   aiModel: string;
@@ -41,6 +45,10 @@ const defaultSettings: AppSettings = {
   compactMode: false,
   companyName: 'WM/M&S Constructora',
   companyLogo: '/logo.webp',
+  companyNIT: 'N/A',
+  companyEmail: 'contacto@constructorawm.com',
+  companyPhone: '+502 1234-5678',
+  companyAddress: 'Ciudad de Guatemala',
   currency: 'Q',
   activeModules: ALL_MODULES,
   aiModel: 'gemini-2.5-flash',
