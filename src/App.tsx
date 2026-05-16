@@ -220,7 +220,7 @@ function LoadingScreen() {
       <div className="relative w-20 h-20 z-10">
         <div className="absolute inset-0 rounded-full bg-linear-to-br from-amber-500 to-amber-600 shadow-xl shadow-amber-500/30 animate-pulse" />
         <div className="absolute inset-2 rounded-full bg-primary flex items-center justify-center">
-          <span className="text-white font-black text-lg">WM</span>
+          <img src="/logo.png" alt="WM" className="w-10 h-10 object-contain" />
         </div>
       </div>
 

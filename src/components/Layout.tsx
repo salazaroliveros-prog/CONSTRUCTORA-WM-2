@@ -195,9 +195,12 @@ export default function Layout({ children, activeTab, setActiveTab }: LayoutProp
 
             {/* Center: Branding */}
             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none select-none max-w-[calc(100%-6rem)] md:max-w-none">
-              <span className="text-[11px] sm:text-lg md:text-xl font-black text-primary uppercase tracking-[0.12em] leading-tight truncate max-w-full">
-                {settings.companyName}
-              </span>
+              <div className="flex items-center gap-2 mb-0.5">
+                <img src={settings.companyLogo || '/logo.png'} alt="" className="h-5 w-auto" />
+                <span className="text-[11px] sm:text-lg md:text-xl font-black text-primary uppercase tracking-[0.12em] leading-tight truncate">
+                  {settings.companyName}
+                </span>
+              </div>
               <span className="text-[7px] sm:text-[10px] md:text-xs font-semibold text-amber-500 tracking-[0.2em] uppercase mt-0.5 truncate max-w-full">
                 edificando el futuro
               </span>

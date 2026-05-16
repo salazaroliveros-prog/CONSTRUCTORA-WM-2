@@ -193,8 +193,8 @@ export function Sidebar({ isCollapsed, activeTab, onNavigate, onToggleCollapse }
           transition={{ duration: 0.3 }}
           className="flex items-center gap-2.5 overflow-hidden"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-white text-xs font-black shrink-0 shadow-lg shadow-amber-500/20">
-            WM
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shrink-0 shadow-lg shadow-amber-500/20">
+            <img src="/logo.png" alt="WM" className="w-5 h-5 object-contain" />
           </div>
           {!isCollapsed && (
             <motion.span
