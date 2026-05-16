@@ -618,3 +618,73 @@
     * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
   }
 }
+
+/* ── Navigation System v2 (Cinematic) ── */
+#page-container {
+  position: relative;
+  transition: 1s all cubic-bezier(0.16, 1, 0.3, 1);
+  min-height: 100vh;
+  z-index: 1;
+}
+
+#page-container.menu-open {
+  opacity: 0.4;
+  filter: blur(25px);
+  transform: scale(1.1);
+  pointer-events: none;
+}
+
+.nav-glass {
+  background-color: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item-minimal {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  display: block;
+  padding: 10px 20px;
+  line-height: 1;
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: lowercase;
+  transition: 0.4s all cubic-bezier(0.075, 0.82, 0.165, 1);
+}
+
+.burger-btn {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 70px;
+  height: 70px;
+  border-radius: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: 0.5s all cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.burger-btn span {
+  width: 24px;
+  height: 2px;
+  background: #fff;
+  display: block;
+  transition: 0.4s all ease;
+}
+
+.full-menu-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+

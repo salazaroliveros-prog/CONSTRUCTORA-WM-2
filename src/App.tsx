@@ -15,9 +15,7 @@ import { NetworkStatusProvider, useNetworkStatus } from "./contexts/NetworkStatu
 
 // Layout
 import { AppShell } from "./components/layout/AppShell";
-import { Sidebar } from "./components/layout/Sidebar";
-import { TopBar } from "./components/layout/TopBar";
-import { MobileNav } from "./components/layout/MobileNav";
+import { GlobalNav } from "./components/layout/GlobalNav";
 import { PageTransition } from "./components/shared/PageTransition";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 
@@ -508,8 +506,8 @@ function AppContent() {
       true // All modules active by default
   );
 
-  const activeItem = menuItems.find((m) => m.id === activeTab);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Rendering
   if (loading) {
@@ -566,47 +564,15 @@ function AppContent() {
   return (
     <>
       <OfflineBanner />
-      <PageTransition key={activeTab}>
-        <AppShell
-          sidebar={
-            <Sidebar
-              isCollapsed={false}
-              activeTab={activeTab}
-              onNavigate={handleNavigate}
-              onToggleCollapse={() => {}}
-            />
-          }
-          topBar={
-            <TopBar
-              onToggleFullscreen={() => {}}
-              onOpenNotifications={() => {}}
-              unreadCount={0}
-              onOpenAI={() => {}}
-              onOpenSearch={() => {}}
-              userName={user?.displayName || "Usuario"}
-              userPhoto={user?.photoURL ?? undefined}
-              companyName="WM/M&S Constructora"
-              breadcrumbs={[{ label: activeItem?.label || "Dashboard" }]}
-              onToggleMobile={() => setMobileNavOpen(o => !o)}
-              onSignOut={signOut}
-            />
-          }
-          mobileNav={
-            <MobileNav
-              menuItems={menuItems.map((item) => ({
-                ...item,
-                active: activeTab === item.id,
-                onClick: (id: string) => setActiveTab(id),
-                iconMobile: item.icon,
-              }))}
-              isOpen={mobileNavOpen}
-              onClose={() => setMobileNavOpen(false)}
-            />
-          }
-        >
-          {renderModule()}
-        </AppShell>
-      </PageTransition>
+      <GlobalNav 
+        activeTab={activeTab}
+        onNavigate={handleNavigate}
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+      />
+      <AppShell isMenuOpen={isMenuOpen}>
+        {renderModule()}
+      </AppShell>
     </>
   );
 }

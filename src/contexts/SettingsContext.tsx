@@ -38,7 +38,7 @@ const defaultSettings: AppSettings = {
   secondaryColor: '#FBBF24',
   themeMode: 'minimalist',
   graphType: 'bar',
-  cardStyle: 'elevated',
+  cardStyle: 'glass',
   transitionSpeed: 'normal',
   typography: 'inter',
   showGrid: true,
@@ -179,13 +179,13 @@ export const useCardClass = () => {
   const { settings } = useSettings();
   switch (settings.cardStyle) {
     case 'glass':
-      return 'bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_4px_24px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_32px_rgba(0,0,0,0.11)] transition-all duration-300';
+      return 'bg-white/5 backdrop-blur-2xl border border-white/10 shadow-2xl hover:bg-white/10 transition-all duration-500 rounded-3xl';
     case 'bordered':
-      return 'bg-white/90 border-2 border-slate-900/80 shadow-[0_2px_12px_rgba(0,0,0,0.05)]';
+      return 'bg-black border-2 border-white/20 shadow-none rounded-3xl';
     case 'flat':
-      return 'bg-white/80 backdrop-blur-sm border border-slate-200/60 shadow-[0_1px_6px_rgba(0,0,0,0.04)]';
+      return 'bg-neutral-900 border border-neutral-800 shadow-none rounded-3xl';
     case 'elevated':
     default:
-      return 'bg-white border border-slate-200/80 shadow-[0_2px_12px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_24px_rgba(0,0,0,0.10)] transition-all duration-300';
+      return 'bg-neutral-900 border border-neutral-800 shadow-xl hover:shadow-2xl transition-all duration-300 rounded-3xl';
   }
 };

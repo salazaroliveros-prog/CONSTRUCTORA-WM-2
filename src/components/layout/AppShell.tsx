@@ -3,29 +3,18 @@ import React from "react";
 
 interface AppShellProps {
   children: React.ReactNode;
-  sidebar?: React.ReactNode;
-  topBar?: React.ReactNode;
-  mobileNav?: React.ReactNode;
+  isMenuOpen?: boolean;
 }
 
-export function AppShell({ children, sidebar, topBar, mobileNav }: AppShellProps) {
+export function AppShell({ children, isMenuOpen }: AppShellProps) {
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-bg">
-      {topBar && (
-        <div className="shrink-0 z-30">
-          {topBar}
-        </div>
-      )}
-
-      <div className="flex flex-1 overflow-hidden">
-        {sidebar && (
-          <aside className="hidden lg:flex lg:w-64 lg:shrink-0 z-20">
-            {sidebar}
-          </aside>
-        )}
-
-        <main className="flex-1 overflow-y-auto overflow-x-hidden scroll-smooth">
-          <div className="w-full max-w-480 mx-auto px-3 sm:px-5 md:px-6 py-4 sm:py-5">
+    <div className="min-h-screen bg-black overflow-x-hidden">
+      <div 
+        id="page-container" 
+        className={isMenuOpen ? "menu-open" : ""}
+      >
+        <main className="pt-32 pb-20 px-4 sm:px-6 md:px-8">
+          <div className="w-full max-w-7xl mx-auto">
             <AnimatePresence mode="wait">
               <motion.div
                 key={(() => {
@@ -34,11 +23,10 @@ export function AppShell({ children, sidebar, topBar, mobileNav }: AppShellProps
                     ? arr[0].key
                     : "content";
                 })()}
-                initial={{ opacity: 0, y: 12 }}
+                initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8, position: "absolute" }}
-                transition={{ type: "spring", stiffness: 280, damping: 26, mass: 0.8 }}
-                className="h-full"
+                exit={{ opacity: 0, y: -20 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
                 {children}
               </motion.div>
@@ -46,12 +34,6 @@ export function AppShell({ children, sidebar, topBar, mobileNav }: AppShellProps
           </div>
         </main>
       </div>
-
-      {mobileNav && (
-        <footer className="lg:hidden">
-          {mobileNav}
-        </footer>
-      )}
     </div>
   );
 }
