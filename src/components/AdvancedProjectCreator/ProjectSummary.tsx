@@ -47,10 +47,6 @@ interface ProjectSummaryProps {
   transactions?: any[];
 }
 
-function formatQ(value: number): string {
-  return fmtQ(value);
-}
-
 function fmtPct(value: number): string {
   return new Intl.NumberFormat('es-GT', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value);
 }
@@ -154,14 +150,14 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           <div className="bg-slate-900 rounded-xl p-3 text-white">
             <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mb-1">Presupuesto Total</p>
-            <p className="text-xl font-black">{formatQ(totalBudget)}</p>
+            <p className="text-xl font-black">{fmtQ(totalBudget)}</p>
             {costPerM2 > 0 && (
-              <p className="text-[8px] text-slate-400 mt-1">Q {costPerM2.toFixed(0)}/m²</p>
+              <p className="text-[8px] text-slate-400 mt-1">{fmtQ(costPerM2)}/m²</p>
             )}
           </div>
           <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Costo Directo</p>
-            <p className="text-lg font-black text-slate-800">{formatQ(totalDirect)}</p>
+            <p className="text-lg font-black text-slate-800">{fmtQ(totalDirect)}</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{Math.round((totalDirect / (totalBudget || 1)) * 100)}% del total</p>
           </div>
           <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
@@ -204,9 +200,9 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
               </span>
             </div>
             <div className="flex gap-4 mt-1 text-[9px]">
-              <span className="text-slate-500">Presupuestado: <strong>{formatQ(totalBudget)}</strong></span>
-              <span className="text-slate-500">Ejecutado: <strong>{formatQ(actualExpenses)}</strong></span>
-              <span className="text-slate-500">Diferencia: <strong className={budgetVsActual > 0 ? 'text-red-600' : 'text-green-600'}>{formatQ(actualExpenses - totalBudget)}</strong></span>
+              <span className="text-slate-500">Presupuestado: <strong>{fmtQ(totalBudget)}</strong></span>
+              <span className="text-slate-500">Ejecutado: <strong>{fmtQ(actualExpenses)}</strong></span>
+              <span className="text-slate-500">Diferencia: <strong className={budgetVsActual > 0 ? 'text-red-600' : 'text-green-600'}>{fmtQ(actualExpenses - totalBudget)}</strong></span>
             </div>
           </div>
         )}
@@ -227,7 +223,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
               return (
                 <div key={i} className={`rounded-xl p-3 border ${isBase ? 'bg-slate-900 text-white border-slate-900' : isUp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
                   <p className={`text-[7px] font-bold uppercase mb-1 ${isBase ? 'text-slate-400' : 'text-slate-500'}`}>{s.name}</p>
-                  <p className={`text-sm font-black ${isBase ? 'text-white' : isUp ? 'text-red-600' : 'text-green-600'}`}>{formatQ(s.total)}</p>
+                  <p className={`text-sm font-black ${isBase ? 'text-white' : isUp ? 'text-red-600' : 'text-green-600'}`}>{fmtQ(s.total)}</p>
                   {!isBase && (
                     <p className={`text-[8px] font-bold mt-0.5 ${isUp ? 'text-red-500' : 'text-green-500'}`}>
                       {isUp ? '▲' : '▼'} {fmtPct(s.diffPercent)}

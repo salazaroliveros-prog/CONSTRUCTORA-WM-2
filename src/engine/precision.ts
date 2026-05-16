@@ -62,10 +62,10 @@ export function fmtInput(value: number, decimals: number = 2): string {
   return `${int}.${dec}`;
 }
 
-/** Formatea a moneda Q con formato Guatemala: Q. 1,500.80 */
+/** Formatea a moneda Q con formato Guatemala: Q 1,500.80 */
 export function fmtQ(value: number, decimals: number = 2): string {
   const { int, dec } = fmtParts(precise(value, decimals), decimals);
-  return `Q. ${int}.${dec}`;
+  return `Q ${int}.${dec}`;
 }
 
 /** Valida que un valor numérico tenga formato 00.00 */
@@ -73,6 +73,14 @@ export function enforceFormat(value: string | number): string {
    const num = typeof value === 'string' ? parseFloat(value.replace(/[^0-9.\-]/g, '')) || 0 : value;
    return precise(num, 2).toFixed(2).padStart(5, '0');
  }
+
+/** Formatea cantidad con separadores de miles y decimales de Guatemala */
+export function fmtQty(value: number, decimals: number = 2): string {
+  return value.toLocaleString('es-GT', {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  });
+}
 
 /** Objeto namespace para todas las operaciones matemáticas de precisión */
 export const PMath = {
@@ -84,6 +92,7 @@ export const PMath = {
    round: precise,
    fmt: fmtInput,
    fmtQ,
+   fmtQty,
    enforceFormat,
 };
 

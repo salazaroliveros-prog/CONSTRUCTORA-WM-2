@@ -68,7 +68,10 @@ const getCompanyInfo = () => {
 
 // ─── Helpers ────────────────────────────────────────────────────────────────────
 const fmtCurrency = (n: number): string =>
-  n === 0 ? 'Q. 0.00' : `Q. ${n.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  n === 0 ? 'Q 0.00' : `Q ${n.toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+const fmtNumber = (n: number, decimals: number = 2): string =>
+  n.toLocaleString('es-GT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 
 const fmtDate = (date?: string): string => {
   if (!date) return new Date().toLocaleDateString('es-GT', { year: 'numeric', month: 'long', day: 'numeric' });
@@ -360,9 +363,9 @@ export const generateBudgetPDF = (
         line.code || '',
         line.description?.slice(0, 35) || '',
         line.unit || '',
-        line.materialTotal.toFixed(2),
-        line.laborTotal.toFixed(2),
-        line.totalLine.toFixed(2),
+        fmtNumber(line.materialTotal),
+        fmtNumber(line.laborTotal),
+        fmtNumber(line.totalLine),
       ])
     : project.items.map((item, index) => {
         const matSum = item.materials.reduce((acc, m) => acc + m.price * m.quantity, 0);
@@ -373,7 +376,7 @@ export const generateBudgetPDF = (
           item.code,
           item.description.slice(0, 35),
           item.unit,
-          item.projectQuantity.toFixed(2),
+          fmtNumber(item.projectQuantity),
           fmtCurrency(unitTotal),
           fmtCurrency(unitTotal * item.projectQuantity),
         ];
@@ -923,14 +926,14 @@ export const generateBudgetCSV = (
   // Resumen
   rows.push(['', '', '', '', '', '', '']);
   rows.push(['RESUMEN', '', '', '', '', '', '']);
-  rows.push(['Costo Directo', '', '', '', '', totals.directCost.toFixed(2), '']);
-  rows.push(['IVA (12%)', '', '', '', '', totals.taxTotal.toFixed(2), '']);
-  rows.push(['Margen (15%)', '', '', '', '', totals.profitTotal.toFixed(2), '']);
-  rows.push(['Imprevistos (5%)', '', '', '', '', totals.contingencyTotal.toFixed(2), '']);
-  rows.push(['Costos Indirectos', '', '', '', '', totals.indirectCost.toFixed(2), '']);
-  rows.push(['Gastos Admin', '', '', '', '', totals.adminCost.toFixed(2), '']);
-  rows.push(['Gastos Personal', '', '', '', '', totals.personalCost.toFixed(2), '']);
-  rows.push(['TOTAL PRESUPUESTO', '', '', '', '', totals.totalBudget.toFixed(2), '']);
+  rows.push(['Costo Directo', '', '', '', '', fmtNumber(totals.directCost), '']);
+  rows.push(['IVA (12%)', '', '', '', '', fmtNumber(totals.taxTotal), '']);
+  rows.push(['Margen (15%)', '', '', '', '', fmtNumber(totals.profitTotal), '']);
+  rows.push(['Imprevistos (5%)', '', '', '', '', fmtNumber(totals.contingencyTotal), '']);
+  rows.push(['Costos Indirectos', '', '', '', '', fmtNumber(totals.indirectCost), '']);
+  rows.push(['Gastos Admin', '', '', '', '', fmtNumber(totals.adminCost), '']);
+  rows.push(['Gastos Personal', '', '', '', '', fmtNumber(totals.personalCost), '']);
+  rows.push(['TOTAL PRESUPUESTO', '', '', '', '', fmtNumber(totals.totalBudget), '']);
 
   // Materiales
   const projectMaterials = calculateProjectMaterials(project);
@@ -938,7 +941,7 @@ export const generateBudgetCSV = (
     rows.push(['', '', '', '', '', '', '']);
     rows.push(['RESUMEN DE MATERIALES', '', '', '', '', '', '']);
     rows.push(['Material', 'Unidad', 'Cantidad Total', 'Categoría', '', '', '']);
-    projectMaterials.forEach(mat => rows.push([mat.name, mat.unit, mat.totalQuantity.toFixed(2), mat.category, '', '', '']));
+    projectMaterials.forEach(mat => rows.push([mat.name, mat.unit, fmtNumber(mat.totalQuantity), mat.category, '', '', '']));
   }
 
   const csvContent = [headers, ...rows].map(e => e.join(',')).join('\n');

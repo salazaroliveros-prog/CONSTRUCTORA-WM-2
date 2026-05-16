@@ -40,10 +40,15 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 5173,
       strictPort: true,
+      headers: {
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none',
+      },
       proxy: {
         '/api': {
           target: 'http://localhost:3000',
           changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api/, '/api'),
         },
       },
       hmr: process.env.DISABLE_HMR !== 'true',

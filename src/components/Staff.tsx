@@ -23,6 +23,7 @@ import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { Payroll, PayrollEmployee, Transaction } from '../constants';
 import { sanitizeString } from '../utils/sanitize';
+import { fmtQ } from '../engine/precision';
 import { trackCRUD, trackEvent } from '../utils/logger';
 
 interface StaffMember {
@@ -619,7 +620,7 @@ export default function StaffModule() {
                       <div className="mt-2.5 pt-2.5 border-t border-slate-50 flex items-center justify-between">
                         <div>
                           <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Salario</p>
-                          <p className="text-[10px] font-black text-primary">Q {Number(m.salary || 0).toLocaleString('es-GT')}</p>
+                          <p className="text-[10px] font-black text-primary">{fmtQ(Number(m.salary || 0))}</p>
                         </div>
                         <div className="flex items-center gap-1.5">
                           {assignedToProjects.length > 0 && (
@@ -697,9 +698,9 @@ export default function StaffModule() {
                                  ? <span className="text-[7px] font-black bg-[var(--color-info-bg)] text-[var(--color-info)] px-1 py-0.5 rounded-full">{assignedToProjects.length} proy{assignedToProjects.length > 1 ? 's' : ''}</span>
                                  : <span className="text-[7px] text-slate-300 font-bold">—</span>}
                              </td>
-                             <td className="px-3 py-2 text-right text-[9px] font-black text-primary">
-                               {Number(m.salary || 0).toLocaleString('es-GT', { minimumFractionDigits: 2 })}
-                             </td>
+                              <td className="px-3 py-2 text-right text-[9px] font-black text-primary">
+                                {fmtQ(Number(m.salary || 0))}
+                              </td>
                              <td className="px-3 py-2 text-center">
                                <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full",
                                  m.status === 'Activo' || !m.status ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-error-bg)] text-[var(--color-error)]")}>
@@ -721,11 +722,11 @@ export default function StaffModule() {
                      </tbody>
                      {filtered.length > 0 && (
                        <tfoot className="sticky bottom-0 bg-slate-50 border-t border-slate-200">
-                         <tr>
-                           <td colSpan={4} className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Total Nómina ({staff.length} colaboradores)</td>
-                           <td className="px-3 py-2 text-right text-[9px] font-black text-secondary">{totalSalary.toLocaleString('es-GT', { minimumFractionDigits: 2 })}</td>
-                           <td colSpan={2} />
-                         </tr>
+                          <tr>
+                            <td colSpan={4} className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Total Nómina ({staff.length} colaboradores)</td>
+                            <td className="px-3 py-2 text-right text-[9px] font-black text-secondary">{fmtQ(totalSalary)}</td>
+                            <td colSpan={2} />
+                          </tr>
                        </tfoot>
                      )}
                   </table>
@@ -803,7 +804,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                  <div className="grid grid-cols-2 gap-1.5">
                    <div className="bg-[var(--color-warning-bg)] rounded-md p-1.5 text-center">
                      <p className="text-[6px] font-black text-[var(--color-warning)] uppercase tracking-widest">Salario</p>
-                     <p className="text-[10px] font-black text-[var(--color-warning)]">Q {Number(selectedMember.salary||0).toLocaleString('es-GT')}</p>
+                      <p className="text-[10px] font-black text-[var(--color-warning)]">{fmtQ(Number(selectedMember.salary||0))}</p>
                    </div>
                    <div className="bg-[var(--color-info-bg)] rounded-md p-1.5 text-center">
                      <p className="text-[6px] font-black text-[var(--color-info)] uppercase tracking-widest">Proyectos</p>
@@ -990,8 +991,8 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                           </div>
                         </div>
                         <div className="text-right shrink-0 ml-2">
-                          <p className="text-[10px] font-black text-primary">Q {pay.totalNet.toLocaleString('es-GT')}</p>
-                          <p className="text-[7px] text-slate-400">Ded: Q {pay.totalDeductions.toLocaleString('es-GT')}</p>
+                          <p className="text-[10px] font-black text-primary">{fmtQ(pay.totalNet)}</p>
+                          <p className="text-[7px] text-slate-400">Ded: {fmtQ(pay.totalDeductions)}</p>
                         </div>
                       </div>
                       {selectedPayroll?.id === pay.id && (

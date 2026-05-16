@@ -360,7 +360,7 @@ const addItem = async () => {
        setSelectedProject(prev => prev ? { ...prev, items: updatedItems, directCosts, budget } : null);
        setAddingItem(false);
        setNewItemForm({ code: '', description: '', unit: 'M2', projectQuantity: 1, materials: [], labor: [] });
-       toast.success('Renglon agregado', { description: `Presupuesto actualizado: Q ${budget.toLocaleString()}` });
+        toast.success('Renglon agregado', { description: `Presupuesto actualizado: ${fmtQ(budget)}` });
        trackCRUD('create', 'project-item', selectedProject.id);
      } catch (err) {
        toast.error('Error al agregar renglon', { description: parseError(err) });
@@ -998,7 +998,7 @@ return (
                               <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest">{member.role}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[8px] font-black text-[var(--color-neutral-600)]">Q {Number(member.salary || 0).toLocaleString('es-GT')}</p>
+                              <p className="text-[8px] font-black text-[var(--color-neutral-600)]">{fmtQ(member.salary || 0)}</p>
                               <p className="text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Salario</p>
                             </div>
                           </div>
@@ -1091,10 +1091,10 @@ return (
                                 <div key={idx} className="flex items-center justify-between bg-[var(--color-surface-solid)] p-2 rounded-lg border border-[var(--color-neutral-100)]">
                                   <div className="min-w-0 flex-1">
                                     <p className="text-[9px] font-black text-[var(--color-primary)] uppercase truncate">{material.name}</p>
-                                    <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{material.budgetedQty.toLocaleString()} {material.unit}</p>
+                                    <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{(material.budgetedQty || 0).toLocaleString('es-GT')} {material.unit}</p>
                                   </div>
                                   <div className="text-right">
-                                    <p className="text-[8px] font-black text-[var(--color-neutral-600)]">Q {material.budgetedValue.toLocaleString()}</p>
+                                    <p className="text-[8px] font-black text-[var(--color-neutral-600)]">{fmtQ(material.budgetedValue || 0)}</p>
                                     <p className="text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">presupuesto</p>
                                   </div>
                                 </div>

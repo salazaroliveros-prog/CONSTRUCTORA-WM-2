@@ -38,7 +38,7 @@ function CustomTooltip({ active, payload, label }: any) {
           <span className="text-[9px] font-bold text-[var(--color-neutral-300)] uppercase">{entry.name}:</span>
           <span className="text-[10px] font-black text-[var(--color-neutral-50)]">
             {typeof entry.value === 'number' && entry.name !== 'Margen'
-              ? `Q${Number(entry.value).toLocaleString('es-GT')}`
+              ? fmtQ(Number(entry.value))
               : `${entry.value}${entry.name === 'Margen' ? '%' : ''}`}
           </span>
         </div>
@@ -308,7 +308,7 @@ const rentabilidadData = displayProjects
       {/* Financial KPI Strip - Mejorado con métricas cruzadas */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3">
         {[
-           { label: 'Presupuesto Total', value: `Q ${totalPresupuesto.toLocaleString('es-GT')}`, icon: <Layers size={14}/>, color: 'text-[var(--color-secondary-dark)]', bg: 'bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)]', trend: null },
+           { label: 'Presupuesto Total', value: fmtQ(totalPresupuesto), icon: <Layers size={14}/>, color: 'text-[var(--color-secondary-dark)]', bg: 'bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)]', trend: null },
            { label: 'Personal Activo', value: `${activeStaff.length}`, icon: <Users size={14}/>, color: 'text-[var(--color-info)]', bg: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)]', trend: null, sub: `Q ${Math.round(totalSalaries/1000)}k salarios` },
            { label: 'Stock Crítico', value: `${criticalInventory.length}`, icon: <Package size={14}/>, color: criticalInventory.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]', bg: criticalInventory.length > 0 ? 'bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]', trend: criticalInventory.length > 0 ? 'down' : 'up', sub: `de ${validInventoryItems.length} items` },
            { label: 'OC Pendientes', value: `${pendingOrders.length}`, icon: <ShoppingCart size={14}/>, color: pendingOrders.length > 0 ? 'text-[var(--color-warning)]' : 'text-[var(--color-success)]', bg: pendingOrders.length > 0 ? 'bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)]' : 'bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)]', trend: null, sub: `Q ${Math.round(totalPendingValue/1000)}k` },
@@ -476,7 +476,7 @@ data={[
               <BarChart data={rentabilidadData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                 <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
-                <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
                  <Bar dataKey="Presupuesto" fill="var(--color-secondary-dark)" radius={[4, 4, 0, 0]} barSize={16} />
@@ -511,7 +511,7 @@ data={[
               <BarChart data={itemsBreakdown} margin={{ top: 5, right: 10, left: 10, bottom: 30 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                 <XAxis dataKey="name" fontSize={8} axisLine={false} tickLine={false} angle={-25} textAnchor="end" />
-                <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: "uppercase" }} />
                  <Bar dataKey="Materiales" fill="var(--color-secondary)" radius={[4, 4, 0, 0]} barSize={14} />
@@ -582,7 +582,7 @@ data={[
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                     <XAxis dataKey="mes" fontSize={9} axisLine={false} tickLine={false} />
-                    <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                    <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
                     <Tooltip content={<CustomTooltip />} />
                     <Legend wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase' }} />
                      <Area type="monotone" dataKey="Ingresos" stroke="var(--color-success)" strokeWidth={2} fill="url(#gradIngresos)" dot={{ r: 4, fill: 'var(--color-success)' }} />
@@ -604,7 +604,7 @@ data={[
                 <BarChart data={monthlyTrends} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--color-neutral-200)" />
                   <XAxis dataKey="mes" fontSize={9} axisLine={false} tickLine={false} />
-                  <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
+                  <YAxis fontSize={9} axisLine={false} tickLine={false} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
                   <Tooltip content={<CustomTooltip />} />
                    <Bar dataKey="Neto" radius={[4, 4, 0, 0]} barSize={28}
                      fill="var(--color-success)"
@@ -642,7 +642,7 @@ data={[
                     <div key={i}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-[9px] font-black text-primary uppercase">{t.name}</span>
-                         <span className="text-[9px] font-black text-[var(--color-neutral-500)]">Q {t.budget.toLocaleString('es-GT')}</span>
+                          <span className="text-[9px] font-black text-[var(--color-neutral-500)]">{fmtQ(t.budget)}</span>
                       </div>
                       <div className="h-2 bg-[var(--color-neutral-100)] rounded-full overflow-hidden">
                         <motion.div
@@ -677,9 +677,9 @@ data={[
                 {monthlyTrends.map((m, i) => (
                      <tr key={i} className="border-b border-[var(--color-neutral-50)] hover:bg-[var(--color-neutral-50)]">
                        <td className="py-2 pr-4 font-black text-[var(--color-primary)] uppercase">{m.mes}</td>
-                       <td className="py-2 pr-4 font-black text-[var(--color-success)] text-right">Q {m.Ingresos.toLocaleString('es-GT')}</td>
-                       <td className="py-2 pr-4 font-black text-[var(--color-error)] text-right">Q {m.Gastos.toLocaleString('es-GT')}</td>
-                       <td className={`py-2 font-black text-right ${m.Neto >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>Q {m.Neto.toLocaleString('es-GT')}</td>
+                        <td className="py-2 pr-4 font-black text-[var(--color-success)] text-right">{fmtQ(m.Ingresos)}</td>
+                        <td className="py-2 pr-4 font-black text-[var(--color-error)] text-right">{fmtQ(m.Gastos)}</td>
+                        <td className={`py-2 font-black text-right ${m.Neto >= 0 ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]'}`}>{fmtQ(m.Neto)}</td>
                   </tr>
                 ))}
  <tr className="bg-[var(--color-neutral-50)] font-black border-t border-[var(--color-neutral-200)]">
@@ -764,11 +764,11 @@ data={[
                           {p.status}
                         </span>
                       </td>
-                       <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">Q {(p.budget||0).toLocaleString('es-GT')}</td>
-                       <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right hidden md:table-cell">Q {Math.round(p.costoReal).toLocaleString('es-GT')}</td>
-                       <td className={`py-2 pr-4 font-black text-right ${p.utilidad>=0?'text-[var(--color-success)]':'text-[var(--color-error)]'}`}>
-                        Q {Math.round(p.utilidad).toLocaleString('es-GT')}
-                      </td>
+                        <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right">{fmtQ(p.budget||0)}</td>
+                        <td className="py-2 pr-4 font-black text-[var(--color-neutral-600)] text-right hidden md:table-cell">{fmtQ(p.costoReal)}</td>
+                        <td className={`py-2 pr-4 font-black text-right ${p.utilidad>=0?'text-[var(--color-success)]':'text-[var(--color-error)]'}`}>
+                         {fmtQ(p.utilidad)}
+                       </td>
                       <td className="py-2 text-right">
                          <span className={`text-[10px] font-black px-2 py-0.5 rounded-full ${
                            p.margen>=20?'bg-[color-mix(in_srgb,var(--color-success)_15%,transparent)] text-[var(--color-success)]':

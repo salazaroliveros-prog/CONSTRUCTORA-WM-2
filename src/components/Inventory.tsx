@@ -495,7 +495,7 @@ const createPurchaseOrder = async () => {
           </div>
           <div className="min-w-0">
             <p className="label truncate">Valor Real Stock</p>
-            <h3 className="text-sm md:text-xl font-black text-primary truncate">Q {Math.round(totalRealValue).toLocaleString('es-GT')}</h3>
+            <h3 className="text-sm md:text-xl font-black text-primary truncate">{fmtQ(totalRealValue)}</h3>
             <p className="text-[7px] text-slate-400 font-bold">stock × costo presupuestado</p>
           </div>
         </div>
@@ -1160,12 +1160,12 @@ const createPurchaseOrder = async () => {
                 {order.items.map((oi, i) => (
                   <div key={i} className="flex justify-between items-center text-[9px] py-1 border-b border-slate-50 last:border-0">
                     <span className="font-bold text-slate-700">{oi.materialName} - {oi.qty} {oi.unit}</span>
-                    <span className="font-black text-primary">Q {oi.total.toLocaleString()}</span>
+                    <span className="font-black text-primary">{fmtQ(oi.total)}</span>
                   </div>
                 ))}
               </div>
               <div className={cn("flex justify-between items-center mt-2", bulkMode && "ml-7")}>
-                <span className="text-[10px] font-black text-primary">Total: Q {order.total.toLocaleString()}</span>
+                <span className="text-[10px] font-black text-primary">Total: {fmtQ(order.total)}</span>
               </div>
             </div>
           ))}
@@ -1329,7 +1329,7 @@ const createPurchaseOrder = async () => {
           </div>
 
           <div className="flex justify-between items-center pt-2 border-t border-p-100">
-            <span className="text-[10px] font-black text-primary">Total: Q {ocForm.items.reduce((a, i) => a + i.total, 0).toLocaleString()}</span>
+            <span className="text-[10px] font-black text-primary">Total: {fmtQ(ocForm.items.reduce((a, i) => a + i.total, 0))}</span>
             <Button onClick={createPurchaseOrder} variant="default" size="sm">
               Crear Orden
             </Button>

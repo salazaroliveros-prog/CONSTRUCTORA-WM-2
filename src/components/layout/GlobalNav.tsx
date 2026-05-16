@@ -90,7 +90,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
                     "w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-500 border border-white/10 bg-white/5 group-hover:bg-amber-500 group-hover:text-black group-hover:scale-110 group-hover:-rotate-3 shadow-2xl",
                     activeTab === item.id && "bg-white/10 border-amber-500/50"
                   )}>
-                    {React.cloneElement(item.icon as React.ReactElement, { size: 32 })}
+                    {React.cloneElement(item.icon as React.ReactElement<any>, { size: 32 })}
                   </div>
                   <span className="text-xs font-black uppercase tracking-[0.3em] group-hover:text-white transition-colors">
                     {item.label}

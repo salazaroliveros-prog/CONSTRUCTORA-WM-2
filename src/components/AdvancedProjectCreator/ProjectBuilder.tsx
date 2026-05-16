@@ -325,10 +325,10 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
                     <td className="py-2 text-slate-700">{mat.name}</td>
                     <td className="py-2 text-right text-slate-600">{mat.unit}</td>
                     <td className="py-2 text-right text-slate-600">
-                      {mat.totalQuantity.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      {mat.totalQuantity.toLocaleString('es-GT', { maximumFractionDigits: 2 })}
                     </td>
                     <td className="py-2 text-right font-bold text-slate-800">
-                      Q {mat.totalCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                      {fmtQ(mat.totalCost)}
                     </td>
                   </tr>
                 ))}

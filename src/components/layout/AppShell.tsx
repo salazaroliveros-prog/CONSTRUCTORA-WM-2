@@ -1,14 +1,18 @@
 import { motion, AnimatePresence } from "motion/react";
 import React from "react";
+import { TopBar } from "./TopBar";
 
 interface AppShellProps {
   children: React.ReactNode;
   isMenuOpen?: boolean;
+  onNavigate?: (tab: string) => void;
+  activeTab?: string;
 }
 
-export function AppShell({ children, isMenuOpen }: AppShellProps) {
+export function AppShell({ children, isMenuOpen, onNavigate, activeTab }: AppShellProps) {
   return (
     <div className="min-h-screen bg-[#f8f9fa] overflow-x-hidden">
+      <TopBar onNavigate={onNavigate} activeTab={activeTab} />
       <div 
         id="page-container" 
         className={isMenuOpen ? "menu-open" : ""}

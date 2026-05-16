@@ -527,9 +527,9 @@ function AppContent() {
   const renderModule = () => {
     switch (activeTab) {
       case "dashboard":
-        return <Dashboard key="dashboard" />;
+        return <Dashboard key="dashboard" setActiveTab={handleNavigate} />;
       case "execution":
-        return <ExecutionModule key="execution" />;
+        return <ExecutionModule key="execution" setActiveTab={handleNavigate} />;
       case "clients":
         return <ClientsModule key="clients" />;
       case "inventory":
@@ -557,7 +557,7 @@ function AppContent() {
       case "effects":
         return <EffectsShowcaseModule key="effects" />;
       default:
-        return <Dashboard key="default" />;
+        return <Dashboard key="default" setActiveTab={handleNavigate} />;
     }
   };
 
@@ -570,7 +570,7 @@ function AppContent() {
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
       />
-      <AppShell isMenuOpen={isMenuOpen}>
+      <AppShell isMenuOpen={isMenuOpen} onNavigate={handleNavigate} activeTab={activeTab}>
         {renderModule()}
       </AppShell>
     </>

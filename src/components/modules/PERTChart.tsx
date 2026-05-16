@@ -4,6 +4,7 @@ import { cn } from "../../utils/cn";
 import { PERTTask, PERTCalculated, calculatePERTNetwork, layoutPERT, LayoutNode, projectStddev, projectVariance, probabilityOfCompletionBy } from "../../engine/pertEngine";
 import { Card, CardHeader } from "../shared/Card";
 import { AlertTriangle, Info, TrendingUp, DollarSign, Calendar } from "lucide-react";
+import { fmtQ } from "../../utils/format";
 
 interface PERTChartProps {
   tasks?: PERTTask[];
@@ -153,7 +154,7 @@ export default function PERTChart({ tasks: propTasks = [], className, projectNam
         </Card>
         <Card accent="inventory" padding="md">
           <p className="text-xs font-semibold uppercase tracking-wider text-n-500">Costo total</p>
-          <p className="text-2xl font-extrabold text-n-900 mt-1">Q{totalCost.toLocaleString()}</p>
+          <p className="text-2xl font-extrabold text-n-900 mt-1">{fmtQ(totalCost)}</p>
         </Card>
       </div>
 

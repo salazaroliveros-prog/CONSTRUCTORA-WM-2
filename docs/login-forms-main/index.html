@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Modern Login Forms Showcase</title>
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --border-color: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, var(--primary-color), #06b6d4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .category {
+            margin-bottom: 3rem;
+        }
+
+        .category-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+            border-bottom: 2px solid var(--primary-color);
+            display: inline-block;
+            padding-bottom: 0.5rem;
+        }
+
+        .category-description {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            font-size: 1rem;
+        }
+
+        .forms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-card {
+            background: var(--bg-primary);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: var(--shadow);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .form-preview {
+            margin: -2rem -2rem 1.5rem -2rem;
+            height: 200px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .form-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s ease;
+        }
+        
+        .form-card:hover .form-preview img {
+            transform: scale(1.05);
+        }
+        
+        .form-preview-placeholder {
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .form-preview-placeholder svg {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 0.5rem;
+            opacity: 0.3;
+        }
+
+        .form-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), #06b6d4);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .form-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .form-card:hover::before {
+            opacity: 1;
+        }
+
+        .form-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+        }
+
+        .form-features {
+            list-style: none;
+            padding: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .form-features li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .form-features li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            border: none;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5855eb;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: #f1f5f9;
+        }
+
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            z-index: 10;
+        }
+
+        .status-ready {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-coming-soon {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .coming-soon {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 4rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .forms-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Modern Login Forms</h1>
+            <p>A curated collection of 20+ beautiful, responsive login forms featuring 2025 design trends. Built with pure HTML, CSS, and JavaScript. Copy, customize, and use in your projects.</p>
+        </header>
+
+        <section class="category">
+            <h2 class="category-title">🎨 Modern & Stylish</h2>
+            <p class="category-description">Forms featuring the latest design trends with smooth animations and modern aesthetics.</p>
+            
+            <div class="forms-grid">
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/glassmorphism.png" alt="Glassmorphism form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Glassmorphism</h3>
+                    <p class="form-description">Frosted glass effect with backdrop blur and gradient backgrounds. Perfect for modern web applications.</p>
+                    <ul class="form-features">
+                        <li>Glassmorphism design trend</li>
+                        <li>Backdrop blur effects</li>
+                        <li>Floating label animations</li>
+                        <li>Social login integration</li>
+                        <li>Real-time validation</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/glassmorphism/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/glassmorphism/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/neon.png" alt="Neon Minimalist form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Neon Minimalist</h3>
+                    <p class="form-description">Dark theme with neon green accents and animated background effects. Ideal for tech-focused brands.</p>
+                    <ul class="form-features">
+                        <li>Dark theme with neon accents</li>
+                        <li>Animated background orbs</li>
+                        <li>Parallax mouse effects</li>
+                        <li>Glowing interactions</li>
+                        <li>Minimalist design</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/neon/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/neon/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/gradient-wave.png" alt="Gradient Wave form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Gradient Wave</h3>
+                    <p class="form-description">Dynamic gradient animations with wave effects and fluid motion. Modern and eye-catching design.</p>
+                    <ul class="form-features">
+                        <li>Animated gradient backgrounds</li>
+                        <li>Wave motion effects</li>
+                        <li>Fluid transitions</li>
+                        <li>Vibrant color schemes</li>
+                        <li>Dynamic animations</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/gradient-wave/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/gradient-wave/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/neumorphism.png" alt="Neumorphism form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Neumorphism</h3>
+                    <p class="form-description">Soft, tactile design with subtle shadows and highlights. Creates a three-dimensional appearance.</p>
+                    <ul class="form-features">
+                        <li>Neumorphic design elements</li>
+                        <li>Soft shadow effects</li>
+                        <li>Tactile interactions</li>
+                        <li>3D appearance</li>
+                        <li>Subtle depth effects</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/neumorphism/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/neumorphism/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title">💼 Corporate & Clean</h2>
+            <p class="category-description">Professional forms suitable for business applications and corporate websites.</p>
+            
+            <div class="forms-grid">
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/corporate.png" alt="Corporate Professional form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Corporate Professional</h3>
+                    <p class="form-description">Enterprise-grade form with SSO integration and enhanced security features.</p>
+                    <ul class="form-features">
+                        <li>SSO integration (Azure AD, Okta)</li>
+                        <li>Business email validation</li>
+                        <li>Corporate branding space</li>
+                        <li>Enhanced security features</li>
+                        <li>Professional styling</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/corporate/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/corporate/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/material.png" alt="Material Design form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Material Design</h3>
+                    <p class="form-description">Google's Material Design principles with elevation, motion, and ripple effects.</p>
+                    <ul class="form-features">
+                        <li>Material Design guidelines</li>
+                        <li>Elevation & shadows</li>
+                        <li>Ripple effects</li>
+                        <li>Material color system</li>
+                        <li>Smooth transitions</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/material/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/material/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title">🎯 Minimal & Simple</h2>
+            <p class="category-description">Clean, focused forms that prioritize usability and simplicity.</p>
+            
+            <div class="forms-grid">
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/basic.png" alt="Basic Form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Basic Form</h3>
+                    <p class="form-description">Simple, functional login form without fancy effects. Perfect starting point for customization.</p>
+                    <ul class="form-features">
+                        <li>Clean & simple design</li>
+                        <li>Lightweight code</li>
+                        <li>Easy to customize</li>
+                        <li>Cross-browser compatible</li>
+                        <li>Accessibility focused</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/basic/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="#" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/minimal.png" alt="Minimal Clean form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Minimal Clean</h3>
+                    <p class="form-description">Ultra-clean minimal design using system fonts and focused on pure functionality.</p>
+                    <ul class="form-features">
+                        <li>System font integration</li>
+                        <li>Lightweight CSS footprint</li>
+                        <li>Accessibility optimized</li>
+                        <li>Enterprise-ready</li>
+                        <li>Fast performance</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/minimal/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/minimal/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title">🚀 2025 Design Trends</h2>
+            <p class="category-description">Cutting-edge forms showcasing the latest design trends and emerging aesthetics of 2025.</p>
+            
+            <div class="forms-grid">
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/ai-assistant.png" alt="AI Assistant form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">AI Assistant</h3>
+                    <p class="form-description">Neural network-inspired design with AI-enhanced interactions and smart field indicators.</p>
+                    <ul class="form-features">
+                        <li>Neural network background patterns</li>
+                        <li>AI-enhanced field interactions</li>
+                        <li>Smart validation indicators</li>
+                        <li>Dark mode with blue accents</li>
+                        <li>Rotating AI logo animation</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/ai-assistant/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/ai-assistant/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/eco-wellness.png" alt="Eco Wellness form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Eco Wellness</h3>
+                    <p class="form-description">Sustainable design with organic shapes, mindful interactions, and nature-inspired aesthetics.</p>
+                    <ul class="form-features">
+                        <li>Biophilic design elements</li>
+                        <li>Floating leaves animations</li>
+                        <li>Earth-tone color palette</li>
+                        <li>Breathing zen logo effects</li>
+                        <li>Organic field indicators</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/eco-wellness/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/eco-wellness/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/neon-cyber.png" alt="Neon Cyber form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Neon Cyber</h3>
+                    <p class="form-description">Cyberpunk gaming aesthetic with terminal interface, matrix effects, and neon colors.</p>
+                    <ul class="form-features">
+                        <li>Terminal interface design</li>
+                        <li>Matrix grid background</li>
+                        <li>Neon green & pink accents</li>
+                        <li>Glitch text animations</li>
+                        <li>Scanning field effects</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/neon-cyber/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/neon-cyber/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/soft-minimalism.png" alt="Soft Minimalism form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Soft Minimalism</h3>
+                    <p class="form-description">Warm minimalism with organic shapes, gentle interactions, and comforting earth tones.</p>
+                    <ul class="form-features">
+                        <li>Floating organic blob backgrounds</li>
+                        <li>Warm earth-tone palette</li>
+                        <li>Gentle breathing animations</li>
+                        <li>Soft field accent lines</li>
+                        <li>Human-centered UX design</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/soft-minimalism/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/soft-minimalism/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/retro-future.png" alt="Retro Future form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Retro Future</h3>
+                    <p class="form-description">Y2K revival with chrome effects, holographic elements, and nostalgic cyber aesthetics.</p>
+                    <ul class="form-features">
+                        <li>Chrome metallic surfaces</li>
+                        <li>Rainbow gradient borders</li>
+                        <li>Matrix dot grid background</li>
+                        <li>Holographic loading states</li>
+                        <li>Portal success animations</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/retro-future/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/retro-future/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title">💼 Simple & Elegant</h2>
+            <p class="category-description">Clean, professional forms inspired by leading tech platforms and modern design principles.</p>
+            
+            <div class="forms-grid">
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/minimal-music.png" alt="Minimal Music form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Minimal Music</h3>
+                    <p class="form-description">Spotify-inspired clean design with minimal code and maximum visual impact.</p>
+                    <ul class="form-features">
+                        <li>Spotify-inspired aesthetics</li>
+                        <li>Green accent theming</li>
+                        <li>Floating label animations</li>
+                        <li>Minimal code complexity</li>
+                        <li>Music platform ready</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/minimal-music/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/minimal-music/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/travel-booking.png" alt="Travel Booking form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Travel Booking</h3>
+                    <p class="form-description">Snaptrip-inspired design with floating labels and professional blue theming.</p>
+                    <ul class="form-features">
+                        <li>Travel booking aesthetics</li>
+                        <li>Professional blue theme</li>
+                        <li>Floating field labels</li>
+                        <li>Simple & beautiful design</li>
+                        <li>Travel platform ready</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/travel-booking/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/travel-booking/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/clean-banking.png" alt="Clean Banking form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Clean Banking</h3>
+                    <p class="form-description">Fintech-inspired professional design with security indicators and indigo theming.</p>
+                    <ul class="form-features">
+                        <li>Fintech security aesthetics</li>
+                        <li>Professional indigo theme</li>
+                        <li>Security badge indicators</li>
+                        <li>Banking-grade styling</li>
+                        <li>Financial platform ready</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/clean-banking/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/clean-banking/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/modern-saas.png" alt="Modern SaaS form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Modern SaaS</h3>
+                    <p class="form-description">Stripe-inspired minimal design with floating labels and purple accent colors.</p>
+                    <ul class="form-features">
+                        <li>Stripe-inspired aesthetics</li>
+                        <li>Purple accent theming</li>
+                        <li>Border hover animations</li>
+                        <li>SaaS platform styling</li>
+                        <li>Payment-ready design</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/modern-saas/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/modern-saas/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/elegant-portfolio.png" alt="Elegant Portfolio form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Elegant Portfolio</h3>
+                    <p class="form-description">Dribbble-inspired creative design with gradient animations and glass morphism effects.</p>
+                    <ul class="form-features">
+                        <li>Creative portfolio aesthetics</li>
+                        <li>Gradient animation effects</li>
+                        <li>Glass morphism elements</li>
+                        <li>Designer-focused styling</li>
+                        <li>Portfolio platform ready</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/elegant-portfolio/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/elegant-portfolio/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="category">
+            <h2 class="category-title">🎨 Creative & Artistic</h2>
+            <p class="category-description">Unique, interactive forms designed for creative professionals and artistic platforms.</p>
+            
+            <div class="forms-grid">
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/creative.png" alt="Creative Portal form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Creative Portal</h3>
+                    <p class="form-description">Artistic form with floating shapes, interactive animations, and celebration effects.</p>
+                    <ul class="form-features">
+                        <li>Interactive floating shapes</li>
+                        <li>Mouse tracking effects</li>
+                        <li>Creative copy and messaging</li>
+                        <li>Particle celebration effects</li>
+                        <li>Behance & Dribbble integration</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/creative/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/creative/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+
+                <div class="form-card">
+                    <div class="form-preview">
+                        <img src="assets/screenshots/brutalist.png" alt="Brutalist form preview" loading="lazy">
+                    </div>
+                    <span class="status-badge status-ready">Ready</span>
+                    <h3 class="form-title">Brutalist</h3>
+                    <p class="form-description">Modern simplicity with clean white background, minimal animations, and refined aesthetics.</p>
+                    <ul class="form-features">
+                        <li>Modern minimalist design</li>
+                        <li>Clean white background</li>
+                        <li>Simple black borders</li>
+                        <li>Subtle hover effects</li>
+                        <li>Refined simplicity</li>
+                    </ul>
+                    <div class="form-actions">
+                        <a href="forms/brutalist/index.html" class="btn btn-primary">View Demo</a>
+                        <a href="forms/brutalist/README.md" class="btn btn-secondary">Documentation</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>Built with ❤️ using pure HTML, CSS, and JavaScript. No frameworks required.</p>
+            <p>Each form is designed to be copy-paste ready and easily customizable.</p>
+            <p>Created by <a href="https://github.com/puikinsh/" style="color: var(--primary-color); text-decoration: none;">Aigars Silkalns</a> for <a href="https://colorlib.com" style="color: var(--primary-color); text-decoration: none;">Colorlib</a></p>
+        </footer>
+    </div>
+</body>
+</html>

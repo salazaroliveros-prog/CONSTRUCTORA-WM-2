@@ -486,7 +486,7 @@ export default function GanttChart() {
     doc.setTextColor(200, 210, 230);
     doc.setFontSize(8);
     doc.text(`Proyecto: ${project.name}`, W / 2, 16, { align: 'center' });
-    doc.text(`Generado: ${new Date().toLocaleDateString('es-GT')}   |   Duración: ${maxDuration} días   |   Costo Total: Q ${Math.round(totalCost).toLocaleString('es-GT')}`, W / 2, 20, { align: 'center' });
+    doc.text(`Generado: ${new Date().toLocaleDateString('es-GT')}   |   Duración: ${maxDuration} días   |   Costo Total: ${fmtQ(totalCost)}`, W / 2, 20, { align: 'center' });
 
     let y = 28;
 
@@ -495,7 +495,7 @@ export default function GanttChart() {
       ['Duración Total', `${maxDuration} días`],
       ['Tareas Ruta Crítica', `${criticalPath.length}`],
       ['Avance Global', `${globalProgress}%`],
-      ['Costo Total', `Q ${Math.round(totalCost).toLocaleString('es-GT')}`],
+      ['Costo Total', fmtQ(totalCost)],
       ['Inicio', project.startDate ? new Date(project.startDate).toLocaleDateString('es-GT') : '—'],
       ['Fin Estimado', fmtDate(addDays(base, maxDuration))],
     ];
@@ -545,7 +545,7 @@ export default function GanttChart() {
         exp > 0 ? (diff >= 0 ? `+${diff}%` : `${diff}%`) : '—',
         STATUS_CFG[st].label,
         `${t.workers}`,
-        `Q ${Math.round(t.cost).toLocaleString('es-GT')}`,
+        fmtQ(t.cost),
       ];
     });
 
@@ -1615,7 +1615,7 @@ export default function GanttChart() {
                           <BarChart data={weeklyData.map(w => ({ ...w, name: `S${w.week}` }))}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                             <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q${(v/1000).toFixed(0)}k`} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q ${(v/1000).toFixed(0)}k`} />
                             <Tooltip
                               contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                               formatter={(value: number) => [fmtQ(value), 'Inversión']}
@@ -1634,7 +1634,7 @@ export default function GanttChart() {
                           <AreaChart data={monthlyData.map(m => ({ ...m, name: `Mes ${m.month}` }))}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                             <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q${(v/1000).toFixed(0)}k`} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q ${(v/1000).toFixed(0)}k`} />
                             <Tooltip
                               contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                               formatter={(value: number) => [fmtQ(value), 'Inversión']}
@@ -1656,7 +1656,7 @@ export default function GanttChart() {
                           }))}>
                             <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" />
                             <XAxis dataKey="name" stroke="#94a3b8" fontSize={10} />
-                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q${(v/1000).toFixed(0)}k`} />
+                            <YAxis stroke="#94a3b8" fontSize={10} tickFormatter={(v) => `Q ${(v/1000).toFixed(0)}k`} />
                             <Tooltip
                               contentStyle={{ backgroundColor: '#1e293b', border: 'none', borderRadius: '8px', color: '#fff' }}
                               formatter={(value: number) => [fmtQ(value), 'Acumulado']}

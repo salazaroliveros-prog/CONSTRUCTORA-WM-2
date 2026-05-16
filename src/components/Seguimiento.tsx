@@ -309,8 +309,8 @@ export default function Seguimiento() {
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
-              <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q${(v/1000).toFixed(0)}k`} />
-              <Tooltip formatter={(v: any) => `Q. ${fmtQ(v as number)}`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
+              <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
+              <Tooltip formatter={(v: any) => fmtQ(v as number)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
               <Legend wrapperStyle={{ fontSize: 8, fontWeight: 700 }} />
               <Bar dataKey="Presupuesto" fill="#10b981" radius={[4, 4, 0, 0]} />
               <Bar dataKey="Costo Directo" fill="#f59e0b" radius={[4, 4, 0, 0]} />

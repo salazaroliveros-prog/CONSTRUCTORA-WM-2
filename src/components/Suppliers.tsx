@@ -21,6 +21,7 @@ import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { sanitizeString, sanitizeEmail, sanitizeNIT, sanitizePhone } from '../utils/sanitize';
+import { fmtQ } from '../engine/precision';
 import { trackCRUD, trackEvent } from '../utils/logger';
 
 interface Supplier {
@@ -256,9 +257,9 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
          {[
            { label: 'Total Proveedores', value: suppliers.length, icon: <Truck size={12}/>, color: 'text-[var(--color-info)]', bg: 'bg-[var(--color-info-bg)]' },
            { label: 'Activos', value: activeCount, icon: <CheckCircle2 size={12}/>, color: 'text-[var(--color-success)]', bg: 'bg-[var(--color-success-bg)]' },
-           { label: 'Rating Promedio', value: `${avgRating} ★`, icon: <Star size={12}/>, color: 'text-[var(--color-warning)]', bg: 'bg-[var(--color-warning-bg)]' },
-           { label: 'Total Compras', value: `Q ${totalSpent.toLocaleString('es-GT')}`, icon: <DollarSign size={12}/>, color: 'text-[var(--color-mod-dashboard)]', bg: 'bg-[var(--color-mod-dashboard)]/10' },
-         ].map((kpi, i) => (
+            { label: 'Rating Promedio', value: `${avgRating} ★`, icon: <Star size={12}/>, color: 'text-[var(--color-warning)]', bg: 'bg-[var(--color-warning-bg)]' },
+            { label: 'Total Compras', value: fmtQ(totalSpent), icon: <DollarSign size={12}/>, color: 'text-[var(--color-mod-dashboard)]', bg: 'bg-[var(--color-mod-dashboard)]/10' },
+          ].map((kpi, i) => (
            <motion.div key={i} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
              className="bg-white rounded-lg border border-slate-100 p-2 flex items-center gap-2 shadow-sm">
              <div className={cn('p-1.5 rounded-md shrink-0', kpi.bg, kpi.color)}>{kpi.icon}</div>
@@ -527,14 +528,14 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                       <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-info)] uppercase tracking-widest">Órdenes</p>
                      <p className="text-sm font-black text-[var(--color-info)]">{supplierOCs.length}</p>
                    </div>
-                   <div className="bg-[var(--color-warning-bg)] rounded-md p-1.5 text-center">
-                      <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-warning)] uppercase tracking-widest">Total Compras</p>
-                     <p className="text-sm font-black text-[var(--color-warning)]">Q {supplierTotalSpent.toLocaleString('es-GT')}</p>
-                   </div>
-                   <div className="bg-[var(--color-success-bg)] rounded-md p-1.5 text-center">
-                      <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-success)] uppercase tracking-widest">Promedio OC</p>
-                     <p className="text-sm font-black text-[var(--color-success)]">Q {supplierOCs.length > 0 ? Math.round(supplierTotalSpent / supplierOCs.length).toLocaleString('es-GT') : '0'}</p>
-                   </div>
+                    <div className="bg-[var(--color-warning-bg)] rounded-md p-1.5 text-center">
+                       <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-warning)] uppercase tracking-widest">Total Compras</p>
+                      <p className="text-sm font-black text-[var(--color-warning)]">{fmtQ(supplierTotalSpent)}</p>
+                    </div>
+                    <div className="bg-[var(--color-success-bg)] rounded-md p-1.5 text-center">
+                       <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-success)] uppercase tracking-widest">Promedio OC</p>
+                      <p className="text-sm font-black text-[var(--color-success)]">{fmtQ(supplierOCs.length > 0 ? Math.round(supplierTotalSpent / supplierOCs.length) : 0)}</p>
+                    </div>
                    <div className="bg-[var(--color-mod-dashboard)]/10 rounded-md p-1.5 text-center">
                       <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-mod-dashboard)] uppercase tracking-widest">Última Compra</p>
                      <p className="text-sm font-black text-[var(--color-mod-dashboard)]">
@@ -606,10 +607,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                                  <span className="text-[6px] font-bold text-slate-500 bg-white px-1 py-0.5 rounded-full">
                                    {oc.items.length} item{oc.items.length !== 1 ? 's' : ''}
                                  </span>
-                               )}
-                             </div>
-                             <span className="text-[8px] font-black text-secondary">Q {(oc.total || 0).toLocaleString('es-GT')}</span>
-                           </div>
+                                )}
+                              </div>
+                              <span className="text-[8px] font-black text-secondary">{fmtQ(oc.total || 0)}</span>
+                            </div>
                            {/* Mostrar items de la OC al hacer hover */}
                            <div className="mt-0.5 opacity-0 group-hover:opacity-100 transition-all max-h-0 group-hover:max-h-20 overflow-hidden">
                              <div className="text-[6px] text-slate-400 space-y-0.5 pt-1 border-t border-slate-200">

@@ -17,14 +17,14 @@ import {
   X,
   CreditCard,
   ArrowDownLeft,
-    ArrowUpRight,
-    RotateCcw,
-    AlertTriangle,
-    Pencil,
-    Trash2,
-    HardHat,
-    Calendar,
-    Printer
+  ArrowUpRight,
+  RotateCcw,
+  AlertTriangle,
+  Pencil,
+  Trash2,
+  HardHat,
+  Calendar as CalendarIcon,
+  Printer
   } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../utils/cn';
@@ -32,6 +32,7 @@ import { fmtQ, precise } from '../engine/precision';
 import { toast } from 'sonner';
 import { addDocument, updateDocument, deleteDocument, getDocumentsForCollection, parseError } from '../services/firestoreService';
 import { useSettings } from '../contexts/SettingsContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
 import { Transaction } from '../constants';
 import { useCountUp } from '../hooks/useCountUp';
@@ -39,6 +40,7 @@ import { Modal } from './ui/Modal';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 import { AnimatedProgress, GlassCard, HoverCard, RevealOnScroll, PulsingBadge, MicroButton, staggerContainer, staggerItem } from './ui/Animations';
+import { Avatar } from './ui/avatar';
 import { trackCRUD, trackEvent } from '../utils/logger';
 import { PMath } from '../engine/precision';
 import { useStore, useExistingProjectFilter } from '../store/DataStore';
@@ -181,95 +183,51 @@ function ActivityHeatmap({ data }: { data: { date: string; value: number }[] }) 
 
 function KpiCard({ kpi, cardClass, index }: { kpi: any; cardClass: string; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
-  const onMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    const el = ref.current;
-    if (!el) return;
-    const { left, top, width, height } = el.getBoundingClientRect();
-    const x = (e.clientX - left) / width - 0.5;
-    const y = (e.clientY - top) / height - 0.5;
-    el.style.transform = `perspective(700px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) scale(1.01)`;
-    el.style.boxShadow = `${x * -6}px ${y * -6}px 16px rgba(15,23,42,0.1)`;
-  }, []);
-  const onMouseLeave = useCallback(() => {
-    if (ref.current) { ref.current.style.transform = ''; ref.current.style.boxShadow = ''; }
-  }, []);
-
-  // Trend: compare last half vs first half of spark data
-  const trend = kpi.spark?.length > 3
-    ? kpi.spark.slice(-3).reduce((a: number, d: any) => a + d.v, 0) - kpi.spark.slice(0, 3).reduce((a: number, d: any) => a + d.v, 0)
-    : null;
-
+  
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 15 }}
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3, delay: index * 0.05, ease: [0.25, 0.46, 0.45, 0.94] }}
-      onMouseMove={onMouseMove}
-      onMouseLeave={onMouseLeave}
-      className="relative glass-card p-3 cursor-default will-change-transform overflow-hidden group shimmer-effect kpi-card"
+      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.16, 1, 0.3, 1] }}
+      className="relative bg-white rounded-3xl p-5 shadow-xl shadow-slate-200/50 border border-slate-100 overflow-hidden group hover:shadow-2xl hover:-translate-y-1 transition-all duration-500"
     >
-      {/* Color accent bar top */}
-      <div className={cn("absolute top-0 left-0 right-0 h-0.5 rounded-t-xl", kpi.color)} />
-
-      {/* Sparkline full-card background */}
-      {kpi.spark?.length > 1 && (
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={kpi.spark} margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
-              <Line type="monotone" dataKey="v" stroke="var(--text-faint)" strokeWidth={2} dot={false} isAnimationActive={false} />
-            </LineChart>
-          </ResponsiveContainer>
+      <div className={cn("absolute top-0 left-0 w-full h-1", kpi.color)} />
+      
+      <div className="flex items-start justify-between mb-4">
+        <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center text-white shadow-lg", kpi.color)}>
+          {React.cloneElement(kpi.icon as React.ReactElement<any>, { size: 20, strokeWidth: 2.5 })}
         </div>
-      )}
-
-      <div className="flex items-start justify-between mb-2">
-        <div className="flex items-center gap-1.5">
-          {/* Icon with professional static gradient */}
-          <div className={cn("icon-box", kpi.color)}>
-            {React.cloneElement(kpi.icon as React.ReactElement<{ size?: number }>, { size: 14 })}
+        {kpi.rings && (
+          <div className="flex gap-1.5">
+            <MiniRing value={kpi.rings.fisico} color="var(--color-amber)" label="Fís" />
+            <MiniRing value={kpi.rings.financiero} color="var(--color-blue)" label="Fin" />
           </div>
-          {/* Mini ring charts next to icon */}
-          {kpi.rings && (
-            <motion.div
-              onClick={kpi.onNavigate}
-              title="Ver detalle en Seguimiento"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex gap-0.5 cursor-pointer"
-            >
-               <MiniRing value={kpi.rings.fisico} color="var(--color-secondary)" label="Fís" />
-              <MiniRing value={kpi.rings.financiero} color="var(--color-info)" label="Fin" />
-            </motion.div>
-          )}
-        </div>
-        {/* Trend badge */}
-        {trend !== null && (
-          <span className={cn(
-            "text-[7px] sm:text-[6px] font-black uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
-            trend > 0 ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-[var(--color-success)]" : trend < 0 ? "bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] text-[var(--color-error)]" : "bg-[var(--color-neutral-50)] text-[var(--color-neutral-400)]"
-          )}>
-            {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}
-          </span>
         )}
       </div>
 
-      <p className="text-[7px] font-black text-[var(--color-neutral-600)] uppercase tracking-widest mb-0.5">{kpi.label}</p>
-      <p className="text-base font-black text-primary leading-none">
-        <AnimatedKpi value={kpi.value} currency={kpi.currency} />
-      </p>
+      <div className="space-y-1">
+        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{kpi.label}</p>
+        <h3 className="text-xl font-black text-slate-900 tracking-tight">
+          <AnimatedKpi value={kpi.value} currency={kpi.currency} />
+        </h3>
+      </div>
 
-      {/* Mini sparkline bottom */}
-      {kpi.spark?.length > 1 && (
-        <div className="mt-1.5 h-6 w-full opacity-60">
+      {kpi.spark && (
+        <div className="mt-4 h-10 w-full opacity-30 grayscale group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-500">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={kpi.spark} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-              <Line type="monotone" dataKey="v" stroke={kpi.sparkColor || 'color: var(--text-secondary)'} strokeWidth={1.2} dot={false} isAnimationActive={true} />
-            </LineChart>
+            <AreaChart data={kpi.spark}>
+              <defs>
+                <linearGradient id={`sparkGrad-${index}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor={kpi.sparkColor} stopOpacity={0.4} />
+                  <stop offset="100%" stopColor={kpi.sparkColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area type="monotone" dataKey="v" stroke={kpi.sparkColor} strokeWidth={2} fill={`url(#sparkGrad-${index})`} dot={false} />
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
-
     </motion.div>
   );
 }
@@ -279,11 +237,11 @@ function AnimatedKpi({ value, currency }: { value: string | number; currency?: b
   const animated = useCountUp(isNaN(num) ? 0 : num, 900);
   if (isNaN(num)) return <span>{value}</span>;
   if (currency) return <span>{fmtQ(animated)}</span>;
-  if (typeof value === 'number') return <span>{animated.toLocaleString()}</span>;
+  if (typeof value === 'number') return <span>{animated.toLocaleString('es-GT')}</span>;
   // legacy string format fallback
   const prefix = String(value).match(/^[^0-9-]*/)?.[0] || '';
   const suffix = String(value).match(/[^0-9.]+$/)?.[0] || '';
-  return <span>{prefix}{Number.isInteger(num) ? animated : animated.toFixed(1)}{suffix}</span>;
+  return <span>{prefix}{Number.isInteger(num) ? animated.toLocaleString('es-GT') : animated.toLocaleString('es-GT', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}{suffix}</span>;
 }
 
 function CustomTooltip({ active, payload, label }: any) {
@@ -295,16 +253,21 @@ function CustomTooltip({ active, payload, label }: any) {
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
           <div className="w-1.5 h-1.5 rounded-full shrink-0 dot-color" style={{ '--dot-bg': entry.color } as React.CSSProperties} />
           <span className="text-[8px] font-bold text-[var(--color-neutral-300)] uppercase">{entry.name}:</span>
-          <span className="text-[9px] font-black text-[var(--color-neutral-50)]">Q{Number(entry.value).toLocaleString()}</span>
+          <span className="text-[9px] font-black text-[var(--color-neutral-50)]">{fmtQ(Number(entry.value))}</span>
         </div>
       ))}
     </div>
   );
 }
 
-export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
+interface DashboardProps {
+  setActiveTab?: (tab: string) => void;
+}
+
+export default function Dashboard({ setActiveTab }: DashboardProps) {
    const { settings } = useSettings();
    const store = useStore();
+   const { user } = useAuth();
     const [resetting, setResetting] = useState(false);
     const [validationIssues, setValidationIssues] = useState<ValidationIssue[] | null>(null);
     const [validationSummary, setValidationSummary] = useState({ high: 0, medium: 0, low: 0 });
@@ -322,6 +285,16 @@ export default function Dashboard({ setActiveTab }: { setActiveTab?: (tab: strin
    const [reportProjectId, setReportProjectId] = useState<string>('ALL');
    const [generating, setGenerating] = useState(false);
    const reportCaptureRef = useRef<HTMLDivElement>(null);
+
+   // Agenda State (Lifting it for the widget)
+   const [agendaEvents, setAgendaEvents] = useState<{ id: string, date: string, title: string, time: string }[]>(() => {
+     const saved = localStorage.getItem('app-agenda-events');
+     return saved ? JSON.parse(saved) : [];
+   });
+
+   useEffect(() => {
+     localStorage.setItem('app-agenda-events', JSON.stringify(agendaEvents));
+   }, [agendaEvents]);
 
 const [accountingForm, setAccountingForm] = useState({
       type: 'Salida' as 'Entrada' | 'Salida',
@@ -880,488 +853,383 @@ const generateReport = async () => {
       {/* Hidden report capture */}
       <div ref={reportCaptureRef} className="hidden" />
 
-      {/* Filter Bar */}
-      <div className="flex flex-wrap items-center gap-2 shrink-0">
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-           <select value={reportProjectId} onChange={e => setReportProjectId(e.target.value)}
-             title="Filtrar por proyecto"
-             className={cn("input-modern text-[9px] font-bold max-w-[180px]")}
-           >
-             <option value="ALL">Todos los proyectos</option>
-             {projects.filter(p => p.status === 'EJECUCION').map(p => (
-               <option key={p.id} value={p.id}>{p.name}</option>
-             ))}
-           </select>
-           <div className="flex items-center gap-1 text-[8px] text-[var(--color-p-500)]">
-             <Calendar size={12} />
-             <input type="date" value={reportDateFrom} onChange={e => setReportDateFrom(e.target.value)}
-              title="Fecha inicial"
-              className={cn("input-modern text-[9px] font-bold w-[130px]")}
-            />
-            <span className="text-[var(--color-p-400)]">—</span>
-            <input type="date" value={reportDateTo} onChange={e => setReportDateTo(e.target.value)}
-              title="Fecha final"
-              className={cn("input-modern text-[9px] font-bold w-[130px]")}
-            />
+      {/* Dashboard Top Header (Professional & Current) */}
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-2 bg-[#0c1222]/50 backdrop-blur-xl p-5 rounded-3xl border border-white/5 shadow-2xl">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+            <Zap size={24} className="text-black" />
+          </div>
+          <div className="text-left">
+            <h2 className="text-base md:text-lg font-black text-white uppercase tracking-tight leading-none">Panel de Control</h2>
+            <p className="text-[9px] md:text-[10px] font-black text-amber-500 uppercase tracking-[0.3em] mt-1 opacity-70">Resumen Estratégico WM/M&S</p>
           </div>
         </div>
-        <button onClick={generateReport} disabled={generating}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[var(--color-brand)] text-[var(--color-neutral-50)] text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-brand-light)] disabled:opacity-50 disabled:cursor-not-allowed transition-all shrink-0"
-        >
-          {generating ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Generando...</> : <><Printer size={12} /> Reporte</>}
-        </button>
+
+        <div className="flex flex-wrap items-center justify-center gap-3">
+          <div className="flex items-center gap-2 bg-black/30 px-4 py-2.5 rounded-2xl border border-white/5 group hover:border-amber-500/30 transition-all">
+            <CalendarIcon size={14} className="text-amber-500" />
+            <input 
+              type="date" 
+              value={reportDateFrom} 
+              onChange={e => setReportDateFrom(e.target.value)}
+              className="bg-transparent text-[10px] font-black text-white uppercase focus:outline-none w-28 cursor-pointer"
+              title="Fecha inicial"
+            />
+            <span className="text-white/20 font-bold">—</span>
+            <input 
+              type="date" 
+              value={reportDateTo} 
+              onChange={e => setReportDateTo(e.target.value)}
+              className="bg-transparent text-[10px] font-black text-white uppercase focus:outline-none w-28 cursor-pointer"
+              title="Fecha final"
+            />
+          </div>
+
+          <button 
+            onClick={generateReport} 
+            disabled={generating}
+            className="flex items-center gap-2.5 px-6 py-2.5 rounded-2xl bg-amber-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-amber-400 disabled:opacity-50 transition-all shadow-[0_8px_20px_rgba(245,158,11,0.2)] active:scale-95"
+          >
+            {generating ? <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> : <Printer size={16} strokeWidth={2.5} />}
+            GENERAR REPORTE
+          </button>
+        </div>
       </div>
+
       <div className="shrink-0">
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: selectedProjectId === 'ALL' ? 'Proyectos Activos' : 'Proyecto Seleccionado', value: filteredProjects.length, currency: false, icon: <Zap size={16} />, color: 'bg-[var(--color-mod-dashboard)]', spark: null, pulse: executingProjects.length > 0, rings: { fisico: avgFisico, financiero: avgFinanciero }, onNavigate: () => setActiveTab?.('seguimiento') },
-            { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-[var(--color-success)]' : 'bg-[var(--color-error)]', spark: sparkNet, sparkColor: netCash >= 0 ? 'var(--color-success)' : 'var(--color-error)', pulse: false },
-            { label: selectedProjectId === 'ALL' ? 'Presp. Ejecución' : 'Presp. Proyecto', value: executingBudget, currency: true, icon: <TrendingUp size={16} />, color: 'bg-[var(--color-accent)]', spark: sparkInc, sparkColor: 'var(--color-accent)', pulse: false },
-            { label: 'Presp. Fin/Pausa', value: finishedPausedBudget, currency: true, icon: <CheckCircle2 size={16} />, color: 'bg-[var(--color-p-500)]', spark: null, pulse: false },
-            { label: 'Alertas Stock', value: criticalStock, currency: false, icon: <ShieldCheck size={16} />, color: criticalStock > 0 ? 'bg-[var(--color-error)]' : 'bg-[var(--color-success)]', spark: sparkExp, sparkColor: criticalStock > 0 ? 'var(--color-error)' : 'var(--color-success)', pulse: criticalStock > 0 },
+            { label: selectedProjectId === 'ALL' ? 'Proyectos Activos' : 'Proyecto Seleccionado', value: filteredProjects.length, currency: false, icon: <Zap size={16} />, color: 'bg-amber-500', spark: null, pulse: executingProjects.length > 0, rings: { fisico: avgFisico, financiero: avgFinanciero }, onNavigate: () => setActiveTab?.('seguimiento') },
+            { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-emerald-500' : 'bg-rose-500', spark: sparkNet, sparkColor: netCash >= 0 ? 'var(--color-success)' : 'var(--color-error)', pulse: false },
+            { label: selectedProjectId === 'ALL' ? 'Presp. Ejecución' : 'Presp. Proyecto', value: executingBudget, currency: true, icon: <TrendingUp size={16} />, color: 'bg-blue-500', spark: sparkInc, sparkColor: 'var(--color-accent)', pulse: false },
+            { label: 'Presp. Fin/Pausa', value: finishedPausedBudget, currency: true, icon: <CheckCircle2 size={16} />, color: 'bg-slate-500', spark: null, pulse: false },
+            { label: 'Alertas Stock', value: criticalStock, currency: false, icon: <ShieldCheck size={16} />, color: criticalStock > 0 ? 'bg-orange-500' : 'bg-emerald-500', spark: sparkExp, sparkColor: criticalStock > 0 ? 'var(--color-error)' : 'var(--color-success)', pulse: criticalStock > 0 },
           ].map((kpi, i) => (
             <KpiCard key={i} kpi={kpi} cardClass={cardClass} index={i} />
           ))}
         </div>
       </div>
 
-      {/* Main + Sidebar */}
+      {/* Main Content Area */}
       <motion.div
         key={selectedProjectId + selectedYear}
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-        className="flex gap-2 flex-1 min-h-0 overflow-y-auto"
+        variants={staggerContainer}
+        initial="hidden"
+        animate="show"
+        className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0 overflow-visible"
       >
-      <section className="flex-1 min-w-0 flex flex-col gap-2">
-        {/* Row 1: Cash Flow & Expenses */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-           <div className={cn(cardClass, "md:col-span-2 rounded-xl p-3 text-left")}>
-              <div className="flex justify-between items-center mb-1">
-                <div>
-                  <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja' : 'Flujo del Proyecto'}</h2>
-                  <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest">Ingresos vs Gastos</p>
+        <div className="flex-1 flex flex-col gap-6 min-w-0">
+          {/* Row 1: Main Visual Analytics */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+             {/* Cash Flow Chart */}
+             <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col min-h-[350px]">
+                <div className="flex justify-between items-center mb-6">
+                  <div>
+                    <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja Global' : 'Flujo del Proyecto'}</h2>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ingresos vs Egresos</p>
+                  </div>
                 </div>
-              </div>
-              <div className="h-[160px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  {settings.graphType === 'bar' ? (
-                    <ComposedChart data={chartData}>
-                      <defs>
-                        <linearGradient id="barGradIngresos" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={settings.secondaryColor} stopOpacity={1} />
-                          <stop offset="100%" stopColor={settings.secondaryColor} stopOpacity={0.6} />
-                        </linearGradient>
-                        <linearGradient id="barGradGastos" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor={settings.primaryColor} stopOpacity={1} />
-                          <stop offset="100%" stopColor={settings.primaryColor} stopOpacity={0.6} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
-                      <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <ChartTooltip cursor={{fill: 'var(--color-p-50)'}} content={<CustomTooltip />} />
-                      <Legend wrapperStyle={{ fontSize: 8, fontWeight: 900, textTransform: 'uppercase' }} />
-                      <Bar dataKey="ingresos" fill="url(#barGradIngresos)" radius={[3, 3, 0, 0]} barSize={15} />
-                      <Bar dataKey="gastos" fill="url(#barGradGastos)" radius={[3, 3, 0, 0]} barSize={15} />
-                    <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={1.5} dot={false} strokeDasharray="4 2" />
-                    </ComposedChart>
-                  ) : settings.graphType === 'line' ? (
-                    <LineChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
-                      <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <ChartTooltip content={<CustomTooltip />} />
-                      <Line type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={2} dot={{ r: 3, fill: settings.secondaryColor }} />
-                      <Line type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={2} dot={{ r: 3, fill: settings.primaryColor }} />
-                    </LineChart>
-                  ) : (
-                    <AreaChart data={chartData}>
-                      <defs>
-                        <linearGradient id="gradIngresos" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={settings.secondaryColor} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={settings.secondaryColor} stopOpacity={0} />
-                        </linearGradient>
-                        <linearGradient id="gradGastos" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={settings.primaryColor} stopOpacity={0.3} />
-                          <stop offset="95%" stopColor={settings.primaryColor} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border)" />
-                      <XAxis dataKey="name" fontSize={9} axisLine={false} tickLine={false} />
-                      <YAxis fontSize={9} axisLine={false} tickLine={false} />
-                      <ChartTooltip content={<CustomTooltip />} />
-                      <Area type="monotone" dataKey="ingresos" stroke={settings.secondaryColor} strokeWidth={1.5} fill="url(#gradIngresos)" />
-                      <Area type="monotone" dataKey="gastos" stroke={settings.primaryColor} strokeWidth={1.5} fill="url(#gradGastos)" />
-                    </AreaChart>
-                  )}
-                </ResponsiveContainer>
-              </div>
-           </div>
-
-           <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-              <div className="flex justify-between items-center mb-1">
-                <div>
-                  <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Gastos</h2>
-                  <p className="text-[8px] font-bold text-[var(--color-neutral-400)] uppercase tracking-widest">Por Categoría</p>
-                </div>
-              </div>
-              <div className="h-[160px] w-full flex flex-col items-center justify-center">
-                <div className="h-3/4 w-full">
+                <div className="flex-1 w-full min-h-[220px]">
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={expenseByCategory.length > 0 ? expenseByCategory : [{ name: 'Sin Datos', value: 1 }]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={45}
-                        outerRadius={60}
-                        paddingAngle={4}
-                        dataKey="value"
-                      >
-                        {expenseByCategory.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Pie>
-                      <ChartTooltip content={<CustomTooltip />} />
-                    </PieChart>
+                    {settings.graphType === 'bar' ? (
+                      <ComposedChart data={chartData}>
+                        <defs>
+                          <linearGradient id="barGradIngresos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#10b981" stopOpacity={1} />
+                            <stop offset="100%" stopColor="#10b981" stopOpacity={0.6} />
+                          </linearGradient>
+                          <linearGradient id="barGradGastos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#ef4444" stopOpacity={1} />
+                            <stop offset="100%" stopColor="#ef4444" stopOpacity={0.6} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 700}} />
+                        <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 700}} />
+                        <ChartTooltip cursor={{fill: '#f8fafc'}} content={<CustomTooltip />} />
+                        <Legend verticalAlign="top" align="right" iconType="circle" wrapperStyle={{ fontSize: 9, fontWeight: 900, textTransform: 'uppercase', paddingBottom: 20 }} />
+                        <Bar dataKey="ingresos" name="Ingresos" fill="url(#barGradIngresos)" radius={[4, 4, 0, 0]} barSize={20} />
+                        <Bar dataKey="gastos" name="Egresos" fill="url(#barGradGastos)" radius={[4, 4, 0, 0]} barSize={20} />
+                      </ComposedChart>
+                    ) : (
+                      <AreaChart data={chartData}>
+                        <defs>
+                          <linearGradient id="gradIngresos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                          </linearGradient>
+                          <linearGradient id="gradGastos" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                            <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis dataKey="name" fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 700}} />
+                        <YAxis fontSize={10} axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontWeight: 700}} />
+                        <ChartTooltip content={<CustomTooltip />} />
+                        <Area type="monotone" dataKey="ingresos" stroke="#10b981" strokeWidth={3} fill="url(#gradIngresos)" />
+                        <Area type="monotone" dataKey="gastos" stroke="#ef4444" strokeWidth={3} fill="url(#gradGastos)" />
+                      </AreaChart>
+                    )}
                   </ResponsiveContainer>
                 </div>
-                <div className="w-full grid grid-cols-2 gap-x-2 gap-y-1 mt-1">
-                   {expenseByCategory.slice(0, 4).map((item, i) => (
-                     <div key={i} className="flex items-center gap-1 min-w-0">
-                        <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
-                         <span className="text-[7px] font-black uppercase truncate text-[var(--color-p-500)]">{item.name}</span>
-                     </div>
-                   ))}
-                </div>
-              </div>
-           </div>
-        </div>
+             </motion.div>
 
-        {/* Row 2: Advanced Analytics */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          {/* Radar Chart */}
-          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Rendimiento</h2>
-            <div className="h-[130px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <RadarChart cx="50%" cy="50%" outerRadius="65%" data={radarData}>
-                  <PolarGrid stroke="var(--border)" />
-                  <PolarAngleAxis dataKey="area" tick={{ fontSize: 7, fontWeight: 900, fill: 'var(--text-subtle)' }} />
-                  <Radar name="Rendimiento" dataKey="value" stroke="var(--color-accent)" fill="var(--color-accent)" fillOpacity={0.4} strokeWidth={1.5} />
-                </RadarChart>
-              </ResponsiveContainer>
-            </div>
-          </div>
+             {/* Distribution & Performance */}
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                {/* Gauge Section */}
+                <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col items-center justify-center">
+                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Eficiencia de Ejecución</h3>
+                   <div className="flex gap-8">
+                      <GaugeChart value={avgFisico} label="Físico" color="#f59e0b" />
+                      <GaugeChart value={avgFinanciero} label="Financiero" color="#3b82f6" />
+                   </div>
+                </motion.div>
 
-          {/* Gauge Charts */}
-          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Avances</h2>
-            <div className="flex justify-around items-center h-[130px]">
-              <GaugeChart value={avgFisico} label="Físico" color="var(--color-success)" />
-              <GaugeChart value={avgFinanciero} label="Financiero" color="var(--color-info)" />
-            </div>
-          </div>
-
-          {/* Activity Heatmap */}
-          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Actividad</h2>
-            <div className="flex flex-col items-center justify-center h-[130px]">
-              <ActivityHeatmap data={heatmapData} />
-              <div className="flex items-center gap-3 mt-2">
-                  <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-sm bg-[var(--color-p-300)]" />
-                    <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Baja</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-1.5 h-1.5 rounded-sm bg-[var(--color-success)]" />
-                    <span className="text-[7px] sm:text-[6px] font-bold text-[var(--color-neutral-400)] uppercase">Alta</span>
-                  </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Row 3: Tabla de cuentas & Progress Tracker */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {/* Tabla Estado de Cuentas */}
-          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <div className="flex items-center justify-between mb-2">
-              <h2 className="text-[11px] font-black text-primary uppercase tracking-tight">Estado de Cuentas por Proyecto</h2>
-              {availableYears.length > 2 && (
-                  <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
-                    title="Filtrar por año"
-                    className="text-[8px] font-bold uppercase tracking-wider bg-[var(--color-neutral-100)] border border-[var(--color-neutral-200)] rounded-lg px-2 py-1 text-[var(--color-p-600)] focus:outline-none focus:ring-1 focus:ring-accent">
-                    {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'Todos' : y}</option>)}
-                  </select>
-              )}
-            </div>
-            <div className="overflow-x-auto overflow-y-auto">
-              <table className="w-full text-[9px]">
-                <thead className="sticky top-0 bg-inherit">
-                  <tr className="border-b border-[var(--color-neutral-200)]">
-                    <th className="text-left font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 pr-2">Proyecto</th>
-                    <th className="text-right font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 px-1">Costo Total</th>
-                    <th className="text-right font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 px-1">Aportes</th>
-                    <th className="text-right font-black text-[var(--color-neutral-500)] uppercase tracking-wider pb-1.5 pl-1">Pendiente</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {tableData.map(row => (
-                    <tr key={row.id} className="border-b border-[var(--color-neutral-100)] last:border-0 hover:bg-[var(--color-neutral-50)]/50 transition-colors">
-                      <td className="py-1 pr-2 font-bold text-primary truncate max-w-[130px] sm:max-w-[180px]">{row.name}</td>
-                      <td className="py-1 text-right font-mono font-bold px-1">Q. {fmtQ(row.costoTotal)}</td>
-                      <td className="py-1 text-right font-mono font-bold text-[var(--color-success)] px-1">Q. {fmtQ(row.aportes)}</td>
-                      <td className={cn("py-1 text-right font-mono font-bold pl-1", row.pendiente > 0 ? "text-[var(--color-amber)]" : "text-[var(--color-p-400)]")}>Q. {fmtQ(row.pendiente)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                {tableData.length > 0 && (
-                  <tfoot>
-                    <tr className="border-t-2 border-[var(--color-neutral-300)]">
-                      <td className="py-1.5 pr-2 font-black text-primary text-[10px]">TOTAL</td>
-<td className="py-1.5 text-right font-mono font-black text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.costoTotal)))}</td>
-                       <td className="py-1.5 text-right font-mono font-black text-[var(--color-success)] text-[10px] px-1">Q. {fmtQ(PMath.sum(tableData.map(r => r.aportes)))}</td>
-                       <td className={cn("py-1.5 text-right font-mono font-black text-[10px] pl-1", tableData.some(r => r.pendiente > 0) ? "text-[var(--color-amber)]" : "text-[var(--color-p-400)]")}>Q. {fmtQ(PMath.sum(tableData.map(r => r.pendiente)))}</td>
-                    </tr>
-                  </tfoot>
-                )}
-              </table>
-              {tableData.length === 0 && <p className="text-[9px] text-[var(--color-neutral-400)] text-center py-4">Sin proyectos</p>}
-            </div>
-          </div>
-
-          {/* Progress Tracker */}
-          <div className={cn(cardClass, "rounded-xl p-3 text-left")}>
-            <h2 className="text-[11px] font-black text-primary uppercase tracking-tight mb-1">Cronograma</h2>
-            <div className="space-y-1.5 overflow-y-auto max-h-[130px] pr-1">
-              {filteredProjects.length > 0 ? filteredProjects.slice(0, 6).map((p) => (
-                <div key={p.id} className="p-2 bg-[var(--color-neutral-50)] rounded-lg border border-[var(--color-neutral-100)]">
-                  <div className="flex justify-between text-[8px] font-black uppercase mb-1">
-                    <span className="truncate">{p.name}</span>
-                    <span className="text-secondary">{p.progress || 0}%</span>
-                  </div>
-                  <div className="h-1.5 bg-white rounded-full overflow-hidden border border-[var(--color-neutral-200)]">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${p.progress || 0}%` }}
-                      className="h-full bg-[var(--color-accent)] rounded-full"
-                    />
-                  </div>
-                </div>
-              )) : (
-                <div className="h-full flex flex-col items-center justify-center opacity-30 py-4">
-                   <Building2 size={20} className="mb-1" />
-                   <p className="text-[7px] font-black uppercase">Sin Proyectos</p>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Row 4: Transactions Table */}
-        <div className={cn(cardClass, 'rounded-xl p-3 text-left')}>
-          <div className='flex items-center justify-between mb-1'>
-            <h4 className='text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Movimientos Recientes</h4>
-            <span className='text-[7px] font-bold text-[var(--color-p-500)]'>{filteredTransactions.length} registros</span>
-          </div>
-          <div className='overflow-auto max-h-36'>
-            <table className='w-full text-left table-fixed'>
-              <thead className='sticky top-0 bg-[var(--color-p-50)] z-10'>
-                <tr className='border-b border-[var(--color-neutral-100)]'>
-                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Fecha</th>
-                  <th className='px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest'>Descripcion</th>
-                  <th className='w-20 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right'>Monto (Q)</th>
-                  <th className='w-16 px-2 py-1.5 text-[7px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest text-right'>Accion</th>
-                </tr>
-              </thead>
-              <tbody className='divide-y divide-[var(--color-neutral-50)]'>
-                {filteredTransactions.slice(0, 20).map((t, i) => (
-                  <tr key={t.id || i} className='hover:bg-[var(--color-neutral-50)]/50 transition-colors group'>
-                    <td className='px-2 py-1.5 text-[7px] font-bold text-[var(--color-neutral-500)] whitespace-nowrap'>{t.date?.slice(5) || '--'}</td>
-                    <td className='px-2 py-1.5 text-[8px] font-black text-primary uppercase truncate'>{t.description || '--'}</td>
-                    <td className={cn('px-2 py-1.5 text-[8px] font-black text-right', t.type === 'INGRESO' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]')}>
-                      {fmtQ(t.amount || 0)}
-                    </td>
-                    <td className='px-2 py-1.5 text-right'>
-                      <div className='flex gap-1 justify-end'>
-                        <button title="Editar" onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className='btn-edit p-1'><Pencil size={10} /></button>
-                        <button title="Eliminar" onClick={() => handleDeleteTx(t.id)} className='btn-delete p-1'><Trash2 size={10} /></button>
+                {/* Expenses Pie */}
+                <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col min-h-[160px]">
+                   <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Gastos por Categoría</h3>
+                   <div className="flex-1 flex items-center gap-4">
+                      <div className="w-1/2 h-full">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={expenseByCategory.length > 0 ? expenseByCategory : [{ name: 'Sin Datos', value: 1 }]}
+                              innerRadius={35}
+                              outerRadius={50}
+                              paddingAngle={5}
+                              dataKey="value"
+                            >
+                              {expenseByCategory.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} stroke="none" />
+                              ))}
+                            </Pie>
+                            <ChartTooltip content={<CustomTooltip />} />
+                          </PieChart>
+                        </ResponsiveContainer>
                       </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      {/* Side Actions / Live Feed */}
-      <aside className="hidden lg:flex flex-col gap-2 w-64 shrink-0">
-          <div className={cn(cardClass, "rounded-2xl p-3 text-left relative overflow-hidden")}>
-             <h4 className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-3">Accesos Rápidos</h4>
-             <div className="space-y-2">
-                {/* Cotización */}
-                <button
-                  onClick={() => setActiveTab?.('projects')}
-                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-[var(--color-brand)] to-[var(--color-brand-light)] text-white"
-                >
-                  <Plus size={14} />
-                  Nueva Cotización
-                </button>
-
-                {/* Registro Contable */}
-                <button
-                  onClick={() => setIsAccountingModalOpen(true)}
-                  className="btn-primary-enhanced btn-liquid w-full flex items-center gap-3 p-3 rounded-xl font-black tracking-widest uppercase text-[8px] transition-all hover:scale-[1.02] active:scale-95 shadow-lg bg-gradient-to-r from-[var(--color-green)] to-[#047857] text-white"
-                >
-                  <ArrowUpRight size={14} />
-                  Registro Contable
-                </button>
-
-                {/* Otras acciones */}
-                {[
-                  { label: 'Ver Inventario', icon: <Package size={14} />, color: 'bg-[var(--color-neutral-100)] text-primary hover:bg-[var(--color-neutral-200)]', tab: 'inventory' },
-                  { label: 'Reporte de Obra', icon: <TrendingUp size={14} />, color: 'bg-[var(--color-neutral-100)] text-primary hover:bg-[var(--color-neutral-200)]', tab: 'seguimiento' },
-                  { label: 'Administrar Personal', icon: <HardHat size={14} />, color: 'bg-[var(--color-neutral-100)] text-primary hover:bg-[var(--color-neutral-200)]', tab: 'staff' },
-                ].map((action, i) => (
-                  <button key={i} onClick={() => setActiveTab?.(action.tab as string)} className={cn(
-                    "interactive-card w-full flex items-center gap-3 p-2.5 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all border border-transparent hover:border-[var(--color-neutral-300)]",
-                    action.color
-                  )}>
-                    {action.icon}
-                    {action.label}
-                  </button>
-                ))}
-
-                <div className="pt-2 border-t border-[var(--color-neutral-200)]">
-                  <button
-                    onClick={() => {
-                      const result = validateAll(store);
-                      setValidationIssues(result.issues);
-                      setValidationSummary(result.summary);
-                    }}
-                    className="w-full flex items-center gap-3 p-2 rounded-lg font-bold tracking-widest uppercase text-[7px] transition-all hover:bg-[var(--color-brand)]/10 text-[var(--color-brand)] border border-dashed border-[var(--color-brand)]/20"
-                  >
-                    <ShieldCheck size={12} />
-                    Validar Datos
-                  </button>
-                  {validationIssues !== null && (
-                    <div className="mt-2 p-2 rounded-lg bg-[var(--color-neutral-800)] text-[7px]">
-                      <div className="flex items-center gap-2 mb-1.5">
-                        <span className="font-bold uppercase tracking-widest">Salud Datos</span>
-                        {validationSummary.high === 0 && validationSummary.medium === 0 && validationSummary.low === 0 ? (
-                          <span className="text-[var(--color-success)] font-bold">OK</span>
-                        ) : (
-                          <span className="text-[var(--color-warning)] font-bold">{validationIssues.length} issues</span>
-                        )}
+                      <div className="w-1/2 space-y-1.5">
+                         {expenseByCategory.slice(0, 4).map((item, i) => (
+                           <div key={i} className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 min-w-0">
+                                 <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+                                 <span className="text-[9px] font-bold uppercase truncate text-slate-500">{item.name}</span>
+                              </div>
+                              <span className="text-[9px] font-black text-slate-900">{Math.round(item.value/totalExpenses*100)}%</span>
+                           </div>
+                         ))}
                       </div>
-                      {validationSummary.high > 0 && (
-                        <div className="flex justify-between text-[var(--color-error)]">
-                          <span>Críticos</span><span className="font-bold">{validationSummary.high}</span>
-                        </div>
-                      )}
-                      {validationSummary.medium > 0 && (
-                        <div className="flex justify-between text-[var(--color-warning)]">
-                          <span>Medios</span><span className="font-bold">{validationSummary.medium}</span>
-                        </div>
-                      )}
-                      {validationSummary.low > 0 && (
-                        <div className="flex justify-between text-[var(--color-neutral-400)]">
-                          <span>Leves</span><span className="font-bold">{validationSummary.low}</span>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
+                   </div>
+                </motion.div>
              </div>
           </div>
 
-          {validationIssues !== null && validationIssues.length > 0 && (
-            <div className="bg-[var(--color-red-bg)] rounded-2xl p-3 text-left relative overflow-hidden">
-              <h4 className="text-[9px] font-black text-[var(--color-error)] uppercase tracking-widest mb-2">Detalles</h4>
-              <div className="max-h-32 overflow-y-auto space-y-1">
-                {validationIssues.map((issue, i) => (
-                  <div key={i} className="text-[6px] leading-tight text-[var(--color-neutral-300)] border-b border-[var(--color-red-border)]/30 pb-1 last:border-0">
-                    <span className={cn('font-bold uppercase', issue.severity === 'high' ? 'text-[var(--color-error)]' : issue.severity === 'medium' ? 'text-[var(--color-warning)]' : 'text-[var(--color-neutral-400)]')}>
-                      [{issue.severity}]
-                    </span>{' '}
-                    {issue.collection}: {issue.message}
+          {/* Row 2: Tables & Feed */}
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+             {/* Projects Table */}
+             <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Estado de Cuentas</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Resumen por Proyecto</p>
                   </div>
-                ))}
-              </div>
-              <button
-                onClick={() => setValidationIssues(null)}
-                className="mt-2 text-[6px] font-bold uppercase tracking-widest text-[var(--color-neutral-400)] hover:text-white transition-colors"
-              >
-                Cerrar
-              </button>
-            </div>
-          )}
+                  {availableYears.length > 1 && (
+                      <select value={selectedYear} onChange={e => setSelectedYear(e.target.value)}
+                        className="bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-[9px] font-black uppercase tracking-wider focus:outline-none focus:ring-1 focus:ring-amber-500 transition-all cursor-pointer">
+                        {availableYears.map(y => <option key={y} value={y}>{y === 'todos' ? 'TODOS LOS AÑOS' : y}</option>)}
+                      </select>
+                  )}
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="border-b border-slate-100">
+                        <th className="text-[10px] font-black text-slate-400 uppercase tracking-widest pb-4">Proyecto</th>
+                        <th className="text-[10px] font-black text-slate-400 uppercase tracking-widest pb-4 text-right">Inversión</th>
+                        <th className="text-[10px] font-black text-slate-400 uppercase tracking-widest pb-4 text-right">Aportes</th>
+                        <th className="text-[10px] font-black text-slate-400 uppercase tracking-widest pb-4 text-right">Pendiente</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {tableData.slice(0, 6).map(row => (
+                        <tr key={row.id} className="group hover:bg-slate-50/80 transition-all">
+                          <td className="py-4 font-black text-slate-900 uppercase text-[11px] truncate max-w-[150px]">{row.name}</td>
+                          <td className="py-4 text-right font-mono font-bold text-slate-600 text-[11px]">{fmtQ(row.costoTotal)}</td>
+                          <td className="py-4 text-right font-mono font-black text-emerald-500 text-[11px]">{fmtQ(row.aportes)}</td>
+                          <td className={cn("py-4 text-right font-mono font-black text-[11px]", row.pendiente > 0 ? "text-amber-500" : "text-slate-300")}>{fmtQ(row.pendiente)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {tableData.length === 0 && (
+                    <div className="py-12 flex flex-col items-center opacity-20">
+                       <Building2 size={32} />
+                       <p className="text-[10px] font-black uppercase mt-3 tracking-widest">Sin proyectos activos</p>
+                    </div>
+                  )}
+                </div>
+             </motion.div>
 
-         <div className="bg-[var(--color-neutral-900)] rounded-2xl p-3 text-left relative overflow-hidden highlight-glow">
-            <div className="absolute top-0 right-0 p-2 opacity-10 text-white"><ShieldCheck size={40} /></div>
-            <h4 className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-3">Estatus Financiero</h4>
-<div className="space-y-4">
-                <div>
-                   <div className="flex justify-between text-[9px] font-black uppercase text-[var(--color-neutral-50)] mb-1">
-                      <span>Liquidez</span>
-                      <span className="text-secondary">{liquidityPct >= 50 ? 'ALTA' : liquidityPct > 0 ? 'MEDIA' : 'CRÍTICA'}</span>
-                   </div>
-                   <div className="h-1.5 bg-[rgba(255,255,255,0.1)] rounded-full overflow-hidden">
-                      <div className="progress-neon-fill h-full rounded-full transition-all duration-700" style={{ width: `${liquidityPct}%` }} />
+             {/* Recent Activity */}
+             <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Movimientos Recientes</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Últimas 15 transacciones</p>
+                  </div>
+                  <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2.5 py-1 rounded-lg uppercase">{filteredTransactions.length} TOTAL</span>
+                </div>
+                <div className="flex-1 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar">
+                   <div className="space-y-3">
+                      {filteredTransactions.slice(0, 15).map((t, i) => (
+                        <div key={t.id || i} className="group flex items-center justify-between p-4 bg-slate-50 hover:bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all cursor-default">
+                           <div className="flex items-center gap-4 min-w-0">
+                              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", t.type === 'INGRESO' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600')}>
+                                 {t.type === 'INGRESO' ? <ArrowDownLeft size={18} /> : <ArrowUpRight size={18} />}
+                              </div>
+                              <div className="min-w-0">
+                                 <p className="text-[11px] font-black text-slate-900 uppercase tracking-tight truncate">{t.description || '--'}</p>
+                                 <div className="flex items-center gap-2 mt-0.5">
+                                    <span className="text-[9px] font-black text-slate-400 uppercase">{t.category}</span>
+                                    <span className="text-[9px] font-bold text-slate-300">•</span>
+                                    <span className="text-[9px] font-bold text-slate-400 uppercase">{t.date?.split('-').reverse().join('/')}</span>
+                                 </div>
+                              </div>
+                           </div>
+                           <div className="text-right ml-4">
+                              <p className={cn("text-xs font-black", t.type === 'INGRESO' ? 'text-emerald-600' : 'text-rose-600')}>
+                                 {t.type === 'INGRESO' ? '+' : '-'} {fmtQ(Math.abs(t.amount || 0))}
+                              </p>
+                              <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-all">
+                                 <button onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-amber-500 transition-colors"><Pencil size={12} /></button>
+                                 <button onClick={() => handleDeleteTx(t.id)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={12} /></button>
+                              </div>
+                           </div>
+                        </div>
+                      ))}
                    </div>
                 </div>
-                <div className="pt-4 border-t border-white/5 space-y-2">
-                    <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
-                       <span>Ingresos</span>
-                       <span className="text-[var(--color-success)]">+ {fmtQ(globalIncome)}</span>
-                    </div>
-                    <div className="flex justify-between text-[9px] font-bold uppercase text-[var(--color-sidebar-text)]">
-                       <span>Egresos</span>
-                       <span className="text-[var(--color-error)]">- {fmtQ(globalExpenses)}</span>
-                    </div>
-                </div>
-            </div>
-         </div>
+             </motion.div>
+          </div>
+        </div>
 
-{projects.length > 0 && (
-          <div className="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 p-5 rounded-2xl text-primary shadow-lg border-animated">
-              <div className="flex items-center gap-2 mb-3">
-                 <Zap size={16} className="fill-current" />
-                 <span className="text-[9px] font-black uppercase tracking-widest">Tipología de Proyectos</span>
-              </div>
-              <div className="space-y-2">
-                {(() => {
-                  const typeCounts: Record<string, number> = {};
-                  projects.forEach(p => {
-                    const t = p.typology || 'SIN TIPO';
-                    typeCounts[t] = (typeCounts[t] || 0) + 1;
-                  });
-                  const total = projects.length;
-                  const COLORS: Record<string, string> = {
-                    RESIDENCIAL: 'bg-[var(--color-mod-clients)]',
-                    COMERCIAL: 'bg-[var(--color-accent)]',
-                    INDUSTRIAL: 'bg-[var(--color-mod-stock)]',
-                    CIVIL: 'bg-[var(--color-mod-seguimiento)]',
-                    PUBLICA: 'bg-[var(--color-mod-dashboard)]',
-                  };
-                  return Object.entries(typeCounts)
-                    .sort((a, b) => b[1] - a[1])
-                    .map(([type, count]) => (
-                      <div key={type} className="flex items-center gap-2">
-                        <div className={`w-2 h-2 rounded-full ${COLORS[type as keyof typeof COLORS] || 'bg-[var(--color-p-400)]'}`} />
-                        <span className="text-[8px] font-bold text-[var(--color-neutral-50)] uppercase">{type}</span>
-                        <span className="text-[8px] font-black text-white/60 ml-auto">{count} ({Math.round(count/total*100)}%)</span>
+        {/* Side Actions / Live Feed */}
+        <aside className="hidden lg:flex flex-col gap-6 w-80 shrink-0 overflow-visible">
+            {/* User Profile Card */}
+            <motion.div variants={staggerItem} className="bg-[#0c1222] rounded-[2.5rem] p-8 text-left relative overflow-hidden border border-white/5 shadow-2xl">
+               <div className="absolute -top-20 -right-20 w-64 h-64 bg-amber-500/10 rounded-full blur-[80px]" />
+               <div className="relative z-10">
+                  <div className="flex items-center gap-5 mb-8">
+                     <div className="relative group">
+                        <Avatar src={user?.photoURL || undefined} size="xl" className="border-2 border-amber-500/30 group-hover:border-amber-500 transition-all duration-500" />
+                        <div className="absolute -bottom-1 -right-1 w-5 h-5 bg-emerald-500 border-[3px] border-[#0c1222] rounded-full shadow-lg" />
+                     </div>
+                     <div className="flex flex-col min-w-0">
+                        <span className="text-[10px] font-black text-amber-500 uppercase tracking-[0.2em] opacity-80">Administrador</span>
+                        <h2 className="text-lg font-black text-white truncate tracking-tight">{user?.displayName}</h2>
+                     </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 mb-8">
+                     <div className="bg-white/5 rounded-2xl p-4 border border-white/5 hover:bg-white/10 transition-all">
+                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1.5">Aportes</p>
+                        <p className="text-sm font-black text-emerald-500 truncate">{fmtQ(totalIncome)}</p>
+                     </div>
+                     <div className="bg-white/5 rounded-2xl p-4 border border-white/5 hover:bg-white/10 transition-all">
+                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1.5">Inversión</p>
+                        <p className="text-sm font-black text-rose-500 truncate">{fmtQ(totalExpenses)}</p>
+                     </div>
+                  </div>
+
+                  <button
+                    onClick={() => setIsAccountingModalOpen(true)}
+                    className="w-full flex items-center justify-center gap-3 py-4 rounded-2xl bg-amber-500 text-black text-[11px] font-black uppercase tracking-[0.2em] hover:bg-amber-400 transition-all shadow-[0_12px_24px_rgba(245,158,11,0.25)] active:scale-95 group"
+                  >
+                    <Plus size={18} strokeWidth={3} className="group-hover:rotate-90 transition-transform duration-300" />
+                    REGISTRAR MOVIMIENTO
+                  </button>
+               </div>
+            </motion.div>
+
+            {/* Agenda Widget */}
+            <motion.div variants={staggerItem} className="bg-white rounded-[2.5rem] p-8 text-left shadow-2xl border border-slate-100 flex-1 flex flex-col min-h-0">
+               <div className="flex items-center justify-between mb-8">
+                  <div className="flex items-center gap-3">
+                     <div className="w-10 h-10 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-600 shadow-sm border border-amber-100">
+                        <CalendarIcon size={20} strokeWidth={2.5} />
+                     </div>
+                     <div>
+                        <h3 className="text-xs font-black text-slate-900 uppercase tracking-tight">Agenda ERP</h3>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Planificación</p>
+                     </div>
+                  </div>
+                  <span className="bg-slate-50 border border-slate-100 text-slate-500 text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest">{new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}</span>
+               </div>
+               
+               <div className="flex-1 overflow-y-auto space-y-4 pr-1 custom-scrollbar">
+                  {agendaEvents.filter(e => e.date === new Date().toISOString().split('T')[0]).length === 0 ? (
+                     <div className="flex flex-col items-center justify-center py-16 opacity-20 grayscale">
+                        <CalendarIcon size={48} strokeWidth={1} />
+                        <p className="text-[10px] font-black text-slate-400 uppercase mt-4 tracking-[0.2em]">Despejado por hoy</p>
+                     </div>
+                  ) : (
+                    agendaEvents.filter(e => e.date === new Date().toISOString().split('T')[0]).map(e => (
+                      <div key={e.id} className="group relative bg-slate-50 hover:bg-amber-50/50 p-5 rounded-3xl border border-slate-100 hover:border-amber-200 transition-all cursor-default shadow-sm hover:shadow-md">
+                         <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.1em]">{e.time}</span>
+                            <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+                         </div>
+                         <p className="text-[12px] font-black text-slate-800 leading-tight uppercase tracking-tight">{e.title}</p>
                       </div>
-                    ));
-                })()}
-              </div>
-           </div>
-          )}
-      </aside>
+                    ))
+                  )}
+               </div>
+
+               <button 
+                 onClick={() => setActiveTab?.('settings')}
+                 className="mt-8 w-full py-4 rounded-2xl border-2 border-dashed border-slate-100 text-slate-400 text-[10px] font-black uppercase tracking-[0.2em] hover:border-amber-500/50 hover:bg-amber-50 hover:text-amber-600 transition-all duration-300"
+               >
+                 ABRIR CALENDARIO
+               </button>
+            </motion.div>
+
+            {/* Tipologia Stats (Mini) */}
+            <motion.div variants={staggerItem} className="bg-gradient-to-br from-amber-400 to-orange-500 p-6 rounded-[2.5rem] text-primary shadow-xl shadow-amber-500/20 relative overflow-hidden group">
+               <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10 group-hover:scale-150 transition-transform duration-700" />
+                <div className="relative z-10">
+                   <div className="flex items-center gap-3 mb-4">
+                      <Zap size={20} className="fill-current" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.15em]">Mix de Tipologías</span>
+                   </div>
+                   <div className="space-y-2.5">
+                     {(() => {
+                       const typeCounts: Record<string, number> = {};
+                       projects.forEach(p => {
+                         const t = p.typology || 'OTRO';
+                         typeCounts[t] = (typeCounts[t] || 0) + 1;
+                       });
+                       const total = projects.length || 1;
+                       return Object.entries(typeCounts)
+                         .sort((a, b) => b[1] - a[1])
+                         .slice(0, 4)
+                         .map(([type, count]) => (
+                           <div key={type} className="flex items-center gap-3">
+                              <div className="flex-1 h-1.5 bg-black/10 rounded-full overflow-hidden">
+                                 <motion.div 
+                                   initial={{ width: 0 }}
+                                   animate={{ width: `${Math.round(count/total*100)}%` }}
+                                   className="h-full bg-white shadow-sm"
+                                 />
+                              </div>
+                              <span className="text-[9px] font-black text-white min-w-[30px]">{Math.round(count/total*100)}%</span>
+                              <span className="text-[8px] font-black text-black/40 uppercase truncate max-w-[80px] text-right">{type}</span>
+                           </div>
+                         ));
+                     })()}
+                   </div>
+                </div>
+            </motion.div>
+        </aside>
       </motion.div>
 
       {/* Edit Transaction Modal */}

@@ -54,7 +54,11 @@ function exportLogsCSV(logs: any[], projectName: string) {
   a.click();
 }
 
-export default function ExecutionModule({ setActiveTab }: { setActiveTab?: (tab: string) => void }) {
+interface ExecutionProps {
+  setActiveTab?: (tab: string) => void;
+}
+
+export default function ExecutionModule({ setActiveTab }: ExecutionProps) {
    const { user } = useAuth();
    const store = useStore();
 

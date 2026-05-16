@@ -3,12 +3,12 @@ import { motion } from "motion/react";
 import Dashboard from "../../Dashboard";
 
 // Wrapper component for lazy loading compatibility
-function DashboardWrapper() {
+function DashboardWrapper(props: any) {
   return (
     <Suspense fallback={<div className="flex items-center justify-center h-full">
       <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin" />
     </div>}>
-      <Dashboard />
+      <Dashboard {...props} />
     </Suspense>
   );
 }
