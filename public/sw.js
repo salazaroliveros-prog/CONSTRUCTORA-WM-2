@@ -3,7 +3,7 @@
  * Estrategia: network-first con caché de respaldo para navegación SPA.
  * Sin lógica offline-first — la app funciona 100% online.
  */
-const CACHE_VERSION = 'v14';
+const CACHE_VERSION = 'v15';
 const CACHE_NAME = `wm-erp-${CACHE_VERSION}`;
 const STATIC_CACHE = `wm-static-${CACHE_VERSION}`;
 
@@ -57,7 +57,6 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (event.request.mode === 'navigate' || url.pathname.endsWith('.html')) {
-    event.respondWith(networkFirst(event.request));
     return;
   }
 
