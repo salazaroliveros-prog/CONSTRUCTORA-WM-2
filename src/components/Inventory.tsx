@@ -25,7 +25,8 @@ import {
   ClipboardList,
   CheckCircle2,
   Building2,
-  AlertCircle
+  AlertCircle,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { WarehouseItem, PurchaseOrder, PurchaseOrderItem } from '../constants';
@@ -63,6 +64,7 @@ export default function InventoryModule() {
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
   const [selectedOrderIds, setSelectedOrderIds] = useState<Set<string>>(new Set());
+  const [showWarehouseMap, setShowWarehouseMap] = useState(false);
 
   const toggleSelectItem = (id: string) => {
     setSelectedItemIds(prev => {
@@ -600,8 +602,27 @@ const createPurchaseOrder = async () => {
         </form>
       </Modal>
 
-      {/* Interactive Warehouse Map - Only Desktop for clarity */}
-      <div className="hidden lg:block bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+      {/* Mobile warehouse map toggle */}
+      <div className="lg:hidden">
+        <button
+          onClick={() => setShowWarehouseMap(!showWarehouseMap)}
+          className="w-full flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-200 shadow-sm"
+        >
+          <span className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
+            <MapPin size={16} className="text-secondary" /> Mapa de Almacén
+          </span>
+          <span className={cn("transition-transform text-slate-400", showWarehouseMap && "rotate-180")}>
+            <ChevronDown size={18} />
+          </span>
+        </button>
+      </div>
+
+      {/* Interactive Warehouse Map */}
+      <div className={cn(
+        "bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm",
+        "lg:block",
+        showWarehouseMap ? "block" : "hidden lg:block"
+      )}>
         <div className="flex justify-between items-center mb-4 text-left">
           <div>
             <h3 className="text-sm font-black text-primary uppercase tracking-widest flex items-center gap-2">
