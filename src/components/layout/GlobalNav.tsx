@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "motion/react";
 import { 
   LayoutDashboard, Building2, ClipboardList, TrendingUp, 
   Calendar, Package, Truck, HardHat, Users, BarChart3, 
-  Sparkles, Settings, LogOut, X, Menu, Home 
+  Sparkles, Settings, LogOut, X, Menu, Home, ShoppingCart,
+  GitCompareArrows, Layers, Palette
 } from "lucide-react";
 import { cn } from "../../utils/cn";
 import { useAuth } from "../../contexts/AuthContext";
@@ -21,12 +22,18 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
   const menuItems = [
     { id: "dashboard", label: "inicio", icon: <LayoutDashboard size={20} /> },
     { id: "projects", label: "proyectos", icon: <Building2 size={20} /> },
+    { id: "clients", label: "clientes", icon: <Users size={20} /> },
+    { id: "suppliers", label: "proveedores", icon: <Truck size={20} /> },
     { id: "execution", label: "bitácora", icon: <ClipboardList size={20} /> },
+    { id: "purchase-orders", label: "órdenes compra", icon: <ShoppingCart size={20} /> },
     { id: "seguimiento", label: "seguimiento", icon: <TrendingUp size={20} /> },
     { id: "gantt", label: "gantt", icon: <Calendar size={20} /> },
+    { id: "pert", label: "pert", icon: <GitCompareArrows size={20} /> },
+    { id: "fisico-financiero", label: "físico-fin.", icon: <Layers size={20} /> },
     { id: "inventory", label: "stock", icon: <Package size={20} /> },
     { id: "staff", label: "rrhh", icon: <HardHat size={20} /> },
     { id: "analytics", label: "analíticas", icon: <BarChart3 size={20} /> },
+    { id: "effects", label: "efectos", icon: <Palette size={20} /> },
     { id: "ai", label: "calculadora", icon: <Sparkles size={20} /> },
     { id: "settings", label: "ajustes", icon: <Settings size={20} /> },
   ];
@@ -39,7 +46,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
 
   return (
     <>
-      <div className="fixed top-6 left-6 z-[100001]">
+      <div className="fixed top-6 left-6 z-[100001] lg:hidden">
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className={cn(
@@ -73,7 +80,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
             exit={{ opacity: 0 }}
             className="full-menu-overlay z-[100000] bg-black/90 backdrop-blur-2xl"
           >
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 max-w-4xl p-10">
+            <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-5 sm:gap-8 max-w-4xl p-6 sm:p-10 overflow-y-auto max-h-screen">
               {menuItems.map((item, i) => (
                 <motion.button
                   key={item.id}
@@ -86,12 +93,12 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
                     activeTab === item.id ? "text-amber-500" : "text-white/60"
                   )}
                 >
-                  <div className={cn(
-                    "w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-500 border border-white/10 bg-white/5 group-hover:bg-amber-500 group-hover:text-black group-hover:scale-110 group-hover:-rotate-3 shadow-2xl",
-                    activeTab === item.id && "bg-white/10 border-amber-500/50"
-                  )}>
-                    {React.cloneElement(item.icon as React.ReactElement<any>, { size: 32 })}
-                  </div>
+                    <div className={cn(
+                      "w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center transition-all duration-500 border border-white/10 bg-white/5 group-hover:bg-amber-500 group-hover:text-black group-hover:scale-110 group-hover:-rotate-3 shadow-2xl",
+                      activeTab === item.id && "bg-white/10 border-amber-500/50"
+                    )}>
+                      {React.cloneElement(item.icon as React.ReactElement<any>, { size: 24 })}
+                    </div>
                   <span className="text-xs font-black uppercase tracking-[0.3em] group-hover:text-white transition-colors">
                     {item.label}
                   </span>
@@ -106,8 +113,8 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
                 onClick={() => { signOut(); setIsMenuOpen(false); }}
                 className="flex flex-col items-center gap-4 group text-red-400/60"
               >
-                <div className="w-20 h-20 rounded-3xl flex items-center justify-center transition-all duration-500 border border-red-500/20 bg-red-500/5 group-hover:bg-red-500 group-hover:text-white group-hover:scale-110 shadow-2xl">
-                  <LogOut size={32} />
+                <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center transition-all duration-500 border border-red-500/20 bg-red-500/5 group-hover:bg-red-500 group-hover:text-white group-hover:scale-110 shadow-2xl">
+                  <LogOut size={24} />
                 </div>
                 <span className="text-xs font-black uppercase tracking-[0.3em] group-hover:text-white transition-colors">
                   salir
