@@ -6,6 +6,7 @@
 import React, { useState, Suspense, lazy, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { Toaster } from "sonner";
+import { cn } from "./utils/cn";
 
 // Auth & Providers
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
@@ -14,17 +15,12 @@ import { ProjectFilterProvider } from "./contexts/ProjectFilterContext";
 import { NetworkStatusProvider, useNetworkStatus } from "./contexts/NetworkStatusContext";
 
 // Layout
-import { AppShell } from "./components/layout/AppShell";
-import { GlobalNav } from "./components/layout/GlobalNav";
-import { PageTransition } from "./components/shared/PageTransition";
+import { SidebarNavigation } from "./components/layout/SidebarNavigation";
+import { TopBar } from "./components/layout/TopBar";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
-
-// UI Components
-import { CommandMenu } from "./components/ui/command";
 
 // Icons
 import { LogIn } from "lucide-react";
-import Logo from "./components/Logo";
 
 // Lazy-loaded modules
 const Dashboard = lazy(() => import("./components/modules/Dashboard"));
@@ -54,13 +50,97 @@ function LoadingSpinner() {
   );
 }
 
+// ── App Content ──
+function AppContent() {
+  const [isNavOpen, setIsNavOpen] = useState(true);
+  
+  const validTabs = new Set([
+    "dashboard", "execution", "clients", "inventory", "projects", "suppliers", 
+    "staff", "analytics", "settings", "seguimiento", "ai", "gantt", "pert", 
+    "fisico-financiero", "effects"
+  ]);
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    return tab && validTabs.has(tab) ? tab : "dashboard";
+  });
+
+  const { user, login, loading, isAuthorizedUser, signOut } = useAuth();
+
+  useEffect(() => {
+    const url = new URL(window.location.href);
+    url.searchParams.set("tab", activeTab);
+    window.history.replaceState(null, "", url);
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (user?.photoURL) {
+      const link = document.querySelector("link[rel*='icon']");
+      if (link) (link as HTMLLinkElement).href = user.photoURL;
+    }
+  }, [user]);
+
+  const handleNavigate = (tab: string) => {
+    if (validTabs.has(tab)) {
+      setActiveTab(tab);
+    }
+  };
+
+  if (loading) return <LoadingScreen />;
+  if (!user) return <LoginScreen login={login} />;
+  if (!isAuthorizedUser) return <UnauthorizedScreen user={user} signOut={signOut} />;
+
+  const renderModule = () => {
+    switch (activeTab) {
+      case "dashboard": return <Dashboard key="dashboard" setActiveTab={handleNavigate} />;
+      case "execution": return <ExecutionModule key="execution" setActiveTab={handleNavigate} />;
+      case "clients": return <ClientsModule key="clients" />;
+      case "inventory": return <InventoryModule key="inventory" />;
+      case "projects": return <ProjectsModule key="projects" />;
+      case "suppliers": return <SuppliersModule key="suppliers" />;
+      case "staff": return <StaffModule key="staff" />;
+      case "analytics": return <AnalyticsModule key="analytics" />;
+      case "settings": return <SettingsModule key="settings" />;
+      case "seguimiento": return <SeguimientoModule key="seguimiento" />;
+      case "ai": return <AIAssistantModule key="ai" />;
+      case "gantt": return <GanttChartModule key="gantt" />;
+      case "pert": return <PERTChartModule key="pert" />;
+      case "fisico-financiero": return <PhysicalFinancialModule key="fisico-financiero" />;
+      case "effects": return <EffectsShowcaseModule key="effects" />;
+      default: return <Dashboard key="default" setActiveTab={handleNavigate} />;
+    }
+  };
+
+  return (
+    <>
+      <OfflineBanner />
+      <SidebarNavigation 
+        activeTab={activeTab} 
+        onNavigate={handleNavigate} 
+        isOpen={isNavOpen} 
+        onToggle={() => setIsNavOpen(!isNavOpen)} 
+      />
+      <div className={cn(
+        "min-h-screen transition-all duration-500",
+        isNavOpen ? "pl-64" : "pl-20"
+      )}>
+        <TopBar onNavigate={handleNavigate} activeTab={activeTab} />
+        <main className="pt-24 pb-10 px-8">
+           <Suspense fallback={<LoadingSpinner />}>
+             {renderModule()}
+           </Suspense>
+        </main>
+      </div>
+    </>
+  );
+}
+
 // ── Login Screen (Refactored) ──
 function LoginScreen({ login }: { login: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-6" style={{ background: 'linear-gradient(135deg, #0c1222 0%, #ffffff 100%)' }}>
       <div className="w-full max-w-[420px] relative">
         <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[24px] p-10 shadow-2xl transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.15)] relative overflow-hidden">
-          {/* Header */}
           <div className="text-center mb-8">
              <img src="/logo.png" alt="Constructora WM" className="h-16 w-auto mx-auto mb-4" />
              <h2 className="text-3xl font-bold text-white mb-2" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
@@ -119,48 +199,23 @@ function UnauthorizedScreen({ user, signOut }: { user: any; signOut: () => void 
         className="w-full max-w-md"
       >
         <div className="bg-surface/10 backdrop-blur-xl border border-white/10 rounded-3xl p-8 text-center space-y-6">
-          {/* Avatar */}
           <div className="w-20 h-20 mx-auto rounded-full bg-linear-to-br from-neutral-700 to-neutral-900 flex items-center justify-center shadow-2xl">
             {user?.photoURL ? (
-              <img
-                src={user.photoURL}
-                alt=""
-                className="w-full h-full rounded-full object-cover"
-              />
+              <img src={user.photoURL} alt="" className="w-full h-full rounded-full object-cover" />
             ) : (
               <LogIn size={32} className="text-white/40" />
             )}
           </div>
-
-          {/* Text */}
           <div>
-            <h1 className="text-xl font-black text-white uppercase tracking-wide">
-              Bienvenido
-            </h1>
+            <h1 className="text-xl font-black text-white uppercase tracking-wide">Bienvenido</h1>
             <p className="text-neutral-400 text-sm mt-1">{user?.displayName}</p>
             <p className="text-neutral-500 text-xs mt-0.5">{user?.email}</p>
           </div>
-
-          {/* Info */}
           <div className="bg-neutral-800/50 rounded-2xl p-5 border border-neutral-700/50">
-            <p className="text-neutral-300 text-sm leading-relaxed">
-              Tu cuenta ha sido registrada correctamente. Sin embargo, no tienes
-              datos asociados en el sistema.
-            </p>
-            <p className="text-neutral-500 text-xs mt-2">
-              Contacta al administrador para obtener acceso.
-            </p>
+            <p className="text-neutral-300 text-sm leading-relaxed">Tu cuenta ha sido registrada correctamente. Sin embargo, no tienes datos asociados.</p>
           </div>
-
-          {/* Logout button */}
-          <motion.button
-            onClick={() => signOut()}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full flex items-center justify-center gap-2 bg-neutral-800 text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-neutral-700 transition-all"
-          >
-            <LogIn size={16} className="rotate-180" />
-            Cerrar Sesión
+          <motion.button onClick={() => signOut()} className="w-full flex items-center justify-center gap-2 bg-neutral-800 text-white py-3.5 rounded-2xl font-bold text-sm hover:bg-neutral-700 transition-all">
+            <LogIn size={16} className="rotate-180" /> Cerrar Sesión
           </motion.button>
         </div>
       </motion.div>
@@ -179,366 +234,12 @@ function OfflineBanner() {
         </div>
       );
     }
-    if (syncStatus.lastSync) {
-      const ago = Math.round((Date.now() - new Date(syncStatus.lastSync).getTime()) / 1000);
-      if (ago < 30) return null;
-    }
     return null;
   }
   return (
     <div className="fixed top-0 left-0 right-0 z-9999 bg-amber-500/90 backdrop-blur-md text-amber-950 text-center text-xs font-bold py-2 px-4 shadow-lg shadow-amber-500/20">
       Sin conexión a internet
-      {syncStatus.pending > 0 && ` — ${syncStatus.pending} cambio${syncStatus.pending > 1 ? 's' : ''} pendiente${syncStatus.pending > 1 ? 's' : ''} de sincronizar`}
     </div>
-  );
-}
-
-// ── Loading Screen (app startup) ──
-function LoadingScreen() {
-  return (
-    <div
-      className="min-h-screen flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,#0f2040_0%,#0a0f1e_60%,#000_100%)]"
-    >
-      {/* Animated logo */}
-      <div className="relative w-20 h-20 z-10">
-        <div className="absolute inset-0 rounded-full bg-linear-to-br from-amber-500 to-amber-600 shadow-xl shadow-amber-500/30 animate-pulse" />
-        <div className="absolute inset-2 rounded-full bg-primary flex items-center justify-center">
-          <img src="/logo.png" alt="WM" className="w-10 h-10 object-contain" />
-        </div>
-      </div>
-
-      {/* Text */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.6 }}
-        className="flex flex-col items-center gap-3 mt-6"
-      >
-        <p className="text-sm font-black uppercase tracking-widest text-amber-400">
-          Iniciando Sistema
-        </p>
-        <div className="flex gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <motion.div
-              key={i}
-              className="w-2 h-2 rounded-full bg-amber-500"
-              animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-              transition={{
-                duration: 1.2,
-                repeat: Infinity,
-                delay: i * 0.2,
-                ease: "easeInOut",
-              }}
-            />
-          ))}
-        </div>
-        <p className="text-[10px] font-bold text-neutral-600 uppercase tracking-widest">
-          ERP Constructora · WM
-        </p>
-      </motion.div>
-    </div>
-  );
-}
-
-// ── Main App Component ──
-function AppContent() {
-  const validTabs = new Set([
-    "dashboard",
-    "execution",
-    "clients",
-    "inventory",
-    "projects",
-    "suppliers",
-    "staff",
-    "analytics",
-    "settings",
-    "seguimiento",
-    "ai",
-    "gantt",
-    "pert",
-    "fisico-financiero",
-    "effects",
-  ]);
-
-  const [activeTab, setActiveTab] = useState(() => {
-    const tab = new URLSearchParams(window.location.search).get("tab");
-    return tab && validTabs.has(tab) ? tab : "dashboard";
-  });
-
-  const { user, login, loading, isAuthorizedUser, signOut } = useAuth();
-
-  // Sync tab with URL
-  useEffect(() => {
-    const url = new URL(window.location.href);
-    url.searchParams.set("tab", activeTab);
-    window.history.replaceState(null, "", url);
-  }, [activeTab]);
-
-  // User favicon
-  useEffect(() => {
-    if (user?.photoURL) {
-      const link = document.querySelector("link[rel*='icon']");
-      if (link) (link as HTMLLinkElement).href = user.photoURL;
-    }
-  }, [user]);
-
-  // Tab navigation helper
-  const handleNavigate = (tab: string) => {
-    if (validTabs.has(tab)) {
-      setActiveTab(tab);
-    }
-  };
-
-  // All menu items for sidebar and mobile nav
-  const allMenuItems = [
-    {
-      id: "dashboard",
-      label: "Inicio",
-      labelMobile: "Inicio",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="7" height="9" x="3" y="3" rx="1" />
-          <rect width="7" height="5" x="14" y="3" rx="1" />
-          <rect width="7" height="9" x="14" y="12" rx="1" />
-          <rect width="7" height="5" x="3" y="16" rx="1" />
-        </svg>
-      ),
-    },
-    {
-      id: "projects",
-      label: "Proyectos",
-      labelMobile: "Proyectos",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="7" height="9" rx="1" />
-          <rect x="14" y="3" width="7" height="5" rx="1" />
-          <rect x="14" y="12" width="7" height="9" rx="1" />
-        </svg>
-      ),
-    },
-    {
-      id: "execution",
-      label: "Bitácora",
-      labelMobile: "Bitácora",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="8" y="8" width="12" height="10" rx="2" />
-          <path d="M16 8V6a4 4 0 0 0-8 0v2" />
-          <line x1="10" y1="14" x2="10.01" y2="14" />
-          <line x1="14" y1="14" x2="14.01" y2="14" />
-        </svg>
-      ),
-    },
-    {
-      id: "seguimiento",
-      label: "Seguimiento",
-      labelMobile: "Seguim.",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-          <polyline points="17 6 23 6 23 12" />
-        </svg>
-      ),
-    },
-    {
-      id: "gantt",
-      label: "Gantt",
-      labelMobile: "Gantt",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="4" width="18" height="18" rx="2" />
-          <path d="M16 2v4M8 2v4M3 10h18" />
-        </svg>
-      ),
-    },
-    {
-      id: "pert",
-      label: "PERT",
-      labelMobile: "PERT",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="5" cy="6" r="3" />
-          <circle cx="12" cy="6" r="3" />
-          <circle cx="19" cy="6" r="3" />
-          <circle cx="5" cy="18" r="3" />
-          <circle cx="12" cy="18" r="3" />
-          <circle cx="19" cy="18" r="3" />
-          <line x1="8" y1="6" x2="9" y2="6" />
-          <line x1="15" y1="6" x2="16" y2="6" />
-          <line x1="5" y1="9" x2="5" y2="15" />
-          <line x1="12" y1="9" x2="12" y2="15" />
-          <line x1="19" y1="9" x2="19" y2="15" />
-          <line x1="8" y1="18" x2="9" y2="18" />
-          <line x1="15" y1="18" x2="16" y2="18" />
-        </svg>
-      ),
-    },
-    {
-      id: "fisico-financiero",
-      label: "Físico-Fin.",
-      labelMobile: "Fís-Fin",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3v18h18" />
-          <path d="M7 16h2v5H7zM11 11h2v10h-2zM15 8h2v13h-2zM19 5h2v16h-2z" />
-          <path d="M3 13c4-6 12-6 16 0" />
-        </svg>
-      ),
-    },
-    {
-      id: "inventory",
-      label: "Stock",
-      labelMobile: "Stock",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="m7.5 4.27 9 5.15" />
-          <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 23 16V8z" />
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-          <line x1="12" y1="22.08" x2="12" y2="12" />
-        </svg>
-      ),
-    },
-    {
-      id: "suppliers",
-      label: "Proveedores",
-      labelMobile: "Proveed.",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="1" y="3" width="15" height="13" rx="2" />
-          <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
-          <circle cx="5.5" cy="18.5" r="2.5" />
-          <circle cx="18.5" cy="18.5" r="2.5" />
-        </svg>
-      ),
-    },
-    {
-      id: "staff",
-      label: "Recursos Humanos",
-      labelMobile: "RRHH",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-    },
-    {
-      id: "clients",
-      label: "Clientes",
-      labelMobile: "Clientes",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-      ),
-    },
-    {
-      id: "analytics",
-      label: "Analíticas",
-      labelMobile: "Analít.",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3v16a2 2 0 0 0 2 2h16" />
-          <path d="M7 16h2v5H7zM11 11h2v10h-2zM15 8h2v13h-2zM19 5h2v16h-2z" />
-        </svg>
-      ),
-    },
-    {
-      id: "ai",
-      label: "Calculadora de Presupuestos",
-      labelMobile: "Calc.",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" />
-        </svg>
-      ),
-    },
-    {
-      id: "settings",
-      label: "Ajustes",
-      labelMobile: "Ajustes",
-      icon: (
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-          <circle cx="12" cy="12" r="3" />
-        </svg>
-      ),
-    },
-  ];
-
-  // Get menu items (respecting activeModules settings)
-  const menuItems = allMenuItems.filter(
-    (item) =>
-      item.id === "settings" ||
-      item.id === "ai" ||
-      true // All modules active by default
-  );
-
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-
-  // Rendering
-  if (loading) {
-    return <LoadingScreen />;
-  }
-
-  if (!user) {
-    return <LoginScreen login={login} />;
-  }
-
-  if (!isAuthorizedUser) {
-    return (
-      <UnauthorizedScreen user={user} signOut={signOut} />
-    );
-  }
-
-  const renderModule = () => {
-    switch (activeTab) {
-      case "dashboard": return <Dashboard key="dashboard" setActiveTab={handleNavigate} />;
-      case "execution": return <ExecutionModule key="execution" setActiveTab={handleNavigate} />;
-      case "clients": return <ClientsModule key="clients" />;
-      case "inventory": return <InventoryModule key="inventory" />;
-      case "projects": return <ProjectsModule key="projects" />;
-      case "suppliers": return <SuppliersModule key="suppliers" />;
-      case "staff": return <StaffModule key="staff" />;
-      case "analytics": return <AnalyticsModule key="analytics" />;
-      case "settings": return <SettingsModule key="settings" />;
-      case "seguimiento": return <SeguimientoModule key="seguimiento" />;
-      case "ai": return <AIAssistantModule key="ai" />;
-      case "gantt": return <GanttChartModule key="gantt" />;
-      case "pert": return <PERTChartModule key="pert" />;
-      case "fisico-financiero": return <PhysicalFinancialModule key="fisico-financiero" />;
-      case "effects": return <EffectsShowcaseModule key="effects" />;
-      default: return <Dashboard key="default" setActiveTab={handleNavigate} />;
-    }
-  };
-
-  return (
-    <>
-      <OfflineBanner />
-      <SidebarNavigation 
-        activeTab={activeTab} 
-        onNavigate={handleNavigate} 
-        isOpen={isNavOpen} 
-        onToggle={() => setIsNavOpen(!isNavOpen)} 
-      />
-      <div className={cn(
-        "min-h-screen transition-all duration-500",
-        isNavOpen ? "pl-64" : "pl-20"
-      )}>
-        <TopBar onNavigate={handleNavigate} activeTab={activeTab} />
-        <main className="pt-24 pb-10 px-8">
-           <Suspense fallback={<LoadingSpinner />}>
-             {renderModule()}
-           </Suspense>
-        </main>
-      </div>
-    </>
   );
 }
 
@@ -549,18 +250,7 @@ export default function App() {
       <AuthProvider>
         <SettingsProvider>
           <ProjectFilterProvider>
-            <Toaster
-              position="bottom-right"
-              richColors
-              toastOptions={{
-                classNames: {
-                  success: "border-l-emerald-500",
-                  error: "border-l-red-500",
-                  warning: "border-l-amber-500",
-                  info: "border-l-blue-500",
-                },
-              }}
-            />
+            <Toaster position="bottom-right" richColors />
             <AppContent />
           </ProjectFilterProvider>
         </SettingsProvider>
@@ -568,4 +258,3 @@ export default function App() {
     </NetworkStatusProvider>
   );
 }
-
