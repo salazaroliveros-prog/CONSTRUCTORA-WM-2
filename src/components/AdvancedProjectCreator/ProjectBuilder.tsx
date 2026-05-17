@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { Typology } from '../../constants';
+import { X } from 'lucide-react';
 import { generateBudgetPDF, generateBudgetPDFAPU, generateBudgetPDFEjecutivo, generateBudgetPDFCliente, generateBudgetJSON, generateBOM } from '../../lib/reportEngine';
 import { addDocument } from '../../services/firestoreService';
 import { fmtQ } from '../../utils/format';
@@ -186,7 +187,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
 
       {/* Panel de ítems APU (búsqueda) */}
 {showAPUPanel && (
-         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
+         <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4 mb-6 animate-in fade-in slide-in-from-top-2 duration-200">
            <div className="flex items-center justify-between mb-4">
              <h3 className="text-sm font-bold text-slate-800">Biblioteca APU</h3>
              <button
@@ -194,8 +195,8 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
                aria-label="Cerrar panel APU"
                className="text-slate-500 hover:text-slate-700"
              >
-               ✕
-             </button>
+                <X size={16} />
+              </button>
            </div>
            <div className="sr-only">
              <label htmlFor="apu-search-input">Buscar en APU</label>
@@ -206,7 +207,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
              placeholder="Buscar en APU..."
              value={apuSearch}
              onChange={(e) => setApuSearch(e.target.value)}
-             className="w-full px-4 py-2 text-[9px] border border-slate-300 rounded-lg mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+             className="w-full px-4 py-2 text-[9px] border border-white/30 rounded-xl bg-white/60 backdrop-blur-sm mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
            />
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 max-h-96 overflow-y-auto">
              {availableAPU.map(apu => (
@@ -218,7 +219,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
                      setApuSearch('');
                    }
                  }}
-                 className="p-3 border border-slate-200 rounded-lg text-left hover:border-secondary hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                  className="p-3 border border-white/30 rounded-xl bg-white/60 backdrop-blur-sm text-left hover:border-secondary hover:shadow-md transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
                  aria-label={`Agregar APU: ${apu.description}`}
                >
                  <p className="text-[9px] font-bold text-slate-800">{apu.description}</p>
@@ -238,7 +239,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
       />
 
       {/* Tabla de presupuesto */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+      <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4 mb-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-sm font-black uppercase text-slate-800">
             Presupuesto Detallado
@@ -250,14 +251,14 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
 <button
                onClick={() => setShowAPUPanel(v => !v)}
                aria-label={`${showAPUPanel ? 'Ocultar' : 'Mostrar'} biblioteca APU`}
-               className="px-3 py-1.5 text-[8px] font-bold uppercase bg-slate-100 text-slate-700 rounded hover:bg-slate-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
-             >
-               {showAPUPanel ? 'Ocultar APU' : 'Buscar APU'}
-             </button>
-             <button
-               onClick={addCustomItem}
-               aria-label="Agregar renglón personalizado"
-               className="px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded hover:bg-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+                className="px-3 py-1.5 text-[8px] font-bold uppercase bg-white/60 backdrop-blur-sm border border-white/30 text-slate-700 rounded-xl hover:bg-white/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+              >
+                {showAPUPanel ? 'Ocultar APU' : 'Buscar APU'}
+              </button>
+              <button
+                onClick={addCustomItem}
+                aria-label="Agregar renglón personalizado"
+                className="px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
              >
                + Personalizado
              </button>
@@ -305,7 +306,7 @@ const handleExportPDF = (type: 'completo' | 'ejecutivo' | 'apu' | 'cliente') => 
 
       {/* Resumen de Materiales */}
       {totalMaterialsSummary.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4">
           <h3 className="text-sm font-black uppercase text-slate-800 mb-4">
             Resumen Total de Materiales
           </h3>

@@ -34,7 +34,7 @@ import { addDocument, updateDocument, deleteDocument, getDocumentsForCollection,
 import { useSettings } from '../contexts/SettingsContext';
 import { useAuth } from '../contexts/AuthContext';
 import { useProjectFilter } from '../contexts/ProjectFilterContext';
-import { Transaction } from '../constants';
+
 import { useCountUp } from '../hooks/useCountUp';
 import { Modal } from './ui/Modal';
 import { Input } from './ui/input';
@@ -303,7 +303,8 @@ const [accountingForm, setAccountingForm] = useState({
       description: '',
       category: 'Materiales',
       date: new Date().toISOString().split('T')[0],
-      projectId: ''
+      projectId: '',
+      budgetLineId: ''
     });
 
     const entryCategories = ['Aporte Cliente', 'Anticipo de Obra', 'Pago por Avance', 'Pago Final', 'Anteproyecto', 'Estudios y Diseno', 'Agrimensura', 'Cuantificacion', 'Venta de Material', 'Devolucion de Proveedor', 'Subvencion / Subsidio', 'Prestamo / Financiamiento', 'Otros Ingresos'];
@@ -311,7 +312,6 @@ const [accountingForm, setAccountingForm] = useState({
 
     // ── DataStore: datos centralizados ──────────────────────────────────────
     const projects = store.projects.items;
-    const transactions = store.transactions.items;
     const allTransactions = store.transactions.items;
     const inventory = store.inventory.items;
     const loaded = store.projects.isLoading || store.transactions.isLoading || store.inventory.isLoading;
@@ -327,13 +327,14 @@ const [accountingForm, setAccountingForm] = useState({
           category: accountingForm.category,
           amount: isEntry ? accountingForm.quantity * accountingForm.cost : -(accountingForm.quantity * accountingForm.cost),
           projectId: accountingForm.projectId || undefined,
+          budgetLineId: accountingForm.budgetLineId || undefined,
           unitCost: accountingForm.cost,
           qty: accountingForm.quantity,
           createdAt: new Date().toISOString(),
         };
         await addDocument('transactions', doc);
         toast.success('Movimiento registrado');
-        setAccountingForm({ type: 'Salida', quantity: 1, cost: 0, description: '', category: 'Materiales', date: new Date().toISOString().split('T')[0], projectId: '' });
+        setAccountingForm({ type: 'Salida', quantity: 1, cost: 0, description: '', category: 'Materiales', date: new Date().toISOString().split('T')[0], projectId: '', budgetLineId: '' });
       } catch (e) { toast.error('Error', { description: parseError(e) }); }
     };
 
@@ -611,11 +612,11 @@ const generateReport = async () => {
 
 // Table data - Estado de cuentas por proyecto
    const tableData = projectsByYear.map(p => {
-     const aportes = PMath.sum(
-       transactions
-         .filter(t => t.type === 'INGRESO' && t.category === 'Aporte Cliente' && t.projectId === p.id)
-         .map(t => t.amount || 0)
-     );
+      const aportes = PMath.sum(
+        allTransactions
+          .filter(t => t.type === 'INGRESO' && t.category === 'Aporte Cliente' && t.projectId === p.id)
+          .map(t => t.amount || 0)
+      );
      const costoTotal = p.budget || 0;
      const pendiente = PMath.sub(costoTotal, aportes);
      return { id: p.id, name: p.name || 'Sin nombre', costoTotal, aportes, pendiente: Math.max(0, pendiente), progress: p.progress || 0 };
@@ -744,6 +745,36 @@ const generateReport = async () => {
               {projects.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
+
+          {accountingForm.projectId && (() => {
+            const proj = projects.find(p => p.id === accountingForm.projectId);
+            const budgetLines: { id: string; code: string; description: string }[] = [];
+            const flatten = (lines: any[]) => {
+              for (const l of lines || []) {
+                if (l.code && l.description) budgetLines.push({ id: l.id || l.code, code: l.code, description: l.description });
+                if (l.children) flatten(l.children);
+              }
+            };
+            flatten(proj?.budgetTree || proj?.items || []);
+            if (budgetLines.length === 0) return null;
+            return (
+              <div>
+                <label htmlFor="accounting-budgetline" className="label">Renglón del presupuesto (opcional)</label>
+                <select
+                  id="accounting-budgetline"
+                  value={accountingForm.budgetLineId}
+                  onChange={(e) => setAccountingForm({ ...accountingForm, budgetLineId: e.target.value })}
+                  className="select"
+                  title="Vincular a renglón"
+                >
+                  <option value="">Sin renglón específico</option>
+                  {budgetLines.map(bl => (
+                    <option key={bl.id} value={bl.id}>{bl.code} — {bl.description}</option>
+                  ))}
+                </select>
+              </div>
+            );
+          })()}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">

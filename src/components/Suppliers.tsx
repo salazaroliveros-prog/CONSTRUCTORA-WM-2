@@ -406,7 +406,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
                  <div className="overflow-auto flex-1">
                    <table className="w-full text-left">
-                      <thead className="sticky top-0 bg-slate-50 z-10">
+                      <thead className="sticky top-0 bg-white/40 backdrop-blur-sm z-10">
                         <tr className="border-b border-slate-100">
                         {bulkMode && (
                           <th className="px-2 py-2 w-6">
@@ -432,7 +432,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                               initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }}
                               transition={{ duration: 0.15, delay: i * 0.02 }}
                               onClick={() => { if (bulkMode) { toggleSelectSupplier(s.id); } else { setSelectedSupplier(isSelected ? null : s); } }}
-                              className={cn("hover:bg-slate-50/50 transition-colors group cursor-pointer",
+                              className={cn("hover:bg-white/30/50 transition-colors group cursor-pointer",
                                 (isSelected || selectedSupplierIds.has(s.id)) && "bg-secondary/5 border-l-2 border-secondary")}>
                               {bulkMode && (
                                 <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
@@ -495,7 +495,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                animate={{ opacity: 1, x: 0, width: 280 }}
                exit={{ opacity: 0, x: 40, width: 0 }}
                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="shrink-0 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
+                className="shrink-0 bg-white/70 backdrop-blur-md border border-white/30 rounded-xl shadow-lg shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
                 style={{ minWidth: 200, maxWidth: 320 }}>
                {/* Header */}
                <div className="bg-slate-900 p-3 relative">
@@ -565,7 +565,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                        </div>
                      ) : null)}
                      {selectedSupplier.address && (
-                       <p className="text-[8px] text-slate-500 font-bold bg-slate-50 rounded-md p-1.5">{selectedSupplier.address}</p>
+                       <p className="text-[8px] text-slate-500 font-bold bg-white/40 backdrop-blur-sm rounded-md p-1.5">{selectedSupplier.address}</p>
                      )}
                    </div>
                  </div>
@@ -586,14 +586,14 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                      </div>
                    </div>
                    {supplierOCs.length === 0 ? (
-                     <div className="text-center py-3 bg-slate-50 rounded-md border border-dashed border-slate-200">
+                     <div className="text-center py-3 bg-white/40 backdrop-blur-sm rounded-md border border-dashed border-slate-200">
                        <ShoppingCart size={14} className="mx-auto mb-1 text-slate-300" />
                        <p className="text-[8px] text-slate-300 font-bold italic">Sin órdenes registradas</p>
                      </div>
                    ) : (
                      <div className="space-y-1">
                        {supplierOCs.map(oc => (
-                         <div key={oc.id} className="bg-slate-50 rounded-md p-1.5 hover:bg-slate-100 transition-all group">
+                         <div key={oc.id} className="bg-white/40 backdrop-blur-sm rounded-md p-1.5 hover:bg-white/40 transition-all group">
                            <div className="flex items-center justify-between mb-0.5">
                              <span className="text-[8px] font-black text-primary uppercase truncate flex-1">{oc.projectName || 'Sin proyecto'}</span>
                              <span className={cn("text-[6px] font-black uppercase px-1 py-0.5 rounded-full ml-1 shrink-0", OC_STATUS_COLORS[oc.status] || 'bg-slate-100 text-slate-600')}>
@@ -669,7 +669,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                  {selectedSupplier.notes && (
                    <div>
                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Notas</p>
-                     <p className="text-[8px] text-slate-600 bg-slate-50 rounded-md p-1.5">{selectedSupplier.notes}</p>
+                     <p className="text-[8px] text-slate-600 bg-white/40 backdrop-blur-sm rounded-md p-1.5">{selectedSupplier.notes}</p>
                    </div>
                  )}
                </div>

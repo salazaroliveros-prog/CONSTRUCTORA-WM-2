@@ -4,11 +4,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion } from 'motion/react';
 import { cn } from '../utils/cn';
-import { fmtQ, precise } from '../engine/precision';
+import { fmtQ, precise, PMath } from '../engine/precision';
 import { useStore } from '../store/DataStore';
-import { Transaction } from '../constants';
 import { trackEvent } from '../utils/logger';
-import { PMath } from '../engine/precision';
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
@@ -20,14 +18,14 @@ import { Button } from './ui/button';
 
 function pct(n: number) { return Math.min(100, Math.max(0, Math.round(n))); }
 
-const COLORS = ['#f59e0b', '#3b82f6', '#10b981', '#ef4444', '#8b5cf6', '#06b6d4'];
+const COLORS = ['var(--color-warning)', 'var(--color-info)', 'var(--color-success)', 'var(--color-error)', '#8b5cf6', '#06b6d4'];
 
 function RingChart({ value, color, label, size = 80 }: { value: number; color: string; label: string; size?: number }) {
   const r = (size / 2) - 8;
   const circ = 2 * Math.PI * r;
   const pct = Math.min(value, 100);
   const dash = (pct / 100) * circ;
-  const trackColor = '#e2e8f0';
+  const trackColor = 'var(--color-neutral-200)';
   const isOver = value > 100;
   return (
     <div className="flex flex-col items-center gap-1">
@@ -133,7 +131,7 @@ export default function Seguimiento() {
   return (
     <div className="flex flex-col h-full p-3 gap-3 overflow-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
         <div>
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-[0.2em]">Módulo de Análisis</p>
           <h1 className="text-sm font-black text-slate-900  uppercase tracking-tight">Seguimiento de Avance</h1>
@@ -170,7 +168,7 @@ export default function Seguimiento() {
           { label: 'Costo Acumulado', value: fmtQ(totalCostAll), color: totalCostAll > totalBudget ? '#ef4444' : '#10b981', icon: <AlertTriangle size={14} /> },
         ].map((k, i) => (
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-            className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+            className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-1">
               <div className="p-1.5 rounded-lg text-white bg-[var(--k-bg)]" style={{ '--k-bg': k.color } as React.CSSProperties}>{k.icon}</div>
               <p className="text-[9px] sm:text-[8px] font-black text-slate-400  uppercase tracking-widest">{k.label}</p>
@@ -184,7 +182,7 @@ export default function Seguimiento() {
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 flex-1 grid-rows-[minmax(auto,1fr)]">
 
         {/* Ring charts per project */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Avance por Proyecto</p>
 
           {displayProjects.length === 0 ? (
@@ -204,11 +202,11 @@ export default function Seguimiento() {
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
                 <div className="bg-[var(--color-warning-bg)] rounded-xl p-2 text-center">
                   <p className="text-[7px] font-black text-[var(--color-warning)] uppercase tracking-widest">Presupuesto</p>
-                  <p className="text-[11px] font-black text-slate-800 ">Q. {fmtQ(displayProjects[0]?.budget || 0)}</p>
+                   <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.budget || 0)}</p>
                 </div>
                 <div className="bg-[var(--color-info-bg)] rounded-xl p-2 text-center">
                   <p className="text-[7px] font-black text-[var(--color-info)] uppercase tracking-widest">Ejecutado</p>
-                  <p className="text-[11px] font-black text-slate-800 ">Q. {fmtQ(displayProjects[0]?.totalCost || 0)}</p>
+                   <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
               <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
@@ -219,22 +217,22 @@ export default function Seguimiento() {
               </div>
 
               {/* Pendiente de aportar */}
-              <div className="w-full mt-3 bg-slate-50 rounded-xl p-3">
+              <div className="w-full mt-3 bg-white/50 backdrop-blur-sm rounded-xl p-3">
                 <div className="w-full text-[8px] font-bold text-slate-400 uppercase tracking-widest mb-2">Resumen Financiero</div>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  <div className="bg-white rounded-lg p-2 text-center">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Presupuesto</p>
                     <p className="text-[10px] font-black text-slate-800">{fmtQ(displayProjects[0]?.budget || 0)}</p>
                   </div>
-                  <div className="bg-white rounded-lg p-2 text-center">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Aportado</p>
                     <p className="text-[10px] font-black text-[var(--color-success)]">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
                   </div>
-                  <div className="bg-white rounded-lg p-2 text-center">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Ejecutado</p>
                     <p className="text-[10px] font-black text-[var(--color-info)]">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                   </div>
-                  <div className="bg-white rounded-lg p-2 text-center">
+                  <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Pendiente de Aportar</p>
                     <p className={cn("text-[10px] font-black",
                       ((displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)) > 0
@@ -251,7 +249,7 @@ export default function Seguimiento() {
             /* All projects: list with small rings */
             <div className="space-y-3 overflow-auto max-h-64">
               {displayProjects.map(p => (
-                <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-slate-50 transition-colors cursor-pointer"
+                <div key={p.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-white/50 transition-colors cursor-pointer"
                   onClick={() => setSelectedId(p.id)}>
                   <RingChart value={p.fisico} color="#f59e0b" label="Fís." size={56} />
                   <RingChart value={p.financiero} color="#3b82f6" label="Fin." size={56} />
@@ -271,11 +269,11 @@ export default function Seguimiento() {
         </div>
 
         {/* Comparison bar chart */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Comparativa Físico vs Financiero</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} domain={[0, 100]} unit="%" />
               <Tooltip formatter={(v: any) => `${v}%`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
@@ -287,11 +285,11 @@ export default function Seguimiento() {
         </div>
 
         {/* Deviation chart */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Desviación (Físico − Financiero)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={desvData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} unit="%" />
               <Tooltip formatter={(v: any) => `${v}%`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
@@ -303,11 +301,11 @@ export default function Seguimiento() {
         </div>
 
         {/* Budget vs Cost area */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg md:col-span-2">
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Presupuesto vs Costos (Q)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
               <Tooltip formatter={(v: any) => fmtQ(v as number)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
@@ -322,7 +320,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Status pie */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Distribución por Estado</p>
           <ResponsiveContainer width="100%" height={150}>
             <PieChart>
@@ -337,7 +335,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Materials: Budgeted vs Executed vs In Stock */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-3 shadow-sm md:col-span-2 xl:col-span-3">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg md:col-span-2 xl:col-span-3">
           <div className="flex items-center justify-between mb-2">
             <div>
               <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest">Materiales: Presupuestado vs Ejecutado</p>
@@ -385,15 +383,15 @@ export default function Seguimiento() {
                     <p className="text-[8px] font-black text-slate-400  uppercase tracking-widest mb-2">Detalle por Renglón</p>
                     <div className="space-y-2 max-h-64 overflow-y-auto">
                       {Array.from(itemMap.entries()).map(([itemId, itemData]) => (
-                        <details key={itemId} className="bg-slate-50 border border-slate-100 rounded-xl overflow-hidden">
-                          <summary className="px-3 py-2 text-[9px] font-black text-slate-700 cursor-pointer hover:bg-slate-100 transition-all uppercase tracking-wider">
+                        <details key={itemId} className="bg-white/40 backdrop-blur-sm border border-white/30 rounded-xl overflow-hidden">
+                          <summary className="px-3 py-2 text-[9px] font-black text-slate-700 cursor-pointer hover:bg-white/30 transition-all uppercase tracking-wider">
                             {itemData.itemName}
                           </summary>
                           <div className="px-3 pb-2 pt-1 space-y-1">
                             {itemData.materials.map((m, i) => {
                               const pct = m.budgeted > 0 ? Math.round((m.used / m.budgeted) * 100) : 0;
                               return (
-                                <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white rounded-lg px-2 py-1.5">
+                                <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5">
                                   <span className="font-bold text-slate-700 truncate col-span-2">{m.name}</span>
                                   <span className="text-slate-500 text-center">P: {m.budgeted} {m.unit}</span>
                                   <span className="text-[var(--color-info)] text-center">B: {m.stock}</span>
@@ -414,8 +412,80 @@ export default function Seguimiento() {
           )}
         </div>
 
+        {/* Detalle Financiero por Renglón */}
+        {selected && (() => {
+          const flatLines: { id: string; code: string; description: string; budgeted: number }[] = [];
+          const flatten = (lines: any[]) => {
+            for (const l of lines || []) {
+              if (l.code && l.description) {
+                flatLines.push({ id: l.id || l.code, code: l.code, description: l.description, budgeted: l.totalLine ?? l.materialTotal ?? 0 });
+              }
+              if (l.children) flatten(l.children);
+            }
+          };
+          flatten(selected.budgetTree || selected.items || []);
+          if (flatLines.length === 0) return null;
+
+          const txByLine = new Map<string, { income: number; expense: number }>();
+          for (const tx of allTransactions) {
+            if (tx.projectId !== selected.id || !tx.budgetLineId) continue;
+            const entry = txByLine.get(tx.budgetLineId) || { income: 0, expense: 0 };
+            if (tx.type === 'INGRESO') entry.income += tx.amount || 0;
+            else entry.expense += tx.amount || 0;
+            txByLine.set(tx.budgetLineId, entry);
+          }
+
+          return (
+            <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg md:col-span-2 xl:col-span-3">
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Detalle Financiero por Renglón</p>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-[9px]">
+                  <thead>
+                    <tr className="border-b border-white/20">
+                      <th className="text-left font-black text-slate-400 uppercase tracking-widest pb-2 pr-3">Código</th>
+                      <th className="text-left font-black text-slate-400 uppercase tracking-widest pb-2 pr-3">Renglón</th>
+                      <th className="text-right font-black text-slate-400 uppercase tracking-widest pb-2 pr-3">Presupuestado</th>
+                      <th className="text-right font-black text-slate-400 uppercase tracking-widest pb-2 pr-3">Ingresos</th>
+                      <th className="text-right font-black text-slate-400 uppercase tracking-widest pb-2 pr-3">Egresos</th>
+                      <th className="text-right font-black text-slate-400 uppercase tracking-widest pb-2">Desviación</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {flatLines.map(line => {
+                      const actual = txByLine.get(line.id) || { income: 0, expense: 0 };
+                      const deviation = line.budgeted > 0 ? ((actual.expense - line.budgeted) / line.budgeted) * 100 : 0;
+                      return (
+                        <tr key={line.id} className="border-b border-white/10 hover:bg-white/30">
+                          <td className="py-2 pr-3 font-bold text-slate-500">{line.code}</td>
+                          <td className="py-2 pr-3 text-slate-700 max-w-[200px] truncate">{line.description}</td>
+                          <td className="py-2 pr-3 text-right font-black text-slate-800">{fmtQ(line.budgeted)}</td>
+                          <td className="py-2 pr-3 text-right font-bold text-emerald-600">{actual.income > 0 ? fmtQ(actual.income) : '—'}</td>
+                          <td className="py-2 pr-3 text-right font-bold text-red-500">{actual.expense > 0 ? fmtQ(actual.expense) : '—'}</td>
+                          <td className={cn("py-2 text-right font-black",
+                            Math.abs(deviation) < 10 ? 'text-emerald-500' :
+                            deviation > 0 ? 'text-red-500' : 'text-amber-500'
+                          )}>
+                            {actual.expense > 0 || actual.income > 0 ? `${deviation > 0 ? '+' : ''}${deviation.toFixed(1)}%` : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              {flatLines.every(l => !txByLine.get(l.id)) && (
+                <p className="text-[9px] text-slate-400 text-center py-4">
+                  Vincula transacciones a renglones del presupuesto desde el panel de control para ver análisis por línea.
+                </p>
+              )}
+            </div>
+          );
+        })()}
+
         {/* Gantt Chart - Project Timeline */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm md:col-span-2">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg md:col-span-2">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Cronograma de Proyecto (Gantt)</p>
             <Calendar size={16} className="text-slate-400" />
@@ -431,7 +501,7 @@ export default function Seguimiento() {
         </div>
 
         {/* Critical Path Analysis */}
-        <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+        <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Análisis de Ruta Crítica</p>
             <AlertTriangle size={16} className="text-[var(--color-accent)]" />

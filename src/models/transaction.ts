@@ -6,6 +6,8 @@ export interface Transaction {
   type: 'INGRESO' | 'GASTO';
   category: string;
   projectId?: string;
+  budgetLineId?: string;
+  budgetLineCode?: string;
   staffId?: string;
   qty?: number;
   unitCost?: number;

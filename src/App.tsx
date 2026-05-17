@@ -23,7 +23,7 @@ import ErrorBoundary from "./components/shared/ErrorBoundary";
 import { LogIn } from "lucide-react";
 
 // Lazy-loaded modules
-const Dashboard = lazy(() => import("./components/modules/Dashboard"));
+const Dashboard = lazy(() => import("./components/Dashboard"));
 const ExecutionModule = lazy(() => import("./components/Execution"));
 const ClientsModule = lazy(() => import("./components/Clients"));
 const InventoryModule = lazy(() => import("./components/Inventory"));
@@ -37,6 +37,7 @@ const AIAssistantModule = lazy(() => import("./components/AIAssistant"));
 const GanttChartModule = lazy(() => import("./components/GanttChart"));
 const PERTChartModule = lazy(() => import("./components/modules/PERTChart"));
 const PhysicalFinancialModule = lazy(() => import("./components/modules/PhysicalFinancialDashboard"));
+const PurchaseOrdersModule = lazy(() => import("./components/PurchaseOrders"));
 const EffectsShowcaseModule = lazy(() => import("./components/EffectsShowcase"));
 
 // ── Loading Spinner Component ──
@@ -57,7 +58,7 @@ function AppContent() {
   const validTabs = new Set([
     "dashboard", "execution", "clients", "inventory", "projects", "suppliers", 
     "staff", "analytics", "settings", "seguimiento", "ai", "gantt", "pert", 
-    "fisico-financiero", "effects"
+    "fisico-financiero", "purchase-orders", "effects"
   ]);
 
   const [activeTab, setActiveTab] = useState(() => {
@@ -86,7 +87,11 @@ function AppContent() {
     }
   };
 
-  if (loading) return <LoadingScreen />;
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #0c1222 0%, #ffffff 100%)' }}>
+      <div className="w-12 h-12 border-4 border-white/30 border-t-white rounded-full animate-spin" />
+    </div>
+  );
   if (!user) return <LoginScreen login={login} />;
   if (!isAuthorizedUser) return <UnauthorizedScreen user={user} signOut={signOut} />;
 
@@ -106,6 +111,7 @@ function AppContent() {
       case "gantt": return <GanttChartModule key="gantt" />;
       case "pert": return <PERTChartModule key="pert" />;
       case "fisico-financiero": return <PhysicalFinancialModule key="fisico-financiero" />;
+      case "purchase-orders": return <PurchaseOrdersModule key="purchase-orders" />;
       case "effects": return <EffectsShowcaseModule key="effects" />;
       default: return <Dashboard key="default" setActiveTab={handleNavigate} />;
     }

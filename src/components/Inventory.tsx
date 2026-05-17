@@ -457,8 +457,6 @@ const createPurchaseOrder = async () => {
     }
   };
 
-  const totalValue = items.reduce((acc, item) => acc + (item.stock || 0), 0);
-
   if (loading) {
     return (
       <div className="h-full flex items-center justify-center">
@@ -521,7 +519,7 @@ const createPurchaseOrder = async () => {
         {[{ id: 'stock', label: 'Stock / Bodega', icon: <Package size={13}/> }, { id: 'orders', label: 'Ordenes de Compra', icon: <ShoppingCart size={13}/> }].map(t => (
           <button key={t.id} onClick={() => setActiveTab(t.id as any)}
             className={cn('flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all',
-              activeTab === t.id ? 'bg-slate-900 text-white shadow' : 'bg-white border border-slate-200 text-slate-500 hover:border-secondary')}>
+              activeTab === t.id ? 'bg-slate-900 text-white shadow' : 'bg-white/70 backdrop-blur-md border border-white/30 text-slate-500 hover:border-secondary')}>
             {t.icon}{t.label}
           </button>
         ))}
@@ -530,7 +528,7 @@ const createPurchaseOrder = async () => {
           <span className="text-[7px] font-black text-slate-400 uppercase tracking-widest ml-1">Proyecto</span>
            <select value={filterProject} onChange={e => setFilterProject(e.target.value)}
              title="Filtrar por proyecto"
-             className="px-3 py-2 bg-white border border-slate-200 rounded-xl text-[9px] font-black uppercase focus:outline-none focus:border-secondary min-w-40">
+             className="px-3 py-2 bg-white/70 backdrop-blur-md border border-white/30 rounded-xl shadow-lg text-[9px] font-black uppercase focus:outline-none focus:border-secondary min-w-40">
             <option value="ALL">Todos los proyectos ({validItems.length})</option>
             <option value="GENERAL">Sin proyecto ({validItems.filter(i => !i.projectId).length})</option>
             {projects.filter(p => p.status === 'EJECUCION').map((p: any) => {
@@ -621,7 +619,7 @@ const createPurchaseOrder = async () => {
         </div>
 
         <div className="grid grid-cols-12 gap-6 items-center">
-          <div className="col-span-7 bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-center min-h-[200px]">
+          <div className="col-span-7 bg-white/40 backdrop-blur-sm rounded-xl p-4 border border-slate-100 flex items-center justify-center min-h-[200px]">
             <div className="relative w-full max-w-[400px] aspect-[16/9] grid grid-cols-4 grid-rows-2 gap-2">
               {zones.map((zone, idx) => (
                 <motion.div 
@@ -653,7 +651,7 @@ const createPurchaseOrder = async () => {
                    onClick={() => setSelectedZone(isActive ? null : zone.id)}
                    className={cn(
                      "p-2 rounded-xl border transition-all cursor-pointer group flex items-center justify-between",
-                     isActive ? "bg-slate-900 border-slate-900" : "bg-white border-slate-100 hover:bg-slate-50"
+                     isActive ? "bg-slate-900 border-slate-900" : "bg-white border-slate-100 hover:bg-white/30"
                    )}
                  >
                    <div className="flex items-center gap-3">
@@ -696,7 +694,7 @@ const createPurchaseOrder = async () => {
                 onClick={() => setActiveCategory(cat)}
                 className={cn(
                   "px-4 py-2 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
-                  activeCategory === cat ? "bg-slate-900 text-white border-slate-900 shadow-md" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50 shadow-sm"
+                  activeCategory === cat ? "bg-slate-900 text-white border-slate-900 shadow-md" : "bg-white text-slate-500 border-slate-200 hover:bg-white/40 backdrop-blur-sm shadow-sm"
                 )}
               >
                 {cat}
@@ -731,7 +729,7 @@ const createPurchaseOrder = async () => {
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.25, delay: i * 0.04 }}
                     className={cn(
-                      "hover:bg-slate-50/50 transition-all cursor-pointer group",
+                      "hover:bg-white/30/50 transition-all cursor-pointer group",
                       selectedItem === item.id || selectedItemIds.has(item.id) ? "bg-slate-50/80" : ""
                     )}
                     onClick={() => { if (bulkMode) { toggleSelectItem(item.id); } else { setSelectedItem(selectedItem === item.id ? null : item.id); } }}
@@ -905,24 +903,24 @@ const createPurchaseOrder = async () => {
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-              <div className="bg-slate-50 p-3 rounded-xl">
+              <div className="bg-white/40 backdrop-blur-sm p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Items Proyecto</p>
                 <p className="text-lg font-black text-primary">{projectItems.length}</p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">materiales</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl">
+              <div className="bg-white/40 backdrop-blur-sm p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Crítico</p>
                 <p className={cn('text-lg font-black', criticalProjectItems.length > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]')}>
                   {criticalProjectItems.length}
                 </p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">items bajo mínimo</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl">
+              <div className="bg-white/40 backdrop-blur-sm p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Valor Presupuestado</p>
                 <p className="text-lg font-black text-primary">Q {Math.round(totalBudgetedValue/1000)}k</p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">total planificado</p>
               </div>
-              <div className="bg-slate-50 p-3 rounded-xl">
+              <div className="bg-white/40 backdrop-blur-sm p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Completitud Stock</p>
                 <p className={cn('text-lg font-black', completionRate >= 80 ? 'text-[var(--color-success)]' : completionRate >= 50 ? 'text-[var(--color-warning)]' : 'text-[var(--color-error)]')}>
                   {Math.round(completionRate)}%
@@ -1034,7 +1032,7 @@ const createPurchaseOrder = async () => {
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <label className="label">Tipo</label>
-                    <div className="flex bg-slate-50 p-0.5 rounded-lg border border-p-200">
+                    <div className="flex bg-white/40 backdrop-blur-sm p-0.5 rounded-lg border border-p-200">
                       <button type="button"
                         onClick={() => setMovementForm({ ...movementForm, type: 'Entrada', category: entryCategories[0] })}
                         className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", movementForm.type === 'Entrada' ? "bg-white text-green-600 shadow-sm" : "text-p-400")}>
@@ -1109,7 +1107,7 @@ const createPurchaseOrder = async () => {
       {activeTab === 'orders' && (
         <div className="space-y-4">
           {purchaseOrders.length === 0 ? (
-            <div className="bg-white border border-slate-100 rounded-2xl p-10 text-center">
+            <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-10 text-center">
               <ShoppingCart size={32} className="mx-auto text-slate-300 mb-3" />
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin ordenes de compra</p>
               <p className="text-[9px] text-slate-300 mt-1">Crea una nueva OC para solicitar materiales a proveedores</p>
@@ -1126,7 +1124,7 @@ const createPurchaseOrder = async () => {
                 </div>
               )}
               {purchaseOrders.map(order => (
-            <div key={order.id} className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm relative">
+            <div key={order.id} className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4 shadow-sm relative">
               {bulkMode && (
                 <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedOrderIds.has(order.id)} onChange={() => toggleSelectOrder(order.id)}
@@ -1247,7 +1245,7 @@ const createPurchaseOrder = async () => {
                     const invItem = items.find(i => i.name === m.name && i.projectId === ocForm.projectId && i.itemId === item.id);
                     const alreadyInOC = ocForm.items.some(oi => oi.materialName === m.name && oi.itemId === item.id);
                     return (
-                      <div key={idx} className="flex items-center justify-between bg-slate-50 rounded-lg px-2 py-1">
+                      <div key={idx} className="flex items-center justify-between bg-white/40 backdrop-blur-sm rounded-lg px-2 py-1">
                         <div className="flex-1 min-w-0">
                           <span className="text-[9px] font-bold text-slate-700 truncate block">{m.name}</span>
                           <span className="text-[7px] text-slate-400">

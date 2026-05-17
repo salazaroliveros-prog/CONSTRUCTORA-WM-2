@@ -646,7 +646,7 @@ export default function StaffModule() {
 <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden h-full flex flex-col">
                  <div className="overflow-auto flex-1">
                    <table className="w-full text-left">
-                     <thead className="sticky top-0 bg-slate-50 z-10">
+                     <thead className="sticky top-0 bg-white/40 backdrop-blur-sm z-10">
                        <tr className="border-b border-slate-100">
                          {bulkMode && (
                            <th className="px-2 py-2 w-6">
@@ -674,7 +674,7 @@ export default function StaffModule() {
                             initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.2, delay: i * 0.03 }}
                             onClick={() => { if (bulkMode) { toggleSelectPersonal(m.id); } else { setSelectedMember(isSelected ? null : m); } }}
-                            className={cn("hover:bg-slate-50/50 transition-colors group cursor-pointer",
+                            className={cn("hover:bg-white/30/50 transition-colors group cursor-pointer",
                               (isSelected || selectedPersonalIds.has(m.id)) && "bg-secondary/5 border-l-2 border-secondary")}>
 {bulkMode && (
                                <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
@@ -721,7 +721,7 @@ export default function StaffModule() {
                        )}
                      </tbody>
                      {filtered.length > 0 && (
-                       <tfoot className="sticky bottom-0 bg-slate-50 border-t border-slate-200">
+                       <tfoot className="sticky bottom-0 bg-white/40 backdrop-blur-sm border-t border-slate-200">
                           <tr>
                             <td colSpan={4} className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Total Nómina ({staff.length} colaboradores)</td>
                             <td className="px-3 py-2 text-right text-[9px] font-black text-secondary">{fmtQ(totalSalary)}</td>
@@ -775,7 +775,7 @@ export default function StaffModule() {
 animate={{ opacity: 1, x: 0, width: 280 }}
                exit={{ opacity: 0, x: 40, width: 0 }}
                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="shrink-0 bg-white border border-slate-200 rounded-lg shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
+                className="shrink-0 bg-white/70 backdrop-blur-md border border-white/30 rounded-lg shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
                 style={{ minWidth: 200, maxWidth: 320 }}>
                <div className="bg-slate-900 p-3 relative">
                  <button type="button" title="Cerrar panel" onClick={() => setSelectedMember(null)}
@@ -836,14 +836,14 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                      </span>
                    </div>
                    {memberProjects.length === 0 ? (
-                     <div className="text-center py-3 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                     <div className="text-center py-3 bg-white/40 backdrop-blur-sm rounded-lg border border-dashed border-slate-200">
                        <Building2 size={12} className="mx-auto mb-0.5 text-slate-300" />
                        <p className="text-[8px] text-slate-300 font-bold italic">Sin proyectos asignados</p>
                      </div>
                    ) : (
                      <div className="space-y-1">
                        {memberProjects.map(p => (
-                         <div key={p.id} className="bg-slate-50 rounded-md p-1.5 flex items-center justify-between hover:bg-slate-100 transition-all group">
+                         <div key={p.id} className="bg-white/40 backdrop-blur-sm rounded-md p-1.5 flex items-center justify-between hover:bg-white/40 transition-all group">
                            <div className="flex-1 min-w-0">
                              <div className="flex items-center gap-1 mb-0.5">
                                <p className="text-[8px] font-black text-primary uppercase truncate">{p.name}</p>
@@ -876,7 +876,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                    <div className="space-y-0.5">
                      {projects.filter(p => p.status === 'EJECUCION' && !p.teamIds?.includes(selectedMember.id)).slice(0, 5).map(p => (
                        <button type="button" key={p.id} onClick={() => handleToggleProject(selectedMember.id, p.id)}
-                         className="w-full flex items-center justify-between bg-slate-50 hover:bg-[var(--color-info-bg)] border border-transparent hover:border-[var(--color-blue-border)] rounded-md p-1.5 transition-all group">
+                         className="w-full flex items-center justify-between bg-white/40 backdrop-blur-sm hover:bg-[var(--color-info-bg)] border border-transparent hover:border-[var(--color-blue-border)] rounded-md p-1.5 transition-all group">
                          <span className="text-[8px] font-black text-primary uppercase truncate">{p.name}</span>
                          <Plus size={8} className="text-slate-400 group-hover:text-[var(--color-info)] shrink-0" />
                        </button>
@@ -889,7 +889,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
 {selectedMember.notes && (
                    <div>
                      <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-0.5">Notas</p>
-                     <p className="text-[8px] text-slate-600 bg-slate-50 rounded-md p-1.5">{selectedMember.notes}</p>
+                     <p className="text-[8px] text-slate-600 bg-white/40 backdrop-blur-sm rounded-md p-1.5">{selectedMember.notes}</p>
                    </div>
                  )}
 {/* Historial de Pagos */}
@@ -907,7 +907,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                            const emp = p.employees.find(e => e.staffId === selectedMember.id);
                            if (!emp) return null;
                            return (
-                             <div key={p.id} className="bg-slate-50 rounded-md p-1.5">
+                             <div key={p.id} className="bg-white/40 backdrop-blur-sm rounded-md p-1.5">
                                <div className="flex justify-between items-center">
                                  <div className="flex items-center gap-1">
                                    <span className="text-[7px] font-black text-slate-700">{p.period}</span>
@@ -999,7 +999,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                         <div className="mt-3 pt-3 border-t border-slate-100 space-y-2">
                           <div className="max-h-40 overflow-y-auto space-y-1">
                             {pay.employees.map((e, i) => (
-                              <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-2 py-1.5 text-[8px]">
+                              <div key={i} className="flex items-center justify-between bg-white/40 backdrop-blur-sm rounded-lg px-2 py-1.5 text-[8px]">
                                 <div className="flex-1 min-w-0">
                                   <span className="font-black text-slate-700 truncate block">{e.name}</span>
                                   <span className="text-slate-400">{e.role}</span>
@@ -1138,7 +1138,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                    className={cn("flex-1 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest border transition-all",
                      payrollForm.type === t
                        ? 'bg-slate-900 text-white border-slate-900'
-                       : 'bg-white text-slate-500 border-slate-200 hover:bg-slate-50')}>
+                       : 'bg-white text-slate-500 border-slate-200 hover:bg-white/30')}>
                    {t === 'CAMPO' ? 'Personal de Campo' : 'Administrativo'}
                  </button>
                ))}
@@ -1158,7 +1158,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                ) : (
                  <div className="space-y-1 max-h-40 overflow-y-auto">
                    {payrollForm.employees.map((e, i) => (
-                     <div key={i} className="bg-slate-50 rounded-md p-1.5">
+                     <div key={i} className="bg-white/40 backdrop-blur-sm rounded-md p-1.5">
                        <div className="flex justify-between items-center">
                          <div>
                            <span className="text-[8px] font-black text-slate-700">{e.name}</span>
@@ -1187,7 +1187,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                               emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
                               setPayrollForm(f => ({ ...f, employees: emps }));
                             }}
-                            className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                            className="w-12 bg-white/70 backdrop-blur-md border border-white/30 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                          <label className="text-[6px] text-slate-500 ml-1">Bon:</label>
                           <input type="number" min={0} value={e.bonuses} title="Bonificaciones"
                             onChange={e => {
@@ -1196,7 +1196,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                               emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
                               setPayrollForm(f => ({ ...f, employees: emps }));
                             }}
-                            className="w-14 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                            className="w-14 bg-white/70 backdrop-blur-md border border-white/30 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                        </div>
                      </div>
                    ))}
@@ -1232,7 +1232,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
              <label className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Empleados</label>
              <div className="space-y-1 max-h-52 overflow-y-auto">
                {editingPayrollForm.employees.map((e, i) => (
-                 <div key={i} className="bg-slate-50 rounded-md p-1.5">
+                 <div key={i} className="bg-white/40 backdrop-blur-sm rounded-md p-1.5">
                    <div className="flex justify-between items-center">
                      <div>
                        <span className="text-[8px] font-black text-slate-700">{e.name}</span>
@@ -1255,7 +1255,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                           emps[i].netPay = Math.round((gross - emps[i].deductions + emps[i].bonuses) * 100) / 100;
                           setEditingPayrollForm(f => ({ ...f, employees: emps }));
                         }}
-                        className="w-12 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                        className="w-12 bg-white/70 backdrop-blur-md border border-white/30 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                      <label className="text-[6px] text-slate-500 ml-1">Bon:</label>
                       <input type="number" min={0} value={e.bonuses} title="Bonificaciones"
                         onChange={ev => {
@@ -1264,7 +1264,7 @@ animate={{ opacity: 1, x: 0, width: 280 }}
                           emps[i].netPay = Math.round((emps[i].grossPay - emps[i].deductions + emps[i].bonuses) * 100) / 100;
                           setEditingPayrollForm(f => ({ ...f, employees: emps }));
                         }}
-                        className="w-14 bg-white border border-slate-200 rounded px-1 py-0.5 text-[7px] font-black text-center" />
+                        className="w-14 bg-white/70 backdrop-blur-md border border-white/30 rounded px-1 py-0.5 text-[7px] font-black text-center" />
                    </div>
                  </div>
                ))}

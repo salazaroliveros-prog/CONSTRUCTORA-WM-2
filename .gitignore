@@ -20,3 +20,9 @@ firebase-applet-config.json
 
 # Backups
 *.bak
+
+# Session state (AI agent tracking)
+SESSION_STATE.md
+
+# Backup project copy
+motor de calculo/

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { 
   LayoutDashboard, Building2, ClipboardList, TrendingUp, 
-  Calendar, Package, HardHat, BarChart3, 
+  Calendar, Package, HardHat, BarChart3, ShoppingCart,
   Sparkles, Settings, LogOut, ChevronRight, ChevronDown, Home
 } from "lucide-react";
 import { cn } from "../../utils/cn";
@@ -19,6 +19,7 @@ const MENU_CONFIG: NavItem[] = [
   { id: "dashboard", label: "Inicio", icon: Home },
   { id: "projects", label: "Proyectos y Presupuestos", icon: Building2, children: [
     { id: "execution", label: "Bitácora", icon: ClipboardList },
+    { id: "purchase-orders", label: "Órdenes de Compra", icon: ShoppingCart },
     { id: "gantt", label: "Gantt", icon: Calendar },
     { id: "pert", label: "PERT", icon: BarChart3 }
   ]},

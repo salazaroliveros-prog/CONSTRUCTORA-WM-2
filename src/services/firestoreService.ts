@@ -582,7 +582,7 @@ export const generateProjectStock = async (project: any): Promise<number> => {
         if (materialsMap.has(key)) {
           materialsMap.get(key)!.qty += qty;
         } else {
-          materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.price || 0 });
+          materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.unitPrice ?? m.price ?? 0 });
         }
       }
     }
@@ -595,7 +595,7 @@ export const generateProjectStock = async (project: any): Promise<number> => {
           if (materialsMap.has(key)) {
             materialsMap.get(key)!.qty += qty;
           } else {
-            materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.unitPrice || 0 });
+            materialsMap.set(key, { unit: m.unit || 'U', qty, cost: m.unitPrice ?? m.price ?? 0 });
           }
         }
         if (line.children) extractBudgetMaterials(line.children);

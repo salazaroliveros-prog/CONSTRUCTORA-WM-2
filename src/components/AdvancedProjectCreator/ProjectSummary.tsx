@@ -14,10 +14,6 @@ import { BudgetItem, SensitivityScenario } from '../../types/budget';
 import { BudgetLine } from '../../lib/budgetData';
 import { calculateSensitivity, checkDeviations, Deviation, precise, fmtQ } from '../../engine/budgetEngine';
 
-// ... (eliminar la función formatQ redundante si existe)
-// Nota: ya tienes fmtQ importado ahora. Cambia las llamadas formatQ(x) por fmtQ(x)
-const formatQ = fmtQ;
-
 // ─── Tipos ──────────────────────────────────────────────────────────────────
 export interface ProfessionalTotals {
   totalDirect: number;
@@ -114,7 +110,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
   return (
     <div className="space-y-4 mb-6">
       {/* ── Panel principal de costos ──────────────────────────────────────── */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
+      <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Calculator size={18} className="text-emerald-500" />
@@ -123,28 +119,28 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
           <div className="flex items-center gap-2">
 <button onClick={() => setShowSensitivity(v => !v)}
                aria-label={`${showSensitivity ? 'Ocultar' : 'Mostrar'} análisis de sensibilidad`}
-               className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded transition-colors ${showSensitivity ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+               className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded-xl transition-colors ${showSensitivity ? 'bg-amber-100 text-amber-700' : 'bg-white/60 backdrop-blur-sm border border-white/30 text-slate-600 hover:bg-white/90'}`}>
                <BarChart3 size={10} aria-hidden="true" /> Sensibilidad
              </button>
              <button onClick={() => setShowAlerts(v => !v)}
                aria-label={`${showAlerts ? 'Ocultar' : 'Mostrar'} alertas de desviación`}
-               className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded transition-colors ${showAlerts ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>
+               className={`flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase rounded-xl transition-colors ${showAlerts ? 'bg-red-100 text-red-600' : 'bg-white/60 backdrop-blur-sm border border-white/30 text-slate-600 hover:bg-white/90'}`}>
                <ShieldAlert size={10} aria-hidden="true" /> Alertas ({deviations.length})
              </button>
             <button onClick={() => onExportPDF('completo')}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded hover:bg-blue-200 transition-colors">
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-blue-100 text-blue-700 rounded-xl hover:bg-blue-200 transition-colors">
               <FileDown size={10} /> PDF
             </button>
             <button onClick={() => onExportPDF('apu')}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors">
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-purple-100 text-purple-700 rounded-xl hover:bg-purple-200 transition-colors">
               <Printer size={10} /> APU
             </button>
             <button onClick={onExportJSON}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-cyan-100 text-cyan-700 rounded hover:bg-cyan-200 transition-colors">
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-cyan-100 text-cyan-700 rounded-xl hover:bg-cyan-200 transition-colors">
               <FileDown size={10} /> JSON
             </button>
             <button onClick={onSaveProject} disabled={isSaving || totalItems === 0}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700 rounded hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+              className="flex items-center gap-1.5 px-3 py-1.5 text-[8px] font-bold uppercase bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
               {isSaving ? 'Guardando...' : 'Guardar'}
             </button>
           </div>
@@ -152,24 +148,24 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
         {/* ── KPIs financieros principales ────────────────────────────────── */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="bg-slate-900 rounded-xl p-3 text-white">
+          <div className="bg-[#0c1222] backdrop-blur-md border border-white/10 rounded-xl p-3 text-white">
             <p className="text-[7px] font-bold text-slate-400 uppercase tracking-widest mb-1">Presupuesto Total</p>
             <p className="text-xl font-black">{fmtQ(totalBudget)}</p>
             {costPerM2 > 0 && (
               <p className="text-[8px] text-slate-400 mt-1">{fmtQ(costPerM2)}/m²</p>
             )}
           </div>
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-3">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Costo Directo</p>
             <p className="text-lg font-black text-slate-800">{fmtQ(totalDirect)}</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{Math.round((totalDirect / (totalBudget || 1)) * 100)}% del total</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-3">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Duración</p>
             <p className="text-lg font-black text-slate-800">{Math.ceil(estimatedDays)} días</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{Math.ceil(estimatedDays / 6)} semanas</p>
           </div>
-          <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+          <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-3">
             <p className="text-[7px] font-bold text-slate-500 uppercase mb-1">Renglones</p>
             <p className="text-lg font-black text-slate-800">{totalItems}</p>
             <p className="text-[7px] text-slate-400 mt-0.5">{items.filter(i => i.materials?.length).length} con materiales</p>
@@ -177,7 +173,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
         </div>
 
         {/* ── Desglose detallado de costos ────────────────────────────────── */}
-        <div className="bg-slate-50 rounded-xl p-3 border border-slate-200">
+        <div className="bg-white/50 backdrop-blur-sm border border-white/20 rounded-xl p-3">
           <p className="text-[7px] font-black text-slate-500 uppercase tracking-widest mb-3">ESTRUCTURA DE COSTOS</p>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-y-2 gap-x-4 text-[9px]">
             <CostRow icon={<Package size={10} className="text-blue-500" />} label="Materiales" value={materialsTotal} pct={totalDirect} />
@@ -193,7 +189,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
         {/* ── Presupuesto vs Real ────────────────────────────────────────── */}
         {actualExpenses > 0 && (
-          <div className={`mt-3 p-3 rounded-xl border ${budgetVsActual > 10 ? 'bg-red-50 border-red-200' : budgetVsActual < -10 ? 'bg-green-50 border-green-200' : 'bg-slate-50 border-slate-200'}`}>
+          <div className={`mt-3 p-3 rounded-xl border ${budgetVsActual > 10 ? 'bg-red-500/10 backdrop-blur-sm border-red-500/20' : budgetVsActual < -10 ? 'bg-emerald-500/10 backdrop-blur-sm border-emerald-500/20' : 'bg-white/50 backdrop-blur-sm border-white/20'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 {budgetVsActual > 10 ? <TrendingUp size={14} className="text-red-500" /> : <TrendingDown size={14} className="text-green-500" />}
@@ -214,7 +210,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
       {/* ── Panel de Análisis de Sensibilidad ─────────────────────────────── */}
       {showSensitivity && sensitivityScenarios.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-amber-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-amber-500/10 backdrop-blur-md border border-amber-500/20 rounded-2xl shadow-lg p-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2 mb-3">
             <BarChart3 size={16} className="text-amber-500" />
             <h3 className="text-[10px] font-black text-slate-800 uppercase">Análisis de Sensibilidad</h3>
@@ -225,7 +221,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
               const isBase = i === 0;
               const isUp = s.difference > 0;
               return (
-                <div key={i} className={`rounded-xl p-3 border ${isBase ? 'bg-slate-900 text-white border-slate-900' : isUp ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'}`}>
+                <div key={i} className={`rounded-xl p-3 border ${isBase ? 'bg-slate-900 text-white border-slate-900' : isUp ? 'bg-red-500/10 backdrop-blur-sm border-red-500/20' : 'bg-emerald-500/10 backdrop-blur-sm border-emerald-500/20'}`}>
                   <p className={`text-[7px] font-bold uppercase mb-1 ${isBase ? 'text-slate-400' : 'text-slate-500'}`}>{s.name}</p>
                   <p className={`text-sm font-black ${isBase ? 'text-white' : isUp ? 'text-red-600' : 'text-green-600'}`}>{fmtQ(s.total)}</p>
                   {!isBase && (
@@ -242,7 +238,7 @@ const deviations = useMemo<ReturnType<typeof checkDeviations>>(() => {
 
       {/* ── Panel de Alertas de Desviación ────────────────────────────────── */}
       {showAlerts && deviations.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-4 animate-in fade-in slide-in-from-top-2 duration-200">
+        <div className="bg-red-500/10 backdrop-blur-md border border-red-500/20 rounded-2xl shadow-lg p-4 animate-in fade-in slide-in-from-top-2 duration-200">
           <div className="flex items-center gap-2 mb-3">
             <ShieldAlert size={16} className="text-red-500" />
             <h3 className="text-[10px] font-black text-slate-800 uppercase">Alertas de Desviación</h3>
@@ -294,7 +290,7 @@ function CostRow({ icon, label, value, pct }: { icon: React.ReactNode; label: st
         <span className="text-slate-600 font-medium">{label}</span>
       </div>
       <div className="text-right">
-        <span className="font-bold text-slate-800">{formatQ(value)}</span>
+        <span className="font-bold text-slate-800">{fmtQ(value)}</span>
         {pct > 0 && (
           <span className="text-slate-400 ml-1">({Math.round((value / pct) * 100)}%)</span>
         )}

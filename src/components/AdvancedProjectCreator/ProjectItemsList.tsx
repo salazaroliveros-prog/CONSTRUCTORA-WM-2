@@ -45,7 +45,7 @@ export function ProjectItemsList({
   } = usePagination<WorkItem>(availableItems, 8);
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+    <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4 mb-6">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           <Package size={18} className="text-secondary" />
@@ -66,7 +66,7 @@ export function ProjectItemsList({
           placeholder="Buscar renglón por código o descripción..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full pl-10 pr-4 py-2 text-[9px] border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-secondary"
+          className="w-full pl-10 pr-4 py-2 text-[9px] border border-white/30 rounded-xl bg-white/60 backdrop-blur-sm focus:outline-none focus:border-secondary"
         />
       </div>
 
@@ -75,7 +75,7 @@ export function ProjectItemsList({
         {paginatedItems.map(item => (
           <div
             key={item.id}
-            className="group border border-slate-200 rounded-lg p-3 hover:border-secondary hover:shadow-md transition-all cursor-pointer"
+            className="group border border-white/30 rounded-xl bg-white/60 backdrop-blur-sm p-3 hover:border-secondary hover:shadow-md transition-all cursor-pointer"
             onClick={() => {
               const added = onAddItem({
                 id: item.id,
@@ -113,7 +113,7 @@ export function ProjectItemsList({
           <button
             onClick={prevPage}
             disabled={currentPage === 1}
-            className="px-3 py-1 text-[8px] font-bold uppercase bg-slate-100 text-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200"
+            className="px-3 py-1 text-[8px] font-bold uppercase bg-white/60 backdrop-blur-sm border border-white/30 text-slate-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/90"
           >
             Anterior
           </button>
@@ -123,7 +123,7 @@ export function ProjectItemsList({
           <button
             onClick={nextPage}
             disabled={currentPage === totalPages}
-            className="px-3 py-1 text-[8px] font-bold uppercase bg-slate-100 text-slate-700 rounded disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200"
+            className="px-3 py-1 text-[8px] font-bold uppercase bg-white/60 backdrop-blur-sm border border-white/30 text-slate-700 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-white/90"
           >
             Siguiente
           </button>

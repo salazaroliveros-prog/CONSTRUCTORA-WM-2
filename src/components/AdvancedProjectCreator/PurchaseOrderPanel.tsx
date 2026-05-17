@@ -4,9 +4,10 @@
  */
 
 import React, { useState } from 'react';
-import { ShoppingCart, FileDown, Send, Plus } from 'lucide-react';
+import { ShoppingCart, FileDown, Send, Plus, X } from 'lucide-react';
 import { toast } from 'sonner';
-import { parseError } from '../../services/firestoreService';
+import { addDocument, parseError } from '../../services/firestoreService';
+import { fmtQ } from '../../utils/format';
 
 interface PurchaseOrderPanelProps {
   projectId?: string;
@@ -84,8 +85,7 @@ export function PurchaseOrderPanel({
         status: 'PENDIENTE' as const
       };
 
-      // TODO: Guardar en Firestore collection 'purchaseOrders'
-      // await addDocument('purchaseOrders', ocData);
+      await addDocument('purchaseOrders', ocData);
 
       toast.success('Orden de compra generada exitosamente');
       setIsOpen(false);
@@ -114,8 +114,8 @@ export function PurchaseOrderPanel({
       {/* Modal */}
       {isOpen && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b border-slate-200 flex items-center justify-between">
+          <div className="bg-white/90 backdrop-blur-xl border border-white/30 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b border-white/20 flex items-center justify-between">
               <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2">
                 <ShoppingCart size={20} />
                 Generar Orden de Compra
@@ -125,9 +125,10 @@ export function PurchaseOrderPanel({
               </h2>
               <button
                 onClick={() => setIsOpen(false)}
-                className="text-slate-500 hover:text-slate-700 text-2xl"
+                className="text-slate-500 hover:text-slate-700"
+                aria-label="Cerrar"
               >
-                ×
+                <X size={20} />
               </button>
             </div>
 
@@ -140,7 +141,7 @@ export function PurchaseOrderPanel({
                 <select
                   value={selectedSupplier}
                   onChange={(e) => setSelectedSupplier(e.target.value)}
-                  className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg bg-white"
+                  className="w-full px-3 py-2 text-[9px] border border-white/30 rounded-xl bg-white/60 backdrop-blur-sm"
                   title="Seleccionar proveedor"
                 >
                   <option value="">Seleccione un proveedor...</option>
@@ -165,7 +166,7 @@ export function PurchaseOrderPanel({
                     {selectedItems.size === items.length ? 'Deseleccionar todo' : 'Seleccionar todo'}
                   </button>
                 </div>
-                <div className="border border-slate-200 rounded-lg max-h-60 overflow-y-auto">
+                <div className="border border-white/30 rounded-xl max-h-60 bg-white/30 overflow-y-auto">
                   {(items.length === 0) ? (
                     <p className="p-4 text-[9px] text-slate-500 text-center">
                       No hay materiales en el presupuesto.
@@ -179,7 +180,7 @@ export function PurchaseOrderPanel({
                         return (
                           <label
                             key={itemId}
-                            className="flex items-center gap-3 p-2 border-b border-slate-100 hover:bg-slate-50 cursor-pointer"
+                            className="flex items-center gap-3 p-2 border-b border-white/10 hover:bg-white/30 cursor-pointer"
                           >
                             <input
                               type="checkbox"
@@ -196,7 +197,7 @@ export function PurchaseOrderPanel({
                                 {totalQty.toFixed(2)} {mat.unit}
                               </p>
                               <p className="text-[8px] text-slate-600">
-                                Q {totalCost.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                                {fmtQ(totalCost)}
                               </p>
                             </div>
                           </label>
@@ -217,22 +218,22 @@ export function PurchaseOrderPanel({
                   onChange={(e) => setOcNotes(e.target.value)}
                   placeholder="Instrucciones especiales, condiciones de entrega, etc."
                   rows={3}
-                  className="w-full px-3 py-2 text-[9px] border border-slate-300 rounded-lg resize-none"
+                  className="w-full px-3 py-2 text-[9px] border border-white/30 rounded-xl bg-white/60 backdrop-blur-sm resize-none"
                 />
               </div>
             </div>
 
-            <div className="p-4 border-t border-slate-200 flex justify-end gap-2">
+            <div className="p-4 border-t border-white/20 flex justify-end gap-2">
               <button
                 onClick={() => setIsOpen(false)}
-                className="px-4 py-2 text-[9px] font-bold uppercase bg-slate-100 text-slate-700 rounded hover:bg-slate-200"
+                className="px-4 py-2 text-[9px] font-bold uppercase bg-white/60 backdrop-blur-sm border border-white/30 text-slate-700 rounded-xl hover:bg-white/90"
               >
                 Cancelar
               </button>
               <button
                 onClick={generateOC}
                 disabled={generating}
-                className="flex items-center gap-2 px-4 py-2 text-[9px] font-bold uppercase bg-orange-100 text-orange-700 rounded hover:bg-orange-200 disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 text-[9px] font-bold uppercase bg-orange-500 text-white rounded-xl hover:bg-orange-600 disabled:opacity-50"
               >
                 {generating ? 'Generando...' : <>
                   <FileDown size={12} />
