@@ -153,8 +153,8 @@ function AppContent() {
 function LoginScreen({ login }: { login: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 sm:p-6" style={{ background: 'linear-gradient(135deg, #0c1222 0%, #ffffff 100%)' }}>
-      <div className="w-full max-w-[360px]">
-        <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-[24px] p-8 sm:p-10 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-90">
+        <div className="bg-white/10 backdrop-blur-2xl border border-white/20 rounded-3xl p-8 sm:p-10 shadow-2xl relative overflow-hidden">
           <div className="text-center mb-8">
             <img src="/logo.png" alt="Constructora WM" className="h-14 sm:h-16 w-auto mx-auto mb-4" />
             <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2" style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>

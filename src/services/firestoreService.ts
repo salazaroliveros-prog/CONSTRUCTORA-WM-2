@@ -422,7 +422,7 @@ export const checkUniqueField = async (
     ]);
     const docs = results.filter((r: any) => r.document).map((r: any) => docToObject(r.document));
     if (excludeId) {
-      return docs.some((d) => d.id !== excludeId);
+      return docs.some((d: any) => d.id !== excludeId);
     }
     return docs.length > 0;
   } catch {

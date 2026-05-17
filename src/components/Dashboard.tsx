@@ -104,7 +104,7 @@ function GaugeChart({ value, max = 100, label, color = 'varsecondary' }: { value
 
   return (
     <div className="flex flex-col items-center">
-      <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-[100px]">
+      <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-25">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
              <stop offset="0%" stopColor="varerror" />
@@ -953,7 +953,7 @@ const generateReport = async () => {
           {/* Row 1: Main Visual Analytics */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
              {/* Cash Flow Chart */}
-              <motion.div variants={staggerItem} className="bg-white rounded-4xl p-4 sm:p-6 shadow-xl border border-slate-100 flex flex-col min-h-55 lg:min-h-[350px]">
+              <motion.div variants={staggerItem} className="bg-white rounded-4xl p-4 sm:p-6 shadow-xl border border-slate-100 flex flex-col min-h-55 lg:min-h-87.5">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja Global' : 'Flujo del Proyecto'}</h2>
@@ -1110,7 +1110,7 @@ const generateReport = async () => {
                   </div>
                   <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2.5 py-1 rounded-lg uppercase">{filteredTransactions.length} TOTAL</span>
                 </div>
-                 <div className="flex-1 overflow-y-auto max-h-62.5 lg:max-h-[350px] pr-2 custom-scrollbar">
+                 <div className="flex-1 overflow-y-auto max-h-62.5 lg:max-h-87.5 pr-2 custom-scrollbar">
                    <div className="space-y-3">
                       {filteredTransactions.slice(0, 15).map((t, i) => (
                         <div key={t.id || i} className="group flex items-center justify-between p-4 bg-slate-50 hover:bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all cursor-default">

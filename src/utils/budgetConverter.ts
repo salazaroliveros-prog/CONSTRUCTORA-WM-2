@@ -176,7 +176,7 @@ export function budgetTreeToItems(tree: BudgetLine[]): BudgetItem[] {
       typology: (line.typology as any) || Typology.RESIDENCIAL,
       durationDays: line.durationDays || 1,
       category: line.category || 'PERSONALIZADO',
-      projectQuantity: line.qty,
+      projectQuantity: line.qty ?? 1,
       selected: true as const,
       materials,
       labor,
