@@ -499,53 +499,45 @@ function AppContent() {
 
   const renderModule = () => {
     switch (activeTab) {
-      case "dashboard":
-        return <Dashboard key="dashboard" setActiveTab={handleNavigate} />;
-      case "execution":
-        return <ExecutionModule key="execution" setActiveTab={handleNavigate} />;
-      case "clients":
-        return <ClientsModule key="clients" />;
-      case "inventory":
-        return <InventoryModule key="inventory" />;
-      case "projects":
-        return <ProjectsModule key="projects" />;
-      case "suppliers":
-        return <SuppliersModule key="suppliers" />;
-      case "staff":
-        return <StaffModule key="staff" />;
-      case "analytics":
-        return <AnalyticsModule key="analytics" />;
-      case "settings":
-        return <SettingsModule key="settings" />;
-      case "seguimiento":
-        return <SeguimientoModule key="seguimiento" />;
-      case "ai":
-        return <AIAssistantModule key="ai" />;
-      case "gantt":
-        return <GanttChartModule key="gantt" />;
-      case "pert":
-        return <PERTChartModule key="pert" />;
-      case "fisico-financiero":
-        return <PhysicalFinancialModule key="fisico-financiero" />;
-      case "effects":
-        return <EffectsShowcaseModule key="effects" />;
-      default:
-        return <Dashboard key="default" setActiveTab={handleNavigate} />;
+      case "dashboard": return <Dashboard key="dashboard" setActiveTab={handleNavigate} />;
+      case "execution": return <ExecutionModule key="execution" setActiveTab={handleNavigate} />;
+      case "clients": return <ClientsModule key="clients" />;
+      case "inventory": return <InventoryModule key="inventory" />;
+      case "projects": return <ProjectsModule key="projects" />;
+      case "suppliers": return <SuppliersModule key="suppliers" />;
+      case "staff": return <StaffModule key="staff" />;
+      case "analytics": return <AnalyticsModule key="analytics" />;
+      case "settings": return <SettingsModule key="settings" />;
+      case "seguimiento": return <SeguimientoModule key="seguimiento" />;
+      case "ai": return <AIAssistantModule key="ai" />;
+      case "gantt": return <GanttChartModule key="gantt" />;
+      case "pert": return <PERTChartModule key="pert" />;
+      case "fisico-financiero": return <PhysicalFinancialModule key="fisico-financiero" />;
+      case "effects": return <EffectsShowcaseModule key="effects" />;
+      default: return <Dashboard key="default" setActiveTab={handleNavigate} />;
     }
   };
 
   return (
     <>
       <OfflineBanner />
-      <GlobalNav 
-        activeTab={activeTab}
-        onNavigate={handleNavigate}
-        isMenuOpen={isMenuOpen}
-        setIsMenuOpen={setIsMenuOpen}
+      <SidebarNavigation 
+        activeTab={activeTab} 
+        onNavigate={handleNavigate} 
+        isOpen={isNavOpen} 
+        onToggle={() => setIsNavOpen(!isNavOpen)} 
       />
-      <AppShell isMenuOpen={isMenuOpen} onNavigate={handleNavigate} activeTab={activeTab}>
-        {renderModule()}
-      </AppShell>
+      <div className={cn(
+        "min-h-screen transition-all duration-500",
+        isNavOpen ? "pl-64" : "pl-20"
+      )}>
+        <TopBar onNavigate={handleNavigate} activeTab={activeTab} />
+        <main className="pt-24 pb-10 px-8">
+           <Suspense fallback={<LoadingSpinner />}>
+             {renderModule()}
+           </Suspense>
+        </main>
+      </div>
     </>
   );
 }
