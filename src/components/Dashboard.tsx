@@ -72,7 +72,7 @@ import {
 function MiniRing({ value, color, label }: { value: number; color: string; label: string }) {
   const r = 16; const circ = 2 * Math.PI * r;
   const dash = Math.min(value / 100, 1) * circ;
-  const trackColor = 'var(--color-neutral-200)';
+  const trackColor = 'varneutral-200';
   return (
     <div className="flex flex-col items-center gap-0.5">
       <div className="mini-ring-wrap">
@@ -89,13 +89,13 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
            <span className="text-[8px] font-black mini-ring-pct" style={{ '--c': color } as React.CSSProperties}>{value}%</span>
         </div>
       </div>
-        <span className="text-[7px] sm:text-[6px] font-black text-(--color-neutral-600) uppercase tracking-wide leading-none">{label}</span>
+        <span className="text-[7px] sm:text-[6px] font-black text-neutral-600 uppercase tracking-wide leading-none">{label}</span>
     </div>
   );
 }
 
 // Gauge Chart Component para indicadores de rendimiento
-function GaugeChart({ value, max = 100, label, color = 'var(--color-secondary)' }: { value: number; max?: number; label: string; color?: string }) {
+function GaugeChart({ value, max = 100, label, color = 'varsecondary' }: { value: number; max?: number; label: string; color?: string }) {
   const percentage = Math.min((value / max) * 100, 100);
   const angle = (percentage / 100) * 180;
   const r = 60;
@@ -107,16 +107,16 @@ function GaugeChart({ value, max = 100, label, color = 'var(--color-secondary)' 
       <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-[100px]">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
-             <stop offset="0%" stopColor="var(--color-error)" />
-             <stop offset="50%" stopColor="var(--color-secondary)" />
-             <stop offset="100%" stopColor="var(--color-success)" />
+             <stop offset="0%" stopColor="varerror" />
+             <stop offset="50%" stopColor="varsecondary" />
+             <stop offset="100%" stopColor="varsuccess" />
           </linearGradient>
         </defs>
         {/* Background arc */}
         <path
           d="M 10 70 A 60 60 0 0 1 130 70"
           fill="none"
-           stroke="var(--color-neutral-200)"
+           stroke="varneutral-200"
           strokeWidth={12}
           strokeLinecap="round"
         />
@@ -136,7 +136,7 @@ function GaugeChart({ value, max = 100, label, color = 'var(--color-secondary)' 
           {Math.round(value)}%
         </text>
       </svg>
-        <span className="text-[7px] font-black text-(--color-neutral-700) uppercase tracking-widest -mt-1">{label}</span>
+        <span className="text-[7px] font-black text-neutral-700 uppercase tracking-widest -mt-1">{label}</span>
     </div>
   );
 }
@@ -247,13 +247,13 @@ function AnimatedKpi({ value, currency }: { value: string | number; currency?: b
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-(--color-neutral-900)/95 backdrop-blur-sm border border-(--color-border) rounded-lg px-3 py-2 shadow-2xl text-left min-w-30">
-      {label && <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1.5">{label}</p>}
+    <div className="bg-neutral-900/95 backdrop-blur-sm border border-(--color-border) rounded-lg px-3 py-2 shadow-2xl text-left min-w-30">
+      {label && <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest mb-1.5">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
           <div className="w-1.5 h-1.5 rounded-full shrink-0 dot-color" style={{ '--dot-bg': entry.color } as React.CSSProperties} />
-          <span className="text-[8px] font-bold text-(--color-neutral-300) uppercase">{entry.name}:</span>
-          <span className="text-[9px] font-black text-(--color-neutral-50)">{fmtQ(Number(entry.value))}</span>
+          <span className="text-[8px] font-bold text-neutral-300 uppercase">{entry.name}:</span>
+          <span className="text-[9px] font-black text-neutral-50">{fmtQ(Number(entry.value))}</span>
         </div>
       ))}
     </div>
@@ -633,11 +633,11 @@ const generateReport = async () => {
 
   const getCardStyle = () => {
     switch (settings.cardStyle) {
-      case 'flat': return 'bg-(--color-neutral-50) border border-(--color-neutral-100) shadow-none';
+      case 'flat': return 'bg-neutral-50 border border-neutral-100 shadow-none';
       case 'glass': return 'bg-(--color-surface-solid)/40 backdrop-blur-md border border-[rgba(255,255,255,0.5)] shadow-xl';
-      case 'bordered': return 'bg-(--color-surface-solid) border-2 border-(--color-neutral-900) shadow-none';
+      case 'bordered': return 'bg-(--color-surface-solid) border-2 border-neutral-900 shadow-none';
       case 'elevated':
-      default: return 'bg-(--color-surface-solid) border border-(--color-neutral-200) shadow-sm hover:shadow-md transition-shadow';
+      default: return 'bg-(--color-surface-solid) border border-neutral-200 shadow-sm hover:shadow-md transition-shadow';
     }
   };
 
@@ -685,12 +685,12 @@ const generateReport = async () => {
         <div className="space-y-4 text-left">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block">Tipo Registro</label>
-              <div className="flex bg-(--color-neutral-100) p-1 rounded-xl gap-1">
+              <label className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block">Tipo Registro</label>
+              <div className="flex bg-neutral-100 p-1 rounded-xl gap-1">
                 <button 
                   type="button"
                   onClick={() => setAccountingForm({ ...accountingForm, type: 'Entrada', category: entryCategories[0] })}
-                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Entrada' ? "bg-(--color-surface-solid) text-(--color-success) shadow-sm" : "text-(--color-neutral-400)")}
+                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Entrada' ? "bg-(--color-surface-solid) text-success shadow-sm" : "text-neutral-400")}
                 >
                   <ArrowDownLeft size={10} className="inline mr-1" />
                   Ingreso (+)
@@ -698,7 +698,7 @@ const generateReport = async () => {
                 <button 
                   type="button"
                   onClick={() => setAccountingForm({ ...accountingForm, type: 'Salida', category: exitCategories[0] })}
-                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Salida' ? "bg-(--color-surface-solid) text-(--color-error) shadow-sm" : "text-(--color-neutral-400)")}
+                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Salida' ? "bg-(--color-surface-solid) text-error shadow-sm" : "text-neutral-400")}
                 >
                   <ArrowUpRight size={10} className="inline mr-1" />
                   Gasto (-)
@@ -706,7 +706,7 @@ const generateReport = async () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label htmlFor="accounting-date" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block">Fecha</label>
+              <label htmlFor="accounting-date" className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block">Fecha</label>
                <input 
                  id="accounting-date"
                  type="date"
@@ -719,12 +719,12 @@ const generateReport = async () => {
           </div>
 
           <div>
-              <label htmlFor="accounting-category" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block mb-1">Categoría</label>
+              <label htmlFor="accounting-category" className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block mb-1">Categoría</label>
                <select 
                  id="accounting-category"
                  value={accountingForm.category}
                  onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
-                 className={cn("w-full input-modern text-[9px] font-black uppercase py-1.5 px-3", accountingForm.type === 'Entrada' ? 'text-(--color-success)' : 'text-(--color-error)')}
+                 className={cn("w-full input-modern text-[9px] font-black uppercase py-1.5 px-3", accountingForm.type === 'Entrada' ? 'text-success' : 'text-error')}
                  title="Seleccionar categoría"
              >
                {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
@@ -791,7 +791,7 @@ const generateReport = async () => {
                />
             </div>
             <div className="space-y-2">
-              <label htmlFor="accounting-cost" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
+              <label htmlFor="accounting-cost" className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
                <input 
                  id="accounting-cost"
                  type="number"
@@ -806,7 +806,7 @@ const generateReport = async () => {
           </div>
 
           <div>
-              <label htmlFor="accounting-description" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
+              <label htmlFor="accounting-description" className="text-[9px] font-black text-neutral-400 uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
                <textarea 
                  id="accounting-description"
                  value={accountingForm.description}
@@ -833,33 +833,33 @@ const generateReport = async () => {
         <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
             className="bg-(--color-surface-solid) rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-(--color-neutral-100)">
+            <div className="flex items-center justify-between p-5 border-b border-neutral-100">
               <div>
-                <h3 className="text-sm font-black text-(--color-neutral-900) uppercase tracking-tight">Limpiar Datos del Sistema</h3>
-                <p className="text-[9px] text-(--color-neutral-400) font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
+                <h3 className="text-sm font-black text-neutral-900 uppercase tracking-tight">Limpiar Datos del Sistema</h3>
+                <p className="text-[9px] text-neutral-400 font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
               </div>
-              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-(--color-neutral-100) rounded-xl transition-all"><X size={16} /></button>
+              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-neutral-100 rounded-xl transition-all"><X size={16} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {Object.entries(resetData).map(([col, { items, selected }]) => {
                 const labels: Record<string, string> = { projects: 'Proyectos', inventory: 'Inventario', transactions: 'Transacciones', staff: 'Personal', suppliers: 'Proveedores', clients: 'Clientes' };
                 const allChecked = selected.length === items.length;
                 return (
-                  <div key={col} className="border border-(--color-neutral-100) rounded-xl overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-2.5 bg-(--color-neutral-50) border-b border-(--color-neutral-100)">
+                  <div key={col} className="border border-neutral-100 rounded-xl overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-2.5 bg-neutral-50 border-b border-neutral-100">
                       <input title="Seleccionar todos" type="checkbox" checked={allChecked} onChange={() => setResetData(prev => ({ ...prev, [col]: { ...prev[col], selected: allChecked ? [] : items.map((d: any) => d.id) } }))} className="w-4 h-4 accent-red-500 cursor-pointer" />
-                      <span className="text-[10px] font-black text-(--color-neutral-700) uppercase tracking-widest flex-1">{labels[col] || col}</span>
+                      <span className="text-[10px] font-black text-neutral-700 uppercase tracking-widest flex-1">{labels[col] || col}</span>
                       <span className="text-[8px] font-bold text-(--color-p-500)">{selected.length}/{items.length} seleccionados</span>
                     </div>
-                    <div className="divide-y divide-(--color-neutral-50) max-h-40 overflow-y-auto">
+                    <div className="divide-y divide-neutral-50 max-h-40 overflow-y-auto">
                       {items.map((item: any) => (
-                        <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-(--color-neutral-50) cursor-pointer transition-colors">
+                        <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-neutral-50 cursor-pointer transition-colors">
                           <input title={`Seleccionar ${item.name || item.description}`} type="checkbox" checked={selected.includes(item.id)}
                             onChange={() => setResetData(prev => {
                               const sel = prev[col].selected;
                               return { ...prev, [col]: { ...prev[col], selected: sel.includes(item.id) ? sel.filter(s => s !== item.id) : [...sel, item.id] } };
                             })} className="w-3.5 h-3.5 accent-red-500 cursor-pointer shrink-0" />
-                          <span className="text-[9px] font-bold text-(--color-neutral-600) truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
+                          <span className="text-[9px] font-bold text-neutral-600 truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
                           <span className="text-[7px] text-(--color-p-400) font-mono ml-auto shrink-0">{item.id.slice(0, 8)}</span>
                         </label>
                       ))}
@@ -868,10 +868,10 @@ const generateReport = async () => {
                 );
               })}
               {Object.keys(resetData).length === 0 && (
-                <p className="text-center text-[10px] text-(--color-neutral-400) uppercase tracking-widest py-8">No hay datos para eliminar</p>
+                <p className="text-center text-[10px] text-neutral-400 uppercase tracking-widest py-8">No hay datos para eliminar</p>
               )}
             </div>
-            <div className="p-5 border-t border-(--color-neutral-100) flex gap-3">
+            <div className="p-5 border-t border-neutral-100 flex gap-3">
               <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1">Cancelar</Button>
               <Button variant="danger" onClick={handleConfirmReset} disabled={resetting || Object.values(resetData).every((v: any) => v.selected.length === 0)} className="flex-1">
                 {resetting ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Eliminando...</> : <><AlertTriangle size={12} /> Eliminar Seleccionados</>}
@@ -931,10 +931,10 @@ const generateReport = async () => {
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
             { label: selectedProjectId === 'ALL' ? 'Proyectos Activos' : 'Proyecto Seleccionado', value: filteredProjects.length, currency: false, icon: <Zap size={16} />, color: 'bg-amber-500', spark: null, pulse: executingProjects.length > 0, rings: { fisico: avgFisico, financiero: avgFinanciero }, onNavigate: () => setActiveTab?.('seguimiento') },
-            { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-emerald-500' : 'bg-rose-500', spark: sparkNet, sparkColor: netCash >= 0 ? 'var(--color-success)' : 'var(--color-error)', pulse: false },
-            { label: selectedProjectId === 'ALL' ? 'Presp. Ejecución' : 'Presp. Proyecto', value: executingBudget, currency: true, icon: <TrendingUp size={16} />, color: 'bg-blue-500', spark: sparkInc, sparkColor: 'var(--color-accent)', pulse: false },
+            { label: 'Efectivo Neto', value: netCash, currency: true, icon: <DollarSign size={16} />, color: netCash >= 0 ? 'bg-emerald-500' : 'bg-rose-500', spark: sparkNet, sparkColor: netCash >= 0 ? 'varsuccess' : 'varerror', pulse: false },
+            { label: selectedProjectId === 'ALL' ? 'Presp. Ejecución' : 'Presp. Proyecto', value: executingBudget, currency: true, icon: <TrendingUp size={16} />, color: 'bg-blue-500', spark: sparkInc, sparkColor: 'varaccent', pulse: false },
             { label: 'Presp. Fin/Pausa', value: finishedPausedBudget, currency: true, icon: <CheckCircle2 size={16} />, color: 'bg-slate-500', spark: null, pulse: false },
-            { label: 'Alertas Stock', value: criticalStock, currency: false, icon: <ShieldCheck size={16} />, color: criticalStock > 0 ? 'bg-orange-500' : 'bg-emerald-500', spark: sparkExp, sparkColor: criticalStock > 0 ? 'var(--color-error)' : 'var(--color-success)', pulse: criticalStock > 0 },
+            { label: 'Alertas Stock', value: criticalStock, currency: false, icon: <ShieldCheck size={16} />, color: criticalStock > 0 ? 'bg-orange-500' : 'bg-emerald-500', spark: sparkExp, sparkColor: criticalStock > 0 ? 'varerror' : 'varsuccess', pulse: criticalStock > 0 },
           ].map((kpi, i) => (
             <KpiCard key={i} kpi={kpi} cardClass={cardClass} index={i} />
           ))}
@@ -1225,7 +1225,7 @@ const generateReport = async () => {
             </motion.div>
 
             {/* Tipologia Stats (Mini) */}
-            <motion.div variants={staggerItem} className="bg-gradient-to-br from-amber-400 to-orange-500 p-6 rounded-[2.5rem] text-primary shadow-xl shadow-amber-500/20 relative overflow-hidden group">
+            <motion.div variants={staggerItem} className="bg-linear-to-br from-amber-400 to-orange-500 p-6 rounded-[2.5rem] text-primary shadow-xl shadow-amber-500/20 relative overflow-hidden group">
                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-2xl -translate-y-10 translate-x-10 group-hover:scale-150 transition-transform duration-700" />
                 <div className="relative z-10">
                    <div className="flex items-center gap-3 mb-4">
@@ -1266,8 +1266,8 @@ const generateReport = async () => {
       {/* Edit Transaction Modal */}
       {editTx && (
         <div className='fixed inset-0 z-200 flex items-center justify-center p-4'>
-          <div className='absolute inset-0 bg-(--color-neutral-900)/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
-          <div className='relative w-full max-w-md bg-(--color-surface-solid) rounded-2xl shadow-2xl p-6 border border-(--color-neutral-200)'>
+          <div className='absolute inset-0 bg-neutral-900/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
+          <div className='relative w-full max-w-md bg-(--color-surface-solid) rounded-2xl shadow-2xl p-6 border border-neutral-200'>
             <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
             <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>

@@ -339,7 +339,7 @@ const createPurchaseOrder = async () => {
     { id: 'Almacén Central', name: 'Almacén Central', short: 'AC', desc: 'Depósito Principal', color: 'bg-primary' },
     { id: 'Zona de Obra A', name: 'Zona de Obra A', short: 'ZA', desc: 'Maquinaria y Equipos', color: 'bg-secondary' },
     { id: 'Zona de Obra B', name: 'Zona de Obra B', short: 'ZB', desc: 'Materiales Pesados', color: 'bg-slate-400' },
-    { id: 'Bodega Acabados', name: 'Bodega Acabados', short: 'BA', desc: 'Material Delicado', color: 'bg-(--color-info)' },
+    { id: 'Bodega Acabados', name: 'Bodega Acabados', short: 'BA', desc: 'Material Delicado', color: 'bg-info' },
   ];
 
   const [movementForm, setMovementForm] = useState({
@@ -481,17 +481,17 @@ const createPurchaseOrder = async () => {
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
-          <div className={cn('p-2 rounded-lg shrink-0', criticalItems.length > 0 ? 'bg-(--color-error-bg) text-(--color-error)' : 'bg-(--color-success-bg) text-(--color-success)')}>
+          <div className={cn('p-2 rounded-lg shrink-0', criticalItems.length > 0 ? 'bg-(--color-error-bg) text-error' : 'bg-(--color-success-bg) text-success')}>
             <ShieldCheck size={16} />
           </div>
           <div className="min-w-0">
             <p className="label truncate">Stock Crítico</p>
-            <h3 className={cn('text-sm md:text-xl font-black truncate', criticalItems.length > 0 ? 'text-(--color-error)' : 'text-(--color-success)')}>{criticalItems.length}</h3>
+            <h3 className={cn('text-sm md:text-xl font-black truncate', criticalItems.length > 0 ? 'text-error' : 'text-success')}>{criticalItems.length}</h3>
             <p className="text-[7px] text-slate-400 font-bold">de {items.length} items</p>
           </div>
         </div>
         <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center gap-3 text-left">
-          <div className="p-2 bg-(--color-success-bg) text-(--color-success) rounded-lg shrink-0">
+          <div className="p-2 bg-(--color-success-bg) text-success rounded-lg shrink-0">
             <DollarSign size={16} />
           </div>
           <div className="min-w-0">
@@ -542,17 +542,17 @@ const createPurchaseOrder = async () => {
           </select>
         </div>
         <button onClick={() => setIsGenModalOpen(true)}
-          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-(--color-success) text-white hover:bg-(--color-success) transition-all shadow">
+          className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-success text-white hover:bg-success transition-all shadow">
           <Building2 size={13}/> Generar desde Presupuesto
         </button>
         {activeTab === 'orders' && (
           <>
             <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedOrderIds(new Set()); }}
-              className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-(--color-error) text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+              className={`px-2 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-error text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
               {bulkMode ? 'Cancelar' : 'Seleccionar'}
             </button>
             <button onClick={() => setIsOCModalOpen(true)}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-(--color-info) text-white hover:bg-(--color-info) transition-all shadow">
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest bg-info text-white hover:bg-info transition-all shadow">
               <Plus size={13}/> Nueva OC
             </button>
           </>
@@ -731,7 +731,7 @@ const createPurchaseOrder = async () => {
                 {bulkMode && (
                   <th className="px-2 py-3 w-8">
                     <input type="checkbox" checked={paginatedItems.length > 0 && selectedItemIds.size === paginatedItems.length}
-                      onChange={toggleSelectAllItems} className="w-4 h-4 accent-(--color-error) cursor-pointer" />
+                      onChange={toggleSelectAllItems} className="w-4 h-4 accent-error cursor-pointer" />
                   </th>
                 )}
                 <th className="px-4 py-3">Suministro</th>
@@ -758,7 +758,7 @@ const createPurchaseOrder = async () => {
                     {bulkMode && (
                       <td className="px-2 py-2.5 w-8" onClick={e => e.stopPropagation()}>
                         <input type="checkbox" checked={selectedItemIds.has(item.id)} onChange={() => toggleSelectItem(item.id)}
-                          className="w-4 h-4 accent-(--color-error) cursor-pointer" />
+                          className="w-4 h-4 accent-error cursor-pointer" />
                       </td>
                     )}
                     <td className="px-4 py-2.5">
@@ -768,7 +768,7 @@ const createPurchaseOrder = async () => {
                        ) : (
                           <div className={cn(
                             "p-1.5 rounded-lg shrink-0",
-                            item.stock < item.minStock ? "bg-red-50 text-(--color-error)" : "bg-slate-100 text-slate-400"
+                            item.stock < item.minStock ? "bg-red-50 text-error" : "bg-slate-100 text-slate-400"
                           )}>
                             {getCatIcon(item.cat)}
                           </div>
@@ -817,7 +817,7 @@ const createPurchaseOrder = async () => {
                         />
                       ) : (
                         <span
-                          className={cn("text-[11px] font-black tabular-nums cursor-text", item.stock < item.minStock ? "text-(--color-error)" : "text-primary")}
+                          className={cn("text-[11px] font-black tabular-nums cursor-text", item.stock < item.minStock ? "text-error" : "text-primary")}
                           onDoubleClick={e => { e.stopPropagation(); setEditingCell({id: item.id, field: 'stock', value: String(item.stock)}); }}
                           title="Doble click para editar"
                         >{item.stock} {item.unit}</span>
@@ -931,7 +931,7 @@ const createPurchaseOrder = async () => {
               </div>
               <div className="bg-white/40 backdrop-blur-sm p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Stock Crítico</p>
-                <p className={cn('text-lg font-black', criticalProjectItems.length > 0 ? 'text-(--color-error)' : 'text-(--color-success)')}>
+                <p className={cn('text-lg font-black', criticalProjectItems.length > 0 ? 'text-error' : 'text-success')}>
                   {criticalProjectItems.length}
                 </p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">items bajo mínimo</p>
@@ -943,7 +943,7 @@ const createPurchaseOrder = async () => {
               </div>
               <div className="bg-white/40 backdrop-blur-sm p-3 rounded-xl">
                 <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest mb-1">Completitud Stock</p>
-                <p className={cn('text-lg font-black', completionRate >= 80 ? 'text-(--color-success)' : completionRate >= 50 ? 'text-(--color-warning)' : 'text-(--color-error)')}>
+                <p className={cn('text-lg font-black', completionRate >= 80 ? 'text-success' : completionRate >= 50 ? 'text-warning' : 'text-error')}>
                   {Math.round(completionRate)}%
                 </p>
                 <p className="text-[6px] font-bold text-slate-400 uppercase">stock vs presupuesto</p>
@@ -964,14 +964,14 @@ const createPurchaseOrder = async () => {
               
               <div className="flex items-center justify-between pt-2">
                 <span className="label">Completitud de Stock</span>
-                <span className={cn('text-[9px] font-black', completionRate >= 80 ? 'text-(--color-success)' : 'text-(--color-warning)')}>
+                <span className={cn('text-[9px] font-black', completionRate >= 80 ? 'text-success' : 'text-warning')}>
                   {Math.round(completionRate)}%
                 </span>
               </div>
               <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div 
                   className={cn('h-full rounded-full transition-all duration-500 progress-fill-dynamic', 
-                    completionRate >= 80 ? 'bg-(--color-success)' : completionRate >= 50 ? 'bg-(--color-accent)' : 'bg-(--color-error)'
+                    completionRate >= 80 ? 'bg-success' : completionRate >= 50 ? 'bg-accent' : 'bg-error'
                   )} 
                   style={{ '--w': `${completionRate}%` } as React.CSSProperties}
                 />
@@ -981,18 +981,18 @@ const createPurchaseOrder = async () => {
             {criticalProjectItems.length > 0 && (
               <div className="mt-4 p-3 bg-red-50 border border-(--color-red-border) rounded-xl">
                 <div className="flex items-center gap-2 mb-2">
-                  <AlertCircle size={12} className="text-(--color-error)" />
-                  <span className="text-[8px] font-black text-(--color-error) uppercase tracking-widest">Materiales Críticos</span>
+                  <AlertCircle size={12} className="text-error" />
+                  <span className="text-[8px] font-black text-error uppercase tracking-widest">Materiales Críticos</span>
                 </div>
                 <div className="space-y-1">
                   {criticalProjectItems.slice(0, 3).map(item => (
                     <div key={item.id} className="flex justify-between items-center text-[8px]">
-                      <span className="font-bold text-(--color-error) uppercase truncate max-w-[60%]">{item.name}</span>
-                      <span className="font-black text-(--color-error)">{item.stock}/{item.minStock} {item.unit}</span>
+                      <span className="font-bold text-error uppercase truncate max-w-[60%]">{item.name}</span>
+                      <span className="font-black text-error">{item.stock}/{item.minStock} {item.unit}</span>
                     </div>
                   ))}
                   {criticalProjectItems.length > 3 && (
-                    <p className="text-[7px] font-bold text-(--color-error) uppercase text-center pt-1">
+                    <p className="text-[7px] font-bold text-error uppercase text-center pt-1">
                       +{criticalProjectItems.length - 3} más
                     </p>
                   )}
@@ -1006,7 +1006,7 @@ const createPurchaseOrder = async () => {
                   setSelectedProjectForGen(filterProject);
                   setIsGenModalOpen(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-(--color-success) text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-(--color-success) transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-success text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-success transition-all"
               >
                 <Building2 size={11}/> Generar Faltantes
               </button>
@@ -1015,7 +1015,7 @@ const createPurchaseOrder = async () => {
                   setOcForm(prev => ({ ...prev, projectId: filterProject }));
                   setIsOCModalOpen(true);
                 }}
-                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-(--color-info) text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-(--color-info) transition-all"
+                className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-info text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-info transition-all"
               >
                 <ShoppingCart size={11}/> Nueva OC
               </button>
@@ -1138,18 +1138,18 @@ const createPurchaseOrder = async () => {
               {bulkMode && purchaseOrders.length > 0 && (
                 <div className="flex items-center gap-2 px-1 py-1">
                   <input type="checkbox" checked={selectedOrderIds.size === purchaseOrders.length && purchaseOrders.length > 0}
-                    onChange={toggleSelectAllOrders} className="w-4 h-4 accent-(--color-error) cursor-pointer" />
+                    onChange={toggleSelectAllOrders} className="w-4 h-4 accent-error cursor-pointer" />
                   <span className="label">
                     {selectedOrderIds.size > 0 ? `${selectedOrderIds.size} seleccionado(s)` : 'Seleccionar todo'}
                   </span>
                 </div>
               )}
               {purchaseOrders.map(order => (
-            <div key={order.id} className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl shadow-lg p-4 shadow-sm relative">
+            <div key={order.id} className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-sm relative">
               {bulkMode && (
                 <div className="absolute top-3 left-3 z-10" onClick={e => e.stopPropagation()}>
                   <input type="checkbox" checked={selectedOrderIds.has(order.id)} onChange={() => toggleSelectOrder(order.id)}
-                    className="w-4 h-4 accent-(--color-error) cursor-pointer" />
+                    className="w-4 h-4 accent-error cursor-pointer" />
                 </div>
               )}
               <div className={cn("flex items-start justify-between gap-4 mb-3", bulkMode && "ml-7")}>
@@ -1160,18 +1160,18 @@ const createPurchaseOrder = async () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className={cn('px-2 py-1 rounded-lg text-[8px] font-black uppercase',
-                    order.status === 'RECIBIDA' ? 'bg-(--color-success-bg) text-(--color-success)' :
-                    order.status === 'APROBADA' ? 'bg-(--color-info-bg) text-(--color-info)' :
-                    order.status === 'CANCELADA' ? 'bg-(--color-error-bg) text-(--color-error)' :
-                    'bg-(--color-warning-bg) text-(--color-warning)')}>{order.status}</span>
+                    order.status === 'RECIBIDA' ? 'bg-(--color-success-bg) text-success' :
+                    order.status === 'APROBADA' ? 'bg-(--color-info-bg) text-info' :
+                    order.status === 'CANCELADA' ? 'bg-(--color-error-bg) text-error' :
+                    'bg-(--color-warning-bg) text-warning')}>{order.status}</span>
                   {order.status === 'PENDIENTE' && (
                     <button onClick={() => receiveOrder(order)}
-                      className="flex items-center gap-1 px-3 py-1.5 bg-(--color-success) text-white rounded-lg text-[8px] font-black uppercase hover:bg-(--color-success) transition-all">
+                      className="flex items-center gap-1 px-3 py-1.5 bg-success text-white rounded-lg text-[8px] font-black uppercase hover:bg-success transition-all">
                       <CheckCircle2 size={11}/> Recibir
                     </button>
                   )}
                   <button type="button" title="Eliminar orden" onClick={(e) => { e.stopPropagation(); handleDeleteOrder(order.id); }}
-                    className="p-1.5 bg-red-50 text-(--color-error) rounded-lg hover:bg-(--color-error-bg) transition-all opacity-60 hover:opacity-100">
+                    className="p-1.5 bg-red-50 text-error rounded-lg hover:bg-(--color-error-bg) transition-all opacity-60 hover:opacity-100">
                     <Trash2 size={11} />
                   </button>
                 </div>
@@ -1295,7 +1295,7 @@ const createPurchaseOrder = async () => {
                           className={`text-[8px] font-black uppercase px-2 py-1 rounded-lg transition-all shrink-0 ${
                             alreadyInOC
                               ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                              : 'bg-(--color-info-bg) text-(--color-info) hover:bg-blue-200'
+                              : 'bg-(--color-info-bg) text-info hover:bg-blue-200'
                           }`}>
                           {alreadyInOC ? 'Agregado' : '+ Agregar'}
                         </button>
@@ -1312,7 +1312,7 @@ const createPurchaseOrder = async () => {
             <div className="flex justify-between items-center mb-2">
               <label className="label">Materiales en OC</label>
               <button type="button" onClick={() => setOcForm(f => ({ ...f, items: [...f.items, { materialName: '', unit: 'U', qty: 1, unitPrice: 0, total: 0 }] }))}
-                className="flex items-center gap-1 text-[8px] font-black text-(--color-info) hover:text-(--color-info) uppercase">
+                className="flex items-center gap-1 text-[8px] font-black text-info hover:text-info uppercase">
                 <Plus size={10}/> Manual
               </button>
             </div>
@@ -1337,7 +1337,7 @@ const createPurchaseOrder = async () => {
                     placeholder="P.Unit Q" value={oi.unitPrice || ''}
                     onChange={e => { const it = [...ocForm.items]; it[i] = { ...it[i], unitPrice: +e.target.value, total: it[i].qty * +e.target.value }; setOcForm(f => ({ ...f, items: it })); }} />
                   <button type="button" title="Eliminar material" onClick={() => setOcForm(f => ({ ...f, items: f.items.filter((_, j) => j !== i) }))}
-                    className="col-span-1 text-(--color-error) hover:text-(--color-error) flex justify-center"><X size={12}/></button>
+                    className="col-span-1 text-error hover:text-error flex justify-center"><X size={12}/></button>
                 </div>
               ))}
             </div>

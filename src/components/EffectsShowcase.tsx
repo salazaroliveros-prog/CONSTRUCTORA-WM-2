@@ -5,10 +5,10 @@ export default function EffectsShowcase() {
   return (
     <div className="p-6 space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-black text-(--color-primary)">
+        <h1 className="text-4xl font-black text-primary">
           ✨ Efectos Visuales Mejorados
         </h1>
-        <p className="text-lg text-(--color-neutral-600)">
+        <p className="text-lg text-neutral-600">
           Experiencia visual única con efectos avanzados
         </p>
       </div>
@@ -20,8 +20,8 @@ export default function EffectsShowcase() {
               <Sparkles size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-(--color-primary)">Efectos de Partículas</h3>
-              <p className="text-sm text-(--color-neutral-600)">
+              <h3 className="font-bold text-lg text-primary">Efectos de Partículas</h3>
+              <p className="text-sm text-neutral-600">
                 Partículas flotantes en hover
               </p>
             </div>
@@ -34,8 +34,8 @@ export default function EffectsShowcase() {
               <Zap size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-(--color-primary)">Efecto Shimmer</h3>
-              <p className="text-sm text-(--color-neutral-600)">
+              <h3 className="font-bold text-lg text-primary">Efecto Shimmer</h3>
+              <p className="text-sm text-neutral-600">
                 Barrido de luz en hover
               </p>
             </div>
@@ -48,8 +48,8 @@ export default function EffectsShowcase() {
               <Star size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-(--color-primary)">Efecto Glow</h3>
-              <p className="text-sm text-(--color-neutral-600)">
+              <h3 className="font-bold text-lg text-primary">Efecto Glow</h3>
+              <p className="text-sm text-neutral-600">
                 Brillo rotativo en hover
               </p>
             </div>
@@ -62,8 +62,8 @@ export default function EffectsShowcase() {
               <Gem size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-(--color-primary)">Tarjeta Interactiva</h3>
-              <p className="text-sm text-(--color-neutral-600)">
+              <h3 className="font-bold text-lg text-primary">Tarjeta Interactiva</h3>
+              <p className="text-sm text-neutral-600">
                 Elevación y escala en hover
               </p>
             </div>
@@ -76,8 +76,8 @@ export default function EffectsShowcase() {
               <Palette size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-(--color-primary)">Borde Gradiente</h3>
-              <p className="text-sm text-(--color-neutral-600)">
+              <h3 className="font-bold text-lg text-primary">Borde Gradiente</h3>
+              <p className="text-sm text-neutral-600">
                 Borde gradiente estático con glow en hover
               </p>
             </div>
@@ -90,8 +90,8 @@ export default function EffectsShowcase() {
               <Wand2 size={24} />
             </div>
             <div>
-              <h3 className="font-bold text-lg text-(--color-primary)">Efectos Combinados</h3>
-              <p className="text-sm text-(--color-neutral-600)">
+              <h3 className="font-bold text-lg text-primary">Efectos Combinados</h3>
+              <p className="text-sm text-neutral-600">
                 Múltiples efectos juntos
               </p>
             </div>
@@ -100,7 +100,7 @@ export default function EffectsShowcase() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-(--color-primary)">Badges Mejorados</h2>
+        <h2 className="text-2xl font-bold text-primary">Badges Mejorados</h2>
         <div className="flex flex-wrap gap-3">
           <span className="badge-success">Éxito</span>
           <span className="badge-warning">Advertencia</span>
@@ -110,7 +110,7 @@ export default function EffectsShowcase() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-(--color-primary)">Botones Mejorados</h2>
+        <h2 className="text-2xl font-bold text-primary">Botones Mejorados</h2>
         <div className="flex flex-wrap gap-4">
           <button className="btn-primary">
             Botón Primario
@@ -125,7 +125,7 @@ export default function EffectsShowcase() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-(--color-primary)">Barras de Progreso</h2>
+        <h2 className="text-2xl font-bold text-primary">Barras de Progreso</h2>
         <div className="space-y-3">
           <div className="progress-bar">
             <div className="progress-bar-fill w-3/4"></div>
@@ -137,7 +137,7 @@ export default function EffectsShowcase() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-(--color-primary)">Indicadores de Estado</h2>
+        <h2 className="text-2xl font-bold text-primary">Indicadores de Estado</h2>
         <div className="flex gap-6">
           <div className="flex items-center gap-2">
             <div className="status-dot status-dot-green"></div>
@@ -155,7 +155,7 @@ export default function EffectsShowcase() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-(--color-primary)">Estados de Carga</h2>
+        <h2 className="text-2xl font-bold text-primary">Estados de Carga</h2>
         <div className="flex items-center gap-4">
           <div className="skeleton skeleton-text"></div>
           <span>Cargando...</span>
@@ -163,7 +163,7 @@ export default function EffectsShowcase() {
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-2xl font-bold text-(--color-primary)">Skeleton Loader Avanzado</h2>
+        <h2 className="text-2xl font-bold text-primary">Skeleton Loader Avanzado</h2>
         <div className="space-y-3">
           <div className="skeleton h-4 w-3/4"></div>
           <div className="skeleton h-4 w-1/2"></div>

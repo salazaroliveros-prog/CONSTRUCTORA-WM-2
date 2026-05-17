@@ -35,12 +35,12 @@ function MiniRing({ value, color, label }: MiniRingProps) {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-[8px] font-black [color:var(--ring-color)]" style={{ '--ring-color': color } as React.CSSProperties}>
+          <span className="text-[8px] font-black text-(--ring-color)" style={{ '--ring-color': color } as React.CSSProperties}>
             {value}%
           </span>
         </div>
       </div>
-      <span className="text-[7px] font-black text-(--color-neutral-500) uppercase tracking-wider leading-none">
+      <span className="text-[7px] font-black text-neutral-500 uppercase tracking-wider leading-none">
         {label}
       </span>
     </div>
@@ -107,7 +107,7 @@ function KpiCard({ kpi, index }: KpiCardProps) {
         <div className="flex items-center gap-1.5">
           <div
             className={cn(
-              "flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 [color:var(--kpi-icon-color)]",
+              "flex items-center justify-center w-8 h-8 sm:w-9 sm:h-9 rounded-lg shrink-0 transition-transform duration-300 group-hover:scale-110 group-hover:-rotate-3 text-(--kpi-icon-color)",
               kpi.color.replace("bg-", "bg-opacity-15 bg-")
             )}
             style={{ '--kpi-icon-color': `var(--${kpi.color.replace("bg-", "")})` } as React.CSSProperties}
@@ -122,8 +122,8 @@ function KpiCard({ kpi, index }: KpiCardProps) {
               className="flex gap-0.5 ml-1 cursor-pointer"
               title="Ver detalle en Seguimiento"
             >
-              <MiniRing value={kpi.rings.fisico} color="var(--color-secondary)" label="Fís" />
-              <MiniRing value={kpi.rings.financiero} color="var(--color-info)" label="Fin" />
+              <MiniRing value={kpi.rings.fisico} color="varsecondary" label="Fís" />
+              <MiniRing value={kpi.rings.financiero} color="varinfo" label="Fin" />
             </motion.div>
           )}
         </div>
@@ -132,10 +132,10 @@ function KpiCard({ kpi, index }: KpiCardProps) {
             className={cn(
               "text-[7px] sm:text-[6px] font-bold uppercase px-1 py-0.5 rounded-full flex items-center gap-0.5",
               trend > 0
-                ? "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-(--color-success)"
+                ? "bg-[color-mix(in_srgb,varsuccess_10%,transparent)] text-success"
                 : trend < 0
                 ? "bg-error/10 text-error"
-                : "bg-(--color-neutral-50) text-(--color-neutral-400)"
+                : "bg-neutral-50 text-neutral-400"
             )}
           >
             {trend > 0 ? "▲" : trend < 0 ? "▼" : "—"}

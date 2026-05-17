@@ -24,9 +24,9 @@ export default function Settings() {
   const { settings, updateSettings, resetSettings } = useSettings();
 
   const themes: { id: ThemeMode; label: string; desc: string; swatches: string[] }[] = [
-    { id: 'minimalist', label: 'Minimalista', desc: 'Limpio, profesional y tipográfico', swatches: ['var(--color-neutral-900)', 'var(--color-info)', 'var(--color-neutral-100)', 'var(--color-neutral-400)'] },
-    { id: 'cyberpunk', label: 'Cyberpunk', desc: 'Alto contraste, neones y profundidad', swatches: ['var(--color-info)', 'var(--color-secondary-dark)', 'var(--color-neutral-900)', 'var(--color-neutral-100)'] },
-    { id: 'soft', label: 'Soft Orgánico', desc: 'Pastel, redondeado y degradados suaves', swatches: ['var(--color-secondary-dark)', 'var(--color-secondary)', 'var(--color-neutral-50)', 'var(--color-secondary-dark)'] },
+    { id: 'minimalist', label: 'Minimalista', desc: 'Limpio, profesional y tipográfico', swatches: ['varneutral-900', 'varinfo', 'varneutral-100', 'varneutral-400'] },
+    { id: 'cyberpunk', label: 'Cyberpunk', desc: 'Alto contraste, neones y profundidad', swatches: ['varinfo', 'var(--color-secondary-dark)', 'varneutral-900', 'varneutral-100'] },
+    { id: 'soft', label: 'Soft Orgánico', desc: 'Pastel, redondeado y degradados suaves', swatches: ['var(--color-secondary-dark)', 'varsecondary', 'varneutral-50', 'var(--color-secondary-dark)'] },
   ];
 
   const graphTypes: { id: GraphType; label: string; icon: React.ReactNode }[] = [
@@ -52,7 +52,7 @@ export default function Settings() {
     <div id="settings-container" className="max-w-4xl mx-auto space-y-8 pb-[calc(4rem+env(safe-area-inset-bottom,0))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0))]">
       <header className="text-left mb-10">
         <h2 className="text-2xl font-black text-primary uppercase tracking-tighter">Configuración Visual</h2>
-        <p className="text-[10px] font-bold text-(--color-neutral-400) uppercase tracking-widest mt-1">Personaliza tu experiencia de gestión</p>
+        <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Personaliza tu experiencia de gestión</p>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -72,8 +72,8 @@ export default function Settings() {
                 className={cn(
                   "p-4 rounded-2xl border text-left transition-all group relative overflow-hidden",
                   settings.themeMode === theme.id 
-                    ? "border-primary bg-(--color-primary) text-(--color-neutral-50) shadow-xl shadow-(--color-primary)/20 scale-[1.02] ring-2 ring-secondary/30" 
-                    : "border-(--color-neutral-200) bg-(--color-surface-solid) text-(--color-neutral-600) hover:border-(--color-neutral-300) hover:shadow-md"
+                    ? "border-primary bg-primary text-neutral-50 shadow-xl shadow-primary/20 scale-[1.02] ring-2 ring-secondary/30" 
+                    : "border-neutral-200 bg-(--color-surface-solid) text-neutral-600 hover:border-neutral-300 hover:shadow-md"
                 )}
               >
                 {settings.themeMode === theme.id && (
@@ -90,12 +90,12 @@ export default function Settings() {
                   ))}
                 </div>
                 <p className="text-[10px] font-black uppercase tracking-widest">{theme.label}</p>
-                <p className={cn("text-[8px] font-bold mt-1 uppercase opacity-60", settings.themeMode === theme.id ? "text-slate-300" : "text-(--color-neutral-400)")}>{theme.desc}</p>
+                <p className={cn("text-[8px] font-bold mt-1 uppercase opacity-60", settings.themeMode === theme.id ? "text-slate-300" : "text-neutral-400")}>{theme.desc}</p>
               </button>
             ))}
           </div>
 
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200) space-y-4">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200 space-y-4">
             <div className="flex justify-between items-center">
               <label className="label">Color Primario</label>
               <input 
@@ -134,8 +134,8 @@ export default function Settings() {
                 className={cn(
                   "w-full p-4 rounded-2xl border text-left flex items-center justify-between transition-all",
                   settings.typography === f.id 
-                    ? "border-primary bg-(--color-primary)/5 shadow-md" 
-                    : "border-(--color-neutral-200) bg-(--color-surface-solid) hover:border-(--color-neutral-300)"
+                    ? "border-primary bg-primary/5 shadow-md" 
+                    : "border-neutral-200 bg-(--color-surface-solid) hover:border-neutral-300"
                 )}
               >
                 <div>
@@ -144,9 +144,9 @@ export default function Settings() {
                     f.id === 'space' && 'font-space',
                     f.id === 'mono' && 'font-mono'
                   )}>{f.label}</p>
-                  <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase tracking-widest mt-0.5">{f.desc}</p>
+                  <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest mt-0.5">{f.desc}</p>
                 </div>
-                {settings.typography === f.id && <div className="w-6 h-6 bg-(--color-primary) text-(--color-neutral-50) rounded-full flex items-center justify-center p-1"><Check size={12} /></div>}
+                {settings.typography === f.id && <div className="w-6 h-6 bg-primary text-neutral-50 rounded-full flex items-center justify-center p-1"><Check size={12} /></div>}
               </button>
             ))}
           </div>
@@ -159,7 +159,7 @@ export default function Settings() {
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Efectos y Construcción</h3>
           </div>
 
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200) space-y-6">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200 space-y-6">
              <div>
                <label className="label">Estilo de Contenedores (Cards)</label>
                <div className="grid grid-cols-2 gap-2">
@@ -170,8 +170,8 @@ export default function Settings() {
                       className={cn(
                         "py-2 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all",
                         settings.cardStyle === style.id 
-                          ? "bg-(--color-neutral-900) text-(--color-neutral-50) border-slate-900" 
-                          : "bg-(--color-neutral-50) text-(--color-neutral-400) border-(--color-neutral-100)"
+                          ? "bg-neutral-900 text-neutral-50 border-slate-900" 
+                          : "bg-neutral-50 text-neutral-400 border-neutral-100"
                       )}
                     >
                       {style.label}
@@ -182,7 +182,7 @@ export default function Settings() {
 
              <div>
                <label className="label">Velocidad de Animación</label>
-               <div className="flex bg-(--color-neutral-100) p-1 rounded-2xl gap-1">
+               <div className="flex bg-neutral-100 p-1 rounded-2xl gap-1">
                  {(['none', 'fast', 'normal', 'slow'] as const).map((speed) => {
                    const labels: Record<string, string> = { none: 'Sin', fast: 'Rápida', normal: 'Normal', slow: 'Lenta' };
                    return (
@@ -191,7 +191,7 @@ export default function Settings() {
                       onClick={() => updateSettings({ transitionSpeed: speed as TransitionSpeed })}
                       className={cn(
                         "flex-1 py-2 rounded-xl text-[8px] font-black uppercase tracking-tighter transition-all",
-                        settings.transitionSpeed === speed ? "bg-(--color-surface-solid) text-primary shadow-sm" : "text-(--color-neutral-400)"
+                        settings.transitionSpeed === speed ? "bg-(--color-surface-solid) text-primary shadow-sm" : "text-neutral-400"
                       )}
                     >
                       {labels[speed]}
@@ -210,7 +210,7 @@ export default function Settings() {
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Visualización de Datos</h3>
           </div>
 
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200) space-y-6">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200 space-y-6">
              <div>
                <label className="label">Tipo de Gráficas por Defecto</label>
                <div className="flex gap-3">
@@ -221,8 +221,8 @@ export default function Settings() {
                      className={cn(
                         "flex-1 flex flex-col items-center gap-2 p-4 rounded-2xl border transition-all",
                         settings.graphType === type.id 
-                          ? "border-secondary bg-(--color-secondary)/10 text-primary" 
-                          : "border-(--color-neutral-100) bg-(--color-neutral-50) text-(--color-neutral-400) opacity-60"
+                          ? "border-secondary bg-secondary/10 text-primary" 
+                          : "border-neutral-100 bg-neutral-50 text-neutral-400 opacity-60"
                      )}
                    >
                      {type.icon}
@@ -232,15 +232,15 @@ export default function Settings() {
                </div>
              </div>
 
-             <div className="flex items-center justify-between p-4 bg-(--color-neutral-50) rounded-2xl">
+             <div className="flex items-center justify-between p-4 bg-neutral-50 rounded-2xl">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-widest">Modo Compacto</p>
-                  <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase">Ajusta la densidad de información</p>
+                  <p className="text-[8px] font-bold text-neutral-400 uppercase">Ajusta la densidad de información</p>
                 </div>
                 <button 
                   onClick={() => updateSettings({ compactMode: !settings.compactMode })}
                   aria-label="Alternar modo compacto"
-                  className={cn("w-12 h-6 rounded-full transition-all relative", settings.compactMode ? "bg-(--color-secondary)" : "bg-slate-300")}
+                  className={cn("w-12 h-6 rounded-full transition-all relative", settings.compactMode ? "bg-secondary" : "bg-slate-300")}
                 >
                   <div className={cn("absolute top-1 w-4 h-4 rounded-full bg-(--color-surface-solid) transition-all shadow-sm", settings.compactMode ? "right-1" : "left-1")} />
                 </button>
@@ -250,7 +250,7 @@ export default function Settings() {
       </div>
 
       {/* Empresa, Moneda y Modulos */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-(--color-neutral-100)">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4 border-t border-neutral-100">
 
         {/* Empresa */}
         <section className="space-y-4">
@@ -258,7 +258,7 @@ export default function Settings() {
             <Monitor size={18} className="text-secondary" />
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Empresa</h3>
           </div>
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200) space-y-4">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200 space-y-4">
             <div>
               <label className="label">Nombre de la Empresa</label>
               <input
@@ -323,7 +323,7 @@ export default function Settings() {
             <Zap size={18} className="text-secondary" />
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Moneda</h3>
           </div>
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200)">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200">
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               {(['Q.', 'Q', '$', '€', '£'] as Currency[]).map(c => (
                 <button
@@ -331,14 +331,14 @@ export default function Settings() {
                   onClick={() => updateSettings({ currency: c })}
                   className={cn(
                     "py-3 rounded-xl text-sm font-black border transition-all",
-                    settings.currency === c ? "bg-(--color-neutral-900) text-(--color-neutral-50) border-slate-900" : "bg-(--color-neutral-50) text-(--color-neutral-400) border-(--color-neutral-100)"
+                    settings.currency === c ? "bg-neutral-900 text-neutral-50 border-slate-900" : "bg-neutral-50 text-neutral-400 border-neutral-100"
                   )}
                 >
                   {c}
                 </button>
               ))}
             </div>
-            <p className="text-[8px] text-(--color-neutral-400) uppercase tracking-widest mt-3">Quetzal (Q) · Dólar ($) · Euro (€) · Libra (£)</p>
+            <p className="text-[8px] text-neutral-400 uppercase tracking-widest mt-3">Quetzal (Q) · Dólar ($) · Euro (€) · Libra (£)</p>
           </div>
         </section>
 
@@ -348,7 +348,7 @@ export default function Settings() {
             <Sparkles size={18} className="text-secondary" />
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Agente IA</h3>
           </div>
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200) space-y-5">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200 space-y-5">
             <div>
               <label className="label">Modelo Gemini</label>
               <select
@@ -379,7 +379,7 @@ export default function Settings() {
                 placeholder="AIzaSy..."
                 className="input"
               />
-              <p className="text-[8px] text-(--color-neutral-400) mt-2 leading-relaxed">
+              <p className="text-[8px] text-neutral-400 mt-2 leading-relaxed">
                 Déjalo vacío para usar la variable de entorno <strong className="text-(--color-secondary-dark)">GEMINI_API_KEY</strong> del servidor.
                 Si ingresas una clave aquí, sobrescribirá la del servidor para este navegador.
                 Obtén tu clave en <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" className="text-(--color-secondary-dark) underline">Google AI Studio</a>
@@ -394,7 +394,7 @@ export default function Settings() {
             <Layers size={18} className="text-secondary" />
             <h3 className="text-xs font-black text-primary uppercase tracking-widest">Modulos Activos</h3>
           </div>
-          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-(--color-neutral-200)">
+          <div className="bg-(--color-surface-solid) p-6 rounded-3xl border border-neutral-200">
             <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {ALL_MODULES.filter(m => m !== 'settings').map(mod => {
                 const active = (settings.activeModules ?? ALL_MODULES).includes(mod);
@@ -411,38 +411,38 @@ export default function Settings() {
                     }}
                     className={cn(
                       "py-2.5 px-3 rounded-xl text-[9px] font-black uppercase tracking-widest border transition-all flex items-center justify-between gap-2",
-                      active ? "bg-(--color-neutral-900) text-(--color-neutral-50) border-slate-900" : "bg-(--color-neutral-50) text-(--color-neutral-400) border-(--color-neutral-100)"
+                      active ? "bg-neutral-900 text-neutral-50 border-slate-900" : "bg-neutral-50 text-neutral-400 border-neutral-100"
                     )}
                   >
                     {labels[mod] || mod}
-                    <div className={cn("w-2 h-2 rounded-full", active ? "bg-(--color-secondary)" : "bg-slate-300")} />
+                    <div className={cn("w-2 h-2 rounded-full", active ? "bg-secondary" : "bg-slate-300")} />
                   </button>
                 );
               })}
             </div>
-            <p className="text-[8px] text-(--color-neutral-400) uppercase tracking-widest mt-3">Settings siempre permanece activo</p>
+            <p className="text-[8px] text-neutral-400 uppercase tracking-widest mt-3">Settings siempre permanece activo</p>
           </div>
         </section>
       </div>
 
-      <div className="flex justify-between items-center pt-10 border-t border-(--color-neutral-100)">
+      <div className="flex justify-between items-center pt-10 border-t border-neutral-100">
         <Button 
           onClick={resetSettings}
           variant="ghost"
-          className="flex items-center gap-2 text-[10px] font-black text-(--color-error) uppercase tracking-widest hover:bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] px-6 py-3 rounded-2xl"
+          className="flex items-center gap-2 text-[10px] font-black text-error uppercase tracking-widest hover:bg-[color-mix(in_srgb,varerror_10%,transparent)] px-6 py-3 rounded-2xl"
         >
           <RotateCcw size={14} /> Reiniciar Valores
         </Button>
-        <div className="flex items-center gap-4 text-(--color-neutral-400)">
+        <div className="flex items-center gap-4 text-neutral-400">
           <Monitor size={16} />
           <Smartphone size={16} />
-          <div className="h-4 w-px bg-(--color-neutral-200) mx-2" />
+          <div className="h-4 w-px bg-neutral-200 mx-2" />
           <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Versión 1.0.4 - Edición Pro</span>
         </div>
       </div>
 
       {/* Diagnóstico Firestore */}
-      <div className="pt-8 border-t border-(--color-neutral-100)">
+      <div className="pt-8 border-t border-neutral-100">
         <FirestoreTest />
       </div>
     </div>

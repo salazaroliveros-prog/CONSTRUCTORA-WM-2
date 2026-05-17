@@ -88,7 +88,7 @@ export function SidebarNavigation({ activeTab, onNavigate, isOpen, onToggle }: S
               {/* Acordeón */}
               {hasChildren && openGroup === item.id && isOpen && (
                 <motion.ul initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} className="ml-4 pl-4 border-l border-white/10 mt-1 space-y-1">
-                  {item.children.map(sub => (
+                  {item.children?.map(sub => (
                     <li key={sub.id}>
                       <button onClick={() => handleNavigate(sub.id)} className={cn(
                         "block w-full text-left py-2 text-[9px] font-bold uppercase tracking-widest transition-colors",

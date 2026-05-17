@@ -430,14 +430,14 @@ const addItem = async () => {
         <div className="flex items-center justify-between">
           <button 
             onClick={() => setView('list')}
-            className="flex items-center gap-3 text-(--color-neutral-400) hover:text-(--color-neutral-900) transition-all text-[10px] font-black uppercase tracking-[0.2em] group"
+            className="flex items-center gap-3 text-neutral-400 hover:text-neutral-900 transition-all text-[10px] font-black uppercase tracking-[0.2em] group"
           >
             <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" /> 
             Listado General de Obras
           </button>
           <div className="text-right">
-            <h1 className="text-xl font-black text-(--color-primary) uppercase tracking-tight italic">Asistente de Configuración</h1>
-            <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase tracking-widest leading-none mt-1">Configuración técnica de proyecto</p>
+            <h1 className="text-xl font-black text-primary uppercase tracking-tight italic">Asistente de Configuración</h1>
+            <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest leading-none mt-1">Configuración técnica de proyecto</p>
           </div>
         </div>
         
@@ -458,13 +458,13 @@ const addItem = async () => {
     <div id="projects-dashboard" className="space-y-6 animate-in fade-in duration-500 pb-[calc(4rem+env(safe-area-inset-bottom,0))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0))]">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="text-left">
-          <h2 className="text-xl md:text-2xl font-black tracking-tight text-(--color-primary) uppercase">Proyectos</h2>
-          <p className="text-[10px] font-bold text-(--color-neutral-400) uppercase tracking-widest mt-1">Control de portafolio y presupuestos</p>
+          <h2 className="text-xl md:text-2xl font-black tracking-tight text-primary uppercase">Proyectos</h2>
+          <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mt-1">Control de portafolio y presupuestos</p>
         </div>
           <div className="flex w-full md:w-auto gap-2">
             <button 
               onClick={handleExportCSV}
-              className="flex-1 md:flex-none border border-(--color-neutral-200) bg-(--color-surface-solid) text-(--color-neutral-600) px-4 py-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-(--color-neutral-50) transition-all shadow-sm"
+              className="flex-1 md:flex-none border border-neutral-200 bg-(--color-surface-solid) text-neutral-600 px-4 py-3 rounded-lg text-xs font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-neutral-50 transition-all shadow-sm"
             >
               <Download size={18} /> Exportar
             </button>
@@ -502,25 +502,25 @@ const totalBudget   = PMath.sum(projects.map(p => p.budget || 0));
 return (
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
 {[
-                 { icon: <Building2 size={12} className="text-(--color-info)" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-(--color-info)' },
-{ icon: <DollarSign size={12} className="text-(--color-accent)" />,  label: 'Presupuesto Total', value: `Q ${fmtQ(totalBudget/1000)}k`, sub: `Q ${fmtQ(execBudget/1000)}k activo`, color: 'text-(--color-warning)' },
-                  { icon: <TrendingUp size={12} className="text-(--color-success)" />,  label: 'Ejecutado',         value: `Q ${fmtQ(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${precise(deviation, 1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-(--color-error)' : 'text-(--color-success)' },
-                 { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-(--color-error)' : 'text-(--color-success)'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-(--color-error)' : 'text-(--color-success)' },
+                 { icon: <Building2 size={12} className="text-info" />,    label: 'Total Proyectos',   value: projects.length,          sub: `${stats.ejecucion} en ejecución`, color: 'text-info' },
+{ icon: <DollarSign size={12} className="text-accent" />,  label: 'Presupuesto Total', value: `Q ${fmtQ(totalBudget/1000)}k`, sub: `Q ${fmtQ(execBudget/1000)}k activo`, color: 'text-warning' },
+                  { icon: <TrendingUp size={12} className="text-success" />,  label: 'Ejecutado',         value: `Q ${fmtQ(totalExecuted/1000)}k`, sub: deviation !== 0 ? `${deviation > 0 ? '+' : ''}${precise(deviation, 1)}% desv.` : 'Sin desviación', color: deviation > 5 ? 'text-error' : 'text-success' },
+                 { icon: <AlertCircle size={12} className={delayed.length > 0 ? 'text-error' : 'text-success'} />, label: 'Con Retraso', value: delayed.length, sub: delayed.length > 0 ? delayed[0].name : 'Al día', color: delayed.length > 0 ? 'text-error' : 'text-success' },
               ].map(k => (
-                <div key={k.label} className="bg-(--color-surface-solid)  border border-(--color-neutral-200)  rounded-lg p-2 sm:p-3 shadow-sm ">
-                  <div className="flex items-center gap-1 mb-1">{k.icon}<span className="text-[6px] sm:text-[7px] font-black text-(--color-neutral-400)  uppercase">{k.label}</span></div>
+                <div key={k.label} className="bg-(--color-surface-solid)  border border-neutral-200  rounded-lg p-2 sm:p-3 shadow-sm ">
+                  <div className="flex items-center gap-1 mb-1">{k.icon}<span className="text-[6px] sm:text-[7px] font-black text-neutral-400  uppercase">{k.label}</span></div>
                   <p className={cn('text-base sm:text-lg font-black', k.color)}>{k.value}</p>
-                  <p className="text-[6px] sm:text-[7px] font-bold text-(--color-neutral-400)  uppercase mt-0.5 truncate">{k.sub}</p>
+                  <p className="text-[6px] sm:text-[7px] font-bold text-neutral-400  uppercase mt-0.5 truncate">{k.sub}</p>
                 </div>
               ))}
            </div>
          );
       })()}
 
-      <div className="bg-(--color-surface-solid)  rounded-2xl border border-(--color-neutral-200)  shadow-sm  overflow-hidden">
-<div className="p-3 md:p-4 border-b border-(--color-neutral-100)  flex flex-col md:flex-row justify-between items-center gap-3">
+      <div className="bg-(--color-surface-solid)  rounded-2xl border border-neutral-200  shadow-sm  overflow-hidden">
+<div className="p-3 md:p-4 border-b border-neutral-100  flex flex-col md:flex-row justify-between items-center gap-3">
              <div className="relative flex-1 w-full max-w-md">
-               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-neutral-400) " size={16} />
+               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 " size={16} />
                <input
                 type="text"
                 placeholder="BUSCAR PROYECTO..."
@@ -530,18 +530,18 @@ return (
                />
              </div>
             <div className="flex flex-wrap gap-2 w-full md:w-auto items-center">
-               <div className="flex bg-(--color-neutral-100)  p-0.5 rounded-lg">
+               <div className="flex bg-neutral-100  p-0.5 rounded-lg">
                  <button
                   onClick={() => setViewMode('table')}
                   title="Vista de Tabla"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-(--color-surface-solid)  text-(--color-neutral-900)  shadow-sm " : "text-(--color-neutral-400)  hover:text-(--color-neutral-600) ")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'table' ? "bg-(--color-surface-solid)  text-neutral-900  shadow-sm " : "text-neutral-400  hover:text-neutral-600 ")}
                  >
                    <ListFilter size={15} />
                  </button>
                  <button
                   onClick={() => setViewMode('grid')}
                   title="Vista de Cuadrícula"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-(--color-surface-solid) text-(--color-neutral-900) shadow-sm" : "text-(--color-neutral-400) hover:text-(--color-neutral-600)")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'grid' ? "bg-(--color-surface-solid) text-neutral-900 shadow-sm" : "text-neutral-400 hover:text-neutral-600")}
                  >
                    <LayoutGrid size={15} />
                  </button>
@@ -550,16 +550,16 @@ return (
                 <button
                   onClick={() => setViewMode('kanban')}
                   title="Vista Kanban"
-                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-(--color-surface-solid)  text-(--color-neutral-900)  shadow-sm " : "text-(--color-neutral-400)  hover:text-(--color-neutral-600) ")}
+                  className={cn("p-1.5 rounded-md transition-all", viewMode === 'kanban' ? "bg-(--color-surface-solid)  text-neutral-900  shadow-sm " : "text-neutral-400  hover:text-neutral-600 ")}
                 >
                   <Layers size={15} />
                 </button>
                 <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedProjectIds(new Set()); }}
-                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-(--color-error) text-(--color-neutral-50) shadow-sm ' : 'bg-(--color-neutral-100)  text-(--color-neutral-500)  hover:text-slate-800 '}`}>
+                  className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-error text-neutral-50 shadow-sm ' : 'bg-neutral-100  text-neutral-500  hover:text-slate-800 '}`}>
                  {bulkMode ? 'Cancelar' : 'Seleccionar'}
                </button>
                 <div className="flex flex-col gap-0.5 min-w-30">
-                 <span className="text-[6px] font-black text-(--color-neutral-400) uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                 <span className="text-[6px] font-black text-neutral-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
                    <Clock size={7} /> Estado
                  </span>
                  <select
@@ -576,7 +576,7 @@ return (
               </div>
 
               <div className="flex flex-col gap-0.5 min-w-30">
-                 <span className="text-[6px] font-black text-(--color-neutral-400) uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
+                 <span className="text-[6px] font-black text-neutral-400 uppercase tracking-[0.2em] ml-1 flex items-center gap-1">
                    <Building2 size={7} /> Tipología
                  </span>
                  <select
@@ -598,17 +598,17 @@ return (
             <div className="overflow-x-auto no-scrollbar">
               <table className="w-full text-left min-w-120 sm:min-w-150">
                <thead>
-                 <tr className="bg-(--color-neutral-50)/50 border-b border-(--color-neutral-100)">
+                 <tr className="bg-neutral-50/50 border-b border-neutral-100">
                    {bulkMode && (
                      <th className="px-2 py-2 w-6">
                         <input type="checkbox" checked={paginatedProjects.length > 0 && selectedProjectIds.size === paginatedProjects.length}
-                          onChange={toggleSelectAllProjects} title="Seleccionar todo" className="w-3.5 h-3.5 accent-(--color-error) cursor-pointer" />
+                          onChange={toggleSelectAllProjects} title="Seleccionar todo" className="w-3.5 h-3.5 accent-error cursor-pointer" />
                      </th>
                    )}
-                   <th className="px-4 py-2 text-[7px] font-black text-(--color-neutral-400) uppercase tracking-widest">Proyecto</th>
-                    <th className="hidden sm:table-cell px-2 sm:px-4 py-2 text-[6px] sm:text-[7px] font-black text-(--color-neutral-400)  uppercase tracking-widest">Cliente</th>
-                   <th className="px-4 py-2 text-[7px] font-black text-(--color-neutral-400) uppercase tracking-widest">Estado</th>
-                   <th className="px-4 py-2 text-[7px] font-black text-(--color-neutral-400) uppercase tracking-widest text-right">#</th>
+                   <th className="px-4 py-2 text-[7px] font-black text-neutral-400 uppercase tracking-widest">Proyecto</th>
+                    <th className="hidden sm:table-cell px-2 sm:px-4 py-2 text-[6px] sm:text-[7px] font-black text-neutral-400  uppercase tracking-widest">Cliente</th>
+                   <th className="px-4 py-2 text-[7px] font-black text-neutral-400 uppercase tracking-widest">Estado</th>
+                   <th className="px-4 py-2 text-[7px] font-black text-neutral-400 uppercase tracking-widest text-right">#</th>
                  </tr>
                </thead>
                 <tbody className="divide-y divide-slate-50 ">
@@ -619,48 +619,48 @@ return (
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.2, delay: i * 0.05 }}
                       onClick={() => { if (bulkMode) { toggleSelectProject(project.id); } else { setSelectedProject(project); } }}
-                      className={`group hover:bg-(--color-neutral-50)/50 /50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50  border-l-2 border-(--color-error)" : ""}`}
+                      className={`group hover:bg-neutral-50/50 /50 transition-colors cursor-pointer ${selectedProjectIds.has(project.id) ? "bg-red-50  border-l-2 border-error" : ""}`}
                     >
                      {bulkMode && (
                        <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
                           <input type="checkbox" checked={selectedProjectIds.has(project.id)} onChange={() => toggleSelectProject(project.id)} title="Seleccionar proyecto"
-                            className="w-3.5 h-3.5 accent-(--color-error) cursor-pointer" />
+                            className="w-3.5 h-3.5 accent-error cursor-pointer" />
                        </td>
                      )}
                      <td className="px-4 py-2">
                        <div className="flex items-center gap-2">
-                          <div className="w-7 h-7 rounded-lg bg-(--color-neutral-100)  flex items-center justify-center text-(--color-primary) border border-(--color-neutral-200)  shrink-0 group-hover:bg-(--color-neutral-900) :bg-(--color-neutral-700) group-hover:text-(--color-secondary) transition-all">
+                          <div className="w-7 h-7 rounded-lg bg-neutral-100  flex items-center justify-center text-primary border border-neutral-200  shrink-0 group-hover:bg-neutral-900 :bg-neutral-700 group-hover:text-secondary transition-all">
                            <Building2 size={14} />
                          </div>
                          <div className="min-w-0">
-                             <p className="text-[7px] sm:text-[8px] font-black text-(--color-primary) uppercase tracking-tight truncate max-w-20 sm:max-w-30 md:max-w-none group-hover:text-(--color-secondary) transition-colors">{project.name}</p>
-                            <p className="text-[6px] text-(--color-neutral-400)  font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
+                             <p className="text-[7px] sm:text-[8px] font-black text-primary uppercase tracking-tight truncate max-w-20 sm:max-w-30 md:max-w-none group-hover:text-secondary transition-colors">{project.name}</p>
+                            <p className="text-[6px] text-neutral-400  font-bold uppercase tracking-widest truncate">Cód: {project.id.slice(-6).toUpperCase()}</p>
                          </div>
                        </div>
                      </td>
                       <td className="hidden sm:table-cell px-2 sm:px-4 py-2">
                        <div className="flex flex-col">
-                           <span className="text-[7px] font-black text-(--color-neutral-900)  uppercase truncate max-w-30">{project.clientName}</span>
-                          <span className="text-[6px] font-bold text-(--color-neutral-400)  uppercase tracking-widest">{project.typology}</span>
+                           <span className="text-[7px] font-black text-neutral-900  uppercase truncate max-w-30">{project.clientName}</span>
+                          <span className="text-[6px] font-bold text-neutral-400  uppercase tracking-widest">{project.typology}</span>
                        </div>
                      </td>
                      <td className="px-4 py-2">
                           <div className="flex flex-col gap-1 min-w-17.5">
                          <div className="flex justify-between items-center text-[7px] font-black uppercase tracking-widest">
                            <span className={cn(
-                             project.status === 'EJECUCION' ? "text-(--color-secondary)" :
-                             project.status === 'COTIZACION' ? "text-(--color-info)" :
-                             "text-(--color-success)"
+                             project.status === 'EJECUCION' ? "text-secondary" :
+                             project.status === 'COTIZACION' ? "text-info" :
+                             "text-success"
                            )}>{project.status}</span>
-                           <span className="text-(--color-neutral-400)">{project.progress || 0}%</span>
+                           <span className="text-neutral-400">{project.progress || 0}%</span>
                          </div>
-                          <div className="h-1.5 bg-(--color-neutral-100)  rounded-full overflow-hidden w-full">
+                          <div className="h-1.5 bg-neutral-100  rounded-full overflow-hidden w-full">
                            <motion.div
                              initial={{ width: 0 }}
                              animate={{ width: `${project.progress || 0}%` }}
                              className={cn(
                                "h-full rounded-full",
-                               project.status === 'EJECUCION' ? "bg-(--color-neutral-900)" : "bg-slate-400"
+                               project.status === 'EJECUCION' ? "bg-neutral-900" : "bg-slate-400"
                              )}
                            />
                          </div>
@@ -671,11 +671,11 @@ return (
                            <button
                              onClick={(e) => handleDelete(e, project.id)}
                              aria-label="Eliminar proyecto"
-                             className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-(--color-error) hover:bg-(--color-error-bg) :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
+                             className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  hover:text-error hover:bg-(--color-error-bg) :bg-red-900/20 transition-all opacity-0 group-hover:opacity-100"
                            >
                              <Trash2 size={12} />
                            </button>
-                           <button aria-label="Ver detalles" className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  group-hover:text-(--color-secondary) group-hover:bg-(--color-neutral-900) :bg-(--color-neutral-700) transition-all">
+                           <button aria-label="Ver detalles" className="w-7 h-7 flex items-center justify-center rounded-md text-slate-300  group-hover:text-secondary group-hover:bg-neutral-900 :bg-neutral-700 transition-all">
                            <ChevronRight size={14} />
                          </button>
                        </div>
@@ -707,15 +707,15 @@ return (
         {viewMode === 'kanban' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
             {[
-              { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-(--color-neutral-100)  border-(--color-neutral-200) ', dot: 'bg-slate-400 ' },
-{ id: 'EJECUCION', label: 'Ejecucion', color: 'bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)]  border-[color-mix(in_srgb,var(--color-info)_20%,transparent)] ', dot: 'bg-(--color-info)' },
-               { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-(--color-success-bg)  border-(--color-green-border) ', dot: 'bg-(--color-success)' },
+              { id: 'COTIZACION', label: 'Cotizacion', color: 'bg-neutral-100  border-neutral-200 ', dot: 'bg-slate-400 ' },
+{ id: 'EJECUCION', label: 'Ejecucion', color: 'bg-[color-mix(in_srgb,varinfo_10%,transparent)]  border-[color-mix(in_srgb,varinfo_20%,transparent)] ', dot: 'bg-info' },
+               { id: 'FINALIZADO', label: 'Finalizado', color: 'bg-(--color-success-bg)  border-(--color-green-border) ', dot: 'bg-success' },
             ].map(col => (
               <div key={col.id} className={`rounded-2xl border p-4 space-y-3 ${col.color}`}>
                 <div className="flex items-center gap-2 mb-2">
                   <div className={`w-2 h-2 rounded-full ${col.dot}`} />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-(--color-neutral-600) ">{col.label}</span>
-                   <span className="ml-auto text-[8px] font-black bg-(--color-surface-solid)  rounded-full px-2 py-0.5 text-(--color-neutral-700) ">{filteredProjects.filter(p => p.status === col.id).length}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-neutral-600 ">{col.label}</span>
+                   <span className="ml-auto text-[8px] font-black bg-(--color-surface-solid)  rounded-full px-2 py-0.5 text-neutral-700 ">{filteredProjects.filter(p => p.status === col.id).length}</span>
                 </div>
                 {filteredProjects.filter(p => p.status === col.id).map((p, ki) => (
                   <motion.div
@@ -726,12 +726,12 @@ return (
                     onClick={() => setSelectedProject(p)}
                     className="bg-(--color-surface-solid)  rounded-xl p-3 shadow-sm  border border-(--color-surface-solid)  hover:border-secondary cursor-pointer transition-all space-y-2"
                   >
-                    <p className="text-[10px] font-black text-(--color-primary) uppercase leading-tight">{p.name}</p>
-                     <p className="text-[8px] text-(--color-neutral-600)  font-bold uppercase">{p.clientName}</p>
+                    <p className="text-[10px] font-black text-primary uppercase leading-tight">{p.name}</p>
+                     <p className="text-[8px] text-neutral-600  font-bold uppercase">{p.clientName}</p>
                     <div className="flex items-center justify-between">
-                      <span className="text-[8px] font-black text-(--color-secondary)">{fmtQ(p.budget || 0)}</span>
-                      <div className="w-16 h-1.5 bg-(--color-neutral-100)  rounded-full overflow-hidden" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties}>
-                        <div className="h-full bg-(--color-neutral-900)  rounded-full w-(--pw)" />
+                      <span className="text-[8px] font-black text-secondary">{fmtQ(p.budget || 0)}</span>
+                      <div className="w-16 h-1.5 bg-neutral-100  rounded-full overflow-hidden" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties}>
+                        <div className="h-full bg-neutral-900  rounded-full w-(--pw)" />
                       </div>
                     </div>
                   </motion.div>
@@ -778,15 +778,15 @@ return (
             exit={{ opacity: 0, scale: 0.95 }}
             className="space-y-8 text-left"
           >
-            <div className="border-b border-(--color-neutral-100)  pb-6 space-y-3">
+            <div className="border-b border-neutral-100  pb-6 space-y-3">
               {/* Fila 1: icono + titulo + boton editar */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-(--color-neutral-900)  rounded-2xl flex items-center justify-center text-(--color-secondary) shrink-0 shadow-lg shadow-[rgba(15,23,42,0.2)] ">
+                <div className="w-12 h-12 bg-neutral-900  rounded-2xl flex items-center justify-center text-secondary shrink-0 shadow-lg shadow-[rgba(15,23,42,0.2)] ">
                   <Building2 size={24} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-lg sm:text-xl font-black text-(--color-primary) uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
-                  <p className="text-[8px] sm:text-[9px] font-black text-(--color-secondary) tracking-[0.2em] uppercase truncate">ID: {selectedProject.id?.toUpperCase()}</p>
+                  <h2 className="text-lg sm:text-xl font-black text-primary uppercase tracking-tight leading-none mb-1 truncate">{selectedProject.name}</h2>
+                  <p className="text-[8px] sm:text-[9px] font-black text-secondary tracking-[0.2em] uppercase truncate">ID: {selectedProject.id?.toUpperCase()}</p>
                 </div>
                 {isEditing ? (
                   <div className="flex gap-2 shrink-0">
@@ -794,7 +794,7 @@ return (
                     <Button variant="default" size="sm" onClick={handleSaveEdit}>Guardar</Button>
                   </div>
                 ) : (
-                  <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-(--color-neutral-900)  text-(--color-neutral-50) rounded-lg text-xs font-bold uppercase">
+                  <button onClick={() => { setIsEditing(true); setEditForm({ name: selectedProject.name, clientName: selectedProject.clientName, status: selectedProject.status, startDate: selectedProject.startDate, endDate: selectedProject.endDate, location: selectedProject.location }); }} className="shrink-0 flex items-center gap-2 px-3 py-1.5 bg-neutral-900  text-neutral-50 rounded-lg text-xs font-bold uppercase">
                     <Settings2 size={14} /> Editar
                   </button>
                 )}
@@ -802,15 +802,15 @@ return (
               {/* Fila 2: controles de exportacion */}
               <div className="flex flex-wrap items-end gap-2">
                 <div className="flex flex-col gap-1">
-                  <span className="text-[7px] font-black text-(--color-neutral-400)  uppercase tracking-widest">Plantilla PDF</span>
+                  <span className="text-[7px] font-black text-neutral-400  uppercase tracking-widest">Plantilla PDF</span>
                     <select title="Plantilla PDF" value={exportPdfTemplate} onChange={e => setExportPdfTemplate(e.target.value)} className="select">
                     {PDF_TEMPLATES.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
                   </select>
                 </div>
-                <button onClick={() => { setTimeout(async () => { await generateProjectPDF(selectedProject, exportPdfTemplate); }, 50); }} className="h-8 flex items-center gap-1 px-2 sm:px-3 bg-(--color-secondary) text-(--color-primary) rounded-lg text-[7px] sm:text-[8px] font-black uppercase hover:bg-(--color-secondary)/90 transition-all">
+                <button onClick={() => { setTimeout(async () => { await generateProjectPDF(selectedProject, exportPdfTemplate); }, 50); }} className="h-8 flex items-center gap-1 px-2 sm:px-3 bg-secondary text-primary rounded-lg text-[7px] sm:text-[8px] font-black uppercase hover:bg-secondary/90 transition-all">
                   <Download size={12} /> PDF
                 </button>
-                <button onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-(--color-neutral-900)  text-(--color-neutral-50) rounded-lg text-[8px] font-black uppercase hover:bg-(--color-neutral-700)  transition-all">
+                <button onClick={() => generateProjectCSV(selectedProject, exportCsvTemplate)} className="h-8 flex items-center gap-1.5 px-3 bg-neutral-900  text-neutral-50 rounded-lg text-[8px] font-black uppercase hover:bg-neutral-700  transition-all">
                   <Download size={12} /> CSV
                 </button>
               </div>
@@ -818,8 +818,8 @@ return (
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
               {isEditing && (
-                <div className="col-span-2 md:col-span-4 bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] border border-[color-mix(in_srgb,var(--color-warning)_20%,transparent)] rounded-2xl p-5 space-y-4">
-                  <p className="text-[9px] font-black text-(--color-warning) uppercase tracking-widest">Modo Edicion</p>
+                <div className="col-span-2 md:col-span-4 bg-[color-mix(in_srgb,varwarning_10%,transparent)] border border-[color-mix(in_srgb,varwarning_20%,transparent)] rounded-2xl p-5 space-y-4">
+                  <p className="text-[9px] font-black text-warning uppercase tracking-widest">Modo Edicion</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div><label className="label">Nombre</label><input value={editForm.name||""} onChange={e=>setEditForm(p=>({...p,name:e.target.value}))} placeholder="Nombre del proyecto" className="input" /></div>
                     <div><label className="label">Cliente</label>
@@ -836,12 +836,12 @@ return (
                   </div>
                 </div>
               )}
-              <div className="p-4 bg-(--color-neutral-50) rounded-2xl">
-                <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Cliente</p>
-                <p className="text-xs font-black text-(--color-primary) uppercase">{selectedProject.clientName}</p>
+              <div className="p-4 bg-neutral-50 rounded-2xl">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest mb-1">Cliente</p>
+                <p className="text-xs font-black text-primary uppercase">{selectedProject.clientName}</p>
               </div>
-              <div className="p-4 bg-(--color-neutral-50) rounded-2xl">
-                <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Ubicación</p>
+              <div className="p-4 bg-neutral-50 rounded-2xl">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest mb-1">Ubicación</p>
                 <input 
                   value={selectedProject.location || ''}
                   onBlur={(e) => handleUpdateProject({ location: e.target.value })}
@@ -850,15 +850,15 @@ return (
                   className="input"
                 />
               </div>
-              <div className="p-4 bg-(--color-neutral-50) rounded-2xl">
-                <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Fecha Inicio</p>
-                <p className="text-xs font-black text-(--color-primary) uppercase flex items-center gap-1">
-                  <Calendar size={10} className="text-(--color-secondary)" />
+              <div className="p-4 bg-neutral-50 rounded-2xl">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest mb-1">Fecha Inicio</p>
+                <p className="text-xs font-black text-primary uppercase flex items-center gap-1">
+                  <Calendar size={10} className="text-secondary" />
                   {selectedProject.startDate || 'N/A'}
                 </p>
               </div>
-              <div className="p-4 bg-(--color-neutral-50) rounded-2xl">
-                <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Adjuntos</p>
+              <div className="p-4 bg-neutral-50 rounded-2xl">
+                <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest mb-1">Adjuntos</p>
                 <input 
                   type="file"
                   title="Subir archivo adjunto"
@@ -874,7 +874,7 @@ return (
                       }
                     }
                   }}
-                  className="text-[8px] text-(--color-primary)"
+                  className="text-[8px] text-primary"
                 />
                 {selectedProject.attachments && selectedProject.attachments.length > 0 && <span className="text-[8px]">{selectedProject.attachments.length} adjuntos</span>}
               </div>
@@ -883,8 +883,8 @@ return (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               <div className="lg:col-span-2 space-y-6">
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-(--color-neutral-900) uppercase tracking-[0.2em] flex items-center gap-2">
-                    <Settings2 size={14} className="text-(--color-secondary)" /> Breakdown de Costos
+                  <h4 className="text-[10px] font-black text-neutral-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <Settings2 size={14} className="text-secondary" /> Breakdown de Costos
                   </h4>
                   {/* Curva S: avance físico vs tiempo transcurrido */}
                   {(() => {
@@ -903,12 +903,12 @@ return (
                       return { t: `${t}%`, theoretical, actual };
                     });
                     return (
-                      <div className="bg-(--color-surface-solid) border border-(--color-neutral-100) rounded-2xl p-4 shadow-sm">
+                      <div className="bg-(--color-surface-solid) border border-neutral-100 rounded-2xl p-4 shadow-sm">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-[8px] font-black text-(--color-neutral-400) uppercase">Curva S — Avance Físico vs Tiempo</span>
-                          <div className="flex items-center gap-3 text-[7px] font-bold text-(--color-neutral-400) uppercase">
-                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-(--color-accent) inline-block" /> Teórico</span>
-                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-(--color-info) inline-block" /> Real</span>
+                          <span className="text-[8px] font-black text-neutral-400 uppercase">Curva S — Avance Físico vs Tiempo</span>
+                          <div className="flex items-center gap-3 text-[7px] font-bold text-neutral-400 uppercase">
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-accent inline-block" /> Teórico</span>
+                            <span className="flex items-center gap-1"><span className="w-3 h-0.5 bg-info inline-block" /> Real</span>
                           </div>
                         </div>
                         <div className="h-48">
@@ -917,22 +917,22 @@ return (
                               <XAxis dataKey="t" fontSize={8} />
                               <YAxis fontSize={8} domain={[0, 100]} tickFormatter={v => `${v}%`} />
                               <Tooltip formatter={(v: any) => `${v}%`} />
-                              <ReferenceLine x={`${Math.round(elapsed)}%`} stroke="var(--color-error)" strokeDasharray="3 3" label={{ value: 'Hoy', fontSize: 8, fill: 'var(--color-error)' }} />
-                              <Line type="monotone" dataKey="theoretical" stroke="var(--color-secondary)" strokeWidth={2} dot={false} strokeDasharray="4 2" />
-                              <Line type="monotone" dataKey="actual" stroke="var(--color-info)" strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
+                              <ReferenceLine x={`${Math.round(elapsed)}%`} stroke="varerror" strokeDasharray="3 3" label={{ value: 'Hoy', fontSize: 8, fill: 'varerror' }} />
+                              <Line type="monotone" dataKey="theoretical" stroke="varsecondary" strokeWidth={2} dot={false} strokeDasharray="4 2" />
+                              <Line type="monotone" dataKey="actual" stroke="varinfo" strokeWidth={2} dot={{ r: 3 }} connectNulls={false} />
                             </LineChart>
                           </ResponsiveContainer>
                         </div>
                         <div className="flex items-center justify-between mt-2 text-[8px] font-bold">
-                          <span className="text-(--color-neutral-400)">Tiempo transcurrido: <span className="text-(--color-neutral-700)">{Math.round(elapsed)}%</span></span>
-                          <span className={cn('font-black', (selectedProject.progress || 0) < elapsed - 10 ? 'text-(--color-error)' : 'text-(--color-success)')}>
+                          <span className="text-neutral-400">Tiempo transcurrido: <span className="text-neutral-700">{Math.round(elapsed)}%</span></span>
+                          <span className={cn('font-black', (selectedProject.progress || 0) < elapsed - 10 ? 'text-error' : 'text-success')}>
                             {(selectedProject.progress || 0) < elapsed - 10 ? `⚠ Retraso ${Math.round(elapsed - (selectedProject.progress || 0))}%` : '✓ Al día'}
                           </span>
                         </div>
                       </div>
                     );
                   })()}
-                  <div className="h-48 bg-(--color-surface-solid) border border-(--color-neutral-100) rounded-2xl p-4 shadow-sm">
+                  <div className="h-48 bg-(--color-surface-solid) border border-neutral-100 rounded-2xl p-4 shadow-sm">
                     <ResponsiveContainer width="100%" height="100%">
 <BarChart data={[
                          { name: 'Materiales', value: selectedProject.items.reduce((acc, item) => PMath.add(acc, (item.materials || []).reduce((a, m) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), item.projectQuantity || 1)), 0)), 0) },
@@ -949,57 +949,57 @@ return (
                     </ResponsiveContainer>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="bg-(--color-surface-solid) border border-(--color-neutral-100) rounded-2xl p-4 shadow-sm group">
-                      <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase tracking-widest mb-1">Costo Directo</p>
-                      <p className="text-sm font-black text-(--color-primary) uppercase group-hover:text-(--color-secondary)">{fmtQ(selectedProject.directCosts || 0)}</p>
+                    <div className="bg-(--color-surface-solid) border border-neutral-100 rounded-2xl p-4 shadow-sm group">
+                      <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Costo Directo</p>
+                      <p className="text-sm font-black text-primary uppercase group-hover:text-secondary">{fmtQ(selectedProject.directCosts || 0)}</p>
                     </div>
-                    <div className="bg-(--color-surface-solid) border border-(--color-neutral-100) rounded-2xl p-4 shadow-sm">
-                      <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase tracking-widest mb-1">Indirecto ({selectedProject.indirectCosts || 0}%)</p>
-                      <p className="text-sm font-black text-(--color-neutral-600) uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.indirectCosts || 0, 100)))}</p>
+                    <div className="bg-(--color-surface-solid) border border-neutral-100 rounded-2xl p-4 shadow-sm">
+                      <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Indirecto ({selectedProject.indirectCosts || 0}%)</p>
+                      <p className="text-sm font-black text-neutral-600 uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.indirectCosts || 0, 100)))}</p>
                     </div>
-                    <div className="bg-(--color-surface-solid) border border-(--color-neutral-100) rounded-2xl p-4 shadow-sm">
-                      <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase tracking-widest mb-1">Admin ({selectedProject.administrativeCosts || 0}%)</p>
-                      <p className="text-sm font-black text-(--color-neutral-600) uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.administrativeCosts || 0, 100)))}</p>
+                    <div className="bg-(--color-surface-solid) border border-neutral-100 rounded-2xl p-4 shadow-sm">
+                      <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Admin ({selectedProject.administrativeCosts || 0}%)</p>
+                      <p className="text-sm font-black text-neutral-600 uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.administrativeCosts || 0, 100)))}</p>
                     </div>
-                    <div className="bg-(--color-surface-solid) border border-(--color-neutral-100) rounded-2xl p-4 shadow-sm">
-                      <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase tracking-widest mb-1">Personal ({selectedProject.personalCosts || 0}%)</p>
-                      <p className="text-sm font-black text-(--color-neutral-600) uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.personalCosts || 0, 100)))}</p>
+                    <div className="bg-(--color-surface-solid) border border-neutral-100 rounded-2xl p-4 shadow-sm">
+                      <p className="text-[8px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Personal ({selectedProject.personalCosts || 0}%)</p>
+                      <p className="text-sm font-black text-neutral-600 uppercase">Q {fmtQ(PMath.mul(selectedProject.directCosts || 0, PMath.div(selectedProject.personalCosts || 0, 100)))}</p>
                     </div>
                   </div>
                 </div>
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-black text-(--color-neutral-900) uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Users size={14} className="text-(--color-secondary)" /> Equipo Asignado
+                    <h4 className="text-[10px] font-black text-neutral-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Users size={14} className="text-secondary" /> Equipo Asignado
                     </h4>
                     <div className="flex items-center gap-2">
-                      <span className="text-[8px] font-bold text-(--color-neutral-400) uppercase">
+                      <span className="text-[8px] font-bold text-neutral-400 uppercase">
                         {selectedProject.teamIds?.length || 0} miembro{(selectedProject.teamIds?.length || 0) !== 1 ? 's' : ''}
                       </span>
                       <button 
                         onClick={() => toast.info('Gestión de equipo', { description: 'Ve al módulo de Personal para asignar/desasignar miembros del equipo a este proyecto.' })}
-                        className="text-[8px] font-black text-(--color-secondary) hover:text-(--color-primary) bg-(--color-secondary)/10 hover:bg-(--color-secondary)/20 px-2 py-1 rounded-lg transition-all uppercase tracking-widest"
+                        className="text-[8px] font-black text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-2 py-1 rounded-lg transition-all uppercase tracking-widest"
                       >
                         Gestionar
                       </button>
                     </div>
                   </div>
-                  <div className="bg-(--color-neutral-50) border border-(--color-neutral-100) rounded-2xl p-4">
+                  <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4">
                     {selectedProject.teamIds && selectedProject.teamIds.length > 0 ? (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                         {allStaff.filter(s => selectedProject.teamIds?.includes(s.id)).map(member => (
-                          <div key={member.id} className="flex items-center gap-3 bg-(--color-surface-solid) p-2 rounded-xl border border-(--color-neutral-100) shadow-sm hover:shadow-md transition-all group">
-                            <div className="w-8 h-8 rounded-lg bg-(--color-neutral-900) text-(--color-secondary) flex items-center justify-center font-black text-[10px] group-hover:bg-(--color-secondary) group-hover:text-(--color-primary) transition-all">
+                          <div key={member.id} className="flex items-center gap-3 bg-(--color-surface-solid) p-2 rounded-xl border border-neutral-100 shadow-sm hover:shadow-md transition-all group">
+                            <div className="w-8 h-8 rounded-lg bg-neutral-900 text-secondary flex items-center justify-center font-black text-[10px] group-hover:bg-secondary group-hover:text-primary transition-all">
                               {member.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
                             </div>
                             <div className="min-w-0 flex-1">
-                              <p className="text-[10px] font-black text-(--color-primary) uppercase truncate group-hover:text-(--color-secondary) transition-colors">{member.name}</p>
-                              <p className="text-[7px] font-bold text-(--color-neutral-400) uppercase tracking-widest">{member.role}</p>
+                              <p className="text-[10px] font-black text-primary uppercase truncate group-hover:text-secondary transition-colors">{member.name}</p>
+                              <p className="text-[7px] font-bold text-neutral-400 uppercase tracking-widest">{member.role}</p>
                             </div>
                             <div className="text-right">
-                              <p className="text-[8px] font-black text-(--color-neutral-600)">{fmtQ(member.salary || 0)}</p>
-                              <p className="text-[6px] font-bold text-(--color-neutral-400) uppercase">Salario</p>
+                              <p className="text-[8px] font-black text-neutral-600">{fmtQ(member.salary || 0)}</p>
+                              <p className="text-[6px] font-bold text-neutral-400 uppercase">Salario</p>
                             </div>
                           </div>
                         ))}
@@ -1007,10 +1007,10 @@ return (
                     ) : (
                       <div className="text-center py-6">
                         <Users size={24} className="mx-auto mb-2 text-slate-300" />
-                        <p className="text-[9px] font-bold text-(--color-neutral-400) uppercase italic mb-2">Sin personal asignado específicamente</p>
+                        <p className="text-[9px] font-bold text-neutral-400 uppercase italic mb-2">Sin personal asignado específicamente</p>
                         <button 
                           onClick={() => toast.info('Asignar personal', { description: 'Ve al módulo de Personal para asignar miembros del equipo a este proyecto.' })}
-                          className="text-[8px] font-black text-(--color-secondary) hover:text-(--color-primary) bg-(--color-secondary)/10 hover:bg-(--color-secondary)/20 px-3 py-1.5 rounded-lg transition-all uppercase tracking-widest"
+                          className="text-[8px] font-black text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-3 py-1.5 rounded-lg transition-all uppercase tracking-widest"
                         >
                           Asignar Personal
                         </button>
@@ -1021,11 +1021,11 @@ return (
 
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-[10px] font-black text-(--color-neutral-900) uppercase tracking-[0.2em] flex items-center gap-2">
-                      <Box size={14} className="text-(--color-secondary)" /> Inventario del Proyecto
+                    <h4 className="text-[10px] font-black text-neutral-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                      <Box size={14} className="text-secondary" /> Inventario del Proyecto
                     </h4>
                     <div className="flex items-center gap-2">
-                      <span className="text-[8px] font-bold text-(--color-neutral-400) uppercase">
+                      <span className="text-[8px] font-bold text-neutral-400 uppercase">
                         {(() => {
                           const projectInventory = transactions.filter(t => t.projectId === selectedProject.id);
                           return projectInventory.length;
@@ -1033,13 +1033,13 @@ return (
                       </span>
                       <button 
                         onClick={() => toast.info('Gestión de inventario', { description: 'Ve al módulo de Inventario y filtra por este proyecto para gestionar materiales.' })}
-                        className="text-[8px] font-black text-(--color-secondary) hover:text-(--color-primary) bg-(--color-secondary)/10 hover:bg-(--color-secondary)/20 px-2 py-1 rounded-lg transition-all uppercase tracking-widest"
+                        className="text-[8px] font-black text-secondary hover:text-primary bg-secondary/10 hover:bg-secondary/20 px-2 py-1 rounded-lg transition-all uppercase tracking-widest"
                       >
                         Ver Inventario
                       </button>
                     </div>
                   </div>
-                  <div className="bg-(--color-neutral-50) border border-(--color-neutral-100) rounded-2xl p-4">
+                  <div className="bg-neutral-50 border border-neutral-100 rounded-2xl p-4">
                     {(() => {
                       // Calcular estadísticas de inventario del proyecto
                       const projectMaterials = selectedProject.items?.reduce((acc: any[], item) => {
@@ -1067,40 +1067,40 @@ return (
                       return (
                         <div className="space-y-4">
                           <div className="grid grid-cols-3 gap-3">
-                            <div className="bg-(--color-surface-solid) p-3 rounded-xl border border-(--color-neutral-100) text-center">
-                              <p className="text-[7px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Materiales</p>
-                              <p className="text-lg font-black text-(--color-primary)">{projectMaterials.length}</p>
-                              <p className="text-[6px] font-bold text-(--color-neutral-400) uppercase">tipos</p>
+                            <div className="bg-(--color-surface-solid) p-3 rounded-xl border border-neutral-100 text-center">
+                              <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Materiales</p>
+                              <p className="text-lg font-black text-primary">{projectMaterials.length}</p>
+                              <p className="text-[6px] font-bold text-neutral-400 uppercase">tipos</p>
                             </div>
-                            <div className="bg-(--color-surface-solid) p-3 rounded-xl border border-(--color-neutral-100) text-center">
-                              <p className="text-[7px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Valor Total</p>
-                              <p className="text-lg font-black text-(--color-primary)">Q {Math.round(totalBudgetedValue/1000)}k</p>
-                              <p className="text-[6px] font-bold text-(--color-neutral-400) uppercase">presupuestado</p>
+                            <div className="bg-(--color-surface-solid) p-3 rounded-xl border border-neutral-100 text-center">
+                              <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Valor Total</p>
+                              <p className="text-lg font-black text-primary">Q {Math.round(totalBudgetedValue/1000)}k</p>
+                              <p className="text-[6px] font-bold text-neutral-400 uppercase">presupuestado</p>
                             </div>
-                            <div className="bg-(--color-surface-solid) p-3 rounded-xl border border-(--color-neutral-100) text-center">
-                              <p className="text-[7px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1">Estado</p>
-                              <p className="text-lg font-black text-(--color-warning)">Pendiente</p>
-                              <p className="text-[6px] font-bold text-(--color-neutral-400) uppercase">compras</p>
+                            <div className="bg-(--color-surface-solid) p-3 rounded-xl border border-neutral-100 text-center">
+                              <p className="text-[7px] font-black text-neutral-400 uppercase tracking-widest mb-1">Estado</p>
+                              <p className="text-lg font-black text-warning">Pendiente</p>
+                              <p className="text-[6px] font-bold text-neutral-400 uppercase">compras</p>
                             </div>
                           </div>
                           
                           {topMaterials.length > 0 ? (
                             <div className="space-y-2">
-                              <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest border-b border-(--color-neutral-200) pb-1">Principales Materiales</p>
+                              <p className="text-[8px] font-black text-neutral-400 uppercase tracking-widest border-b border-neutral-200 pb-1">Principales Materiales</p>
                               {topMaterials.map((material, idx) => (
-                                <div key={idx} className="flex items-center justify-between bg-(--color-surface-solid) p-2 rounded-lg border border-(--color-neutral-100)">
+                                <div key={idx} className="flex items-center justify-between bg-(--color-surface-solid) p-2 rounded-lg border border-neutral-100">
                                   <div className="min-w-0 flex-1">
-                                    <p className="text-[9px] font-black text-(--color-primary) uppercase truncate">{material.name}</p>
-                                    <p className="text-[7px] font-bold text-(--color-neutral-400) uppercase">{(material.budgetedQty || 0).toLocaleString('es-GT')} {material.unit}</p>
+                                    <p className="text-[9px] font-black text-primary uppercase truncate">{material.name}</p>
+                                    <p className="text-[7px] font-bold text-neutral-400 uppercase">{(material.budgetedQty || 0).toLocaleString('es-GT')} {material.unit}</p>
                                   </div>
                                   <div className="text-right">
-                                    <p className="text-[8px] font-black text-(--color-neutral-600)">{fmtQ(material.budgetedValue || 0)}</p>
-                                    <p className="text-[6px] font-bold text-(--color-neutral-400) uppercase">presupuesto</p>
+                                    <p className="text-[8px] font-black text-neutral-600">{fmtQ(material.budgetedValue || 0)}</p>
+                                    <p className="text-[6px] font-bold text-neutral-400 uppercase">presupuesto</p>
                                   </div>
                                 </div>
                               ))}
                               {projectMaterials.length > 5 && (
-                                <p className="text-[7px] font-bold text-(--color-neutral-400) uppercase text-center pt-1">
+                                <p className="text-[7px] font-bold text-neutral-400 uppercase text-center pt-1">
                                   +{projectMaterials.length - 5} materiales más
                                 </p>
                               )}
@@ -1108,21 +1108,21 @@ return (
                           ) : (
                             <div className="text-center py-6">
                               <Box size={24} className="mx-auto mb-2 text-slate-300" />
-                              <p className="text-[9px] font-bold text-(--color-neutral-400) uppercase italic mb-2">Sin materiales definidos en presupuesto</p>
-                              <p className="text-[7px] text-(--color-neutral-400)">Agrega renglones con materiales para ver el inventario requerido</p>
+                              <p className="text-[9px] font-bold text-neutral-400 uppercase italic mb-2">Sin materiales definidos en presupuesto</p>
+                              <p className="text-[7px] text-neutral-400">Agrega renglones con materiales para ver el inventario requerido</p>
                             </div>
                           )}
                           
-                          <div className="flex gap-2 pt-2 border-t border-(--color-neutral-100)">
+                          <div className="flex gap-2 pt-2 border-t border-neutral-100">
                             <button 
                               onClick={() => toast.info('Generar inventario', { description: 'Ve al módulo de Inventario y usa "Generar desde Presupuesto" para crear los materiales de este proyecto.' })}
-                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-(--color-success) text-(--color-neutral-50) rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-(--color-success) transition-all"
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-success text-neutral-50 rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-success transition-all"
                             >
                               <Building2 size={10}/> Generar Stock
                             </button>
                             <button 
                               onClick={() => toast.info('Crear orden de compra', { description: 'Ve al módulo de Inventario para crear órdenes de compra para este proyecto.' })}
-                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-(--color-info) text-(--color-neutral-50) rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-(--color-info) transition-all"
+                              className="flex-1 flex items-center justify-center gap-1 px-3 py-2 bg-info text-neutral-50 rounded-lg text-[7px] font-black uppercase tracking-widest hover:bg-info transition-all"
                             >
                               <ShoppingCart size={10}/> Nueva OC
                             </button>
@@ -1134,14 +1134,14 @@ return (
                 </div>
 
                 <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-(--color-neutral-900) uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ListFilter size={14} className="text-(--color-secondary)" /> Detalles del Presupuesto (Renglones)
+                  <h4 className="text-[10px] font-black text-neutral-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                    <ListFilter size={14} className="text-secondary" /> Detalles del Presupuesto (Renglones)
                   </h4>
                   <div className="space-y-3">
                     {/* Add new item form */}
                     {addingItem ? (
                       <div className="border border-(--color-green-border) bg-(--color-success-bg) rounded-2xl p-4 space-y-3">
-                        <p className="text-[9px] font-black text-(--color-success) uppercase tracking-widest">Nuevo Renglon</p>
+                        <p className="text-[9px] font-black text-success uppercase tracking-widest">Nuevo Renglon</p>
                         <div className="grid grid-cols-2 gap-3">
                           <FormGroup label="Código" value={newItemForm.code} onChange={e => setNewItemForm(p => ({...p, code: e.target.value}))} placeholder="Ej: 01.01" />
                           <FormGroup label="Unidad" value={newItemForm.unit} onChange={e => setNewItemForm(p => ({...p, unit: e.target.value}))} placeholder="M2, ML, U..." />
@@ -1152,8 +1152,8 @@ return (
                         {/* Materials sub-section */}
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[8px] font-black text-(--color-neutral-500) uppercase tracking-widest flex items-center gap-1"><Box size={10} className="text-(--color-secondary)" /> Materiales</span>
-                            <button onClick={() => setNewItemForm(p => ({...p, materials: [...p.materials, {name:'',unit:'U',quantity:1,price:0}]}))} className="text-[7px] font-black text-(--color-success) uppercase flex items-center gap-0.5"><PlusCircle size={10} /> Agregar</button>
+                            <span className="text-[8px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-1"><Box size={10} className="text-secondary" /> Materiales</span>
+                            <button onClick={() => setNewItemForm(p => ({...p, materials: [...p.materials, {name:'',unit:'U',quantity:1,price:0}]}))} className="text-[7px] font-black text-success uppercase flex items-center gap-0.5"><PlusCircle size={10} /> Agregar</button>
                           </div>
                           {newItemForm.materials.map((m, idx) => (
                             <div key={idx} className="grid grid-cols-5 gap-1 items-center">
@@ -1162,7 +1162,7 @@ return (
                               <input type="number" min="0" step="0.01" value={m.quantity} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Cant" className="input" />
                               <div className="flex gap-0.5">
                                 <input type="number" min="0" step="0.01" value={m.price} onChange={e => { const ms=[...newItemForm.materials]; ms[idx]={...ms[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,materials:ms})); }} placeholder="Q/u" className="input flex-1" />
-                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} aria-label="Eliminar material" className="text-(--color-error) hover:text-(--color-error)"><Trash2 size={10} /></button>
+                                <button onClick={() => setNewItemForm(p=>({...p,materials:p.materials.filter((_,i)=>i!==idx)}))} aria-label="Eliminar material" className="text-error hover:text-error"><Trash2 size={10} /></button>
                               </div>
                             </div>
                           ))}
@@ -1171,8 +1171,8 @@ return (
                         {/* Labor sub-section */}
                         <div className="space-y-1.5">
                           <div className="flex items-center justify-between">
-                            <span className="text-[8px] font-black text-(--color-neutral-500) uppercase tracking-widest flex items-center gap-1"><Hammer size={10} className="text-(--color-secondary)" /> Mano de Obra</span>
-                            <button onClick={() => setNewItemForm(p => ({...p, labor: [...p.labor, {role:'',unit:'dia',quantity:1,price:0}]}))} className="text-[7px] font-black text-(--color-success) uppercase flex items-center gap-0.5"><PlusCircle size={10} /> Agregar</button>
+                            <span className="text-[8px] font-black text-neutral-500 uppercase tracking-widest flex items-center gap-1"><Hammer size={10} className="text-secondary" /> Mano de Obra</span>
+                            <button onClick={() => setNewItemForm(p => ({...p, labor: [...p.labor, {role:'',unit:'dia',quantity:1,price:0}]}))} className="text-[7px] font-black text-success uppercase flex items-center gap-0.5"><PlusCircle size={10} /> Agregar</button>
                           </div>
                           {newItemForm.labor.map((l, idx) => (
                             <div key={idx} className="grid grid-cols-5 gap-1 items-center">
@@ -1181,7 +1181,7 @@ return (
                               <input type="number" min="0" step="0.01" value={l.quantity} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],quantity:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Cant" className="input" />
                               <div className="flex gap-0.5">
                                 <input type="number" min="0" step="0.01" value={l.price} onChange={e => { const ls=[...newItemForm.labor]; ls[idx]={...ls[idx],price:parseFloat(e.target.value)||0}; setNewItemForm(p=>({...p,labor:ls})); }} placeholder="Q/u" className="input flex-1" />
-                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} aria-label="Eliminar mano de obra" className="text-(--color-error) hover:text-(--color-error)"><Trash2 size={10} /></button>
+                                <button onClick={() => setNewItemForm(p=>({...p,labor:p.labor.filter((_,i)=>i!==idx)}))} aria-label="Eliminar mano de obra" className="text-error hover:text-error"><Trash2 size={10} /></button>
                               </div>
                             </div>
                           ))}
@@ -1190,8 +1190,8 @@ return (
                         {/* Preview cost */}
                         {(newItemForm.materials.length > 0 || newItemForm.labor.length > 0) && (
                           <div className="bg-(--color-surface-solid) border border-(--color-green-border) rounded-xl px-3 py-2 flex justify-between items-center">
-                            <span className="text-[8px] font-black text-(--color-neutral-400) uppercase">Costo estimado renglon</span>
-                            <span className="text-[10px] font-black text-(--color-success)">
+                            <span className="text-[8px] font-black text-neutral-400 uppercase">Costo estimado renglon</span>
+                            <span className="text-[10px] font-black text-success">
 Q {PMath.fmtQ(
                                  PMath.add(
                                    newItemForm.materials.reduce((a,m) => PMath.add(a, PMath.mul(PMath.mul(m.price, m.quantity), newItemForm.projectQuantity)), 0),
@@ -1214,16 +1214,16 @@ Q {PMath.fmtQ(
                     )}
                     {selectedProject.items && selectedProject.items.length > 0 ? (
                       selectedProject.items.map((item) => (
-                        <div key={item.id} className="border border-(--color-neutral-100) rounded-2xl overflow-hidden bg-(--color-surface-solid) shadow-sm">
+                        <div key={item.id} className="border border-neutral-100 rounded-2xl overflow-hidden bg-(--color-surface-solid) shadow-sm">
                           {/* Item header */}
-                          <div className="flex items-center justify-between p-3 hover:bg-(--color-neutral-50) transition-colors">
+                          <div className="flex items-center justify-between p-3 hover:bg-neutral-50 transition-colors">
                             <button onClick={() => toggleItemExpansion(item.id)} className="flex items-center gap-3 min-w-0 flex-1 text-left">
-                              <div className="w-7 h-7 rounded-lg bg-(--color-neutral-100) flex items-center justify-center text-[8px] font-black text-(--color-neutral-500) shrink-0">{item.code}</div>
+                              <div className="w-7 h-7 rounded-lg bg-neutral-100 flex items-center justify-center text-[8px] font-black text-neutral-500 shrink-0">{item.code}</div>
                               <div className="min-w-0">
-                                <p className="text-[10px] font-black text-(--color-primary) uppercase line-clamp-1">{item.description}</p>
-                                <span className="text-[8px] font-bold text-(--color-neutral-400) uppercase">{item.projectQuantity} {item.unit}</span>
+                                <p className="text-[10px] font-black text-primary uppercase line-clamp-1">{item.description}</p>
+                                <span className="text-[8px] font-bold text-neutral-400 uppercase">{item.projectQuantity} {item.unit}</span>
                               </div>
-                              {expandedItems.includes(item.id) ? <ChevronUp size={14} className="text-(--color-neutral-400) shrink-0" /> : <ChevronDown size={14} className="text-(--color-neutral-400) shrink-0" />}
+                              {expandedItems.includes(item.id) ? <ChevronUp size={14} className="text-neutral-400 shrink-0" /> : <ChevronDown size={14} className="text-neutral-400 shrink-0" />}
                             </button>
                             <div className="flex gap-1 shrink-0 ml-2">
                               <button aria-label="Editar renglón" onClick={() => { setEditingItem(item.id); setItemEditForm({ code: item.code, description: item.description, projectQuantity: item.projectQuantity, unit: item.unit }); }} className="btn-edit"><Pencil size={12} /></button>
@@ -1233,8 +1233,8 @@ Q {PMath.fmtQ(
 
                           {/* Inline edit form for item header */}
                           {editingItem === item.id && (
-                            <div className="px-4 pb-3 bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] border-t border-(--color-blue-border) space-y-2">
-                              <p className="text-[8px] font-black text-(--color-info) uppercase tracking-widest pt-2">Editar Renglon</p>
+                            <div className="px-4 pb-3 bg-[color-mix(in_srgb,varinfo_10%,transparent)] border-t border-(--color-blue-border) space-y-2">
+                              <p className="text-[8px] font-black text-info uppercase tracking-widest pt-2">Editar Renglon</p>
                               <div className="grid grid-cols-2 gap-2">
                                 <input value={itemEditForm.code || ''} onChange={e => setItemEditForm({...itemEditForm, code: e.target.value})} placeholder="Codigo" className="input" />
                                 <input type="number" value={itemEditForm.projectQuantity || 0} onChange={e => setItemEditForm({...itemEditForm, projectQuantity: parseFloat(e.target.value)||0})} placeholder="Cantidad" className="input" />
@@ -1249,14 +1249,14 @@ Q {PMath.fmtQ(
 
                           <AnimatePresence>
                             {expandedItems.includes(item.id) && (
-                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-slate-50 bg-(--color-neutral-50)/50">
+                              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-t border-slate-50 bg-neutral-50/50">
                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-6">
 
                                   {/* Materials */}
                                   <div className="space-y-2">
-                                    <div className="flex items-center justify-between border-b border-(--color-neutral-100) pb-1">
-                                      <div className="flex items-center gap-2"><Box size={12} className="text-(--color-secondary)" /><span className="text-[9px] font-black uppercase tracking-widest">Materiales</span></div>
-                                      <button onClick={() => addMaterial(item.id)} className="flex items-center gap-1 text-[7px] font-black text-(--color-success) hover:text-(--color-success) uppercase"><PlusCircle size={11} /> Agregar</button>
+                                    <div className="flex items-center justify-between border-b border-neutral-100 pb-1">
+                                      <div className="flex items-center gap-2"><Box size={12} className="text-secondary" /><span className="text-[9px] font-black uppercase tracking-widest">Materiales</span></div>
+                                      <button onClick={() => addMaterial(item.id)} className="flex items-center gap-1 text-[7px] font-black text-success hover:text-success uppercase"><PlusCircle size={11} /> Agregar</button>
                                     </div>
                                     <div className="space-y-1.5">
                                       {(item.materials || []).map((m: any, idx: number) => (
@@ -1273,15 +1273,15 @@ Q {PMath.fmtQ(
                                           onDelete={() => deleteMaterial(item.id, idx)}
                                         />
                                       ))}
-                                      {(!item.materials || item.materials.length === 0) && <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase italic pl-2 opacity-50">Sin materiales</p>}
+                                      {(!item.materials || item.materials.length === 0) && <p className="text-[8px] font-bold text-neutral-400 uppercase italic pl-2 opacity-50">Sin materiales</p>}
                                     </div>
                                   </div>
 
                                   {/* Labor */}
                                   <div className="space-y-2">
-                                    <div className="flex items-center justify-between border-b border-(--color-neutral-100) pb-1">
-                                      <div className="flex items-center gap-2"><Hammer size={12} className="text-(--color-secondary)" /><span className="text-[9px] font-black uppercase tracking-widest">Mano de Obra</span></div>
-                                      <button onClick={() => addLabor(item.id)} className="flex items-center gap-1 text-[7px] font-black text-(--color-success) hover:text-(--color-success) uppercase"><PlusCircle size={11} /> Agregar</button>
+                                    <div className="flex items-center justify-between border-b border-neutral-100 pb-1">
+                                      <div className="flex items-center gap-2"><Hammer size={12} className="text-secondary" /><span className="text-[9px] font-black uppercase tracking-widest">Mano de Obra</span></div>
+                                      <button onClick={() => addLabor(item.id)} className="flex items-center gap-1 text-[7px] font-black text-success hover:text-success uppercase"><PlusCircle size={11} /> Agregar</button>
                                     </div>
                                     <div className="space-y-1.5">
                                       {(item.labor || []).map((l: any, idx: number) => (
@@ -1298,7 +1298,7 @@ Q {PMath.fmtQ(
                                           onDelete={() => deleteLabor(item.id, idx)}
                                         />
                                       ))}
-                                      {(!item.labor || item.labor.length === 0) && <p className="text-[8px] font-bold text-(--color-neutral-400) uppercase italic pl-2 opacity-50">Sin mano de obra</p>}
+                                      {(!item.labor || item.labor.length === 0) && <p className="text-[8px] font-bold text-neutral-400 uppercase italic pl-2 opacity-50">Sin mano de obra</p>}
                                     </div>
                                   </div>
 
@@ -1309,8 +1309,8 @@ Q {PMath.fmtQ(
                         </div>
                       ))
                     ) : (
-                      <div className="text-center py-6 bg-(--color-neutral-50) border border-dashed border-(--color-neutral-200) rounded-3xl opacity-50">
-                        <p className="text-[9px] font-bold text-(--color-neutral-400) uppercase italic tracking-widest">Sin renglones definidos</p>
+                      <div className="text-center py-6 bg-neutral-50 border border-dashed border-neutral-200 rounded-3xl opacity-50">
+                        <p className="text-[9px] font-bold text-neutral-400 uppercase italic tracking-widest">Sin renglones definidos</p>
                       </div>
                     )}
                   </div>
@@ -1318,30 +1318,30 @@ Q {PMath.fmtQ(
               </div>
 
               <div className="space-y-6">
-                <h4 className="text-[10px] font-black text-(--color-neutral-900) uppercase tracking-[0.2em] flex items-center gap-2">
-                  <TrendingUp size={14} className="text-(--color-secondary)" /> Estado y Avance
+                <h4 className="text-[10px] font-black text-neutral-900 uppercase tracking-[0.2em] flex items-center gap-2">
+                  <TrendingUp size={14} className="text-secondary" /> Estado y Avance
                 </h4>
-                <div className="bg-(--color-neutral-900) rounded-3xl p-6 text-(--color-neutral-50) shadow-xl shadow-[rgba(15,23,42,0.4)] overflow-hidden">
-                   <p className="text-[8px] font-black text-(--color-neutral-500) uppercase tracking-widest mb-1">Presupuesto Ejecutable</p>
-                    <p className="text-lg sm:text-xl font-black text-(--color-secondary) tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">{fmtQ(selectedProject.budget || 0)}</p>
+                <div className="bg-neutral-900 rounded-3xl p-6 text-neutral-50 shadow-xl shadow-[rgba(15,23,42,0.4)] overflow-hidden">
+                   <p className="text-[8px] font-black text-neutral-500 uppercase tracking-widest mb-1">Presupuesto Ejecutable</p>
+                    <p className="text-lg sm:text-xl font-black text-secondary tracking-tighter mb-4 italic overflow-hidden text-ellipsis whitespace-nowrap w-full block">{fmtQ(selectedProject.budget || 0)}</p>
                    
                    <div className="space-y-8">
                      <div>
-                       <div className="flex justify-between text-[8px] font-black uppercase tracking-widest mb-2 text-(--color-neutral-400)">
+                       <div className="flex justify-between text-[8px] font-black uppercase tracking-widest mb-2 text-neutral-400">
                          <span>Avance Físico Actual</span>
-                         <span className="text-(--color-secondary)">{selectedProject.progress || 0}%</span>
+                         <span className="text-secondary">{selectedProject.progress || 0}%</span>
                        </div>
-                       <div className="h-2 bg-(--color-neutral-800) rounded-full overflow-hidden w-full mb-6 relative">
+                       <div className="h-2 bg-neutral-800 rounded-full overflow-hidden w-full mb-6 relative">
                          <motion.div 
                            initial={{ width: 0 }}
                            animate={{ width: `${selectedProject.progress || 0}%` }}
-                           className="h-full bg-(--color-secondary) rounded-full relative z-10" 
+                           className="h-full bg-secondary rounded-full relative z-10" 
                          />
-                          <div className="absolute inset-0 bg-(--color-secondary)/10 animate-pulse w-(--pw)" style={{ '--pw': `${selectedProject.progress || 0}%` } as React.CSSProperties} />
+                          <div className="absolute inset-0 bg-secondary/10 animate-pulse w-(--pw)" style={{ '--pw': `${selectedProject.progress || 0}%` } as React.CSSProperties} />
                        </div>
                        
                        <div className="space-y-3">
-                         <label className="text-[8px] font-black text-(--color-neutral-500) uppercase tracking-widest">Ajustar Nivel de Avance</label>
+                         <label className="text-[8px] font-black text-neutral-500 uppercase tracking-widest">Ajustar Nivel de Avance</label>
                           <input 
                             type="range"
                             min="0"
@@ -1351,9 +1351,9 @@ Q {PMath.fmtQ(
                             disabled={updatingProgress}
                             onChange={(e) => handleUpdateProgress(selectedProject.id, parseInt(e.target.value))}
                             title="Ajustar nivel de avance"
-                            className="w-full h-2 bg-(--color-neutral-800) rounded-lg appearance-none cursor-pointer accent-secondary"
+                            className="w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-secondary"
                           />
-                         <div className="flex justify-between text-[7px] font-bold text-(--color-neutral-600) uppercase">
+                         <div className="flex justify-between text-[7px] font-bold text-neutral-600 uppercase">
                            <span>Inicio</span>
                            <span>Completado</span>
                          </div>
@@ -1362,16 +1362,16 @@ Q {PMath.fmtQ(
 
                      <div className="pt-6 border-t border-slate-800 space-y-4">
                        <div className="flex justify-between items-center">
-                         <span className="text-[8px] font-black text-(--color-neutral-500) uppercase">Prioridad</span>
-                         <span className="px-2 py-0.5 bg-(--color-error)/10 text-(--color-error) rounded text-[7px] font-black">ALTA</span>
+                         <span className="text-[8px] font-black text-neutral-500 uppercase">Prioridad</span>
+                         <span className="px-2 py-0.5 bg-error/10 text-error rounded text-[7px] font-black">ALTA</span>
                        </div>
                        <div className="flex justify-between items-center">
-                         <span className="text-[8px] font-black text-(--color-neutral-500) uppercase">Tipo Cobro</span>
+                         <span className="text-[8px] font-black text-neutral-500 uppercase">Tipo Cobro</span>
                          <span className="text-[9px] font-black uppercase tracking-widest">Suma Alzada</span>
                        </div>
                        <div className="flex justify-between items-center">
-                         <span className="text-[8px] font-black text-(--color-neutral-500) uppercase">Duración Real</span>
-                         <span className="text-[9px] font-black text-(--color-secondary) uppercase tracking-widest text-right max-w-[55%] truncate">
+                         <span className="text-[8px] font-black text-neutral-500 uppercase">Duración Real</span>
+                         <span className="text-[9px] font-black text-secondary uppercase tracking-widest text-right max-w-[55%] truncate">
                            {(() => {
                              const days = (selectedProject.items || []).reduce((acc, item) => {
                                const { duration } = calcRealDuration(item);
@@ -1401,10 +1401,10 @@ Q {PMath.fmtQ(
       </Modal>
 
       {bulkMode && selectedProjectIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-(--color-error) text-(--color-neutral-50) px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-error text-neutral-50 px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedProjectIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteProjects}
-            className="px-4 py-1.5 bg-(--color-surface-solid) text-(--color-error) rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-(--color-error-bg) transition-all">
+            className="px-4 py-1.5 bg-(--color-surface-solid) text-error rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-(--color-error-bg) transition-all">
             Eliminar
           </button>
           <button type="button" onClick={() => setSelectedProjectIds(new Set())} aria-label="Cancelar selección"

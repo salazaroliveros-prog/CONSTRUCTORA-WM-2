@@ -183,7 +183,7 @@ export function useProjectData(projectId: string) {
 }
 
 // ─── Acciones del store ───────────────────────────────────────────────────────
-export async function addDocument(collection: CollectionName, data: any): Promise<string> {
+export async function addDocument(collection: CollectionName, data: any): Promise<string | null> {
   const id = await _addDoc(collection, data);
   return id;
 }

@@ -101,7 +101,7 @@ export default function GradientHeader({
       {/* Animated gradient background */}
       <div 
         className={cn(
-          'absolute inset-0 bg-gradient-to-r',
+          'absolute inset-0 bg-linear-to-r',
           config.gradient,
           isAnimated && 'animate-gradient bg-length-200'
         )}
@@ -113,7 +113,7 @@ export default function GradientHeader({
       {/* Accent overlay */}
       <div 
         className={cn(
-          'absolute inset-0 bg-gradient-to-tr',
+          'absolute inset-0 bg-linear-to-tr',
           config.accent
         )}
       />

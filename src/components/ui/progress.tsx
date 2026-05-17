@@ -14,7 +14,7 @@ interface ProgressBarProps {
 export function ProgressBar({
   value,
   max = 100,
-  color = "var(--color-secondary)",
+  color = "varsecondary",
   size = "md",
   showLabel = false,
   animated = true,
@@ -32,17 +32,17 @@ export function ProgressBar({
     <div className={className}>
       {showLabel && (
         <div className="flex justify-between items-center mb-1">
-          <span className="text-[9px] font-bold text-(--color-neutral-400) uppercase tracking-wider">
+          <span className="text-[9px] font-bold text-neutral-400 uppercase tracking-wider">
             Progreso
           </span>
-          <span className="text-[9px] font-black text-(--color-neutral-600)">
+          <span className="text-[9px] font-black text-neutral-600">
             {Math.round(percentage)}%
           </span>
         </div>
       )}
       <div
         className={cn(
-          "bg-(--color-neutral-200) rounded-full overflow-hidden",
+          "bg-neutral-200 rounded-full overflow-hidden",
           sizeClasses[size]
         )}
       >

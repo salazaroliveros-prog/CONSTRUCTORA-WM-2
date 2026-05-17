@@ -226,7 +226,7 @@ export default function ClientsModule() {
                 {bulkMode && (
                   <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedClientIds.has(c.id)} onChange={() => toggleSelectClient(c.id)} aria-label="Seleccionar cliente"
-                      className="w-4 h-4 accent-(--color-error) cursor-pointer" />
+                      className="w-4 h-4 accent-error cursor-pointer" />
                   </div>
                 )}
                 <div className={cn("flex items-center gap-3", bulkMode && "ml-7")}>

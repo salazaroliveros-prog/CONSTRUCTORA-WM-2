@@ -86,7 +86,7 @@ export default function TopBarClock() {
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
             className="absolute right-0 mt-4 w-85 max-w-[calc(100vw-2rem)] bg-[#0e121d] border border-white/10 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-50 ring-1 ring-white/10 transform-origin-top-right backdrop-blur-xl"
           >
-            <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0e121d] text-white p-6 pb-7 border-b border-white/5">
+            <div className="bg-linear-to-br from-[#1a1f2e] to-[#0e121d] text-white p-6 pb-7 border-b border-white/5">
               <div className="flex justify-between items-center mb-5">
                 <h3 className="text-[11px] font-black uppercase tracking-[0.3em] flex items-center gap-2.5 text-amber-500">
                   <CalendarDays size={18} /> Calendario

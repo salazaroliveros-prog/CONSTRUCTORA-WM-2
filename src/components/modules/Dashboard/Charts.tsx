@@ -113,7 +113,7 @@ export function GaugeChart({
   value,
   max = 100,
   label,
-  color = "var(--color-secondary)",
+  color = "varsecondary",
 }: GaugeChartProps) {
   const percentage = Math.min((value / max) * 100, 100);
   const r = 60;
@@ -125,9 +125,9 @@ export function GaugeChart({
       <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-25">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--color-error)" />
-            <stop offset="50%" stopColor="var(--color-secondary)" />
-            <stop offset="100%" stopColor="var(--color-success)" />
+            <stop offset="0%" stopColor="varerror" />
+            <stop offset="50%" stopColor="varsecondary" />
+            <stop offset="100%" stopColor="varsuccess" />
           </linearGradient>
         </defs>
         <path
@@ -178,7 +178,7 @@ export function AnimatedProgress({
   value,
   max = 100,
   className,
-  color = "var(--color-secondary)",
+  color = "varsecondary",
   showLabel = false,
   size = "md",
 }: AnimatedProgressProps) {

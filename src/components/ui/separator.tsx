@@ -14,7 +14,7 @@ export function Separator({
     <div
       className={cn(
         "my-4 h-px bg-border",
-        gradient && "bg-gradient-to-r from-transparent via-border to-transparent",
+        gradient && "bg-linear-to-r from-transparent via-border to-transparent",
         className
       )}
       {...props}

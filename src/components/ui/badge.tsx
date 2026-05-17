@@ -14,12 +14,12 @@ export function Badge({
   ...props
 }: BadgeProps) {
   const variants = {
-    success: "bg-[color-mix(in_srgb,var(--color-success)_10%,transparent)] text-(--color-success) border border-[color-mix(in_srgb,var(--color-success)_25%,transparent)]",
-    warning: "bg-[color-mix(in_srgb,var(--color-warning)_10%,transparent)] text-(--color-warning) border border-[color-mix(in_srgb,var(--color-warning)_25%,transparent)]",
-    error: "bg-[color-mix(in_srgb,var(--color-error)_10%,transparent)] text-(--color-error) border border-[color-mix(in_srgb,var(--color-error)_25%,transparent)]",
-    info: "bg-[color-mix(in_srgb,var(--color-info)_10%,transparent)] text-(--color-info) border border-[color-mix(in_srgb,var(--color-info)_25%,transparent)]",
-    secondary: "bg-[color-mix(in_srgb,var(--color-secondary)_10%,transparent)] text-(--color-secondary) border border-[color-mix(in_srgb,var(--color-secondary)_25%,transparent)]",
-    neutral: "bg-(--color-neutral-100) text-(--color-neutral-600) border border-(--color-neutral-200)",
+    success: "bg-[color-mix(in_srgb,varsuccess_10%,transparent)] text-success border border-[color-mix(in_srgb,varsuccess_25%,transparent)]",
+    warning: "bg-[color-mix(in_srgb,varwarning_10%,transparent)] text-warning border border-[color-mix(in_srgb,varwarning_25%,transparent)]",
+    error: "bg-[color-mix(in_srgb,varerror_10%,transparent)] text-error border border-[color-mix(in_srgb,varerror_25%,transparent)]",
+    info: "bg-[color-mix(in_srgb,varinfo_10%,transparent)] text-info border border-[color-mix(in_srgb,varinfo_25%,transparent)]",
+    secondary: "bg-[color-mix(in_srgb,varsecondary_10%,transparent)] text-secondary border border-[color-mix(in_srgb,varsecondary_25%,transparent)]",
+    neutral: "bg-neutral-100 text-neutral-600 border border-neutral-200",
   };
 
   const sizes = {

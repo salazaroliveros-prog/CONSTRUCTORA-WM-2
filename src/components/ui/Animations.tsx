@@ -268,7 +268,7 @@ export function GradientBackground({
       {/* Gradient layer */}
       <div 
         className={cn(
-          'absolute inset-0 bg-gradient-to-r',
+          'absolute inset-0 bg-linear-to-r',
           gradientStyles[variant],
           animated && 'animate-gradient bg-[length:200%_200%]'
         )}

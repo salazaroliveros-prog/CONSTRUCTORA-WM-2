@@ -18,14 +18,14 @@ import { Button } from './ui/button';
 
 function pct(n: number) { return Math.min(100, Math.max(0, Math.round(n))); }
 
-const COLORS = ['var(--color-warning)', 'var(--color-info)', 'var(--color-success)', 'var(--color-error)', '#8b5cf6', '#06b6d4'];
+const COLORS = ['varwarning', 'varinfo', 'varsuccess', 'varerror', '#8b5cf6', '#06b6d4'];
 
 function RingChart({ value, color, label, size = 80 }: { value: number; color: string; label: string; size?: number }) {
   const r = (size / 2) - 8;
   const circ = 2 * Math.PI * r;
   const pct = Math.min(value, 100);
   const dash = (pct / 100) * circ;
-  const trackColor = 'var(--color-neutral-200)';
+  const trackColor = 'varneutral-200';
   const isOver = value > 100;
   return (
     <div className="flex flex-col items-center gap-1">
@@ -201,17 +201,17 @@ export default function Seguimiento() {
               </div>
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
                 <div className="bg-(--color-warning-bg) rounded-xl p-2 text-center">
-                  <p className="text-[7px] font-black text-(--color-warning) uppercase tracking-widest">Presupuesto</p>
+                  <p className="text-[7px] font-black text-warning uppercase tracking-widest">Presupuesto</p>
                    <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.budget || 0)}</p>
                 </div>
                 <div className="bg-(--color-info-bg) rounded-xl p-2 text-center">
-                  <p className="text-[7px] font-black text-(--color-info) uppercase tracking-widest">Ejecutado</p>
+                  <p className="text-[7px] font-black text-info uppercase tracking-widest">Ejecutado</p>
                    <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
               <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
                 (displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0)
-                  ? "bg-(--color-success-bg) text-(--color-success)" : "bg-red-50 text-(--color-error)"
+                  ? "bg-(--color-success-bg) text-success" : "bg-red-50 text-error"
               )}>
                 {(displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0) ? '▲ En control' : '▼ Desfase financiero'}
               </div>
@@ -226,17 +226,17 @@ export default function Seguimiento() {
                   </div>
                   <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Aportado</p>
-                    <p className="text-[10px] font-black text-(--color-success)">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
+                    <p className="text-[10px] font-black text-success">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
                   </div>
                   <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Ejecutado</p>
-                    <p className="text-[10px] font-black text-(--color-info)">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
+                    <p className="text-[10px] font-black text-info">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                   </div>
                   <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Pendiente de Aportar</p>
                     <p className={cn("text-[10px] font-black",
                       ((displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)) > 0
-                        ? "text-(--color-warning)" : "text-(--color-success)"
+                        ? "text-warning" : "text-success"
                     )}>
                       {fmtQ(Math.max(0, (displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)))}
                     </p>
@@ -257,7 +257,7 @@ export default function Seguimiento() {
                     <p className="text-[9px] font-black text-slate-700  uppercase truncate">{p.name}</p>
                     <p className="text-[8px] text-slate-400 font-bold">{p.clientName || 'S/N'}</p>
                     <div className={cn("mt-1 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full inline-block",
-                      p.fisico >= p.financiero ? "bg-(--color-success-bg) text-(--color-success)" : "bg-red-50 text-(--color-error)"
+                      p.fisico >= p.financiero ? "bg-(--color-success-bg) text-success" : "bg-red-50 text-error"
                     )}>
                       {p.fisico >= p.financiero ? '▲ En control' : '▼ Desfase'}
                     </div>
@@ -273,7 +273,7 @@ export default function Seguimiento() {
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Comparativa Físico vs Financiero</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={barData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="varneutral-200" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} domain={[0, 100]} unit="%" />
               <Tooltip formatter={(v: any) => `${v}%`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
@@ -289,7 +289,7 @@ export default function Seguimiento() {
           <p className="text-[9px] font-black text-slate-400  uppercase tracking-widest mb-2">Desviación (Físico − Financiero)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={desvData} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="varneutral-200" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} unit="%" />
               <Tooltip formatter={(v: any) => `${v}%`} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
@@ -305,7 +305,7 @@ export default function Seguimiento() {
           <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Presupuesto vs Costos (Q)</p>
           <ResponsiveContainer width="100%" height={150}>
             <BarChart data={areaData} margin={{ top: 4, right: 8, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-neutral-200)" />
+              <CartesianGrid strokeDasharray="3 3" stroke="varneutral-200" />
               <XAxis dataKey="name" tick={{ fontSize: 8, fontWeight: 700 }} />
               <YAxis tick={{ fontSize: 8 }} tickFormatter={v => `Q ${(v/1000).toFixed(0)}k`} />
               <Tooltip formatter={(v: any) => fmtQ(v as number)} contentStyle={{ fontSize: 10, borderRadius: 8 }} />
@@ -394,8 +394,8 @@ export default function Seguimiento() {
                                 <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5">
                                   <span className="font-bold text-slate-700 truncate col-span-2">{m.name}</span>
                                   <span className="text-slate-500 text-center">P: {m.budgeted} {m.unit}</span>
-                                  <span className="text-(--color-info) text-center">B: {m.stock}</span>
-                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-(--color-success)' : 'text-(--color-warning)')}>
+                                  <span className="text-info text-center">B: {m.stock}</span>
+                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-success' : 'text-warning')}>
                                     U: {m.used} ({pct}%)
                                   </span>
                                 </div>
@@ -504,7 +504,7 @@ export default function Seguimiento() {
         <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Análisis de Ruta Crítica</p>
-            <AlertTriangle size={16} className="text-(--color-accent)" />
+            <AlertTriangle size={16} className="text-accent" />
           </div>
 
           <div className="space-y-3">

@@ -7,7 +7,6 @@ import React, { useMemo } from 'react';
 import { Search, Plus, Package } from 'lucide-react';
 import { usePagination } from '../../hooks/usePagination';
 import { DEFAULT_WORK_ITEMS, WorkItem } from '../../constants';
-import { BudgetItem } from '../../types/budget';
 import { cn } from '../../utils/cn';
 import { toast } from 'sonner';
 
@@ -15,7 +14,7 @@ interface ProjectItemsListProps {
   selectedTypology: string;
   searchTerm: string;
   onSearchChange: (term: string) => void;
-  onAddItem: (item: Omit<BudgetItem, 'projectQuantity' | 'selected'>) => boolean;
+  onAddItem: (item: WorkItem) => boolean;
 }
 
 export function ProjectItemsList({

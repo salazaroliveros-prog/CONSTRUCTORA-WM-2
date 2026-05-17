@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { ShoppingCart, FileDown, Send, Plus, X } from 'lucide-react';
+import type { Material } from '../../models';
 import { toast } from 'sonner';
 import { addDocument, parseError } from '../../services/firestoreService';
 import { fmtQ } from '../../utils/format';
@@ -65,7 +66,7 @@ export function PurchaseOrderPanel({
       const ocItems = items
         .filter(item => selectedItems.has(item.id))
         .flatMap(item =>
-          (item.materials || []).map(mat => ({
+          (item.materials || []).map((mat: Material) => ({
             materialName: mat.name,
             unit: mat.unit,
             qty: mat.quantity * item.projectQuantity,
