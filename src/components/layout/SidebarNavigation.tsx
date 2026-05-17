@@ -17,7 +17,7 @@ interface NavItem {
 
 const MENU_CONFIG: NavItem[] = [
   { id: "dashboard", label: "Inicio", icon: Home },
-  { id: "projects", label: "Proyectos", icon: Building2, children: [
+  { id: "projects", label: "Proyectos y Presupuestos", icon: Building2, children: [
     { id: "execution", label: "Bitácora", icon: ClipboardList },
     { id: "gantt", label: "Gantt", icon: Calendar },
     { id: "pert", label: "PERT", icon: BarChart3 }
@@ -26,7 +26,7 @@ const MENU_CONFIG: NavItem[] = [
   { id: "inventory", label: "Stock", icon: Package },
   { id: "staff", label: "Personal", icon: HardHat },
   { id: "analytics", label: "Analíticas", icon: BarChart3 },
-  { id: "ai", label: "Calculadora", icon: Sparkles },
+  { id: "ai", label: "Asistente IA", icon: Sparkles },
   { id: "settings", label: "Ajustes", icon: Settings },
 ];
 
