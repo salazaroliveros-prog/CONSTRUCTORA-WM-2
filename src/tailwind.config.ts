@@ -1,3 +1,4 @@
+// @ts-nocheck — Legacy Tailwind v3 config; not consumed by Vite build (Tailwind v4 uses @import "tailwindcss" in CSS)
 module.exports = {
   purge: [
     './index.html',

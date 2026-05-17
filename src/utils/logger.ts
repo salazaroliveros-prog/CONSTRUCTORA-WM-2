@@ -80,7 +80,7 @@ class AnalyticsBuffer {
       this.flushCallback(batch);
     } else {
       // Default: log to console in development
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.groupCollapsed(`📊 Analytics (${batch.length} events)`);
         batch.forEach(e => console.log(`[${e.category}] ${e.action}`, e.metadata || ''));
         console.groupEnd();
@@ -190,7 +190,7 @@ export function log(
 
   switch (level) {
     case 'debug':
-      if (process.env.NODE_ENV === 'development') {
+      if (import.meta.env.DEV) {
         console.debug(`[DEBUG] ${timestamp} - ${message}`, contextStr);
       }
       break;

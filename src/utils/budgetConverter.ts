@@ -149,27 +149,27 @@ export function itemsToBudgetTree(items: BudgetItem[]): BudgetLine[] {
 export function budgetTreeToItems(tree: BudgetLine[]): BudgetItem[] {
   return tree.map(line => {
     const children = line.children || [];
-    const materialChildren = children.filter(child => child.materialCost > 0 && child.laborCost === 0);
-    const laborChildren = children.filter(child => child.laborCost > 0 && child.materialCost === 0);
+    const materialChildren = children.filter(child => (child.materialCost ?? 0) > 0 && (child.laborCost ?? 0) === 0);
+    const laborChildren = children.filter(child => (child.laborCost ?? 0) > 0 && (child.materialCost ?? 0) === 0);
 
     const baseQty = line.qty || 1;
 
     const materials = materialChildren.map(child => ({
       name: child.description,
       unit: child.unit,
-      quantity: child.qty / baseQty,
-      price: child.materialCost,
+      quantity: (child.qty ?? 0) / baseQty,
+      price: child.materialCost ?? 0,
     }));
 
     const labor = laborChildren.map(child => ({
       role: child.description,
       unit: child.unit,
-      quantity: child.qty / baseQty,
-      price: child.laborCost,
+      quantity: (child.qty ?? 0) / baseQty,
+      price: child.laborCost ?? 0,
     }));
 
     return {
-      id: line.id,
+      id: line.id || '',
       code: line.code,
       description: line.description,
       unit: line.unit,

@@ -290,7 +290,7 @@ function calcLine(
   const steelInfo = isSteel && qty > 0 ? calcSteelReinforcement(line, qty) : undefined;
 
   return {
-    id: line.id,
+    id: line.id || '',
     code: line.code || '',
     description: line.description || '',
     unit,
@@ -527,6 +527,7 @@ export function checkDeviations(
 
   function walk(nodeLines: BudgetLineDocument[]): void {
     for (const node of nodeLines) {
+      if (!node.id) continue;
       const actual = actualCosts[node.id];
       if (actual !== undefined && actual > 0) {
         const result = calcLine(node, undefined);
@@ -534,7 +535,7 @@ export function checkDeviations(
 
         if (Math.abs(dev) >= threshold) {
           alerts.push({
-            id: node.id,
+            id: node.id || '',
             code: node.code || '',
             description: node.description || '',
             budgeted: result.totalLine,
