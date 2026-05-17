@@ -18,7 +18,7 @@ export function TopBar({ onNavigate, activeTab }: TopBarProps) {
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   return (
-    <header className="fixed top-0 left-0 right-0 h-20 z-[100] nav-glass px-6 flex items-center justify-between border-b border-white/5">
+    <header className="fixed top-0 left-0 right-0 h-20 z-100 nav-glass px-6 flex items-center justify-between border-b border-white/5">
       {/* Left: Avatar & Welcome */}
       <div className="flex items-center gap-4 w-1/4">
         {activeTab !== 'dashboard' && onNavigate && (
@@ -41,7 +41,7 @@ export function TopBar({ onNavigate, activeTab }: TopBarProps) {
         </div>
         <div className="hidden lg:flex flex-col leading-tight">
           <span className="text-[9px] font-black text-amber-500 uppercase tracking-[0.2em] opacity-80">Bienvenido</span>
-          <span className="text-sm font-black text-white truncate max-w-[120px] tracking-tight">{user?.displayName}</span>
+          <span className="text-sm font-black text-white truncate max-w-30 tracking-tight">{user?.displayName}</span>
         </div>
       </div>
 
@@ -62,7 +62,7 @@ export function TopBar({ onNavigate, activeTab }: TopBarProps) {
           <select
             value={selectedProjectId}
             onChange={(e) => setSelectedProjectId(e.target.value)}
-            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 pl-9 text-[10px] font-black text-white uppercase focus:outline-none focus:ring-1 focus:ring-amber-500/50 min-w-[220px] appearance-none cursor-pointer hover:bg-white/10 transition-all"
+            className="bg-white/5 border border-white/10 rounded-xl px-4 py-2 pl-9 text-[10px] font-black text-white uppercase focus:outline-none focus:ring-1 focus:ring-amber-500/50 min-w-55 appearance-none cursor-pointer hover:bg-white/10 transition-all"
             title="Seleccionar proyecto"
           >
             <option value="ALL">TODOS LOS PROYECTOS</option>
@@ -97,7 +97,7 @@ export function TopBar({ onNavigate, activeTab }: TopBarProps) {
                   initial={{ opacity: 0, y: 10, scale: 0.95 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute right-0 top-14 w-80 bg-[#0e121d] border border-white/10 rounded-3xl shadow-2xl z-[120] overflow-hidden backdrop-blur-xl ring-1 ring-white/10"
+                  className="absolute right-0 top-14 w-80 bg-[#0e121d] border border-white/10 rounded-3xl shadow-2xl z-120 overflow-hidden backdrop-blur-xl ring-1 ring-white/10"
                 >
                   <div className="p-5 border-b border-white/5 flex items-center justify-between">
                     <h3 className="text-xs font-black text-white uppercase tracking-widest">Notificaciones</h3>

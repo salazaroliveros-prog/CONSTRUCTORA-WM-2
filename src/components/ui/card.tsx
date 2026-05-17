@@ -10,9 +10,9 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant = "default", hoverable = false, asChild, ...props }, ref) => {
     const variants = {
-      default: "bg-[var(--color-surface)] border-[var(--color-border)] shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-card-hover)] hover:border-[var(--color-border-hover)]",
-      glass: "bg-glass backdrop-blur-xl border-[var(--glass-border)] shadow-glass",
-      gradient: "bg-gradient-to-br from-[var(--color-neutral-900)] via-[var(--color-neutral-800)] to-[var(--color-neutral-900)] border-[rgba(255,255,255,0.1)] shadow-xl",
+      default: "bg-(--color-surface) border-(--color-border) shadow-(--shadow-card) hover:shadow-(--shadow-card-hover) hover:border-(--color-border-hover)",
+      glass: "bg-glass backdrop-blur-xl border-(--glass-border) shadow-glass",
+      gradient: "bg-gradient-to-br from-(--color-neutral-900) via-(--color-neutral-800) to-(--color-neutral-900) border-[rgba(255,255,255,0.1)] shadow-xl",
       dark: "bg-surface-dark border-[rgba(255,255,255,0.05)] backdrop-blur-md shadow-2xl",
     };
 
@@ -54,7 +54,7 @@ CardTitle.displayName = "CardTitle";
 
 const CardDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<HTMLParagraphElement>>(
   ({ className, ...props }, ref) => (
-    <p ref={ref} className={cn("text-sm text-[var(--color-neutral-500)]", className)} {...props} />
+    <p ref={ref} className={cn("text-sm text-(--color-neutral-500)", className)} {...props} />
   )
 );
 CardDescription.displayName = "CardDescription";

@@ -61,7 +61,7 @@ export function Sheet({
   return (
     <>
       <motion.div
-        className="fixed inset-0 z-[200] bg-black/40 backdrop-blur-sm"
+        className="fixed inset-0 z-200 bg-black/40 backdrop-blur-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: isAnimating ? 1 : 0 }}
         exit={{ opacity: 0 }}
@@ -74,7 +74,7 @@ export function Sheet({
         {isOpen && (
           <motion.aside
             className={cn(
-              "fixed z-[201] bg-surface border border-border shadow-2xl rounded-tl-2xl rounded-bl-2xl flex flex-col",
+              "fixed z-201 bg-surface border border-border shadow-2xl rounded-tl-2xl rounded-bl-2xl flex flex-col",
               isHorizontal ? "h-full" : "w-full",
               sizeVariants[size],
               {
@@ -96,12 +96,12 @@ export function Sheet({
               <div className="flex items-center justify-between p-5 border-b border-border shrink-0">
                 <div>
                   {title && (
-                    <h3 className="text-base font-black text-[var(--color-neutral-900)] uppercase tracking-tight">
+                    <h3 className="text-base font-black text-(--color-neutral-900) uppercase tracking-tight">
                       {title}
                     </h3>
                   )}
                   {description && (
-                    <p className="text-[10px] font-medium text-[var(--color-neutral-500)] mt-0.5">
+                    <p className="text-[10px] font-medium text-(--color-neutral-500) mt-0.5">
                       {description}
                     </p>
                   )}
@@ -109,7 +109,7 @@ export function Sheet({
                 {showCloseButton && (
                   <button
                     onClick={onClose}
-                    className="p-2 text-[var(--color-neutral-400)] hover:text-[var(--color-neutral-600)] hover:bg-[var(--color-neutral-100)] rounded-xl transition-colors"
+                    className="p-2 text-(--color-neutral-400) hover:text-(--color-neutral-600) hover:bg-(--color-neutral-100) rounded-xl transition-colors"
                     aria-label="Cerrar"
                     type="button"
                   >

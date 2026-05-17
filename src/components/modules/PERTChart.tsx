@@ -163,7 +163,7 @@ export default function PERTChart({ tasks: propTasks = [], className, projectNam
           action={
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2 text-xs">
-                <span className="w-3 h-0.5 bg-[var(--color-error)] rounded inline-block" />
+                <span className="w-3 h-0.5 bg-(--color-error) rounded inline-block" />
                 <span className="text-n-500 font-medium">Ruta crítica</span>
               </div>
               <div className="flex items-center gap-2">

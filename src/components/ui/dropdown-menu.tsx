@@ -75,7 +75,7 @@ function DropdownMenu({
           <motion.div
             ref={menuRef}
             className={cn(
-              "absolute z-50 min-w-[8rem] bg-[var(--color-surface)] border border-[var(--color-border)] rounded-xl shadow-xl py-1 overflow-hidden",
+              "absolute z-50 min-w-32 bg-(--color-surface) border border-(--color-border) rounded-xl shadow-xl py-1 overflow-hidden",
               align === "end" && "right-0",
               align === "center" && "left-1/2 -translate-x-1/2",
               side === "top" && "bottom-full mb-1",
@@ -113,10 +113,10 @@ function DropdownMenuItem({
       className={cn(
         "flex items-center w-full px-4 py-2 text-sm transition-colors",
         disabled
-          ? "text-[var(--color-neutral-400)] cursor-not-allowed"
+          ? "text-(--color-neutral-400) cursor-not-allowed"
           : destructive
           ? "text-error hover:bg-error/10"
-          : "text-neutral-700 hover:bg-[var(--color-neutral-50)]",
+          : "text-neutral-700 hover:bg-(--color-neutral-50)",
         icon && "gap-3"
       )}
     >
@@ -137,7 +137,7 @@ function DropdownMenuGroup({ children, label }: DropdownMenuGroupProps) {
   return (
     <div className="py-1">
       {label && (
-        <p className="px-4 text-[10px] font-bold text-[var(--color-neutral-400)] uppercase tracking-wider mb-1">
+        <p className="px-4 text-[10px] font-bold text-(--color-neutral-400) uppercase tracking-wider mb-1">
           {label}
         </p>
       )}

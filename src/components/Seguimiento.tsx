@@ -29,7 +29,7 @@ function RingChart({ value, color, label, size = 80 }: { value: number; color: s
   const isOver = value > 100;
   return (
     <div className="flex flex-col items-center gap-1">
-      <div className="relative w-[var(--ring-size)] h-[var(--ring-size)]" style={{ '--ring-size': `${size}px` } as React.CSSProperties}>
+      <div className="relative w-(--ring-size) h-(--ring-size)" style={{ '--ring-size': `${size}px` } as React.CSSProperties}>
         <svg width={size} height={size} className="-rotate-90">
           <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={trackColor} strokeWidth={6} />
           <motion.circle
@@ -129,7 +129,7 @@ export default function Seguimiento() {
    })();
 
   return (
-    <div className="flex flex-col h-full p-3 gap-3 overflow-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div className="flex flex-col h-full p-3 gap-3 overflow-auto overflow-x-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0))]">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
         <div>
@@ -170,7 +170,7 @@ export default function Seguimiento() {
           <motion.div key={i} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
             className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-3 shadow-lg">
             <div className="flex items-center gap-2 mb-1">
-              <div className="p-1.5 rounded-lg text-white bg-[var(--k-bg)]" style={{ '--k-bg': k.color } as React.CSSProperties}>{k.icon}</div>
+              <div className="p-1.5 rounded-lg text-white bg-(--k-bg)" style={{ '--k-bg': k.color } as React.CSSProperties}>{k.icon}</div>
               <p className="text-[9px] sm:text-[8px] font-black text-slate-400  uppercase tracking-widest">{k.label}</p>
             </div>
             <p className="text-sm font-black text-slate-900 ">{k.value}</p>
@@ -200,18 +200,18 @@ export default function Seguimiento() {
                 <RingChart value={displayProjects[0]?.financiero ?? 0} color="#06b6d4" label="Financiero" size={100} />
               </div>
               <div className="w-full grid grid-cols-2 gap-2 mt-2">
-                <div className="bg-[var(--color-warning-bg)] rounded-xl p-2 text-center">
-                  <p className="text-[7px] font-black text-[var(--color-warning)] uppercase tracking-widest">Presupuesto</p>
+                <div className="bg-(--color-warning-bg) rounded-xl p-2 text-center">
+                  <p className="text-[7px] font-black text-(--color-warning) uppercase tracking-widest">Presupuesto</p>
                    <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.budget || 0)}</p>
                 </div>
-                <div className="bg-[var(--color-info-bg)] rounded-xl p-2 text-center">
-                  <p className="text-[7px] font-black text-[var(--color-info)] uppercase tracking-widest">Ejecutado</p>
+                <div className="bg-(--color-info-bg) rounded-xl p-2 text-center">
+                  <p className="text-[7px] font-black text-(--color-info) uppercase tracking-widest">Ejecutado</p>
                    <p className="text-[11px] font-black text-slate-800 ">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                 </div>
               </div>
               <div className={cn("text-[8px] font-black uppercase px-2 py-1 rounded-full",
                 (displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0)
-                  ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-red-50 text-[var(--color-error)]"
+                  ? "bg-(--color-success-bg) text-(--color-success)" : "bg-red-50 text-(--color-error)"
               )}>
                 {(displayProjects[0]?.fisico ?? 0) >= (displayProjects[0]?.financiero ?? 0) ? '▲ En control' : '▼ Desfase financiero'}
               </div>
@@ -226,17 +226,17 @@ export default function Seguimiento() {
                   </div>
                   <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Aportado</p>
-                    <p className="text-[10px] font-black text-[var(--color-success)]">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
+                    <p className="text-[10px] font-black text-(--color-success)">{fmtQ(displayProjects[0]?.txIncome || 0)}</p>
                   </div>
                   <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Ejecutado</p>
-                    <p className="text-[10px] font-black text-[var(--color-info)]">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
+                    <p className="text-[10px] font-black text-(--color-info)">{fmtQ(displayProjects[0]?.totalCost || 0)}</p>
                   </div>
                   <div className="bg-white/60 backdrop-blur-sm rounded-lg p-2 text-center">
                     <p className="text-[7px] font-black text-slate-400 uppercase tracking-widest">Pendiente de Aportar</p>
                     <p className={cn("text-[10px] font-black",
                       ((displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)) > 0
-                        ? "text-[var(--color-warning)]" : "text-[var(--color-success)]"
+                        ? "text-(--color-warning)" : "text-(--color-success)"
                     )}>
                       {fmtQ(Math.max(0, (displayProjects[0]?.budget || 0) - (displayProjects[0]?.txIncome || 0)))}
                     </p>
@@ -257,7 +257,7 @@ export default function Seguimiento() {
                     <p className="text-[9px] font-black text-slate-700  uppercase truncate">{p.name}</p>
                     <p className="text-[8px] text-slate-400 font-bold">{p.clientName || 'S/N'}</p>
                     <div className={cn("mt-1 text-[7px] font-black uppercase px-1.5 py-0.5 rounded-full inline-block",
-                      p.fisico >= p.financiero ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-red-50 text-[var(--color-error)]"
+                      p.fisico >= p.financiero ? "bg-(--color-success-bg) text-(--color-success)" : "bg-red-50 text-(--color-error)"
                     )}>
                       {p.fisico >= p.financiero ? '▲ En control' : '▼ Desfase'}
                     </div>
@@ -394,8 +394,8 @@ export default function Seguimiento() {
                                 <div key={i} className="grid grid-cols-5 gap-2 text-[8px] bg-white/60 backdrop-blur-sm rounded-lg px-2 py-1.5">
                                   <span className="font-bold text-slate-700 truncate col-span-2">{m.name}</span>
                                   <span className="text-slate-500 text-center">P: {m.budgeted} {m.unit}</span>
-                                  <span className="text-[var(--color-info)] text-center">B: {m.stock}</span>
-                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-[var(--color-success)]' : 'text-[var(--color-warning)]')}>
+                                  <span className="text-(--color-info) text-center">B: {m.stock}</span>
+                                  <span className={cn("text-center font-bold", pct >= 100 ? 'text-(--color-success)' : 'text-(--color-warning)')}>
                                     U: {m.used} ({pct}%)
                                   </span>
                                 </div>
@@ -459,7 +459,7 @@ export default function Seguimiento() {
                       return (
                         <tr key={line.id} className="border-b border-white/10 hover:bg-white/30">
                           <td className="py-2 pr-3 font-bold text-slate-500">{line.code}</td>
-                          <td className="py-2 pr-3 text-slate-700 max-w-[200px] truncate">{line.description}</td>
+                          <td className="py-2 pr-3 text-slate-700 max-w-50 truncate">{line.description}</td>
                           <td className="py-2 pr-3 text-right font-black text-slate-800">{fmtQ(line.budgeted)}</td>
                           <td className="py-2 pr-3 text-right font-bold text-emerald-600">{actual.income > 0 ? fmtQ(actual.income) : '—'}</td>
                           <td className="py-2 pr-3 text-right font-bold text-red-500">{actual.expense > 0 ? fmtQ(actual.expense) : '—'}</td>
@@ -504,7 +504,7 @@ export default function Seguimiento() {
         <div className="bg-white/70 backdrop-blur-md border border-white/30 rounded-2xl p-4 shadow-lg">
           <div className="flex items-center justify-between mb-3">
             <p className="text-[10px] font-black text-slate-400  uppercase tracking-widest">Análisis de Ruta Crítica</p>
-            <AlertTriangle size={16} className="text-[var(--color-accent)]" />
+            <AlertTriangle size={16} className="text-(--color-accent)" />
           </div>
 
           <div className="space-y-3">

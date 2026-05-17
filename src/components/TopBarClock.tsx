@@ -84,7 +84,7 @@ export default function TopBarClock() {
             initial={{ opacity: 0, y: 15, scale: 0.95 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 15, scale: 0.95 }}
-            className="absolute right-0 mt-4 w-85 max-w-[calc(100vw-2rem)] bg-[#0e121d] border border-white/10 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-50 ring-1 ring-white/10 transform-origin-top-right backdrop-blur-xl"
+            className="absolute right-0 mt-4 w-85 max-w-[calc(100vw-2rem)] bg-[#0e121d] border border-white/10 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-50 ring-1 ring-white/10 transform-origin-top-right backdrop-blur-xl"
           >
             <div className="bg-gradient-to-br from-[#1a1f2e] to-[#0e121d] text-white p-6 pb-7 border-b border-white/5">
               <div className="flex justify-between items-center mb-5">

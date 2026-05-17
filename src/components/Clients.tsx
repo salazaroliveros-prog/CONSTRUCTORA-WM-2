@@ -161,12 +161,12 @@ export default function ClientsModule() {
   );
 
   return (
-    <div className="flex flex-col h-full gap-3 p-0 overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div className="flex flex-col h-full gap-3 p-0 overflow-hidden pb-[calc(4rem+env(safe-area-inset-bottom,0))]">
 
       {/* ── KPIs ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 shrink-0">
         {[
-          { icon: <Users size={14} className="text-[var(--color-mod-clients)]" />,      label: 'Clientes Activos',  value: kpis.active,                color: 'text-blue-600' },
+          { icon: <Users size={14} className="text-(--color-mod-clients)" />,      label: 'Clientes Activos',  value: kpis.active,                color: 'text-blue-600' },
           { icon: <Building2 size={14} className="text-amber-500" />, label: 'Con Proyectos',     value: kpis.withProj,              color: 'text-amber-600' },
           { icon: <TrendingUp size={14} className="text-emerald-500" />,label: 'En Ejecución',      value: `${kpis.inExec} proy.`,     color: 'text-emerald-600' },
           { icon: <DollarSign size={14} className="text-purple-500" />,label: 'Presupuesto Total', value: fmtQ(kpis.totalBudget),    color: 'text-purple-600' },
@@ -220,13 +220,13 @@ export default function ClientsModule() {
                 onClick={() => { if (bulkMode) { toggleSelectClient(c.id); } else { setSelected(prev => prev?.id === c.id ? null : c); } }}
                 className={cn(
                   'card p-3 cursor-pointer',
-                  selected?.id === c.id || selectedClientIds.has(c.id) ? 'border-[var(--color-mod-clients)] ring-1 ring-[var(--color-mod-clients)]/20' : ''
+                  selected?.id === c.id || selectedClientIds.has(c.id) ? 'border-(--color-mod-clients) ring-1 ring-(--color-mod-clients)/20' : ''
                 )}
               >
                 {bulkMode && (
                   <div className="absolute top-2 left-2 z-10" onClick={e => e.stopPropagation()}>
                     <input type="checkbox" checked={selectedClientIds.has(c.id)} onChange={() => toggleSelectClient(c.id)} aria-label="Seleccionar cliente"
-                      className="w-4 h-4 accent-[var(--color-error)] cursor-pointer" />
+                      className="w-4 h-4 accent-(--color-error) cursor-pointer" />
                   </div>
                 )}
                 <div className={cn("flex items-center gap-3", bulkMode && "ml-7")}>
@@ -253,7 +253,7 @@ export default function ClientsModule() {
                       <button onClick={e => { e.stopPropagation(); handleDelete(c); }}
                         className="p-1 hover:bg-red-bg rounded text-p-400 hover:text-red-600" aria-label="Eliminar cliente"><Trash2 size={11} /></button>
                     </div>
-                    <ChevronRight size={13} className={cn('text-p-300 transition-transform', selected?.id === c.id && 'rotate-90 text-[var(--color-mod-clients)]')} />
+                    <ChevronRight size={13} className={cn('text-p-300 transition-transform', selected?.id === c.id && 'rotate-90 text-(--color-mod-clients)')} />
                   </div>
                 </div>
               </motion.div>
@@ -303,7 +303,7 @@ export default function ClientsModule() {
                   return (
                     <div className="grid grid-cols-3 gap-2">
                       {[
-                        { label: 'Proyectos', value: cProjs.length, color: 'text-[var(--color-mod-clients)]' },
+                        { label: 'Proyectos', value: cProjs.length, color: 'text-(--color-mod-clients)' },
                         { label: 'En Ejecución', value: inExec, color: 'text-amber-600' },
                         { label: 'Finalizados', value: done, color: 'text-emerald-600' },
                       ].map(k => (
@@ -314,7 +314,7 @@ export default function ClientsModule() {
                       ))}
                       <div className="col-span-3 bg-slate-50 rounded-xl p-3 flex items-center justify-between">
                         <span className="text-[8px] font-black text-p-400 uppercase">Presupuesto Total</span>
-                        <span className="text-sm font-black text-[var(--color-mod-clients)]">{fmtQ(totalBudget)}</span>
+                        <span className="text-sm font-black text-(--color-mod-clients)">{fmtQ(totalBudget)}</span>
                       </div>
                     </div>
                   );
@@ -335,7 +335,7 @@ export default function ClientsModule() {
                           <p className="text-[7px] font-bold text-p-400 uppercase">{p.status} · {fmtQ(p.budget || 0)}</p>
                         </div>
                         <div className="text-right shrink-0">
-                          <p className="text-[9px] font-black text-[var(--color-mod-clients)]">{p.progress || 0}%</p>
+                          <p className="text-[9px] font-black text-(--color-mod-clients)">{p.progress || 0}%</p>
                           <div className="w-16 h-1 bg-p-200 rounded mt-0.5">
                             <div className="h-full bg-blue-400 rounded progress-fill-dynamic" style={{ '--pw': `${p.progress || 0}%` } as React.CSSProperties} />
                           </div>

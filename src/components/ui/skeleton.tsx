@@ -29,7 +29,7 @@ export function Skeleton({
       role="status"
       aria-label="Cargando contenido"
       className={cn(
-        "relative overflow-hidden bg-[var(--color-neutral-100)]",
+        "relative overflow-hidden bg-(--color-neutral-100)",
         variantStyles[variant],
         className
       )}
@@ -37,7 +37,7 @@ export function Skeleton({
     >
       {pulse && (
         <div className="absolute inset-0 -translate-x-full animate-shimmer">
-          <div className="h-full w-full bg-gradient-to-r from-transparent via-[rgba(255,255,255,0.3)] to-transparent" />
+          <div className="h-full w-full bg-linear-to-r from-transparent via-[rgba(255,255,255,0.3)] to-transparent" />
         </div>
       )}
     </div>
@@ -52,7 +52,7 @@ export function SkeletonCard({
 }) {
   return (
     <div
-      className={cn("rounded-2xl p-4 border border-[var(--color-neutral-100)]", className)}
+      className={cn("rounded-2xl p-4 border border-(--color-neutral-100)", className)}
     >
       <div className="flex items-center gap-3 mb-4">
         <Skeleton variant="circular" width={40} height={40} />
@@ -77,7 +77,7 @@ export function SkeletonTableRow({
   columns?: number;
 }) {
   return (
-    <tr className="border-b border-[var(--color-neutral-100)]">
+    <tr className="border-b border-(--color-neutral-100)">
       {Array.from({ length: columns }).map((_, i) => (
         <td key={i} className="px-3 py-3">
           <Skeleton variant="text" height={12} width={`${Math.random() * 60 + 40}%`} />

@@ -46,14 +46,14 @@ export function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete 
     );
   }
   return (
-    <div className="flex justify-between items-center bg-[var(--color-surface-solid)] p-2 rounded-xl border border-[var(--color-neutral-100)] shadow-sm group/sub">
+    <div className="flex justify-between items-center bg-(--color-surface-solid) p-2 rounded-xl border border-(--color-neutral-100) shadow-sm group/sub">
       <div className="min-w-0 flex-1">
-        <p className="text-[9px] font-black text-[var(--color-primary)] uppercase truncate">{fields[0].value}</p>
-        <p className="text-[7px] font-bold text-[var(--color-neutral-400)] uppercase">{totalQty.toLocaleString(undefined, {maximumFractionDigits:2})} {fields[1]?.value} · Q {fields[2]?.value}/u</p>
+        <p className="text-[9px] font-black text-(--color-primary) uppercase truncate">{fields[0].value}</p>
+        <p className="text-[7px] font-bold text-(--color-neutral-400) uppercase">{totalQty.toLocaleString(undefined, {maximumFractionDigits:2})} {fields[1]?.value} · Q {fields[2]?.value}/u</p>
       </div>
       <div className="flex items-center gap-1 shrink-0">
         <div className="text-right mr-1">
-          <p className="text-[9px] font-black text-[var(--color-neutral-600)]">Q {totalPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</p>
+          <p className="text-[9px] font-black text-(--color-neutral-600)">Q {totalPrice.toLocaleString(undefined, {maximumFractionDigits:2})}</p>
         </div>
         <button onClick={() => { setEditing(true); setForm(Object.fromEntries(fields.map(f => [f.key, f.value]))); }} aria-label="Editar ítem" className="btn-edit opacity-0 group-hover/sub:opacity-100"><Pencil size={10} /></button>
         <button onClick={onDelete} aria-label="Eliminar ítem" className="btn-delete opacity-0 group-hover/sub:opacity-100"><Trash2 size={10} /></button>
@@ -65,12 +65,12 @@ export function EditableSubRow({ fields, totalQty, totalPrice, onSave, onDelete 
 export function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[var(--color-surface-solid)]/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-30">
+    <div className="bg-(--color-neutral-900)/95 backdrop-blur-sm border border-(--color-surface-solid)/10 rounded-xl px-4 py-3 shadow-2xl text-left min-w-30">
       {label && <p className="text-[9px] font-black text-slate-300 uppercase tracking-widest mb-2">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-2 mb-1 last:mb-0">
           <div className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: entry.color }} />
-          <span className="text-[10px] font-black text-[var(--color-neutral-50)]">Q{Number(entry.value).toLocaleString()}</span>
+          <span className="text-[10px] font-black text-(--color-neutral-50)">Q{Number(entry.value).toLocaleString()}</span>
         </div>
       ))}
     </div>

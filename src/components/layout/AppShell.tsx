@@ -11,7 +11,7 @@ interface AppShellProps {
 
 export function AppShell({ children, isMenuOpen, onNavigate, activeTab }: AppShellProps) {
   return (
-    <div className="min-h-screen bg-[#f8f9fa] overflow-x-hidden">
+    <div className="min-h-screen bg-bg overflow-x-hidden">
       <TopBar onNavigate={onNavigate} activeTab={activeTab} />
       <div 
         id="page-container" 

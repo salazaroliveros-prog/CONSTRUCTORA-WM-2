@@ -46,7 +46,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
 
   return (
     <>
-      <div className="fixed top-6 left-6 z-[100001] lg:hidden">
+      <div className="fixed top-6 left-6 z-100001 lg:hidden">
         <button 
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           className={cn(
@@ -62,9 +62,9 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
               </motion.div>
             ) : (
               <motion.div key="menu" initial={{ rotate: 90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: -90, opacity: 0 }} className="flex flex-col gap-1.5 items-center">
-                <span className="w-6 h-[2px] bg-current block" />
-                <span className="w-4 h-[2px] bg-current block mr-auto" />
-                <span className="w-6 h-[2px] bg-current block" />
+                <span className="w-6 h-0.5 bg-current block" />
+                <span className="w-4 h-0.5 bg-current block mr-auto" />
+                <span className="w-6 h-0.5 bg-current block" />
               </motion.div>
             )}
           </AnimatePresence>
@@ -78,7 +78,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="full-menu-overlay z-[100000] bg-black/90 backdrop-blur-2xl"
+            className="full-menu-overlay z-100000 bg-black/90 backdrop-blur-2xl"
           >
             <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-5 sm:gap-8 max-w-4xl p-6 sm:p-10 overflow-y-auto max-h-screen">
               {menuItems.map((item, i) => (
@@ -123,7 +123,7 @@ export function GlobalNav({ activeTab, onNavigate, isMenuOpen, setIsMenuOpen }: 
             </div>
 
             {/* Background decorative elements */}
-            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-amber-500/5 rounded-full blur-[120px] -z-10" />
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-200 h-200 bg-amber-500/5 rounded-full blur-[120px] -z-10" />
           </motion.div>
         )}
       </AnimatePresence>

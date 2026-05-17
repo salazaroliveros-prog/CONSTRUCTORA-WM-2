@@ -61,7 +61,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
     <>
       <div
         className={cn(
-          "fixed inset-0 z-[200] transition-all duration-300",
+          "fixed inset-0 z-200 transition-all duration-300",
           isAnimating ? "bg-black/40 backdrop-blur-sm" : "bg-black/0 backdrop-blur-none"
         )}
         onClick={handleOverlayClick}
@@ -69,7 +69,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
       />
       <div
         className={cn(
-          "fixed inset-0 z-[201] flex items-center justify-center p-4",
+          "fixed inset-0 z-201 flex items-center justify-center p-4",
           "overflow-y-auto"
         )}
         role="dialog"
@@ -78,7 +78,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
       >
         <div
             className={cn(
-              "relative w-full rounded-2xl glass-card border border-[var(--color-neutral-100)] shadow-2xl transition-all duration-200",
+              "relative w-full rounded-2xl glass-card border border-(--color-neutral-100) shadow-2xl transition-all duration-200",
               sizeClasses[size],
               isAnimating
                 ? "scale-100 translate-y-0 opacity-100"
@@ -88,15 +88,15 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
             ref={ref}
           >
           {(title || description || showCloseButton) && (
-            <div className="flex items-center justify-between p-5 border-b border-[var(--color-neutral-100)]">
+            <div className="flex items-center justify-between p-5 border-b border-(--color-neutral-100)">
               <div>
                 {title && (
-                  <h3 className="text-base font-black text-[var(--color-neutral-900)] uppercase tracking-tight">
+                  <h3 className="text-base font-black text-(--color-neutral-900) uppercase tracking-tight">
                     {title}
                   </h3>
                 )}
                 {description && (
-                  <p className="text-xs font-medium text-[var(--color-neutral-500)] mt-0.5">
+                  <p className="text-xs font-medium text-(--color-neutral-500) mt-0.5">
                     {description}
                   </p>
                 )}
@@ -104,7 +104,7 @@ const Modal = forwardRef<HTMLDivElement, ModalProps>(function Modal(
               {showCloseButton && (
                 <button
                   onClick={onClose}
-                  className="p-2 text-[var(--color-neutral-400)] hover:text-neutral-600 hover:bg-[var(--color-neutral-100)] rounded-xl transition-colors"
+                  className="p-2 text-(--color-neutral-400) hover:text-neutral-600 hover:bg-(--color-neutral-100) rounded-xl transition-colors"
                   aria-label="Cerrar"
                   type="button"
                 >

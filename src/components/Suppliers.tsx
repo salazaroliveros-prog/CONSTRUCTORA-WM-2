@@ -82,7 +82,7 @@ function StarRating({ value, onChange, readonly = false }: { value: number; onCh
           onMouseLeave={() => !readonly && setHover(0)}
           className={cn("transition-transform", !readonly && "hover:scale-125 cursor-pointer", readonly && "cursor-default")}>
           <Star size={readonly ? 9 : 14}
-            className={star <= (hover || value) ? 'text-[var(--color-accent)]' : 'text-slate-200'}
+            className={star <= (hover || value) ? 'text-(--color-accent)' : 'text-slate-200'}
             fill={star <= (hover || value) ? 'currentColor' : 'none'} />
         </button>
       ))}
@@ -237,10 +237,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
   const supplierTotalSpent = supplierOCs.reduce((a, o) => a + (o.total || 0), 0);
 
   const OC_STATUS_COLORS: Record<string, string> = {
-    'PENDIENTE': 'bg-[var(--color-warning-bg)] text-[var(--color-warning)]',
-    'APROBADA': 'bg-[var(--color-info-bg)] text-[var(--color-info)]',
-    'RECIBIDA': 'bg-[var(--color-success-bg)] text-[var(--color-success)]',
-    'CANCELADA': 'bg-[var(--color-error-bg)] text-[var(--color-error)]',
+    'PENDIENTE': 'bg-(--color-warning-bg) text-(--color-warning)',
+    'APROBADA': 'bg-(--color-info-bg) text-(--color-info)',
+    'RECIBIDA': 'bg-(--color-success-bg) text-(--color-success)',
+    'CANCELADA': 'bg-(--color-error-bg) text-(--color-error)',
   };
 
   if (loading) return (
@@ -255,10 +255,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
 {/* KPI Strip */}
        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 shrink-0">
          {[
-           { label: 'Total Proveedores', value: suppliers.length, icon: <Truck size={12}/>, color: 'text-[var(--color-info)]', bg: 'bg-[var(--color-info-bg)]' },
-           { label: 'Activos', value: activeCount, icon: <CheckCircle2 size={12}/>, color: 'text-[var(--color-success)]', bg: 'bg-[var(--color-success-bg)]' },
-            { label: 'Rating Promedio', value: `${avgRating} ★`, icon: <Star size={12}/>, color: 'text-[var(--color-warning)]', bg: 'bg-[var(--color-warning-bg)]' },
-            { label: 'Total Compras', value: fmtQ(totalSpent), icon: <DollarSign size={12}/>, color: 'text-[var(--color-mod-dashboard)]', bg: 'bg-[var(--color-mod-dashboard)]/10' },
+           { label: 'Total Proveedores', value: suppliers.length, icon: <Truck size={12}/>, color: 'text-(--color-info)', bg: 'bg-(--color-info-bg)' },
+           { label: 'Activos', value: activeCount, icon: <CheckCircle2 size={12}/>, color: 'text-(--color-success)', bg: 'bg-(--color-success-bg)' },
+            { label: 'Rating Promedio', value: `${avgRating} ★`, icon: <Star size={12}/>, color: 'text-(--color-warning)', bg: 'bg-(--color-warning-bg)' },
+            { label: 'Total Compras', value: fmtQ(totalSpent), icon: <DollarSign size={12}/>, color: 'text-(--color-mod-dashboard)', bg: 'bg-(--color-mod-dashboard)/10' },
           ].map((kpi, i) => (
            <motion.div key={i} initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
              className="bg-white rounded-lg border border-slate-100 p-2 flex items-center gap-2 shadow-sm">
@@ -310,7 +310,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
               </button>
             </div>
                <button type="button" title="Selección múltiple" onClick={() => { setBulkMode(!bulkMode); if (bulkMode) setSelectedSupplierIds(new Set()); }}
-                 className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-[var(--color-error)] text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
+                 className={`px-2 py-1 rounded-lg text-[7px] font-black uppercase tracking-widest transition-all ${bulkMode ? 'bg-(--color-error) text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:text-slate-800'}`}>
                  {bulkMode ? 'Cancelar' : 'Seleccionar'}
                </button>
             <div className="relative flex-1 md:w-48">
@@ -349,7 +349,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                          {bulkMode && (
                            <div className="absolute top-1.5 left-1.5 z-10" onClick={e => e.stopPropagation()}>
                               <input type="checkbox" checked={selectedSupplierIds.has(s.id)} onChange={() => toggleSelectSupplier(s.id)} title="Seleccionar proveedor"
-                                className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
+                                className="w-3.5 h-3.5 accent-(--color-error) cursor-pointer" />
                            </div>
                          )}
                          {/* Top row: icon + name + status + actions */}
@@ -360,14 +360,14 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                            </div>
                            <h3 className="text-[9px] font-black text-primary uppercase truncate flex-1 group-hover:text-secondary transition-colors">{s.name}</h3>
                             <span className={cn("px-1 py-0.5 rounded-full text-[7px] sm:text-[6px] font-black uppercase shrink-0",
-                             s.status === 'Activo' ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-mod-gantt)]/10 text-[var(--color-mod-gantt)]")}>
+                             s.status === 'Activo' ? "bg-(--color-success-bg) text-(--color-success)" : "bg-(--color-mod-gantt)/10 text-(--color-mod-gantt)")}>
                              {s.status || 'Activo'}
                            </span>
                            <div className="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
                              <button type="button" title="Editar" onClick={() => { setEditSupplier(s); setEditForm({ name: s.name, category: s.category, contact: s.contact, email: s.email, rating: s.rating, status: s.status, address: s.address||'', nit: s.nit||'', website: s.website||'', paymentTerms: s.paymentTerms||'', notes: s.notes||'' }); }} className="p-0.5 text-slate-400 hover:text-secondary rounded">
                                <Pencil size={9} />
                              </button>
-                             <button type="button" title="Eliminar" onClick={() => handleDelete(s.id)} className="p-0.5 text-slate-400 hover:text-[var(--color-error)] rounded">
+                             <button type="button" title="Eliminar" onClick={() => handleDelete(s.id)} className="p-0.5 text-slate-400 hover:text-(--color-error) rounded">
                                <Trash2 size={9} />
                              </button>
                            </div>
@@ -382,7 +382,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                          {/* Bottom row: rating + OCs */}
                          <div className="flex items-center justify-between pt-1.5 border-t border-slate-50">
                            <StarRating value={Number(s.rating || 5)} readonly onChange={v => handleRatingChange(s, v)} />
-                           {ocCount > 0 && <span className="text-[6px] font-black bg-[var(--color-info-bg)] text-[var(--color-info)] px-1 py-0.5 rounded-full">{ocCount} OC</span>}
+                           {ocCount > 0 && <span className="text-[6px] font-black bg-(--color-info-bg) text-(--color-info) px-1 py-0.5 rounded-full">{ocCount} OC</span>}
                          </div>
                       </motion.div>
                     );
@@ -411,7 +411,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                         {bulkMode && (
                           <th className="px-2 py-2 w-6">
                              <input type="checkbox" checked={currentItems.length > 0 && selectedSupplierIds.size === currentItems.length}
-                               onChange={toggleSelectAllSuppliers} title="Seleccionar todo" className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
+                               onChange={toggleSelectAllSuppliers} title="Seleccionar todo" className="w-3.5 h-3.5 accent-(--color-error) cursor-pointer" />
                           </th>
                         )}
                           <th className="px-3 py-2 text-[7px] font-black text-slate-400 uppercase tracking-widest">Proveedor</th>
@@ -437,7 +437,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                               {bulkMode && (
                                 <td className="px-2 py-2 w-6" onClick={e => e.stopPropagation()}>
                                   <input type="checkbox" checked={selectedSupplierIds.has(s.id)} onChange={() => toggleSelectSupplier(s.id)}
-                                    className="w-3.5 h-3.5 accent-[var(--color-error)] cursor-pointer" />
+                                    className="w-3.5 h-3.5 accent-(--color-error) cursor-pointer" />
                                 </td>
                               )}
                               <td className="px-3 py-2">
@@ -450,12 +450,12 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                              <td className="hidden sm:table-cell px-3 py-2 text-[8px] text-slate-500 font-bold uppercase">{s.category || '--'}</td>
                              <td className="hidden md:table-cell px-3 py-2 text-[8px] text-slate-500 font-bold">{s.contact || '--'}</td>
                              <td className="hidden lg:table-cell px-3 py-2">
-                               {ocCount > 0 ? <span className="text-[7px] font-black bg-[var(--color-info-bg)] text-[var(--color-info)] px-1 py-0.5 rounded-full">{ocCount} ord{ocCount > 1 ? 'es' : ''}</span>
+                               {ocCount > 0 ? <span className="text-[7px] font-black bg-(--color-info-bg) text-(--color-info) px-1 py-0.5 rounded-full">{ocCount} ord{ocCount > 1 ? 'es' : ''}</span>
                                  : <span className="text-[7px] text-slate-300 font-bold">—</span>}
                              </td>
                              <td className="px-3 py-2 text-center">
                                 <span className={cn("px-1 py-0.5 rounded-full text-[7px] sm:text-[6px] font-black uppercase",
-                                 s.status === 'Activo' ? "bg-[var(--color-success-bg)] text-[var(--color-success)]" : "bg-[var(--color-mod-gantt)]/10 text-[var(--color-mod-gantt)]")}>
+                                 s.status === 'Activo' ? "bg-(--color-success-bg) text-(--color-success)" : "bg-(--color-mod-gantt)/10 text-(--color-mod-gantt)")}>
                                  {s.status || 'Activo'}
                                </span>
                              </td>
@@ -495,7 +495,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                animate={{ opacity: 1, x: 0, width: 280 }}
                exit={{ opacity: 0, x: 40, width: 0 }}
                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="shrink-0 bg-white/70 backdrop-blur-md border border-white/30 rounded-xl shadow-lg shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
+                className="shrink-0 bg-white/70 backdrop-blur-md border border-white/30 rounded-xl shadow-lg overflow-hidden flex flex-col w-64 sm:w-80"
                 style={{ minWidth: 200, maxWidth: 320 }}>
                {/* Header */}
                <div className="bg-slate-900 p-3 relative">
@@ -513,7 +513,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                      <div className="flex items-center gap-0.5 mt-0.5">
                        <StarRating value={Number(selectedSupplier.rating || 5)} onChange={v => handleRatingChange(selectedSupplier, v)} />
                         <span className={cn("text-[7px] sm:text-[6px] font-black uppercase px-1 py-0.5 rounded-full ml-0.5",
-                         selectedSupplier.status === 'Activo' ? "bg-[var(--color-success)]/20 text-[var(--color-success)]" : "bg-orange-500/20 text-[var(--color-mod-gantt)]")}>
+                         selectedSupplier.status === 'Activo' ? "bg-(--color-success)/20 text-(--color-success)" : "bg-orange-500/20 text-(--color-mod-gantt)")}>
                          {selectedSupplier.status}
                        </span>
                      </div>
@@ -524,21 +524,21 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                <div className="flex-1 overflow-y-auto p-3 space-y-3">
                  {/* KPIs del proveedor */}
                  <div className="grid grid-cols-2 gap-1.5">
-                   <div className="bg-[var(--color-info-bg)] rounded-md p-1.5 text-center">
-                      <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-info)] uppercase tracking-widest">Órdenes</p>
-                     <p className="text-sm font-black text-[var(--color-info)]">{supplierOCs.length}</p>
+                   <div className="bg-(--color-info-bg) rounded-md p-1.5 text-center">
+                      <p className="text-[7px] sm:text-[6px] font-black text-(--color-info) uppercase tracking-widest">Órdenes</p>
+                     <p className="text-sm font-black text-(--color-info)">{supplierOCs.length}</p>
                    </div>
-                    <div className="bg-[var(--color-warning-bg)] rounded-md p-1.5 text-center">
-                       <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-warning)] uppercase tracking-widest">Total Compras</p>
-                      <p className="text-sm font-black text-[var(--color-warning)]">{fmtQ(supplierTotalSpent)}</p>
+                    <div className="bg-(--color-warning-bg) rounded-md p-1.5 text-center">
+                       <p className="text-[7px] sm:text-[6px] font-black text-(--color-warning) uppercase tracking-widest">Total Compras</p>
+                      <p className="text-sm font-black text-(--color-warning)">{fmtQ(supplierTotalSpent)}</p>
                     </div>
-                    <div className="bg-[var(--color-success-bg)] rounded-md p-1.5 text-center">
-                       <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-success)] uppercase tracking-widest">Promedio OC</p>
-                      <p className="text-sm font-black text-[var(--color-success)]">{fmtQ(supplierOCs.length > 0 ? Math.round(supplierTotalSpent / supplierOCs.length) : 0)}</p>
+                    <div className="bg-(--color-success-bg) rounded-md p-1.5 text-center">
+                       <p className="text-[7px] sm:text-[6px] font-black text-(--color-success) uppercase tracking-widest">Promedio OC</p>
+                      <p className="text-sm font-black text-(--color-success)">{fmtQ(supplierOCs.length > 0 ? Math.round(supplierTotalSpent / supplierOCs.length) : 0)}</p>
                     </div>
-                   <div className="bg-[var(--color-mod-dashboard)]/10 rounded-md p-1.5 text-center">
-                      <p className="text-[7px] sm:text-[6px] font-black text-[var(--color-mod-dashboard)] uppercase tracking-widest">Última Compra</p>
-                     <p className="text-sm font-black text-[var(--color-mod-dashboard)]">
+                   <div className="bg-(--color-mod-dashboard)/10 rounded-md p-1.5 text-center">
+                      <p className="text-[7px] sm:text-[6px] font-black text-(--color-mod-dashboard) uppercase tracking-widest">Última Compra</p>
+                     <p className="text-sm font-black text-(--color-mod-dashboard)">
                        {supplierOCs.length > 0 ? (() => {
                          const lastOrder = supplierOCs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
                          const daysSince = Math.floor((Date.now() - new Date(lastOrder.createdAt).getTime()) / (1000 * 60 * 60 * 24));
@@ -579,7 +579,7 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                          {supplierOCs.length} total{supplierOCs.length !== 1 ? 'es' : ''}
                        </span>
                        {supplierOCs.filter(oc => oc.status === 'PENDIENTE').length > 0 && (
-                         <span className="text-[6px] font-bold text-[var(--color-warning)] bg-[var(--color-warning-bg)] px-1 py-0.5 rounded-full animate-pulse">
+                         <span className="text-[6px] font-bold text-(--color-warning) bg-(--color-warning-bg) px-1 py-0.5 rounded-full animate-pulse">
                            {supplierOCs.filter(oc => oc.status === 'PENDIENTE').length} pendiente{supplierOCs.filter(oc => oc.status === 'PENDIENTE').length !== 1 ? 's' : ''}
                          </span>
                        )}
@@ -647,10 +647,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                          {needed.slice(0, 10).map(inv => {
                            const project = projects.find(p => p.id === inv.projectId);
                            return (
-                             <div key={inv.id} className="bg-[var(--color-warning-bg)] rounded-md px-1.5 py-1">
+                             <div key={inv.id} className="bg-(--color-warning-bg) rounded-md px-1.5 py-1">
                                <div className="flex justify-between items-center">
                                  <span className="text-[7px] font-black text-slate-700 truncate">{inv.name}</span>
-                                 <span className="text-[6px] font-bold text-[var(--color-warning)]">
+                                 <span className="text-[6px] font-bold text-(--color-warning)">
                                    Faltan {(inv.budgetedQty || 0) - (inv.stock || 0)} {inv.unit}
                                  </span>
                                </div>
@@ -682,11 +682,11 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
                  </button>
                  <button type="button" title="Nueva orden de compra"
                    onClick={() => { window.location.search = '?tab=inventory'; }}
-                   className="px-2 py-1.5 bg-[var(--color-info-bg)] text-[var(--color-info)] rounded-lg hover:bg-[var(--color-info-bg)] transition-all">
+                   className="px-2 py-1.5 bg-(--color-info-bg) text-(--color-info) rounded-lg hover:bg-(--color-info-bg) transition-all">
                    <ShoppingCart size={12} />
                  </button>
                  <button type="button" title="Eliminar proveedor" onClick={() => handleDelete(selectedSupplier.id)}
-                   className="p-2 bg-red-50 text-[var(--color-error)] rounded-lg hover:bg-[var(--color-error-bg)] transition-all">
+                   className="p-2 bg-red-50 text-(--color-error) rounded-lg hover:bg-(--color-error-bg) transition-all">
                    <Trash2 size={12} />
                  </button>
                </div>
@@ -795,10 +795,10 @@ const { currentItems, currentPage, totalPages, nextPage, prevPage, goToPage, sta
        </Modal>
 
       {bulkMode && selectedSupplierIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-[var(--color-error)] text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-(--color-error) text-white px-5 py-3 rounded-2xl shadow-2xl flex items-center gap-4">
           <span className="text-[9px] font-black uppercase tracking-widest">{selectedSupplierIds.size} seleccionado(s)</span>
           <button type="button" onClick={handleBulkDeleteSuppliers}
-            className="px-4 py-1.5 bg-white text-[var(--color-error)] rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-[var(--color-error-bg)] transition-all">
+            className="px-4 py-1.5 bg-white text-(--color-error) rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-(--color-error-bg) transition-all">
             Eliminar
           </button>
           <button type="button" onClick={() => setSelectedSupplierIds(new Set())} aria-label="Deseleccionar"

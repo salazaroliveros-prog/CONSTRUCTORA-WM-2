@@ -33,22 +33,22 @@ interface ChartTooltipProps {
 export function CustomTooltip({ active, payload, label }: ChartTooltipProps) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] rounded-xl px-3 py-2 shadow-2xl text-left min-w-[120px]">
+    <div className="bg-neutral-900/95 backdrop-blur-sm border border-[rgba(255,255,255,0.1)] rounded-xl px-3 py-2 shadow-2xl text-left min-w-30">
       {label && (
-        <p className="text-[8px] font-black text-[var(--color-neutral-300)] uppercase tracking-widest mb-1.5">
+        <p className="text-[8px] font-black text-neutral-300 uppercase tracking-widest mb-1.5">
           {label}
         </p>
       )}
       {payload.map((entry, i) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
           <div
-            className="w-1.5 h-1.5 rounded-full shrink-0 [background-color:var(--chart-color)]"
+            className="w-1.5 h-1.5 rounded-full shrink-0 bg-(--chart-color)"
             style={{ '--chart-color': entry.color } as React.CSSProperties}
           />
-          <span className="text-[8px] font-bold text-[var(--color-neutral-50)] uppercase">
+          <span className="text-[8px] font-bold text-neutral-50 uppercase">
             {entry.name}:
           </span>
-          <span className="text-[9px] font-black text-[var(--color-neutral-50)]">
+          <span className="text-[9px] font-black text-neutral-50">
             Q{Number(entry.value).toLocaleString()}
           </span>
         </div>
@@ -77,9 +77,9 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
   };
 
   return (
-    <div className="flex gap-[2px]">
+    <div className="flex gap-0.5">
       {Array.from({ length: weeks }).map((_, w) => (
-        <div key={w} className="flex flex-col gap-[2px]">
+        <div key={w} className="flex flex-col gap-0.5">
           {Array.from({ length: days }).map((_, d) => {
             const idx = w * 7 + d;
             const value = data[idx]?.value ?? 0;
@@ -89,7 +89,7 @@ export function ActivityHeatmap({ data }: ActivityHeatmapProps) {
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: idx * 0.003, duration: 0.2 }}
-                className="w-3 h-3 rounded-[2px] cursor-pointer hover:ring-1 hover:ring-[var(--color-neutral-400)] transition-all"
+                className="w-3 h-3 rounded-xs cursor-pointer hover:ring-1 hover:ring-neutral-400 transition-all"
                 style={{ backgroundColor: getColor(value) }}
                 title={`${data[idx]?.date ?? ""}: ${value} actividades`}
               />
@@ -122,7 +122,7 @@ export function GaugeChart({
 
   return (
     <div className="flex flex-col items-center">
-      <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-[100px]">
+      <svg width="100%" height={60} viewBox="0 0 140 85" className="max-w-25">
         <defs>
           <linearGradient id={`gaugeGrad-${label}`} x1="0%" y1="0%" x2="100%" y2="0%">
             <stop offset="0%" stopColor="var(--color-error)" />
@@ -151,7 +151,7 @@ export function GaugeChart({
           x="70"
           y="65"
           textAnchor="middle"
-          className="text-2xl font-black [fill:var(--chart-fill)]"
+          className="text-2xl font-black fill-(--chart-fill)"
           style={{ '--chart-fill': color } as React.CSSProperties}
         >
           {Math.round(value)}%

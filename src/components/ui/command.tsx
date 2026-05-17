@@ -66,7 +66,7 @@ function CommandMenu({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100]" onClick={() => onOpenChange(false)}>
+    <div className="fixed inset-0 z-100" onClick={() => onOpenChange(false)}>
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
       <div className="relative flex items-start justify-center pt-[15vh] px-4">
         <div
@@ -75,17 +75,17 @@ function CommandMenu({
         >
           {/* Search Input */}
           <div className="flex items-center border-b border-border px-4">
-            <Search className="h-5 w-5 text-[var(--color-neutral-400)] mr-3 shrink-0" />
+            <Search className="h-5 w-5 text-(--color-neutral-400) mr-3 shrink-0" />
             <input
               ref={inputRef}
               type="text"
               placeholder={placeholder}
-className="flex-1 h-12 bg-transparent outline-none text-sm text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-400)]"
+className="flex-1 h-12 bg-transparent outline-none text-sm text-(--color-neutral-800) placeholder:text-(--color-neutral-400)"
               onChange={(e) => {
                 // Parent should handle this via children props
               }}
             />
-            <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-[var(--color-neutral-200)] bg-[var(--color-neutral-50)] px-1.5 font-mono text-[10px] text-[var(--color-neutral-400)]">
+            <kbd className="hidden sm:inline-flex h-5 items-center rounded border border-(--color-neutral-200) bg-(--color-neutral-50) px-1.5 font-mono text-[10px] text-(--color-neutral-400)">
               ⌘K
             </kbd>
           </div>
@@ -108,7 +108,7 @@ function CommandInput({ value, onValueChange, placeholder, ...props }: CommandIn
       value={value}
       onChange={(e) => onValueChange(e.target.value)}
       placeholder={placeholder}
-      className="flex-1 h-12 bg-transparent outline-none text-sm text-[var(--color-neutral-800)] placeholder:text-[var(--color-neutral-400)]"
+      className="flex-1 h-12 bg-transparent outline-none text-sm text-(--color-neutral-800) placeholder:text-(--color-neutral-400)"
       {...props}
     />
   );
@@ -119,7 +119,7 @@ function CommandGroup({ children, heading }: CommandGroupProps) {
   if (!heading) return <div className="py-1">{children}</div>;
   return (
     <div className="py-1">
-      <p className="px-4 text-[10px] font-bold text-[var(--color-neutral-400)] uppercase tracking-wider mb-1">
+      <p className="px-4 text-[10px] font-bold text-(--color-neutral-400) uppercase tracking-wider mb-1">
         {heading}
       </p>
       {children}
@@ -133,7 +133,7 @@ function CommandItem({ children, onSelect, className }: CommandItemProps) {
     <button
       onClick={onSelect}
       className={cn(
-        "flex items-center w-full px-4 py-2.5 text-sm text-[var(--color-neutral-700)] hover:bg-[var(--color-neutral-50)] transition-colors",
+        "flex items-center w-full px-4 py-2.5 text-sm text-(--color-neutral-700) hover:bg-(--color-neutral-50) transition-colors",
         className
       )}
     >
@@ -150,7 +150,7 @@ function CommandSeparator() {
 // Command Empty
 function CommandEmpty({ children }: CommandEmptyProps) {
   return (
-    <div className="py-6 text-center text-sm text-[var(--color-neutral-400)]">
+    <div className="py-6 text-center text-sm text-(--color-neutral-400)">
       {children}
     </div>
   );

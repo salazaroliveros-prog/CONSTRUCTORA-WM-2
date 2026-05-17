@@ -49,7 +49,7 @@ export function SidebarNavigation({ activeTab, onNavigate, isOpen, onToggle }: S
 
   return (
     <nav className={cn(
-      "fixed left-0 top-0 bottom-0 z-[9999] bg-[#0c1222] border-r border-white/5 transition-all duration-500 overflow-hidden flex-col hidden lg:flex",
+      "fixed left-0 top-0 bottom-0 z-9999 bg-[#0c1222] border-r border-white/5 transition-all duration-500 overflow-hidden flex-col hidden lg:flex",
       isOpen ? "w-64" : "w-20"
     )}>
       {/* Logo & Toggle */}

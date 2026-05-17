@@ -89,7 +89,7 @@ function MiniRing({ value, color, label }: { value: number; color: string; label
            <span className="text-[8px] font-black mini-ring-pct" style={{ '--c': color } as React.CSSProperties}>{value}%</span>
         </div>
       </div>
-        <span className="text-[7px] sm:text-[6px] font-black text-[var(--color-neutral-600)] uppercase tracking-wide leading-none">{label}</span>
+        <span className="text-[7px] sm:text-[6px] font-black text-(--color-neutral-600) uppercase tracking-wide leading-none">{label}</span>
     </div>
   );
 }
@@ -136,7 +136,7 @@ function GaugeChart({ value, max = 100, label, color = 'var(--color-secondary)' 
           {Math.round(value)}%
         </text>
       </svg>
-        <span className="text-[7px] font-black text-[var(--color-neutral-700)] uppercase tracking-widest -mt-1">{label}</span>
+        <span className="text-[7px] font-black text-(--color-neutral-700) uppercase tracking-widest -mt-1">{label}</span>
     </div>
   );
 }
@@ -169,7 +169,7 @@ function ActivityHeatmap({ data }: { data: { date: string; value: number }[] }) 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: idx * 0.005, duration: 0.2 }}
-                className="w-4 h-4 rounded-sm cursor-pointer hover:ring-2 hover:ring-[var(--color-p-400)] transition-all"
+                className="w-4 h-4 rounded-sm cursor-pointer hover:ring-2 hover:ring-(--color-p-400) transition-all"
                 style={{ backgroundColor: getColor(value) }}
                 title={`${data[idx]?.date || ''}: ${value} actividades`}
               />
@@ -247,13 +247,13 @@ function AnimatedKpi({ value, currency }: { value: string | number; currency?: b
 function CustomTooltip({ active, payload, label }: any) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-[var(--color-neutral-900)]/95 backdrop-blur-sm border border-[var(--color-border)] rounded-lg px-3 py-2 shadow-2xl text-left min-w-[120px]">
-      {label && <p className="text-[8px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest mb-1.5">{label}</p>}
+    <div className="bg-(--color-neutral-900)/95 backdrop-blur-sm border border-(--color-border) rounded-lg px-3 py-2 shadow-2xl text-left min-w-30">
+      {label && <p className="text-[8px] font-black text-(--color-neutral-400) uppercase tracking-widest mb-1.5">{label}</p>}
       {payload.map((entry: any, i: number) => (
         <div key={i} className="flex items-center gap-1.5 mb-0.5 last:mb-0">
           <div className="w-1.5 h-1.5 rounded-full shrink-0 dot-color" style={{ '--dot-bg': entry.color } as React.CSSProperties} />
-          <span className="text-[8px] font-bold text-[var(--color-neutral-300)] uppercase">{entry.name}:</span>
-          <span className="text-[9px] font-black text-[var(--color-neutral-50)]">{fmtQ(Number(entry.value))}</span>
+          <span className="text-[8px] font-bold text-(--color-neutral-300) uppercase">{entry.name}:</span>
+          <span className="text-[9px] font-black text-(--color-neutral-50)">{fmtQ(Number(entry.value))}</span>
         </div>
       ))}
     </div>
@@ -633,11 +633,11 @@ const generateReport = async () => {
 
   const getCardStyle = () => {
     switch (settings.cardStyle) {
-      case 'flat': return 'bg-[var(--color-neutral-50)] border border-[var(--color-neutral-100)] shadow-none';
-      case 'glass': return 'bg-[var(--color-surface-solid)]/40 backdrop-blur-md border border-[rgba(255,255,255,0.5)] shadow-xl';
-      case 'bordered': return 'bg-[var(--color-surface-solid)] border-2 border-[var(--color-neutral-900)] shadow-none';
+      case 'flat': return 'bg-(--color-neutral-50) border border-(--color-neutral-100) shadow-none';
+      case 'glass': return 'bg-(--color-surface-solid)/40 backdrop-blur-md border border-[rgba(255,255,255,0.5)] shadow-xl';
+      case 'bordered': return 'bg-(--color-surface-solid) border-2 border-(--color-neutral-900) shadow-none';
       case 'elevated':
-      default: return 'bg-[var(--color-surface-solid)] border border-[var(--color-neutral-200)] shadow-sm hover:shadow-md transition-shadow';
+      default: return 'bg-(--color-surface-solid) border border-(--color-neutral-200) shadow-sm hover:shadow-md transition-shadow';
     }
   };
 
@@ -674,7 +674,7 @@ const generateReport = async () => {
       <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
     </div>
   ) : (
-    <div id="dashboard-container" className="flex flex-col gap-2 h-full min-h-0 pb-[calc(4rem+env(safe-area-inset-bottom,0px))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0px))]">
+    <div id="dashboard-container" className="flex flex-col gap-2 h-full min-h-0 pb-[calc(4rem+env(safe-area-inset-bottom,0))] scroll-mb-[calc(4rem+env(safe-area-inset-bottom,0))]">
 
       {/* Accounting Modal */}
       <Modal 
@@ -685,12 +685,12 @@ const generateReport = async () => {
         <div className="space-y-4 text-left">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Tipo Registro</label>
-              <div className="flex bg-[var(--color-neutral-100)] p-1 rounded-xl gap-1">
+              <label className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block">Tipo Registro</label>
+              <div className="flex bg-(--color-neutral-100) p-1 rounded-xl gap-1">
                 <button 
                   type="button"
                   onClick={() => setAccountingForm({ ...accountingForm, type: 'Entrada', category: entryCategories[0] })}
-                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Entrada' ? "bg-[var(--color-surface-solid)] text-[var(--color-success)] shadow-sm" : "text-[var(--color-neutral-400)]")}
+                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Entrada' ? "bg-(--color-surface-solid) text-(--color-success) shadow-sm" : "text-(--color-neutral-400)")}
                 >
                   <ArrowDownLeft size={10} className="inline mr-1" />
                   Ingreso (+)
@@ -698,7 +698,7 @@ const generateReport = async () => {
                 <button 
                   type="button"
                   onClick={() => setAccountingForm({ ...accountingForm, type: 'Salida', category: exitCategories[0] })}
-                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Salida' ? "bg-[var(--color-surface-solid)] text-[var(--color-error)] shadow-sm" : "text-[var(--color-neutral-400)]")}
+                  className={cn("flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all", accountingForm.type === 'Salida' ? "bg-(--color-surface-solid) text-(--color-error) shadow-sm" : "text-(--color-neutral-400)")}
                 >
                   <ArrowUpRight size={10} className="inline mr-1" />
                   Gasto (-)
@@ -706,7 +706,7 @@ const generateReport = async () => {
               </div>
             </div>
             <div className="space-y-2">
-              <label htmlFor="accounting-date" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Fecha</label>
+              <label htmlFor="accounting-date" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block">Fecha</label>
                <input 
                  id="accounting-date"
                  type="date"
@@ -719,12 +719,12 @@ const generateReport = async () => {
           </div>
 
           <div>
-              <label htmlFor="accounting-category" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Categoría</label>
+              <label htmlFor="accounting-category" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block mb-1">Categoría</label>
                <select 
                  id="accounting-category"
                  value={accountingForm.category}
                  onChange={(e) => setAccountingForm({ ...accountingForm, category: e.target.value })}
-                 className={cn("w-full input-modern text-[9px] font-black uppercase py-1.5 px-3", accountingForm.type === 'Entrada' ? 'text-[var(--color-success)]' : 'text-[var(--color-error)]')}
+                 className={cn("w-full input-modern text-[9px] font-black uppercase py-1.5 px-3", accountingForm.type === 'Entrada' ? 'text-(--color-success)' : 'text-(--color-error)')}
                  title="Seleccionar categoría"
              >
                {(accountingForm.type === 'Entrada' ? entryCategories : exitCategories).map(cat => (
@@ -791,7 +791,7 @@ const generateReport = async () => {
                />
             </div>
             <div className="space-y-2">
-              <label htmlFor="accounting-cost" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
+              <label htmlFor="accounting-cost" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block">Costo / Precio Unit. (Q)</label>
                <input 
                  id="accounting-cost"
                  type="number"
@@ -806,13 +806,13 @@ const generateReport = async () => {
           </div>
 
           <div>
-              <label htmlFor="accounting-description" className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
+              <label htmlFor="accounting-description" className="text-[9px] font-black text-(--color-neutral-400) uppercase tracking-widest block mb-1">Descripción de la Factura / Movimiento</label>
                <textarea 
                  id="accounting-description"
                  value={accountingForm.description}
                  onChange={(e) => setAccountingForm({ ...accountingForm, description: e.target.value })}
                  placeholder="Ej: Pago sub-contrato Fase 1, Compra de cemento..."
-                 className="w-full input-modern text-[10px] font-black uppercase focus:outline-none focus:border-secondary min-h-[80px]"
+                 className="w-full input-modern text-[10px] font-black uppercase focus:outline-none focus:border-secondary min-h-20"
                  title="Descripción del movimiento"
              />
           </div>
@@ -830,37 +830,37 @@ const generateReport = async () => {
 
       {/* Reset Modal */}
       {isResetModalOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
           <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-            className="bg-[var(--color-surface-solid)] rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden">
-            <div className="flex items-center justify-between p-5 border-b border-[var(--color-neutral-100)]">
+            className="bg-(--color-surface-solid) rounded-2xl shadow-2xl w-full max-w-lg max-h-[80vh] flex flex-col overflow-hidden">
+            <div className="flex items-center justify-between p-5 border-b border-(--color-neutral-100)">
               <div>
-                <h3 className="text-sm font-black text-[var(--color-neutral-900)] uppercase tracking-tight">Limpiar Datos del Sistema</h3>
-                <p className="text-[9px] text-[var(--color-neutral-400)] font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
+                <h3 className="text-sm font-black text-(--color-neutral-900) uppercase tracking-tight">Limpiar Datos del Sistema</h3>
+                <p className="text-[9px] text-(--color-neutral-400) font-bold uppercase tracking-widest mt-0.5">Selecciona los registros a eliminar</p>
               </div>
-              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-[var(--color-neutral-100)] rounded-xl transition-all"><X size={16} /></button>
+              <button title="Cerrar" onClick={() => setIsResetModalOpen(false)} className="p-2 hover:bg-(--color-neutral-100) rounded-xl transition-all"><X size={16} /></button>
             </div>
             <div className="flex-1 overflow-y-auto p-5 space-y-4">
               {Object.entries(resetData).map(([col, { items, selected }]) => {
                 const labels: Record<string, string> = { projects: 'Proyectos', inventory: 'Inventario', transactions: 'Transacciones', staff: 'Personal', suppliers: 'Proveedores', clients: 'Clientes' };
                 const allChecked = selected.length === items.length;
                 return (
-                  <div key={col} className="border border-[var(--color-neutral-100)] rounded-xl overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-2.5 bg-[var(--color-neutral-50)] border-b border-[var(--color-neutral-100)]">
+                  <div key={col} className="border border-(--color-neutral-100) rounded-xl overflow-hidden">
+                    <div className="flex items-center gap-3 px-4 py-2.5 bg-(--color-neutral-50) border-b border-(--color-neutral-100)">
                       <input title="Seleccionar todos" type="checkbox" checked={allChecked} onChange={() => setResetData(prev => ({ ...prev, [col]: { ...prev[col], selected: allChecked ? [] : items.map((d: any) => d.id) } }))} className="w-4 h-4 accent-red-500 cursor-pointer" />
-                      <span className="text-[10px] font-black text-[var(--color-neutral-700)] uppercase tracking-widest flex-1">{labels[col] || col}</span>
-                      <span className="text-[8px] font-bold text-[var(--color-p-500)]">{selected.length}/{items.length} seleccionados</span>
+                      <span className="text-[10px] font-black text-(--color-neutral-700) uppercase tracking-widest flex-1">{labels[col] || col}</span>
+                      <span className="text-[8px] font-bold text-(--color-p-500)">{selected.length}/{items.length} seleccionados</span>
                     </div>
-                    <div className="divide-y divide-[var(--color-neutral-50)] max-h-40 overflow-y-auto">
+                    <div className="divide-y divide-(--color-neutral-50) max-h-40 overflow-y-auto">
                       {items.map((item: any) => (
-                        <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-[var(--color-neutral-50)] cursor-pointer transition-colors">
+                        <label key={item.id} className="flex items-center gap-3 px-4 py-2 hover:bg-(--color-neutral-50) cursor-pointer transition-colors">
                           <input title={`Seleccionar ${item.name || item.description}`} type="checkbox" checked={selected.includes(item.id)}
                             onChange={() => setResetData(prev => {
                               const sel = prev[col].selected;
                               return { ...prev, [col]: { ...prev[col], selected: sel.includes(item.id) ? sel.filter(s => s !== item.id) : [...sel, item.id] } };
                             })} className="w-3.5 h-3.5 accent-red-500 cursor-pointer shrink-0" />
-                          <span className="text-[9px] font-bold text-[var(--color-neutral-600)] truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
-                          <span className="text-[7px] text-[var(--color-p-400)] font-mono ml-auto shrink-0">{item.id.slice(0, 8)}</span>
+                          <span className="text-[9px] font-bold text-(--color-neutral-600) truncate">{item.name || item.description || item.id.slice(0, 12)}</span>
+                          <span className="text-[7px] text-(--color-p-400) font-mono ml-auto shrink-0">{item.id.slice(0, 8)}</span>
                         </label>
                       ))}
                     </div>
@@ -868,10 +868,10 @@ const generateReport = async () => {
                 );
               })}
               {Object.keys(resetData).length === 0 && (
-                <p className="text-center text-[10px] text-[var(--color-neutral-400)] uppercase tracking-widest py-8">No hay datos para eliminar</p>
+                <p className="text-center text-[10px] text-(--color-neutral-400) uppercase tracking-widest py-8">No hay datos para eliminar</p>
               )}
             </div>
-            <div className="p-5 border-t border-[var(--color-neutral-100)] flex gap-3">
+            <div className="p-5 border-t border-(--color-neutral-100) flex gap-3">
               <Button variant="ghost" onClick={() => setIsResetModalOpen(false)} className="flex-1">Cancelar</Button>
               <Button variant="danger" onClick={handleConfirmReset} disabled={resetting || Object.values(resetData).every((v: any) => v.selected.length === 0)} className="flex-1">
                 {resetting ? <><div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin" /> Eliminando...</> : <><AlertTriangle size={12} /> Eliminar Seleccionados</>}
@@ -887,7 +887,7 @@ const generateReport = async () => {
       {/* Dashboard Top Header (Professional & Current) */}
       <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-2 bg-[#0c1222]/50 backdrop-blur-xl p-5 rounded-3xl border border-white/5 shadow-2xl">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
+          <div className="w-12 h-12 rounded-2xl bg-linear-to-br from-amber-500 to-orange-600 flex items-center justify-center shadow-lg shadow-amber-500/20">
             <Zap size={24} className="text-black" />
           </div>
           <div className="text-left">
@@ -953,14 +953,14 @@ const generateReport = async () => {
           {/* Row 1: Main Visual Analytics */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
              {/* Cash Flow Chart */}
-              <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-4 sm:p-6 shadow-xl border border-slate-100 flex flex-col min-h-[220px] lg:min-h-[350px]">
+              <motion.div variants={staggerItem} className="bg-white rounded-4xl p-4 sm:p-6 shadow-xl border border-slate-100 flex flex-col min-h-55 lg:min-h-[350px]">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja Global' : 'Flujo del Proyecto'}</h2>
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-0.5">Ingresos vs Egresos</p>
                   </div>
                 </div>
-                <div className="flex-1 w-full min-h-[220px]">
+                <div className="flex-1 w-full min-h-55">
                   <ResponsiveContainer width="100%" height="100%">
                     {settings.graphType === 'bar' ? (
                       <ComposedChart data={chartData}>
@@ -1009,7 +1009,7 @@ const generateReport = async () => {
              {/* Distribution & Performance */}
              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 {/* Gauge Section */}
-                <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col items-center justify-center">
+                <motion.div variants={staggerItem} className="bg-white rounded-4xl p-6 shadow-xl border border-slate-100 flex flex-col items-center justify-center">
                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-6">Eficiencia de Ejecución</h3>
                    <div className="flex gap-8">
                       <GaugeChart value={avgFisico} label="Físico" color="#f59e0b" />
@@ -1018,7 +1018,7 @@ const generateReport = async () => {
                 </motion.div>
 
                 {/* Expenses Pie */}
-                <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col min-h-[160px]">
+                <motion.div variants={staggerItem} className="bg-white rounded-4xl p-6 shadow-xl border border-slate-100 flex flex-col min-h-40">
                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Gastos por Categoría</h3>
                    <div className="flex-1 flex items-center gap-4">
                       <div className="w-1/2 h-full">
@@ -1058,7 +1058,7 @@ const generateReport = async () => {
           {/* Row 2: Tables & Feed */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
              {/* Projects Table */}
-             <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100">
+             <motion.div variants={staggerItem} className="bg-white rounded-4xl p-6 shadow-xl border border-slate-100">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Estado de Cuentas</h3>
@@ -1084,7 +1084,7 @@ const generateReport = async () => {
                     <tbody className="divide-y divide-slate-50">
                       {tableData.slice(0, 6).map(row => (
                         <tr key={row.id} className="group hover:bg-slate-50/80 transition-all">
-                          <td className="py-4 font-black text-slate-900 uppercase text-[11px] truncate max-w-[150px]">{row.name}</td>
+                          <td className="py-4 font-black text-slate-900 uppercase text-[11px] truncate max-w-37.5">{row.name}</td>
                           <td className="py-4 text-right font-mono font-bold text-slate-600 text-[11px]">{fmtQ(row.costoTotal)}</td>
                           <td className="py-4 text-right font-mono font-black text-emerald-500 text-[11px]">{fmtQ(row.aportes)}</td>
                           <td className={cn("py-4 text-right font-mono font-black text-[11px]", row.pendiente > 0 ? "text-amber-500" : "text-slate-300")}>{fmtQ(row.pendiente)}</td>
@@ -1102,7 +1102,7 @@ const generateReport = async () => {
              </motion.div>
 
              {/* Recent Activity */}
-             <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col">
+             <motion.div variants={staggerItem} className="bg-white rounded-4xl p-6 shadow-xl border border-slate-100 flex flex-col">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h3 className="text-sm font-black text-slate-900 uppercase tracking-tight">Movimientos Recientes</h3>
@@ -1110,7 +1110,7 @@ const generateReport = async () => {
                   </div>
                   <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2.5 py-1 rounded-lg uppercase">{filteredTransactions.length} TOTAL</span>
                 </div>
-                 <div className="flex-1 overflow-y-auto max-h-[250px] lg:max-h-[350px] pr-2 custom-scrollbar">
+                 <div className="flex-1 overflow-y-auto max-h-62.5 lg:max-h-[350px] pr-2 custom-scrollbar">
                    <div className="space-y-3">
                       {filteredTransactions.slice(0, 15).map((t, i) => (
                         <div key={t.id || i} className="group flex items-center justify-between p-4 bg-slate-50 hover:bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all cursor-default">
@@ -1207,7 +1207,7 @@ const generateReport = async () => {
                     agendaEvents.filter(e => e.date === new Date().toISOString().split('T')[0]).map(e => (
                       <div key={e.id} className="group relative bg-slate-50 hover:bg-amber-50/50 p-5 rounded-3xl border border-slate-100 hover:border-amber-200 transition-all cursor-default shadow-sm hover:shadow-md">
                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-[0.1em]">{e.time}</span>
+                            <span className="text-[10px] font-black text-amber-600 uppercase tracking-widest">{e.time}</span>
                             <div className="w-2 h-2 rounded-full bg-amber-500 animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
                          </div>
                          <p className="text-[12px] font-black text-slate-800 leading-tight uppercase tracking-tight">{e.title}</p>
@@ -1252,8 +1252,8 @@ const generateReport = async () => {
                                    className="h-full bg-white shadow-sm"
                                  />
                               </div>
-                              <span className="text-[9px] font-black text-white min-w-[30px]">{Math.round(count/total*100)}%</span>
-                              <span className="text-[8px] font-black text-black/40 uppercase truncate max-w-[80px] text-right">{type}</span>
+                              <span className="text-[9px] font-black text-white min-w-7.5">{Math.round(count/total*100)}%</span>
+                              <span className="text-[8px] font-black text-black/40 uppercase truncate max-w-20 text-right">{type}</span>
                            </div>
                          ));
                      })()}
@@ -1265,9 +1265,9 @@ const generateReport = async () => {
 
       {/* Edit Transaction Modal */}
       {editTx && (
-        <div className='fixed inset-0 z-[200] flex items-center justify-center p-4'>
-          <div className='absolute inset-0 bg-[var(--color-neutral-900)]/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
-          <div className='relative w-full max-w-md bg-[var(--color-surface-solid)] rounded-2xl shadow-2xl p-6 border border-[var(--color-neutral-200)]'>
+        <div className='fixed inset-0 z-200 flex items-center justify-center p-4'>
+          <div className='absolute inset-0 bg-(--color-neutral-900)/40 backdrop-blur-sm' onClick={() => setEditTx(null)} />
+          <div className='relative w-full max-w-md bg-(--color-surface-solid) rounded-2xl shadow-2xl p-6 border border-(--color-neutral-200)'>
             <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
             <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
               <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>

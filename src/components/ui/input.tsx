@@ -17,14 +17,14 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     return (
       <div className={cn("space-y-1.5", wrapperClassName)}>
         {label && (
-          <label htmlFor={inputId} className="block text-[10px] font-bold text-[var(--color-neutral-500)] uppercase tracking-wider">
+          <label htmlFor={inputId} className="block text-[10px] font-bold text-(--color-neutral-500) uppercase tracking-wider">
             {label}
             {required && <span className="text-error ml-0.5">*</span>}
           </label>
         )}
         <div className="relative">
           {icon && (
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-neutral-400)] pointer-events-none">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-(--color-neutral-400) pointer-events-none">
               {icon}
             </div>
           )}
@@ -44,7 +44,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           />
         </div>
         {(hint || error) && (
-          <p id={`${inputId}-hint`} className={cn("text-[9px] font-medium mt-0.5", error ? "text-error" : "text-[var(--color-neutral-400)]")}>
+          <p id={`${inputId}-hint`} className={cn("text-[9px] font-medium mt-0.5", error ? "text-error" : "text-(--color-neutral-400)")}>
             {error || hint}
           </p>
         )}
