@@ -200,7 +200,7 @@ export default function ClientsModule() {
       </div>
 
       {/* ── Main: lista + perfil ── */}
-      <div className="flex-1 min-h-0 flex gap-3 overflow-hidden">
+      <div className="flex-1 min-h-0 flex flex-col lg:flex-row gap-3 overflow-hidden">
 
         {/* Lista */}
         <div className={cn('flex flex-col gap-2 overflow-y-auto', selected ? 'w-64 sm:w-80 shrink-0' : 'flex-1')}>
@@ -247,7 +247,7 @@ export default function ClientsModule() {
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     <span className="text-[8px] font-black text-p-500">{cProjs.length} proy.</span>
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex gap-1 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                       <button onClick={e => { e.stopPropagation(); setSelected(c); openEdit(c); }}
                         className="p-1 hover:bg-blue-bg rounded text-p-400 hover:text-blue-600" aria-label="Editar cliente"><Pencil size={11} /></button>
                       <button onClick={e => { e.stopPropagation(); handleDelete(c); }}

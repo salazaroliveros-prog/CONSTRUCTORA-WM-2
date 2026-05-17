@@ -16,6 +16,7 @@ import { NetworkStatusProvider, useNetworkStatus } from "./contexts/NetworkStatu
 
 // Layout
 import { SidebarNavigation } from "./components/layout/SidebarNavigation";
+import { GlobalNav } from "./components/layout/GlobalNav";
 import { TopBar } from "./components/layout/TopBar";
 import ErrorBoundary from "./components/shared/ErrorBoundary";
 
@@ -54,6 +55,7 @@ function LoadingSpinner() {
 // ── App Content ──
 function AppContent() {
   const [isNavOpen, setIsNavOpen] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const validTabs = new Set([
     "dashboard", "execution", "clients", "inventory", "projects", "suppliers", 
@@ -126,12 +128,18 @@ function AppContent() {
         isOpen={isNavOpen} 
         onToggle={() => setIsNavOpen(!isNavOpen)} 
       />
+      <GlobalNav
+        activeTab={activeTab}
+        onNavigate={handleNavigate}
+        isMenuOpen={isMobileMenuOpen}
+        setIsMenuOpen={setIsMobileMenuOpen}
+      />
       <div className={cn(
         "min-h-screen transition-all duration-500",
-        isNavOpen ? "pl-64" : "pl-20"
+        isNavOpen ? "lg:pl-64" : "lg:pl-20"
       )}>
         <TopBar onNavigate={handleNavigate} activeTab={activeTab} />
-        <main className="pt-24 pb-10 px-8">
+        <main className="pt-24 pb-10 px-4 sm:px-6 md:px-8">
            <Suspense fallback={<LoadingSpinner />}>
              {renderModule()}
            </Suspense>

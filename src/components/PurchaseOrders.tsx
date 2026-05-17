@@ -181,7 +181,7 @@ export default function PurchaseOrdersModule() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div>
           <h1 className="text-xl font-black uppercase tracking-widest text-white flex items-center gap-3">
             <ShoppingCart className="text-white" />

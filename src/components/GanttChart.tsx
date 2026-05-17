@@ -751,7 +751,7 @@ export default function GanttChart() {
     <div className="h-full flex flex-col p-4 gap-3 overflow-hidden overflow-x-hidden">
 
       {/* ── Header ── */}
-      <div className="flex items-center justify-between gap-3 shrink-0">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shrink-0">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-linear-to-br from-blue-500 to-blue-700 rounded-xl shadow">
             <Activity size={18} className="text-white" />

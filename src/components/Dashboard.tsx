@@ -683,7 +683,7 @@ const generateReport = async () => {
         title="Registro Contable"
       >
         <div className="space-y-4 text-left">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label className="text-[9px] font-black text-[var(--color-neutral-400)] uppercase tracking-widest block">Tipo Registro</label>
               <div className="flex bg-[var(--color-neutral-100)] p-1 rounded-xl gap-1">
@@ -776,7 +776,7 @@ const generateReport = async () => {
             );
           })()}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="accounting-quantity" className="label">Cantidad / Unidades</label>
                <input 
@@ -947,13 +947,13 @@ const generateReport = async () => {
         variants={staggerContainer}
         initial="hidden"
         animate="show"
-        className="flex flex-col lg:flex-row gap-6 flex-1 min-h-0 overflow-visible"
+        className="flex flex-col lg:flex-row gap-3 lg:gap-6 flex-1 min-h-0 overflow-visible"
       >
         <div className="flex-1 flex flex-col gap-6 min-w-0">
           {/* Row 1: Main Visual Analytics */}
           <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
              {/* Cash Flow Chart */}
-             <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-6 shadow-xl border border-slate-100 flex flex-col min-h-[350px]">
+              <motion.div variants={staggerItem} className="bg-white rounded-[2rem] p-4 sm:p-6 shadow-xl border border-slate-100 flex flex-col min-h-[220px] lg:min-h-[350px]">
                 <div className="flex justify-between items-center mb-6">
                   <div>
                     <h2 className="text-sm font-black text-slate-900 uppercase tracking-tight">{selectedProjectId === 'ALL' ? 'Flujo de Caja Global' : 'Flujo del Proyecto'}</h2>
@@ -1110,7 +1110,7 @@ const generateReport = async () => {
                   </div>
                   <span className="bg-amber-100 text-amber-700 text-[9px] font-black px-2.5 py-1 rounded-lg uppercase">{filteredTransactions.length} TOTAL</span>
                 </div>
-                <div className="flex-1 overflow-y-auto max-h-[350px] pr-2 custom-scrollbar">
+                 <div className="flex-1 overflow-y-auto max-h-[250px] lg:max-h-[350px] pr-2 custom-scrollbar">
                    <div className="space-y-3">
                       {filteredTransactions.slice(0, 15).map((t, i) => (
                         <div key={t.id || i} className="group flex items-center justify-between p-4 bg-slate-50 hover:bg-white rounded-2xl border border-slate-100 hover:shadow-lg transition-all cursor-default">
@@ -1131,7 +1131,7 @@ const generateReport = async () => {
                               <p className={cn("text-xs font-black", t.type === 'INGRESO' ? 'text-emerald-600' : 'text-rose-600')}>
                                  {t.type === 'INGRESO' ? '+' : '-'} {fmtQ(Math.abs(t.amount || 0))}
                               </p>
-                              <div className="flex gap-1 mt-1 opacity-0 group-hover:opacity-100 transition-all">
+                               <div className="flex gap-1 mt-1 lg:opacity-0 lg:group-hover:opacity-100 transition-all">
                                  <button onClick={() => { setEditTx(t); setEditTxForm({ description: t.description || '', amount: t.amount || 0, type: t.type || 'GASTO', category: t.category || '', date: t.date || '' }); }} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-amber-500 transition-colors"><Pencil size={12} /></button>
                                  <button onClick={() => handleDeleteTx(t.id)} className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={12} /></button>
                               </div>
@@ -1270,12 +1270,12 @@ const generateReport = async () => {
           <div className='relative w-full max-w-md bg-[var(--color-surface-solid)] rounded-2xl shadow-2xl p-6 border border-[var(--color-neutral-200)]'>
             <h3 className='text-sm font-black text-primary uppercase tracking-widest mb-5'>Editar Movimiento</h3>
             <form onSubmit={handleEditTxSave} className='space-y-4 text-left'>
-              <div className='grid grid-cols-2 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                 <div><label htmlFor="edit-tx-type" className="label">Tipo</label><select id="edit-tx-type" title="Tipo de movimiento" value={editTxForm.type} onChange={e => setEditTxForm({ ...editTxForm, type: e.target.value })} className='select'><option value='INGRESO'>INGRESO</option><option value='GASTO'>GASTO</option></select></div>
                 <div><label htmlFor="edit-tx-date" className="label">Fecha</label><input id="edit-tx-date" title="Fecha" type='date' value={editTxForm.date} onChange={e => setEditTxForm({ ...editTxForm, date: e.target.value })} className='input' /></div>
               </div>
               <div><label htmlFor="edit-tx-desc" className="label">Descripcion</label><input id="edit-tx-desc" title="Descripción" type='text' value={editTxForm.description} onChange={e => setEditTxForm({ ...editTxForm, description: e.target.value })} className='input' /></div>
-              <div className='grid grid-cols-2 gap-3'>
+              <div className='grid grid-cols-1 sm:grid-cols-2 gap-3'>
                 <div><label htmlFor="edit-tx-cat" className="label">Categoria</label><input id="edit-tx-cat" title="Categoría" type='text' value={editTxForm.category} onChange={e => setEditTxForm({ ...editTxForm, category: e.target.value })} className='input' /></div>
                 <div><label htmlFor="edit-tx-amount" className="label">Monto (Q)</label><input id="edit-tx-amount" title="Monto" type='number' step='0.01' value={editTxForm.amount} onChange={e => setEditTxForm({ ...editTxForm, amount: parseFloat(e.target.value) || 0 })} className='input' /></div>
               </div>
@@ -1287,6 +1287,15 @@ const generateReport = async () => {
           </div>
         </div>
       )}
+
+      {/* Mobile-only floating accounting FAB */}
+      <button
+        onClick={() => setIsAccountingModalOpen(true)}
+        className="lg:hidden fixed right-5 bottom-24 z-50 w-14 h-14 rounded-full bg-amber-500 text-black shadow-xl flex items-center justify-center hover:bg-amber-400 active:scale-90 transition-all"
+        aria-label="Registrar movimiento"
+      >
+        <Plus size={24} strokeWidth={2.5} />
+      </button>
     </div>
   );
 }
